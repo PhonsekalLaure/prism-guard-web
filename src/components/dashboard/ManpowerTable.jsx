@@ -20,12 +20,12 @@ const contracts = [
 
 export default function ManpowerTable() {
   return (
-    <div className="panel">
+    <div className="panel" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div className="panel-header">
         <h3><FaUsers /> Manpower Distribution</h3>
       </div>
 
-      <div style={{ overflowX: 'auto' }}>
+      <div style={{ overflowX: 'auto', flex: 1 }}>
         <table className="data-table">
           <thead>
             <tr>

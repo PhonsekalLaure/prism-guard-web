@@ -36,12 +36,12 @@ const incidents = [
 
 export default function IncidentFeed() {
   return (
-    <div className="panel">
+    <div className="panel" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div className="panel-header">
         <h3><FaExclamationTriangle /> Critical Incident Feed (NLP Summary)</h3>
       </div>
 
-      <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', flex: 1 }}>
         {incidents.map((inc) => (
           <div
             key={inc.id}

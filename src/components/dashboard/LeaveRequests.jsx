@@ -9,17 +9,23 @@ const requests = [
 
 export default function LeaveRequests() {
   return (
-    <div className="panel">
+    <div className="panel" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div className="panel-header">
         <h3><FaCalendarAlt /> Pending Leave Request</h3>
       </div>
 
-      <div>
-        {requests.map((r, i) => (
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        {requests.slice(0, 2).map((r, i, arr) => (
           <div
             key={i}
             className="request-item"
-            style={{ borderBottom: i < requests.length - 1 ? '1px solid #f0f0f0' : 'none' }}
+            style={{ 
+              flex: 1, 
+              display: 'flex', 
+              flexDirection: 'column', 
+              justifyContent: 'center',
+              borderBottom: i < arr.length - 1 ? '1px solid #f0f0f0' : 'none' 
+            }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
               <p className="req-name">{r.name}</p>
@@ -32,7 +38,7 @@ export default function LeaveRequests() {
       </div>
 
       <Link to="/leaves" className="panel-link">
-        View All Requests <FaArrowRight style={{ marginLeft: 4, fontSize: '0.7rem' }} />
+        View All Requests <FaArrowRight style={{ fontSize: '0.7rem' }} />
       </Link>
     </div>
   );

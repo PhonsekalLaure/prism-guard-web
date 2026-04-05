@@ -9,17 +9,23 @@ const advances = [
 
 export default function CashAdvances() {
   return (
-    <div className="panel">
+    <div className="panel" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div className="panel-header">
         <h3><FaHandHoldingUsd /> Pending Cash Advances</h3>
       </div>
 
-      <div>
-        {advances.map((a, i) => (
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        {advances.slice(0, 2).map((a, i, arr) => (
           <div
             key={i}
             className="request-item"
-            style={{ borderBottom: i < advances.length - 1 ? '1px solid #f0f0f0' : 'none' }}
+            style={{ 
+              flex: 1, 
+              display: 'flex', 
+              flexDirection: 'column', 
+              justifyContent: 'center',
+              borderBottom: i < arr.length - 1 ? '1px solid #f0f0f0' : 'none' 
+            }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
               <p className="req-name">{a.name}</p>
