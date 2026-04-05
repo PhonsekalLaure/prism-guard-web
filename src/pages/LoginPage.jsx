@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
-import BrandPanel from '../components/login/BrandPanel';
-import LoginForm from '../components/login/LoginForm';
-import Notification from '../components/ui/Notification';
-import useNotification from '../hooks/useNotification';
-import '../styles/Login.css';
+import BrandPanel from '@components/login/BrandPanel';
+import LoginForm from '@components/login/LoginForm';
+import Notification from '@components/ui/Notification';
+import useNotification from '@hooks/useNotification';
+import '@styles/Login.css';
 
 export default function LoginPage() {
   const { notification, showNotification, closeNotification } = useNotification();

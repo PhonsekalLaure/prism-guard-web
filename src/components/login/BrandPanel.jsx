@@ -1,5 +1,5 @@
 import { FaUsers, FaClock, FaFileInvoiceDollar, FaAddressBook, FaFileContract } from 'react-icons/fa';
-import logo from '../../assets/logo.png';
+import logo from '@assets/logo.png';
 
 const features = [
   { icon: FaUsers, label: 'Workforce Management' },
