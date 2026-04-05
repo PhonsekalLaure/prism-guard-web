@@ -36,8 +36,10 @@
 }
 
 .sidebar-header img {
-  width: 42px;
+  width: 65px;
   height: auto;
+  transform: scale(1.99);
+  transform-origin: center;
 }
 
 .sidebar-header .brand-name {
@@ -185,6 +187,7 @@
   width: calc(100% - 2.4rem) !important;
   justify-content: center;
   padding: 0.55rem !important;
+  font-weight: 700 !important;
 }
 
 .logout-item:hover {
