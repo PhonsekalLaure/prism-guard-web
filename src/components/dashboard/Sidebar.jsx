@@ -42,9 +42,9 @@ const navGroups = [
   },
 ];
 
-export default function Sidebar({ onLogoutClick }) {
+export default function Sidebar({ onLogoutClick, isOpen, onClose }) {
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
       {/* Header */}
       <div className="sidebar-header">
         <img src={logo} alt="PRISM-Guard" />
