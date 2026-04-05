@@ -783,23 +783,64 @@
 /* =============================================
    RESPONSIVE
    ============================================= */
+/* Sidebar and Hamburger Layout Helpers */
+.mobile-toggle {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  color: #093269;
+  cursor: pointer;
+  padding: 0;
+}
+.sidebar-overlay {
+  display: none;
+}
+
 @media (max-width: 1280px) {
-  .stat-grid {
+  .stat-grid, .stat-grid.three-cols {
     grid-template-columns: repeat(2, 1fr);
+  }
+  .stat-grid.three-cols > :last-child {
+    grid-column: 1 / -1;
   }
   .content-grid {
     grid-template-columns: 1fr;
   }
+  .content-grid > :nth-child(1) { order: 1; }
+  .content-grid > :nth-child(2) { order: 3; }
+  .content-grid > :nth-child(3) { order: 2; }
+  .content-grid > :nth-child(4) { order: 4; }
 }
 
 @media (max-width: 1024px) {
+  .mobile-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
   .sidebar {
-    display: none;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: -300px;
+    z-index: 50;
+    transition: left 0.3s ease;
+  }
+  .sidebar.open {
+    left: 0;
+  }
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 40;
   }
 }
 
 @media (max-width: 768px) {
-  .stat-grid {
+  .stat-grid, .stat-grid.three-cols {
     grid-template-columns: 1fr;
   }
   .topbar-actions {
