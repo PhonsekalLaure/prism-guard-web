@@ -6,6 +6,7 @@ import '../styles/Dashboard.css';
 
 export default function DashboardLayout() {
   const [showLogout, setShowLogout] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem('isAuthenticated');
@@ -15,10 +16,11 @@ export default function DashboardLayout() {
 
   return (
     <div className="dashboard-layout">
-      <Sidebar onLogoutClick={() => setShowLogout(true)} />
+      <Sidebar onLogoutClick={() => setShowLogout(true)} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>}
 
       <main className="dashboard-main">
-        <Outlet />
+        <Outlet context={{ toggleSidebar: () => setSidebarOpen(!sidebarOpen) }} />
       </main>
 
       <LogoutModal
