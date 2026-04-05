@@ -14,17 +14,10 @@ export default function DashboardPage() {
         <StatCards />
 
         <div className="content-grid">
-          {/* Left column — incident feed then manpower table */}
-          <div className="content-left">
-            <IncidentFeed />
-            <ManpowerTable />
-          </div>
-
-          {/* Right column — leave requests, cash advances */}
-          <div className="content-right">
-            <LeaveRequests />
-            <CashAdvances />
-          </div>
+          <IncidentFeed />
+          <LeaveRequests />
+          <ManpowerTable />
+          <CashAdvances />
         </div>
       </div>
     </>
