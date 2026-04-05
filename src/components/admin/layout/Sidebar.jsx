@@ -4,7 +4,7 @@ import {
   FaUsers, FaFingerprint, FaCalendarAlt, FaHandHoldingUsd, FaMoneyBillWave,
   FaUserPlus, FaExclamationTriangle, FaBullhorn, FaUserShield, FaSignOutAlt,
 } from 'react-icons/fa';
-import logo from '../../assets/logo.png';
+import logo from '@assets/logo.png';
 
 const navGroups = [
   {
