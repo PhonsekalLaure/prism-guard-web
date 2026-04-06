@@ -1,6 +1,6 @@
-import ClientsTopbar from '@components/clients/ClientsTopbar';
-import ClientsFilterBar from '@components/clients/ClientsFilterBar';
-import ClientsGrid from '@components/clients/ClientsGrid';
+import ClientsTopbar from '@/components/hris/clients/ClientsTopbar';
+import ClientsFilterBar from '@/components/hris/clients/ClientsFilterBar';
+import ClientsGrid from '@/components/hris/clients/ClientsGrid';
 import '@styles/Clients.css';
 
 export default function ClientsPage() {

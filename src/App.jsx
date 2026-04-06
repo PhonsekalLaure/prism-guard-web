@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import LoginPage from '@pages/LoginPage';
 import DashboardLayout from '@layouts/admin/DashboardLayout';
 import DashboardPage from '@pages/admin/DashboardPage';
-import ClientsPage from '@pages/ClientsPage';
+import ClientsPage from '@/pages/admin/ClientsPage';
 
 function App() {
   return (
