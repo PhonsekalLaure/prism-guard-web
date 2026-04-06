@@ -1,7 +1,8 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import LoginPage from '@pages/LoginPage';
-import DashboardLayout from '@layouts/admin/DashboardLayout';
-import DashboardPage from '@pages/admin/DashboardPage';
+import DashboardLayout from '@layouts/hris/DashboardLayout';
+import DashboardPage from '@pages/hris/DashboardPage';
+import ClientsPage from '@pages/hris/ClientsPage';
 
 function App() {
   return (
@@ -12,8 +13,7 @@ function App() {
         {/* Dashboard routes — nested under DashboardLayout */}
         <Route element={<DashboardLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
-          {/* Future pages will go here, e.g.: */}
-          {/* <Route path="/employees" element={<EmployeesPage />} /> */}
+          <Route path="/clients" element={<ClientsPage />} />
         </Route>
 
         {/* Default route → login */}

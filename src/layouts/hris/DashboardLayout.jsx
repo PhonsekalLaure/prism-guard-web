@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import Sidebar from '@/components/admin/layout/Sidebar';
-import LogoutModal from '@/components/ui/LogoutModal';
-import '@/styles/Dashboard.css';
+import Sidebar from '@hris-components/Sidebar';
+import LogoutModal from '@components/ui/LogoutModal';
+import '@styles/Dashboard.css';
 
 export default function DashboardLayout() {
   const [showLogout, setShowLogout] = useState(false);
