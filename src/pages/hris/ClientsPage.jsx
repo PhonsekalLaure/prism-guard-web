@@ -1,12 +1,16 @@
-import ClientsTopbar from '@/components/hris/clients/ClientsTopbar';
-import ClientsFilterBar from '@/components/hris/clients/ClientsFilterBar';
-import ClientsGrid from '@/components/hris/clients/ClientsGrid';
+import { useState } from 'react';
+import ClientsTopbar from '@hris-components/clients/ClientsTopbar';
+import ClientsFilterBar from '@hris-components/clients/ClientsFilterBar';
+import ClientsGrid from '@hris-components/clients/ClientsGrid';
+import AddClientModal from '@hris-components/clients/AddClientModal';
 import '@styles/Clients.css';
 
 export default function ClientsPage() {
+  const [isAddClientOpen, setIsAddClientOpen] = useState(false);
+
   return (
     <>
-      <ClientsTopbar />
+      <ClientsTopbar onAddClient={() => setIsAddClientOpen(true)} />
 
       <div className="dashboard-content">
         {/* Summary stats */}
@@ -24,6 +28,11 @@ export default function ClientsPage() {
         <ClientsFilterBar />
         <ClientsGrid />
       </div>
+
+      <AddClientModal 
+        isOpen={isAddClientOpen} 
+        onClose={() => setIsAddClientOpen(false)} 
+      />
     </>
   );
 }
