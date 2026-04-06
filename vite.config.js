@@ -15,6 +15,7 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
       '@components': path.resolve(__dirname, './src/components'),
+      '@hris-components': path.resolve(__dirname, './src/components/hris'),
       '@pages': path.resolve(__dirname, './src/pages'),
       '@layouts': path.resolve(__dirname, './src/layouts'),
       '@styles': path.resolve(__dirname, './src/styles'),
