@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import Sidebar from '@components/admin/layout/Sidebar';
+import Sidebar from '@hris-components/Sidebar';
 import LogoutModal from '@components/ui/LogoutModal';
 import '@styles/Dashboard.css';
 

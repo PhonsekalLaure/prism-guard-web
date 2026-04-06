@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import LoginPage from '@pages/LoginPage';
-import DashboardLayout from '@layouts/admin/DashboardLayout';
-import DashboardPage from '@pages/admin/DashboardPage';
-import ClientsPage from '@/pages/admin/ClientsPage';
+import DashboardLayout from '@layouts/hris/DashboardLayout';
+import DashboardPage from '@pages/hris/DashboardPage';
+import ClientsPage from '@pages/hris/ClientsPage';
 
 function App() {
   return (
