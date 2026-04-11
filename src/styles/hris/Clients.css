@@ -25,35 +25,6 @@
   box-shadow: 0 6px 18px rgba(230, 178, 21, 0.35);
 }
 
-/* Stat cards — 2-column */
-.clients-stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.2rem;
-  margin-bottom: 1.5rem;
-}
-
-.clients-stat-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 1.3rem 1.5rem;
-  border-left: 4px solid;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.clients-stat-card .cs-label {
-  font-size: 0.82rem;
-  color: #7f8c8d;
-  font-weight: 500;
-  margin-bottom: 0.15rem;
-}
-
-.clients-stat-card .cs-value {
-  font-size: 2.2rem;
-  font-weight: 700;
-  margin: 0;
-}
-
 /* Search / Filter bar */
 .clients-filter-bar {
   background: #fff;
@@ -241,9 +212,6 @@
 
 @media (max-width: 768px) {
   .clients-grid {
-    grid-template-columns: 1fr;
-  }
-  .clients-stats {
     grid-template-columns: 1fr;
   }
   .clients-filter-bar {

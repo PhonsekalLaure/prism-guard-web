@@ -106,7 +106,7 @@ export default function LoginForm({ onNotify }) {
       {/* Footer */}
       <div className="card-footer">
         <p>
-          © 2026 PRISM-GUARD System
+          © 2026 PRISM-Guard System
           <br />
           Praise Security and Investigation Agency Inc.
         </p>

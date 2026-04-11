@@ -3,6 +3,7 @@ import LoginPage from '@pages/LoginPage';
 import DashboardLayout from '@layouts/hris/DashboardLayout';
 import DashboardPage from '@pages/hris/DashboardPage';
 import ClientsPage from '@pages/hris/ClientsPage';
+import BillingPage from '@pages/hris/BillingPage';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Route element={<DashboardLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/clients" element={<ClientsPage />} />
+          <Route path="/billing" element={<BillingPage />} />
         </Route>
 
         {/* Default route → login */}

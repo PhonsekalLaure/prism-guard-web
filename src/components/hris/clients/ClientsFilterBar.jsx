@@ -6,19 +6,20 @@ export default function ClientsFilterBar() {
   const [status, setStatus] = useState('all');
 
   return (
-    <div className="clients-filter-bar">
-      <div>
-        <label><FaSearch /> Search Client</label>
+    <div className="filter-bar two-cols">
+      <div className="filter-group">
+        <label className="filter-label"><FaSearch className="filter-icon" /> Search Client</label>
         <input
           type="text"
           placeholder="Search by company name"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          className="filter-input"
         />
       </div>
-      <div>
-        <label><FaFilter /> Contract Status</label>
-        <select value={status} onChange={(e) => setStatus(e.target.value)}>
+      <div className="filter-group">
+        <label className="filter-label"><FaFilter className="filter-icon" /> Contract Status</label>
+        <select value={status} onChange={(e) => setStatus(e.target.value)} className="filter-select">
           <option value="all">All Status</option>
           <option value="active">Active</option>
           <option value="pending">Pending</option>
