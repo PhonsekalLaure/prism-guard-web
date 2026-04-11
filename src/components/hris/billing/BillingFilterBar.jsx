@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { FaSearch, FaFilter, FaSort } from 'react-icons/fa';
+import '@styles/hris/FilterBar.css';
 
 export default function BillingFilterBar({ onFilterChange }) {
   const [search, setSearch] = useState('');
@@ -22,10 +23,10 @@ export default function BillingFilterBar({ onFilterChange }) {
   };
 
   return (
-    <div className="billing-filter-bar">
-      <div className="bfb-group bfb-group--wide">
-        <label>
-          <FaSearch className="bfb-icon" />
+    <div className="filter-bar three-cols">
+      <div className="filter-group">
+        <label className="filter-label">
+          <FaSearch className="filter-icon" />
           Search Client
         </label>
         <input
@@ -33,16 +34,16 @@ export default function BillingFilterBar({ onFilterChange }) {
           placeholder="Search by client name"
           value={search}
           onChange={handleSearch}
-          className="bfb-input"
+          className="filter-input"
         />
       </div>
 
-      <div className="bfb-group">
-        <label>
-          <FaFilter className="bfb-icon" />
+      <div className="filter-group">
+        <label className="filter-label">
+          <FaFilter className="filter-icon" />
           Payment Status
         </label>
-        <select value={status} onChange={handleStatus} className="bfb-select">
+        <select value={status} onChange={handleStatus} className="filter-select">
           <option value="all">All Clients</option>
           <option value="paid">Paid</option>
           <option value="partial">Partially Paid</option>
@@ -51,12 +52,12 @@ export default function BillingFilterBar({ onFilterChange }) {
         </select>
       </div>
 
-      <div className="bfb-group">
-        <label>
-          <FaSort className="bfb-icon" />
+      <div className="filter-group">
+        <label className="filter-label">
+          <FaSort className="filter-icon" />
           Status
         </label>
-        <select value={sortBy} onChange={handleSort} className="bfb-select">
+        <select value={sortBy} onChange={handleSort} className="filter-select">
           <option value="amount-highest">Amount (Highest)</option>
           <option value="amount-lowest">Amount (Lowest)</option>
           <option value="due-nearest">Due Date (Nearest)</option>

@@ -48,60 +48,6 @@
   box-shadow: 0 6px 18px rgba(230, 178, 21, 0.4);
 }
 
-/* ─── Filter Bar ─── */
-.billing-filter-bar {
-  background: #fff;
-  border-radius: 12px;
-  padding: 1.3rem 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  margin-bottom: 1.5rem;
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  gap: 1.25rem;
-  align-items: end;
-}
-
-.bfb-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.bfb-group label {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: #2c3e50;
-}
-
-.bfb-icon {
-  color: #093269;
-  font-size: 0.82rem;
-}
-
-.bfb-input,
-.bfb-select {
-  width: 100%;
-  padding: 0.65rem 1rem;
-  border: 1px solid #dfe6e9;
-  border-radius: 8px;
-  font-size: 0.82rem;
-  font-family: 'Poppins', sans-serif;
-  color: #2c3e50;
-  background: #fff;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  box-sizing: border-box;
-}
-
-.bfb-input:focus,
-.bfb-select:focus {
-  outline: none;
-  border-color: #e6b215;
-  box-shadow: 0 0 0 3px rgba(230, 178, 21, 0.1);
-}
-
 /* ─── Billing Table Panel ─── */
 .billing-table-panel {
   background: #fff;
@@ -739,12 +685,6 @@
 }
 
 /* ─── Responsive ─── */
-@media (max-width: 1024px) {
-  .billing-filter-bar {
-    grid-template-columns: 1fr;
-  }
-}
-
 @media (max-width: 768px) {
   .billing-topbar-actions {
     display: none;
