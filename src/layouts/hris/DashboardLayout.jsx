@@ -4,6 +4,7 @@ import Sidebar from '@hris-components/Sidebar';
 import LogoutModal from '@components/ui/LogoutModal';
 import '@styles/hris/Dashboard.css';
 import '@styles/hris/Clients.css';
+import '@styles/hris/Billing.css';
 
 export default function DashboardLayout() {
   const [showLogout, setShowLogout] = useState(false);

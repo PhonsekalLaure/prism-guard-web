@@ -3,6 +3,7 @@ import ClientsTopbar from '@hris-components/clients/ClientsTopbar';
 import ClientsFilterBar from '@hris-components/clients/ClientsFilterBar';
 import ClientsGrid from '@hris-components/clients/ClientsGrid';
 import AddClientModal from '@hris-components/clients/AddClientModal';
+import '@styles/hris/StatCard.css';
 
 
 export default function ClientsPage() {
@@ -14,14 +15,20 @@ export default function ClientsPage() {
 
       <div className="dashboard-content">
         {/* Summary stats */}
-        <div className="clients-stats">
-          <div className="clients-stat-card" style={{ borderLeftColor: '#093269' }}>
-            <p className="cs-label">Total Clients</p>
-            <p className="cs-value" style={{ color: '#093269' }}>126</p>
+        <div className="stat-grid two-cols">
+          <div className="stat-card" style={{ borderLeftColor: '#093269' }}>
+            <div>
+              <p className="stat-label">Total Clients</p>
+              <h3 className="stat-value" style={{ color: '#093269' }}>126</h3>
+              <p className="stat-sub" style={{ opacity: 0 }}>Spacer</p>
+            </div>
           </div>
-          <div className="clients-stat-card" style={{ borderLeftColor: '#e6b215' }}>
-            <p className="cs-label">Total Guards Deployed</p>
-            <p className="cs-value" style={{ color: '#e6b215' }}>118</p>
+          <div className="stat-card" style={{ borderLeftColor: '#e6b215' }}>
+            <div>
+              <p className="stat-label">Total Guards Deployed</p>
+              <h3 className="stat-value" style={{ color: '#e6b215' }}>118</h3>
+              <p className="stat-sub" style={{ opacity: 0 }}>Spacer</p>
+            </div>
           </div>
         </div>
 
