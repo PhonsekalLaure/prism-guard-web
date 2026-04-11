@@ -3,7 +3,7 @@ import ClientsTopbar from '@hris-components/clients/ClientsTopbar';
 import ClientsFilterBar from '@hris-components/clients/ClientsFilterBar';
 import ClientsGrid from '@hris-components/clients/ClientsGrid';
 import AddClientModal from '@hris-components/clients/AddClientModal';
-import '@styles/hris/StatCard.css';
+
 
 
 export default function ClientsPage() {

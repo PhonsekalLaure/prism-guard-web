@@ -1,5 +1,5 @@
 import { FaFingerprint, FaClock, FaUserTimes } from 'react-icons/fa';
-import '@styles/hris/StatCard.css';
+
 const stats = [
   {
     label: 'Total Clock-ins',

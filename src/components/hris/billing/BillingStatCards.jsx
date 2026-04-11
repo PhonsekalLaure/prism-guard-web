@@ -1,5 +1,4 @@
 import { FaFileInvoiceDollar, FaCoins, FaExclamationTriangle } from 'react-icons/fa';
-import '@styles/hris/StatCard.css';
 
 const stats = [
   {

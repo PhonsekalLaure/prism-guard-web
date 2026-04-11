@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { FaSearch, FaFilter } from 'react-icons/fa';
-import '@styles/hris/FilterBar.css';
 
 export default function ClientsFilterBar() {
   const [search, setSearch] = useState('');
