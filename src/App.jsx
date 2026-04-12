@@ -4,6 +4,7 @@ import DashboardLayout from '@layouts/hris/DashboardLayout';
 import DashboardPage from '@pages/hris/DashboardPage';
 import ClientsPage from '@pages/hris/ClientsPage';
 import BillingPage from '@pages/hris/BillingPage';
+import EmployeesPage from '@pages/hris/EmployeesPage';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/clients" element={<ClientsPage />} />
           <Route path="/billing" element={<BillingPage />} />
+          <Route path="/employees" element={<EmployeesPage />} />
         </Route>
 
         {/* Default route → login */}
