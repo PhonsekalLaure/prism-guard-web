@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { FaEye, FaEyeSlash, FaArrowRight } from 'react-icons/fa';
+import authService from '@services/authService';
 
 export default function LoginForm({ onNotify }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -12,19 +13,29 @@ export default function LoginForm({ onNotify }) {
     formState: { errors },
   } = useForm({ mode: 'onSubmit' });
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
     setIsSubmitting(true);
     onNotify?.('Logging in...', 'info');
 
-    // TODO: Replace with actual auth
-    setTimeout(() => {
-      localStorage.setItem('isAuthenticated', 'true');
-      if (data.rememberMe) localStorage.setItem('rememberDevice', 'true');
+    try {
+      const result = await authService.login(data.email, data.password);
 
       onNotify?.('Login successful! Redirecting...', 'success');
-      setTimeout(() => { window.location.href = '/dashboard'; }, 1000);
+      setTimeout(() => { window.location.href = result.redirect; }, 1000);
+    } catch (err) {
+      const status = err.response?.status;
+      const message = err.response?.data?.error;
+
+      if (status === 401) {
+        onNotify?.(message || 'Invalid email or password', 'error');
+      } else if (status === 403) {
+        onNotify?.(message || 'You do not have access to this portal', 'error');
+      } else {
+        onNotify?.('Something went wrong. Please try again.', 'error');
+      }
+    } finally {
       setIsSubmitting(false);
-    }, 1500);
+    }
   };
 
   const onError = () => {
