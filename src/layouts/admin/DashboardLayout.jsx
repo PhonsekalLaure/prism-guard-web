@@ -1,16 +1,21 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import Sidebar from '@/components/admin/layout/Sidebar';
-import LogoutModal from '@/components/ui/LogoutModal';
-import '@/styles/Dashboard.css';
+import Sidebar from '@hris-components/Sidebar';
+import LogoutModal from '@components/ui/LogoutModal';
+import authService from '@services/authService';
+import '@styles/hris/components/Sidebar.css';
+import '@styles/hris/components/StatCard.css';
+import '@styles/hris/components/FilterBar.css';
+import '@styles/hris/Dashboard.css';
+import '@styles/hris/Clients.css';
+import '@styles/hris/Billing.css';
 
 export default function DashboardLayout() {
   const [showLogout, setShowLogout] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const handleLogout = () => {
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('rememberDevice');
+  const handleLogout = async () => {
+    await authService.logout();
     window.location.href = '/login';
   };
 
