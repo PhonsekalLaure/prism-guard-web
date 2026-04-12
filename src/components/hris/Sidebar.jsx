@@ -84,6 +84,7 @@ export default function Sidebar({ onLogoutClick, isOpen, onClose }) {
 
         {/* User profile */}
         <div className="sidebar-user">
+          <NavLink to="/profile" className="nav-item">
           <div className="user-avatar">
             <FaUsers />
           </div>
@@ -91,6 +92,7 @@ export default function Sidebar({ onLogoutClick, isOpen, onClose }) {
             <span className="user-name">John Juan</span>
             <span className="user-role">President</span>
           </div>
+          </NavLink>
         </div>
 
         <button className="nav-item logout-item" onClick={onLogoutClick}>
