@@ -8,6 +8,7 @@ import '@styles/hris/components/FilterBar.css';
 import '@styles/hris/Dashboard.css';
 import '@styles/hris/Clients.css';
 import '@styles/hris/Billing.css';
+import '@styles/hris/Employees.css';
 
 
 export default function DashboardLayout() {
