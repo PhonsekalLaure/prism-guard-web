@@ -5,13 +5,16 @@
       "@/*": ["./src/*"],
       "@components/*": ["./src/components/*"],
       "@hris-components/*": ["./src/components/hris/*"],
-      "@pages/*": ["./src/pages/*"],
-      "@layouts/*": ["./src/layouts/*"],
+      "@hris-pages/*": ["./src/pages/hris/*"],
+      "@hris-layouts/*": ["./src/layouts/hris/*"],
       "@styles/*": ["./src/styles/*"],
       "@assets/*": ["./src/assets/*"],
       "@utils/*": ["./src/utils/*"],
       "@services/*": ["./src/services/*"],
-      "@hooks/*": ["./src/hooks/*"]
+      "@hooks/*": ["./src/hooks/*"],
+      "@cms-components/*": ["./src/components/cms/*"],
+      "@cms-pages/*": ["./src/pages/cms/*"],
+      "@cms-layouts/*": ["./src/layouts/cms/*"]
     }
   },
   "exclude": ["node_modules", "dist"]

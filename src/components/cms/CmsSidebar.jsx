@@ -4,7 +4,7 @@ import {
   FaCreditCard, FaStar, FaBuilding, FaSignOutAlt,
   FaUserShield, FaFileInvoiceDollar, FaBars,
 } from 'react-icons/fa';
-import logo from '../../assets/cms-logo.png';
+import logo from '@assets/cms-logo.png';
 
 const navGroups = [
   {

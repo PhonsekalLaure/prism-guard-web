@@ -16,13 +16,16 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
       '@components': path.resolve(__dirname, './src/components'),
       '@hris-components': path.resolve(__dirname, './src/components/hris'),
-      '@pages': path.resolve(__dirname, './src/pages'),
-      '@layouts': path.resolve(__dirname, './src/layouts'),
+      '@hris-pages': path.resolve(__dirname, './src/pages/hris'),
+      '@hris-layouts': path.resolve(__dirname, './src/layouts/hris'),
       '@styles': path.resolve(__dirname, './src/styles'),
       '@assets': path.resolve(__dirname, './src/assets'),
       '@utils': path.resolve(__dirname, './src/utils'),
       '@services': path.resolve(__dirname, './src/services'),
       '@hooks': path.resolve(__dirname, './src/hooks'),
+      '@cms-components': path.resolve(__dirname, './src/components/cms'),
+      '@cms-pages': path.resolve(__dirname, './src/pages/cms'),
+      '@cms-layouts': path.resolve(__dirname, './src/layouts/cms')
     },
   },
 })
