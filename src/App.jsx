@@ -7,6 +7,8 @@ import ClientsPage from '@pages/hris/ClientsPage';
 import BillingPage from '@pages/hris/BillingPage';
 import EmployeesPage from '@pages/hris/EmployeesPage';
 import ProfilePage from '@pages/hris/ProfilePage';
+import CmsLayout from './layouts/cms/CmsLayout';
+import CmsDashboardPage from './pages/cms/CmsDashboardPage';
 
 function App() {
   return (
@@ -25,16 +27,14 @@ function App() {
           <Route path="/billing" element={<BillingPage />} />
           <Route path="/employees" element={<EmployeesPage />} />
           <Route path="/profile" element={<ProfilePage />} />
-        </Route>
 
         {/* CMS routes — client only (future) */}
-        {/* <Route element={
+        <Route element={
           <ProtectedRoute allowedRoles={['client']}>
             <CmsLayout />
           </ProtectedRoute>
         }>
-          <Route path="/cms/dashboard" element={<CmsDashboard />} />
-        </Route> */}
+          <Route path="/cms/dashboard" element={<CmsDashboardPage />} />
 
         {/* Default route → login */}
         <Route path="*" element={<LoginPage />} />
