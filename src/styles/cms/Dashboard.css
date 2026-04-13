@@ -2,21 +2,27 @@
    CMS DASHBOARD — Custom styles
    ============================================= */
 
+/* ── Root layout ── */
 .cms-layout {
   display: flex;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
   background: #ecf0f1;
   font-family: 'Poppins', sans-serif;
 }
 
+/* ── Main content — scrollable ── */
 .cms-main {
   flex: 1;
   min-width: 0;
+  height: 100vh;
   overflow-y: auto;
   overflow-x: hidden;
+  background: #ecf0f1;
 }
 
+/* ── Page content wrapper ── */
 .cms-content {
   padding: 1.2rem;
   display: flex;
@@ -24,7 +30,227 @@
   gap: 1rem;
 }
 
-/* Topbar */
+/* =============================================
+   SIDEBAR
+   ============================================= */
+.cms-sidebar {
+  width: 280px;
+  min-width: 280px;
+  background: linear-gradient(180deg, #093269 0%, #0a4080 100%);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+  font-family: 'Poppins', sans-serif;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Header */
+.cms-sidebar-header {
+  padding: 1.4rem 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cms-sidebar-logo {
+  width: 65px;
+  height: auto;
+  transform: scale(1.99);
+  transform-origin: center;
+  flex-shrink: 0;
+}
+
+.cms-sidebar-brand-name {
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.cms-sidebar-brand-sub {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.65rem;
+  font-weight: 400;
+  margin: 0;
+}
+
+/* Nav */
+.cms-sidebar-nav {
+  flex: 1;
+  padding: 0.6rem 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Group label */
+.cms-nav-group-label {
+  position: relative;
+  padding: 0.3rem 1.2rem 0.2rem 1.5rem;
+  margin-top: 0.35rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: rgba(255, 255, 255, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0;
+}
+
+.cms-nav-group-label::before {
+  content: '';
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 14px;
+  background: #e6b215;
+  border-radius: 2px;
+}
+
+.cms-nav-group-icon {
+  color: #e6b215;
+  font-size: 0.65rem;
+}
+
+/* Divider */
+.cms-nav-divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
+  margin: 0.3rem 0;
+}
+
+/* Spacer */
+.cms-nav-spacer {
+  flex: 1;
+  min-height: 3rem;
+}
+
+/* Nav items */
+.cms-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.45rem 1.2rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  border-left: 4px solid transparent;
+  background: transparent;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  width: 100%;
+  text-align: left;
+  border-top: none;
+  border-right: none;
+  border-bottom: none;
+}
+
+.cms-nav-item:hover {
+  background: rgba(230, 178, 21, 0.1);
+  color: #fff;
+  padding-left: 1.5rem;
+}
+
+.cms-nav-item.active {
+  color: #e6b215;
+  font-weight: 600;
+  border-left: 4px solid #e6b215;
+  border-radius: 0 0.5rem 0.5rem 0;
+  background: linear-gradient(90deg, rgba(230, 178, 21, 0.2) 0%, transparent 100%);
+}
+
+.cms-nav-icon {
+  width: 20px;
+  text-align: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+/* Footer */
+.cms-sidebar-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.8rem 1.2rem;
+}
+
+.cms-sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 0.65rem;
+  text-decoration: none;
+}
+
+.cms-sidebar-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1rem;
+}
+
+.cms-sidebar-user-info {
+  min-width: 0;
+}
+
+.cms-sidebar-user-name {
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cms-sidebar-user-role {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.68rem;
+  font-weight: 400;
+  margin: 0;
+}
+
+/* Logout button */
+.cms-logout-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: transparent;
+  color: #ef4444;
+  border: 1px solid #ef4444;
+  border-radius: 6px;
+  padding: 0.55rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  transition: background 0.2s;
+}
+
+.cms-logout-btn:hover {
+  background: rgba(239, 68, 68, 0.08);
+}
+
+/* =============================================
+   TOPBAR
+   ============================================= */
 .cms-topbar {
   background: #fff;
   padding: 1.2rem 1.5rem;
@@ -50,7 +276,9 @@
   gap: 1rem;
 }
 
-/* Stat Cards */
+/* =============================================
+   STAT CARDS
+   ============================================= */
 .cms-stat-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -100,12 +328,14 @@
   width: 44px;
   height: 44px;
   display: flex;
-  align-items: 'center';
+  align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
-/* Content Grid */
+/* =============================================
+   CONTENT GRID
+   ============================================= */
 .cms-grid {
   display: grid;
   grid-template-columns: 1fr 280px;
@@ -124,7 +354,9 @@
   gap: 1rem;
 }
 
-/* Panels */
+/* =============================================
+   PANELS
+   ============================================= */
 .cms-panel {
   background: #fff;
   border-radius: 12px;
@@ -173,7 +405,9 @@
   color: #e6b215;
 }
 
-/* Tables */
+/* =============================================
+   TABLES
+   ============================================= */
 .cms-table {
   width: 100%;
   border-collapse: collapse;
@@ -199,7 +433,9 @@
   border-bottom: 1px solid #f0f0f0;
 }
 
-/* Badges */
+/* =============================================
+   BADGES
+   ============================================= */
 .cms-badge {
   padding: 0.2rem 0.6rem;
   border-radius: 20px;
@@ -208,70 +444,9 @@
   display: inline-block;
 }
 
-/* Sidebar */
-.cms-sidebar {
-  width: 200px;
-  min-width: 200px;
-  background: linear-gradient(180deg, #093269 0%, #0a4080 100%);
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
-  font-family: 'Poppins', sans-serif;
-}
-
-.cms-sidebar-logo {
-  padding: 0.6rem 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.cms-sidebar-nav {
-  flex: 1;
-  padding: 0.4rem 0;
-  overflow-y: auto;
-}
-
-.cms-nav-group-label {
-  position: relative;
-  padding: 0.75rem 1rem 0.25rem 1.3rem;
-  color: rgba(255, 255, 255, 0.45);
-  font-size: 0.6rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  margin: 0;
-}
-
-.cms-nav-group-label::before {
-  content: '';
-  position: absolute;
-  left: 0.7rem;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 14px;
-  background: #e6b215;
-  border-radius: 2px;
-}
-
-.cms-nav-divider {
-  height: 1px;
-  background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
-  margin: 0.5rem 0;
-}
-
-.cms-sidebar-footer {
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 0.8rem 1rem;
-}
-
-/* Billing */
+/* =============================================
+   BILLING WIDGET
+   ============================================= */
 .cms-billing-due {
   background: #fef2f2;
   border: 1px solid #fecaca;
@@ -283,11 +458,156 @@
   gap: 0.5rem;
 }
 
-/* Contract */
+/* =============================================
+   CONTRACT WIDGET
+   ============================================= */
 .cms-contract-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0.45rem 0;
   border-bottom: 1px solid #f0f0f0;
+}
+
+/* =============================================
+   SHARED PAGE BUTTONS
+   ============================================= */
+.page-btn {
+  padding: 0.3rem 0.65rem;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid #dfe6e9;
+  background: #fff;
+  color: #2c3e50;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Poppins', sans-serif;
+}
+
+.page-btn:hover {
+  background: #f8f9fa;
+}
+
+.page-btn.active {
+  background: #093269;
+  color: #fff;
+  border-color: #093269;
+}
+
+/* =============================================
+   LOGOUT MODAL
+   ============================================= */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  max-width: 380px;
+  width: 100%;
+  margin: 0 1rem;
+  overflow: hidden;
+}
+
+.modal-body {
+  padding: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.modal-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1.1rem;
+}
+
+.modal-body h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 0.3rem;
+}
+
+.modal-body p {
+  font-size: 0.82rem;
+  color: #7f8c8d;
+  margin: 0;
+}
+
+.modal-actions {
+  padding: 1rem 1.5rem;
+  background: #f8f9fa;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+.modal-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.modal-btn.cancel {
+  background: #fff;
+  border: 1px solid #dfe6e9;
+  color: #2c3e50;
+}
+
+.modal-btn.cancel:hover {
+  background: #f0f0f0;
+}
+
+.modal-btn.danger {
+  background: #ef4444;
+  color: #fff;
+}
+
+.modal-btn.danger:hover {
+  background: #dc2626;
+}
+
+/* =============================================
+   ANIMATIONS
+   ============================================= */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* =============================================
+   RESPONSIVE
+   ============================================= */
+@media (max-width: 1280px) {
+  .cms-stat-grid { grid-template-columns: repeat(2, 1fr); }
+  .cms-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .cms-stat-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 480px) {
+  .cms-stat-grid { grid-template-columns: 1fr; }
 }
