@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom';
-import CmsSidebar from '../../components/cms/CmsSidebar';
-import '../../styles/cms/Dashboard.css';
+import CmsSidebar from '@cms-components/CmsSidebar';
+import '@styles/cms/Dashboard.css';
 
 export default function CmsLayout() {
   return (

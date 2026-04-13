@@ -1,9 +1,9 @@
-import CmsTopbar from '../../components/cms/dashboard/CmsTopbar';
-import CmsStatCards from '../../components/cms/dashboard/CmsStatCards';
-import RecentIncidents from '../../components/cms/dashboard/RecentIncidents';
-import RecentServiceRequests from '../../components/cms/dashboard/RecentServiceRequests';
-import UpcomingBilling from '../../components/cms/dashboard/UpcomingBilling';
-import ContractOverview from '../../components/cms/dashboard/ContractOverview';
+import CmsTopbar from '@cms-components/dashboard/CmsTopbar';
+import CmsStatCards from '@cms-components/dashboard/CmsStatCards';
+import RecentIncidents from '@cms-components/dashboard/RecentIncidents';
+import RecentServiceRequests from '@cms-components/dashboard/RecentServiceRequests';
+import UpcomingBilling from '@cms-components/dashboard/UpcomingBilling';
+import ContractOverview from '@cms-components/dashboard/ContractOverview';
 
 export default function CmsDashboardPage() {
   return (

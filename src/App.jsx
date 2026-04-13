@@ -1,14 +1,14 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import ProtectedRoute from '@components/auth/ProtectedRoute';
-import DashboardLayout from '@layouts/hris/DashboardLayout';
+import DashboardLayout from '@hris-layouts/DashboardLayout';
 import LoginPage from '@pages/LoginPage';
-import DashboardPage from '@pages/hris/DashboardPage';
-import ClientsPage from '@pages/hris/ClientsPage';
-import BillingPage from '@pages/hris/BillingPage';
-import EmployeesPage from '@pages/hris/EmployeesPage';
-import ProfilePage from '@pages/hris/ProfilePage';
-import CmsLayout from './layouts/cms/CmsLayout';
-import CmsDashboardPage from './pages/cms/CmsDashboardPage';
+import DashboardPage from '@hris-pages/DashboardPage';
+import ClientsPage from '@hris-pages/ClientsPage';
+import BillingPage from '@hris-pages/BillingPage';
+import EmployeesPage from '@hris-pages/EmployeesPage';
+import ProfilePage from '@hris-pages/ProfilePage';
+import CmsLayout from '@cms-layouts/CmsLayout';
+import CmsDashboardPage from '@cms-pages/CmsDashboardPage';
 
 function App() {
   return (
@@ -27,15 +27,15 @@ function App() {
           <Route path="/billing" element={<BillingPage />} />
           <Route path="/employees" element={<EmployeesPage />} />
           <Route path="/profile" element={<ProfilePage />} />
-
-        {/* CMS routes — client only (future) */}
+        </Route>
+        {/* CMS routes — client only*/}
         <Route element={
           <ProtectedRoute allowedRoles={['client']}>
             <CmsLayout />
           </ProtectedRoute>
         }>
           <Route path="/cms/dashboard" element={<CmsDashboardPage />} />
-
+        </Route>
         {/* Default route → login */}
         <Route path="*" element={<LoginPage />} />
       </Routes>
@@ -44,4 +44,3 @@ function App() {
 }
 
 export default App;
-
