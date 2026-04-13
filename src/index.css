@@ -1,22 +1,94 @@
 @import "tailwindcss";
 
+/* ─── Poppins font ─── */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
-* {
+/* ─── Base resets ─── */
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
 html, body {
+  font-family: 'Poppins', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  
   width: 100%;
   height: 100%;
   overflow: hidden;
-  font-family: 'Poppins', sans-serif;
 }
 
 #root {
   width: 100%;
   height: 100%;
   display: flex;
+}
+
+/* ─── Custom Tailwind keyframes & utilities via @theme ─── */
+@theme {
+  /* float (up/down) */
+  --animate-float: float 6s ease-in-out infinite;
+
+  /* float reverse */
+  --animate-float-reverse: float 8s ease-in-out infinite reverse;
+
+  /* pulse glow on logo */
+  --animate-pulse-glow: pulse-glow 3s infinite;
+
+  /* slide up (form card entrance) */
+  --animate-slide-up: slideUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* slide-in notification */
+  --animate-slide-in: slideIn 0.3s ease forwards;
+
+  /* slide-out notification */
+  --animate-slide-out: slideOut 0.3s ease forwards;
+
+  /* float + rotate (shapes) */
+  --animate-float-rotate: float-rotate 15s infinite linear;
+
+  /* float + rotate reverse */
+  --animate-float-rotate-reverse: float-rotate 12s infinite linear reverse;
+
+  /* float + rotate slow */
+  --animate-float-rotate-slow: float-rotate 25s infinite linear;
+}
+
+/* ─── Keyframes ─── */
+@keyframes float {
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(-20px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes pulse-glow {
+  0%   { transform: scale(1);    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); }
+  50%  { transform: scale(1.05); box-shadow: 0 15px 40px rgba(230, 178, 21, 0.3); }
+  100% { transform: scale(1);    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(400px); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+
+@keyframes slideOut {
+  from { transform: translateX(0);     opacity: 1; }
+  to   { transform: translateX(400px); opacity: 0; }
+}
+
+@keyframes float-rotate {
+  0%   { transform: translate(0, 0)       rotate(0deg); }
+  50%  { transform: translate(20px, 20px) rotate(180deg); }
+  100% { transform: translate(0, 0)       rotate(360deg); }
 }

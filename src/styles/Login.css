@@ -1,0 +1,397 @@
+/* =============================================
+   LOGIN PAGE — Custom styles
+   ============================================= */
+
+/* --- Full-screen split container --- */
+.login-page {
+  display: flex;
+  min-height: 100vh;
+  height: 100vh;
+  font-family: 'Poppins', sans-serif;
+  overflow: hidden;
+}
+
+/* =============================================
+   LEFT BRAND PANEL
+   ============================================= */
+.login-brand {
+  flex: 1;
+  background: linear-gradient(135deg, #093269 0%, #0a4d9e 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Decorative circles (pseudo-elements) */
+.login-brand::before {
+  content: '';
+  position: absolute;
+  width: 340px;
+  height: 340px;
+  background: rgba(230, 178, 21, 0.10);
+  border-radius: 50%;
+  top: -120px;
+  right: -120px;
+  animation: float 6s ease-in-out infinite;
+}
+
+.login-brand::after {
+  content: '';
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  background: rgba(230, 178, 21, 0.08);
+  border-radius: 50%;
+  bottom: -60px;
+  left: -60px;
+  animation: float 8s ease-in-out infinite reverse;
+}
+
+/* Dot pattern overlay */
+.login-brand .bg-dots {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 30px 30px;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Floating glass shapes */
+.login-brand .shape {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(5px);
+  border-radius: 15px;
+  pointer-events: none;
+}
+
+.login-brand .shape-1 {
+  width: 120px;
+  height: 120px;
+  top: 14%;
+  left: 8%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  animation: float-rotate 15s infinite linear;
+}
+
+.login-brand .shape-2 {
+  width: 65px;
+  height: 65px;
+  bottom: 22%;
+  right: 18%;
+  background: rgba(230, 178, 21, 0.15);
+  animation: float-rotate 12s infinite linear reverse;
+}
+
+.login-brand .shape-3 {
+  width: 160px;
+  height: 160px;
+  top: 42%;
+  right: -45px;
+  border-radius: 50%;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  background: transparent;
+  animation: float-rotate 25s infinite linear;
+}
+
+/* Brand content */
+.brand-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  color: #fff;
+  margin-top: -10rem;
+}
+
+.brand-logo {
+  display: block;
+  width: 500px;
+  height: auto;
+  margin: 0 auto -5rem;
+  filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.35));
+}
+
+.brand-content h1 {
+  font-size: 2.4rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.3rem;
+}
+
+.brand-content .tagline {
+  font-size: 1rem;
+  opacity: 0.85;
+  margin-bottom: 2.5rem;
+  font-weight: 400;
+}
+
+/* Feature pills */
+.brand-features {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.feature-pill {
+  display: flex;
+
+  gap: 0.9rem;
+  width: 280px;
+  padding: 0.75rem 1.4rem;
+  border-radius: 50px;
+  background: rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  transition: transform 0.3s ease, background 0.3s ease;
+  cursor: default;
+}
+
+.feature-pill:hover {
+  transform: translateX(8px);
+  background: rgba(255, 255, 255, 0.20);
+}
+
+.feature-pill .icon {
+  font-size: 1.2rem;
+  color: #e6b215;
+  flex-shrink: 0;
+}
+
+.feature-pill span {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* =============================================
+   RIGHT FORM PANEL
+   ============================================= */
+.login-form-panel {
+  flex: 1;
+  background: #ecf0f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+/* White form card */
+.login-card {
+  width: 100%;
+  max-width: 460px;
+  background: #fff;
+  border-radius: 18px;
+  padding: 3rem 2.8rem;
+  box-shadow: 0 8px 40px rgba(9, 50, 105, 0.08);
+  animation: slideUp 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Header */
+.login-card .card-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.login-card .card-header h2 {
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: #093269;
+  margin: 0 0 0.25rem;
+}
+
+.login-card .card-header p {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+}
+
+/* Form */
+.login-card .form-group {
+  margin-bottom: 1.2rem;
+}
+
+.login-card .form-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #093269;
+  margin-bottom: 0.45rem;
+}
+
+.login-card .form-group input[type="email"],
+.login-card .form-group input[type="password"],
+.login-card .form-group input[type="text"] {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: 1.5px solid #dfe6e9;
+  border-radius: 8px;
+  background: #ecf0f1;
+  font-size: 0.9rem;
+  font-family: 'Poppins', sans-serif;
+  color: #2c3e50;
+  transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+  box-sizing: border-box;
+}
+
+.login-card .form-group input:focus {
+  outline: none;
+  border-color: #e6b215;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(230, 178, 21, 0.12);
+}
+
+/* Validation error states */
+.login-card .form-group input.input-error {
+  border-color: #e74c3c;
+}
+
+.login-card .form-group input.input-error:focus {
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.12);
+}
+
+.login-card .field-error {
+  display: block;
+  font-size: 0.75rem;
+  color: #e74c3c;
+  margin-top: 0.35rem;
+  font-weight: 500;
+}
+
+/* Password wrapper */
+.login-card .password-wrapper {
+  position: relative;
+}
+
+.login-card .password-wrapper input {
+  padding-right: 2.8rem;
+}
+
+.login-card .password-toggle {
+  position: absolute;
+  right: 0.8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #7f8c8d;
+  cursor: pointer;
+  padding: 0.3rem;
+  transition: color 0.3s;
+  font-size: 0.95rem;
+}
+
+.login-card .password-toggle:hover {
+  color: #093269;
+}
+
+/* Options row */
+.login-card .form-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.4rem;
+  font-size: 0.8rem;
+}
+
+.login-card .remember-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  color: #2c3e50;
+}
+
+.login-card .remember-label input {
+  cursor: pointer;
+  accent-color: #093269;
+  width: 14px;
+  height: 14px;
+}
+
+.login-card .forgot-link {
+  color: #e6b215;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s;
+}
+
+.login-card .forgot-link:hover {
+  color: #093269;
+}
+
+/* Submit button */
+.login-card .btn-login {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.9rem;
+  background: #e6b215;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.3s, box-shadow 0.3s;
+}
+
+.login-card .btn-login:hover {
+  background: #d4a213;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(230, 178, 21, 0.35);
+}
+
+.login-card .btn-login:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.login-card .btn-login .arrow {
+  font-size: 0.85rem;
+}
+
+/* Footer */
+.login-card .card-footer {
+  margin-top: 1.8rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid #e8e8e8;
+  text-align: center;
+}
+
+.login-card .card-footer p {
+  font-size: 0.72rem;
+  color: #7f8c8d;
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* =============================================
+   RESPONSIVE
+   ============================================= */
+@media (max-width: 1024px) {
+  .login-brand {
+    display: none;
+  }
+
+  .login-form-panel {
+    flex: 1;
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .login-card {
+    padding: 2rem 1.6rem;
+    border-radius: 14px;
+  }
+}

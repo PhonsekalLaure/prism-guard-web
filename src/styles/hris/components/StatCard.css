@@ -1,0 +1,81 @@
+/* =============================================
+   UNIVERSAL STAT CARDS
+   ============================================= */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-grid.three-cols {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.stat-grid.two-cols {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.stat-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.3rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-left: 4px solid;
+  transition: transform 0.3s, box-shadow 0.3s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card .stat-label {
+  font-size: 0.78rem;
+  color: #7f8c8d;
+  font-weight: 500;
+  margin-bottom: 0.2rem;
+}
+
+.stat-card .stat-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #093269;
+  margin: 0;
+}
+
+.stat-card .stat-sub {
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-top: 0.4rem;
+}
+
+.stat-card .stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+/* Responsive Handling */
+@media (max-width: 1280px) {
+  .stat-grid, .stat-grid.three-cols {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .stat-grid.three-cols > :last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .stat-grid, .stat-grid.three-cols, .stat-grid.two-cols {
+    grid-template-columns: 1fr;
+  }
+}
