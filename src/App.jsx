@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import ProtectedRoute from '@components/auth/ProtectedRoute';
 import DashboardLayout from '@hris-layouts/DashboardLayout';
-import LoginPage from '@pages/LoginPage';
+import LoginPage from './pages/LoginPage';
 import DashboardPage from '@hris-pages/DashboardPage';
 import ClientsPage from '@hris-pages/ClientsPage';
 import BillingPage from '@hris-pages/BillingPage';
