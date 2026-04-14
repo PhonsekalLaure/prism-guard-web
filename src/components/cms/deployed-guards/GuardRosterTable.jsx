@@ -58,21 +58,6 @@ const statusConfig = {
 
 export default function GuardRosterTable({ onViewGuard }) {
   const [sortBy, setSortBy] = useState('name-az');
-  const [allChecked, setAllChecked] = useState(false);
-  const [checkedRows, setCheckedRows] = useState({});
-
-  const toggleAll = () => {
-    const next = !allChecked;
-    setAllChecked(next);
-    const updated = {};
-    guards.forEach((g) => { updated[g.employeeId] = next; });
-    setCheckedRows(updated);
-  };
-
-  const toggleRow = (id, e) => {
-    e.stopPropagation();
-    setCheckedRows((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
 
   return (
     <div className="dg-table-panel">
@@ -101,14 +86,6 @@ export default function GuardRosterTable({ onViewGuard }) {
         <table className="dg-table">
           <thead>
             <tr>
-              <th>
-                <input
-                  type="checkbox"
-                  checked={allChecked}
-                  onChange={toggleAll}
-                  className="dg-checkbox"
-                />
-              </th>
               <th>Guard</th>
               <th>Employee ID</th>
               <th>Shift</th>
@@ -125,14 +102,6 @@ export default function GuardRosterTable({ onViewGuard }) {
                   className="dg-table-row"
                   onClick={() => onViewGuard?.(guard)}
                 >
-                  <td onClick={(e) => e.stopPropagation()}>
-                    <input
-                      type="checkbox"
-                      checked={!!checkedRows[guard.employeeId]}
-                      onChange={(e) => toggleRow(guard.employeeId, e)}
-                      className="dg-checkbox"
-                    />
-                  </td>
                   <td>
                     <div className="dg-guard-cell">
                       <div
