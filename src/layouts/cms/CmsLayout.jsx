@@ -5,6 +5,7 @@ import LogoutModal from '@components/ui/LogoutModal';
 import authService from '@services/authService';
 import '@styles/cms/Dashboard.css';
 import '@styles/cms/DeployedGuards.css';
+import '@styles/cms/ServiceRequests.css';
 
 export default function CmsLayout() {
   const [showLogout, setShowLogout] = useState(false);
