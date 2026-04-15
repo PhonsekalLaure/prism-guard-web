@@ -10,6 +10,7 @@ import ProfilePage from '@hris-pages/ProfilePage';
 import CmsLayout from '@cms-layouts/CmsLayout';
 import CmsDashboardPage from '@cms-pages/CmsDashboardPage';
 import DeployedGuardsPage from '@cms-pages/DeployedGuardsPage';
+import ServiceRequestsPage from '@cms-pages/ServiceRequestsPage';
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
         }>
           <Route path="/cms/dashboard" element={<CmsDashboardPage />} />
           <Route path="/cms/deployed-guards" element={<DeployedGuardsPage />} />
+          <Route path="/cms/service-requests" element={<ServiceRequestsPage />} />
         </Route>
 
         {/* Default route → login */}
