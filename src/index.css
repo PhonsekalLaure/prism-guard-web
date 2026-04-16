@@ -12,10 +12,15 @@
   box-sizing: border-box;
 }
 
-body {
+html, body {
   font-family: 'Poppins', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  
+  
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 /* ─── Custom Tailwind keyframes & utilities via @theme ─── */
