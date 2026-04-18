@@ -16,9 +16,13 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-async function getAllEmployees(page = 1, limit = 6) {
+async function getAllEmployees(page = 1, limit = 6, filters = {}) {
   const { data } = await api.get('/', {
-    params: { page, limit }
+    params: { 
+      page, 
+      limit,
+      ...filters
+    }
   });
   // The backend now returns { data: [...], metadata: { ... } }
   return data;
