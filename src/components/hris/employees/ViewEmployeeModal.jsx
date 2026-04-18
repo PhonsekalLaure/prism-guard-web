@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   FaTimes, FaUser, FaBriefcase, FaShieldAlt, FaMoneyCheckAlt,
   FaIdCard, FaAddressBook, FaFileContract, FaCalendarCheck,
   FaUserTimes, FaEdit, FaCertificate, FaFileAlt, FaHistory,
 } from 'react-icons/fa';
+import employeeService from '@services/employeeService';
 
 const tabs = [
   { key: 'personal', label: 'Personal Info', icon: FaUser },
@@ -12,10 +13,32 @@ const tabs = [
   { key: 'payroll', label: 'Payroll', icon: FaMoneyCheckAlt },
 ];
 
-export default function ViewEmployeeModal({ isOpen, employee, onClose }) {
+export default function ViewEmployeeModal({ isOpen, employee: previewEmployee, onClose }) {
   const [activeTab, setActiveTab] = useState('personal');
+  const [employeeDetails, setEmployeeDetails] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  if (!isOpen || !employee) return null;
+  useEffect(() => {
+    if (isOpen && previewEmployee?.id) {
+      setLoading(true);
+      employeeService.getEmployeeDetails(previewEmployee.id)
+        .then(data => {
+          setEmployeeDetails(data);
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error(err);
+          setLoading(false);
+        });
+    } else {
+      setEmployeeDetails(null);
+      setActiveTab('personal');
+    }
+  }, [isOpen, previewEmployee]);
+
+  if (!isOpen || !previewEmployee) return null;
+
+  const data = employeeDetails || previewEmployee; // fallback to preview before load
 
   return (
     <div className="ve-modal-overlay" onClick={onClose}>
@@ -25,7 +48,7 @@ export default function ViewEmployeeModal({ isOpen, employee, onClose }) {
         <div className="ve-modal-header">
           <div>
             <h2>Employee Details</h2>
-            <p>{employee.id} • {employee.name}</p>
+            <p>{data.employee_id_number} • {data.name}</p>
           </div>
           <button className="ve-close-btn" onClick={onClose}>
             <FaTimes />
@@ -47,14 +70,27 @@ export default function ViewEmployeeModal({ isOpen, employee, onClose }) {
         </div>
 
         {/* Tab Content */}
-        <div className="ve-modal-body">
-          {activeTab === 'personal' && <PersonalTab employee={employee} />}
-          {activeTab === 'employment' && <EmploymentTab employee={employee} />}
-          {activeTab === 'compliance' && <ComplianceTab />}
-          {activeTab === 'payroll' && <PayrollTab />}
+        <div className="ve-modal-body relative min-h-[400px]">
+          {loading && (
+            <div className="absolute inset-0 z-10 flex justify-center items-center bg-white/70">
+              <svg className="animate-spin h-10 w-10 text-brand-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </div>
+          )}
+
+          {!loading && employeeDetails && (
+            <>
+              {activeTab === 'personal' && <PersonalTab employee={employeeDetails} />}
+              {activeTab === 'employment' && <EmploymentTab employee={employeeDetails} />}
+              {activeTab === 'compliance' && <ComplianceTab employee={employeeDetails} />}
+              {activeTab === 'payroll' && <PayrollTab employee={employeeDetails} />}
+            </>
+          )}
 
           {/* Action Buttons */}
-          <div className="ve-action-buttons">
+          <div className="ve-action-buttons mt-6">
             <button className="ve-btn ve-btn-gold">
               <FaFileContract /> View Contract
             </button>
@@ -78,15 +114,19 @@ function PersonalTab({ employee }) {
       {/* Employee header card */}
       <div className="ve-profile-card">
         <div className="ve-profile-left">
-          <div className="ve-profile-avatar">{employee.initials}</div>
+          {employee.avatar_url ? (
+            <img src={employee.avatar_url} alt={employee.initials} className="ve-profile-avatar object-cover" />
+          ) : (
+            <div className="ve-profile-avatar">{employee.initials}</div>
+          )}
           <div>
-            <h3 className="ve-profile-name">{employee.name}</h3>
+            <h3 className="ve-profile-name">{employee.full_name || employee.name}</h3>
             <p className="ve-profile-position">{employee.position}</p>
             <div className="ve-profile-meta">
-              <span className={`ve-profile-badge badge-${employee.statusType}`}>
-                {employee.status}
+              <span className={`ve-profile-badge badge-${employee.status}`}>
+                {employee.status.toUpperCase()}
               </span>
-              <span className="ve-profile-id">ID: {employee.id}</span>
+              <span className="ve-profile-id">ID: {employee.employee_id_number}</span>
             </div>
           </div>
         </div>
@@ -101,15 +141,13 @@ function PersonalTab({ employee }) {
           <FaIdCard className="ve-section-icon" /> Basic Information
         </h3>
         <div className="ve-info-grid cols-3">
-          <InfoCell label="Full Name" value="Juan Dela Cruz" />
-          <InfoCell label="Date of Birth" value="March 15, 1995 (Age 30)" />
-          <InfoCell label="Gender" value="Male" />
-          <InfoCell label="Citizenship" value="Filipino" />
-          <InfoCell label="Marital Status" value="Married" />
-          <InfoCell label="Blood Type" value="O+" />
-          <InfoCell label="Height" value={'5\'8"'} />
-          <InfoCell label="Weight" value="165 lbs" />
-          <InfoCell label="Educational Attainment" value="College Level" />
+          <InfoCell label="Full Name" value={employee.full_name || employee.name} />
+          <InfoCell label="Date of Birth" value={`${employee.date_of_birth ? new Date(employee.date_of_birth).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A'}${employee.age ? ` (Age ${employee.age})` : ''}`} />
+          <InfoCell label="Gender" value={employee.gender || 'N/A'} />
+          <InfoCell label="Citizenship" value={employee.citizenship || 'Filipino'} />
+          <InfoCell label="Marital Status" value={employee.civil_status || 'N/A'} />
+          <InfoCell label="Height" value={employee.height_cm ? `${employee.height_cm} cm` : 'N/A'} />
+          <InfoCell label="Educational Attainment" value={employee.educational_level || 'N/A'} />
         </div>
       </div>
 
@@ -119,11 +157,11 @@ function PersonalTab({ employee }) {
           <FaAddressBook className="ve-section-icon" /> Contact Information
         </h3>
         <div className="ve-info-grid cols-2">
-          <InfoCell label="Mobile Number" value="+63 917 123 4567" />
-          <InfoCell label="Email Address" value="juan.cruz@prismguard.com" />
-          <InfoCell label="Residential Address" value="123 Sampaguita St., Brgy. San Roque, Manila" span2 />
-          <InfoCell label="Emergency Contact" value="Maria Cruz (Wife)" />
-          <InfoCell label="Emergency Number" value="+63 918 765 4321" />
+          <InfoCell label="Mobile Number" value={employee.phone_number || 'N/A'} />
+          <InfoCell label="Email Address" value={employee.contact_email || 'N/A'} />
+          <InfoCell label="Residential Address" value={employee.residential_address || 'N/A'} span2 />
+          <InfoCell label="Emergency Contact" value={employee.emergency_contact_name || 'N/A'} />
+          <InfoCell label="Emergency Number" value={employee.emergency_contact_number || 'N/A'} />
         </div>
       </div>
     </div>
@@ -132,6 +170,22 @@ function PersonalTab({ employee }) {
 
 /* ── Employment Tab ── */
 function EmploymentTab({ employee }) {
+  let tenureStr = 'N/A';
+  if (employee.hire_date) {
+    const diff = new Date() - new Date(employee.hire_date);
+    const years = diff / (1000 * 60 * 60 * 24 * 365.25);
+    if (years >= 1) {
+      tenureStr = `${Math.floor(years)} year(s)`;
+      const months = Math.floor((years - Math.floor(years)) * 12);
+      if (months > 0) tenureStr += `, ${months} month(s)`;
+    } else {
+      const months = Math.floor(diff / (1000 * 60 * 60 * 24 * 30));
+      tenureStr = `${months} month(s)`;
+    }
+  }
+
+  const hireDateStr = employee.hire_date ? new Date(employee.hire_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A';
+
   return (
     <div className="ve-tab-content">
       <div className="ve-section">
@@ -139,13 +193,13 @@ function EmploymentTab({ employee }) {
           <FaBriefcase className="ve-section-icon" /> Employment Details
         </h3>
         <div className="ve-info-grid cols-3">
-          <InfoCell label="Employee ID" value={employee.id} variant="blue" />
-          <InfoCell label="Date Started" value="January 15, 2024" variant="blue" />
-          <InfoCell label="Tenure" value="1 year, 1 month" variant="blue" />
-          <InfoCell label="Position" value={employee.position} />
-          <InfoCell label="Employment Type" value="Full-time" />
-          <InfoCell label="Status" value="Active" valueColor="#16a34a" />
-          <InfoCell label="Assigned Company" value="SM Mall of Asia - Main Entrance" span3 />
+          <InfoCell label="Employee ID" value={employee.employee_id_number} variant="blue" />
+          <InfoCell label="Date Started" value={hireDateStr} variant="blue" />
+          <InfoCell label="Tenure" value={tenureStr} variant="blue" />
+          <InfoCell label="Position" value={employee.position || 'N/A'} />
+          <InfoCell label="Employment Type" value={employee.employment_type || 'N/A'} />
+          <InfoCell label="Status" value={employee.status.toUpperCase()} valueColor={employee.status === 'active' ? '#16a34a' : '#d97706'} />
+          <InfoCell label="Assigned Company" value={`${employee.current_company} - ${employee.current_site}`} span3 />
         </div>
       </div>
     </div>
@@ -153,7 +207,7 @@ function EmploymentTab({ employee }) {
 }
 
 /* ── Compliance Tab ── */
-function ComplianceTab() {
+function ComplianceTab({ employee }) {
   return (
     <div className="ve-tab-content">
       <div className="ve-section">
@@ -161,14 +215,19 @@ function ComplianceTab() {
           <FaCertificate className="ve-section-icon" /> Security Licenses &amp; Certifications
         </h3>
         <div className="ve-compliance-list">
-          <ComplianceRow
-            title="PNP-SOSIA License"
-            sub="PSG-2024-5678"
-            badge="VALID"
-            expires="Expires: Dec 31, 2026"
-          />
-          <ComplianceRow title="NBI Clearance" sub="Verified & Uploaded" badge="CLEAR" />
-          <ComplianceRow title="Training Certification" sub="Security Guard Training" badge="VERIFIED" />
+          {employee.clearances?.length > 0 ? (
+            employee.clearances.map((c, i) => (
+              <ComplianceRow
+                key={i}
+                title={c.clearance_type}
+                sub={`Issued: ${new Date(c.issue_date).toLocaleDateString()}`}
+                badge={c.status.toUpperCase()}
+                expires={c.expiry_date ? `Expires: ${new Date(c.expiry_date).toLocaleDateString()}` : null}
+              />
+            ))
+          ) : (
+            <p className="text-gray-500 text-sm py-4">No clearances recorded.</p>
+          )}
         </div>
       </div>
 
@@ -177,10 +236,10 @@ function ComplianceTab() {
           <FaFileAlt className="ve-section-icon" /> Government IDs
         </h3>
         <div className="ve-info-grid cols-2">
-          <InfoCell label="TIN" value="123-456-789-000" />
-          <InfoCell label="SSS Number" value="12-3456789-0" />
-          <InfoCell label="PhilHealth Number" value="12-345678901-2" />
-          <InfoCell label="Pag-IBIG MID" value="1234-5678-9012" />
+          <InfoCell label="TIN" value={employee.tin_number || 'N/A'} />
+          <InfoCell label="SSS Number" value={employee.sss_number || 'N/A'} />
+          <InfoCell label="PhilHealth Number" value={employee.philhealth_number || 'N/A'} />
+          <InfoCell label="Pag-IBIG MID" value={employee.pagibig_number || 'N/A'} />
         </div>
       </div>
     </div>
@@ -188,7 +247,13 @@ function ComplianceTab() {
 }
 
 /* ── Payroll Tab ── */
-function PayrollTab() {
+function PayrollTab({ employee }) {
+  // Format currency
+  const formatMoney = (val) => {
+    if (val == null) return 'N/A';
+    return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(val);
+  };
+
   return (
     <div className="ve-tab-content">
       <div className="ve-section">
@@ -196,9 +261,8 @@ function PayrollTab() {
           <FaMoneyCheckAlt className="ve-section-icon" /> Payroll Information
         </h3>
         <div className="ve-info-grid cols-3">
-          <InfoCell label="Base Pay" value="₱7,500/cutoff" variant="green" valueSize="xl" />
-          <InfoCell label="Meal Allowance" value="₱500/cutoff" />
-          <InfoCell label="Cash Bond Deduction" value="₱200/cutoff" />
+          <InfoCell label="Base Pay" value={`${formatMoney(employee.base_salary)}/${employee.pay_frequency === 'semi_monthly' ? 'mo' : (employee.pay_frequency || 'mo')}`} variant="green" valueSize="xl" />
+          <InfoCell label="Pay Frequency" value={employee.pay_frequency === 'semi_monthly' ? 'Semi-Monthly' : 'N/A'} />
         </div>
       </div>
 
@@ -210,35 +274,32 @@ function PayrollTab() {
           <table className="ve-payroll-table">
             <thead>
               <tr>
-                <th>Pay Date</th>
-                <th className="text-right">Gross</th>
+                <th>Pay Period</th>
+                <th className="text-right">Basic Pay</th>
                 <th className="text-right">Deductions</th>
                 <th className="text-right">Net Pay</th>
                 <th>Status</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td className="fw-600">Feb 10, 2026</td>
-                <td className="text-right text-green">₱9,500</td>
-                <td className="text-right text-red">₱1,850</td>
-                <td className="text-right fw-700">₱8,850</td>
-                <td><span className="ve-pay-badge">PAID</span></td>
-              </tr>
-              <tr>
-                <td className="fw-600">Jan 25, 2026</td>
-                <td className="text-right text-green">₱9,500</td>
-                <td className="text-right text-red">₱1,850</td>
-                <td className="text-right fw-700">₱8,850</td>
-                <td><span className="ve-pay-badge">PAID</span></td>
-              </tr>
-              <tr>
-                <td className="fw-600">Jan 10, 2026</td>
-                <td className="text-right text-green">₱9,500</td>
-                <td className="text-right text-red">₱1,850</td>
-                <td className="text-right fw-700">₱8,850</td>
-                <td><span className="ve-pay-badge">PAID</span></td>
-              </tr>
+              {employee.payroll_records?.length > 0 ? (
+                employee.payroll_records.map(pr => {
+                  const totalDeductions = (pr.statutory_deductions || 0) + (pr.cash_advance_deduction || 0) + (pr.absences_deduction || 0);
+                  return (
+                    <tr key={pr.id}>
+                      <td className="fw-600">{new Date(pr.period_start).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric'})} - {new Date(pr.period_end).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric'})}</td>
+                      <td className="text-right text-green">{formatMoney(pr.basic_pay)}</td>
+                      <td className="text-right text-red">{formatMoney(totalDeductions)}</td>
+                      <td className="text-right fw-700">{formatMoney(pr.net_pay)}</td>
+                      <td><span className={`ve-pay-badge ${pr.status === 'paid' ? '' : 'bg-gray-200 text-gray-700'}`}>{pr.status.toUpperCase()}</span></td>
+                    </tr>
+                  )
+                })
+              ) : (
+                <tr>
+                  <td colSpan="5" className="text-center py-4 text-gray-500">No payroll records found</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -277,9 +338,9 @@ function ComplianceRow({ title, sub, badge, expires }) {
         <p className="ve-compliance-title">{title}</p>
         <p className="ve-compliance-sub">{sub}</p>
       </div>
-      <div className="ve-compliance-right">
-        <span className="ve-compliance-badge">{badge}</span>
-        {expires && <p className="ve-compliance-expires">{expires}</p>}
+      <div className="ve-compliance-right flex flex-col items-end">
+        <span className={`ve-compliance-badge ${badge === 'VALID' ? '' : 'bg-red-100 text-red-700 border-red-200'}`}>{badge}</span>
+        {expires && <p className="ve-compliance-expires mt-1">{expires}</p>}
       </div>
     </div>
   );

@@ -169,27 +169,6 @@
 }
 
 /* =============================================
-   PAGINATION
-   ============================================= */
-.employees-pagination {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem 0 1rem;
-}
-
-.employees-pagination-info {
-  font-size: 0.82rem;
-  color: #7f8c8d;
-  margin: 0;
-}
-
-.employees-page-btns {
-  display: flex;
-  gap: 0.35rem;
-}
-
-/* =============================================
    RESPONSIVE
    ============================================= */
 @media (max-width: 1280px) {
