@@ -33,7 +33,13 @@ async function getEmployeeDetails(id) {
   return data;
 }
 
+async function getEmployeeStats() {
+  const { data } = await api.get('/stats');
+  return data;
+}
+
 export default {
   getAllEmployees,
   getEmployeeDetails,
+  getEmployeeStats
 };
