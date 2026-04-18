@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  FaBriefcase, FaBuilding, FaCalendarAlt, FaEye
+  FaBriefcase, FaBuilding, FaCalendarAlt, FaEye, FaSearch
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
 
@@ -9,6 +9,7 @@ export default function EmployeesGrid({
   totalItems = 0,
   currentPage = 1,
   onPageChange,
+  onResetFilters,
   onViewEmployee 
 }) {
   const itemsPerPage = 6;
@@ -21,66 +22,85 @@ export default function EmployeesGrid({
   return (
     <>
       <div className="employees-grid">
-        {employees.map((emp, i) => (
-          <div key={emp.id || i} className="employee-card">
-            {/* ... card content remains same ... */}
-            <div className="employee-card-body">
-              <div className="employee-card-header-row">
-                <div className="employee-header-left">
-                  {emp.avatar_url ? (
-                    <img src={emp.avatar_url} alt={emp.initials} className="employee-avatar min-w-[40px]" />
-                  ) : (
-                    <div className="employee-avatar">{emp.initials}</div>
-                  )}
-                  <div>
-                    <h4 className="employee-name">{emp.name}</h4>
-                    <p className="employee-id">{emp.employee_id_number}</p>
+        {employees.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-state-icon">
+              <FaSearch />
+            </div>
+            <h3 className="empty-state-title">No employees found</h3>
+            <p className="empty-state-desc">
+              We couldn't find any employees matching your current search or filter criteria. 
+              Try adjusting your settings or reset to view all employees.
+            </p>
+            <button 
+              onClick={() => onResetFilters?.()} 
+              className="empty-state-reset"
+            >
+              Reset All Filters
+            </button>
+          </div>
+        ) : (
+          employees.map((emp, i) => (
+            <div key={emp.id || i} className="employee-card">
+              <div className="employee-card-body">
+                <div className="employee-card-header-row">
+                  <div className="employee-header-left">
+                    {emp.avatar_url ? (
+                      <img src={emp.avatar_url} alt={emp.initials} className="employee-avatar min-w-[40px]" />
+                    ) : (
+                      <div className="employee-avatar">{emp.initials}</div>
+                    )}
+                    <div>
+                      <h4 className="employee-name">{emp.name}</h4>
+                      <p className="employee-id">{emp.employee_id_number}</p>
+                    </div>
+                  </div>
+                  <span className={`employee-badge badge-${emp.status}`}>
+                    {emp.status.toUpperCase()}
+                  </span>
+                </div>
+
+                <div className="employee-info-section">
+                  <div className="employee-info-row">
+                    <FaBriefcase />
+                    <span>{emp.position}</span>
+                  </div>
+                  <div className="employee-info-row">
+                    <FaBuilding />
+                    <span>{emp.client}</span>
+                  </div>
+                  <div className="employee-info-row">
+                    <FaCalendarAlt />
+                    <span>{emp.tenure}</span>
                   </div>
                 </div>
-                <span className={`employee-badge badge-${emp.status}`}>
-                  {emp.status.toUpperCase()}
-                </span>
-              </div>
 
-              <div className="employee-info-section">
-                <div className="employee-info-row">
-                  <FaBriefcase />
-                  <span>{emp.position}</span>
+                <div className="employee-card-footer">
+                  <button
+                    className="employee-view-link"
+                    onClick={() => onViewEmployee?.(emp)}
+                  >
+                    <FaEye />
+                    View Details
+                  </button>
                 </div>
-                <div className="employee-info-row">
-                  <FaBuilding />
-                  <span>{emp.client}</span>
-                </div>
-                <div className="employee-info-row">
-                  <FaCalendarAlt />
-                  <span>{emp.tenure}</span>
-                </div>
-              </div>
-
-              <div className="employee-card-footer">
-                <button
-                  className="employee-view-link"
-                  onClick={() => onViewEmployee?.(emp)}
-                >
-                  <FaEye />
-                  View Details
-                </button>
               </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
-      {/* Reusable Pagination Component */}
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={onPageChange}
-        startIndex={startIndex}
-        endIndex={endIndex}
-        totalItems={totalItems}
-        label="employees"
-      />
+      {employees.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+          startIndex={startIndex}
+          endIndex={endIndex}
+          totalItems={totalItems}
+          label="employees"
+        />
+      )}
     </>
   );
 }
