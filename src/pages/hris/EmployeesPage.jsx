@@ -6,6 +6,7 @@ import EmployeesGrid from '@hris-components/employees/EmployeesGrid';
 import ViewEmployeeModal from '@hris-components/employees/ViewEmployeeModal';
 import AddEmployeeModal from '@hris-components/employees/AddEmployeeModal';
 import employeeService from '../../services/employeeService';
+import clientService from '../../services/clientService';
 
 export default function EmployeesPage() {
   const [viewEmployee, setViewEmployee] = useState(null);
@@ -20,11 +21,47 @@ export default function EmployeesPage() {
   const [totalItems, setTotalItems] = useState(0);
   const itemsPerPage = 6;
 
+  // Filter state
+  const [filters, setFilters] = useState({
+    search: '',
+    status: 'all',
+    client: 'all'
+  });
+
+  // Clients list for dropdown
+  const [clientsList, setClientsList] = useState([]);
+
+  useEffect(() => {
+    async function fetchClients() {
+      try {
+        const data = await clientService.getAllClients();
+        setClientsList(data);
+      } catch (err) {
+        console.error("Failed to fetch clients:", err);
+      }
+    }
+    fetchClients();
+  }, []);
+
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+    setCurrentPage(1); // Reset to first page on filter change
+  };
+
+  const handleResetFilters = () => {
+    setFilters({
+      search: '',
+      status: 'all',
+      client: 'all'
+    });
+    setCurrentPage(1);
+  };
+
   useEffect(() => {
     async function fetchEmployees() {
       try {
         setLoading(true);
-        const response = await employeeService.getAllEmployees(currentPage, itemsPerPage);
+        const response = await employeeService.getAllEmployees(currentPage, itemsPerPage, filters);
         // The backend now returns { data: [...], metadata: { total: ... } }
         setEmployees(response.data);
         setTotalItems(response.metadata.total);
@@ -35,7 +72,7 @@ export default function EmployeesPage() {
       }
     }
     fetchEmployees();
-  }, [currentPage]);
+  }, [currentPage, filters]);
 
   return (
     <>
@@ -43,7 +80,11 @@ export default function EmployeesPage() {
 
       <div className="dashboard-content">
         <EmployeesStatCards />
-        <EmployeesFilterBar />
+        <EmployeesFilterBar 
+          filters={filters} 
+          onFilterChange={handleFilterChange} 
+          clients={clientsList}
+        />
         {loading ? (
           <div className="flex justify-center items-center py-20">
             <svg className="animate-spin h-10 w-10 text-brand-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -59,6 +100,7 @@ export default function EmployeesPage() {
             totalItems={totalItems}
             currentPage={currentPage}
             onPageChange={setCurrentPage}
+            onResetFilters={handleResetFilters}
             onViewEmployee={(emp) => setViewEmployee(emp)} 
           />
         )}
