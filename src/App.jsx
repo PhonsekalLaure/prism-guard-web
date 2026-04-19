@@ -11,6 +11,7 @@ import CmsLayout from '@cms-layouts/CmsLayout';
 import CmsDashboardPage from '@cms-pages/CmsDashboardPage';
 import DeployedGuardsPage from '@cms-pages/DeployedGuardsPage';
 import ServiceRequestsPage from '@cms-pages/ServiceRequestsPage';
+import IncidentReportsPage from '@cms-pages/IncidentReportsPage';
 
 function App() {
   return (
@@ -40,6 +41,7 @@ function App() {
           <Route path="/cms/dashboard" element={<CmsDashboardPage />} />
           <Route path="/cms/deployed-guards" element={<DeployedGuardsPage />} />
           <Route path="/cms/service-requests" element={<ServiceRequestsPage />} />
+          <Route path="/cms/incident-reports" element={<IncidentReportsPage />} />
         </Route>
 
         {/* Default route → login */}
