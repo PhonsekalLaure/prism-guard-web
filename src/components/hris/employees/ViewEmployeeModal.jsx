@@ -5,6 +5,8 @@ import {
   FaUserTimes, FaEdit, FaCertificate, FaFileAlt, FaHistory,
   FaEye, FaFilePdf, FaFileImage, FaDownload, FaCheck, FaUpload, FaSave
 } from 'react-icons/fa';
+import { FaSpinner } from 'react-icons/fa';
+import { AddressAutofill } from '@mapbox/search-js-react';
 import employeeService from '@services/employeeService';
 import Notification from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
@@ -15,6 +17,8 @@ const tabs = [
   { key: 'compliance', label: 'Compliance',     icon: FaShieldAlt },
   { key: 'payroll',    label: 'Payroll',         icon: FaMoneyCheckAlt },
 ];
+
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_API_TOKEN;
 
 const toProperCase = (str) => {
   if (!str) return '';
@@ -43,6 +47,8 @@ const buildForm = (emp) => ({
   phone_number:             (emp.phone_number             || '').replace(/^\+63/, ''),
   contact_email:            emp.contact_email             || '',
   residential_address:      emp.residential_address       || '',
+  latitude:                 emp.latitude                  || null,
+  longitude:                emp.longitude                 || null,
   emergency_contact_name:   emp.emergency_contact_name    || '',
   emergency_contact_number: (emp.emergency_contact_number || '').replace(/^\+63/, ''),
   // Employment
@@ -362,12 +368,29 @@ function PersonalTab({ employee, isEditing, editForm, onField, onEdit, onSave, o
               <EditInput label="Email Address"  type="email" value={editForm.contact_email}      onChange={v => onField('contact_email', v)} />
               <div className="ve-edit-field span-2">
                 <label className="ve-edit-label">Residential Address</label>
-                <textarea
-                  className="ve-edit-input"
-                  rows={2}
-                  value={editForm.residential_address}
-                  onChange={e => onField('residential_address', e.target.value)}
-                />
+                <AddressAutofill
+                  accessToken={MAPBOX_TOKEN}
+                  onRetrieve={(res) => {
+                    const feature = res.features[0];
+                    if (feature) {
+                      const [lng, lat] = feature.geometry.coordinates;
+                      const fullAddress = feature.properties?.full_address || feature.place_name || feature.properties?.name || '';
+                      onField('latitude', lat);
+                      onField('longitude', lng);
+                      setTimeout(() => onField('residential_address', fullAddress), 50);
+                    }
+                  }}
+                >
+                  <input
+                    type="text"
+                    autoComplete="address-line1"
+                    className="ve-edit-input"
+                    placeholder="Start typing your address..."
+                    value={editForm.residential_address}
+                    onChange={(e) => onField('residential_address', e.target.value)}
+                  />
+                </AddressAutofill>
+                <p className="ae-hint">Validated address saves coordinates for deployment calculations.</p>
               </div>
               <EditInput label="Emergency Contact Name"   value={editForm.emergency_contact_name}   onChange={v => onField('emergency_contact_name', v)} />
               <EditInput label="Emergency Contact Number" value={editForm.emergency_contact_number} onChange={v => onField('emergency_contact_number', v)} placeholder="10-digit number" />
