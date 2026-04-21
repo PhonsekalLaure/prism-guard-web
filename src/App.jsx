@@ -13,6 +13,7 @@ import DeployedGuardsPage from '@cms-pages/DeployedGuardsPage';
 import ServiceRequestsPage from '@cms-pages/ServiceRequestsPage';
 import IncidentReportsPage from '@cms-pages/IncidentReportsPage';
 import CmsBillingPage from '@cms-pages/CmsBillingPage';
+import ServiceReviewsPage from '@cms-pages/ServiceReviewsPage';
 
 function App() {
   return (
@@ -44,6 +45,7 @@ function App() {
           <Route path="/cms/service-requests" element={<ServiceRequestsPage />} />
           <Route path="/cms/incident-reports" element={<IncidentReportsPage />} />
           <Route path="/cms/billing" element={<CmsBillingPage />} />
+          <Route path="/cms/reviews" element={<ServiceReviewsPage />} />
         </Route>
 
         {/* Default route → login */}
