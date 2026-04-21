@@ -6,29 +6,21 @@ import {
   FaInfoCircle,
   FaTimes,
 } from 'react-icons/fa';
+import '@styles/components/Notification.css';
 
 const iconMap = {
   success: FaCheckCircle,
-  error: FaExclamationCircle,
+  error:   FaExclamationCircle,
   warning: FaExclamationTriangle,
-  info: FaInfoCircle,
+  info:    FaInfoCircle,
 };
 
-const bgMap = {
-  success: 'bg-[#27ae60]',
-  error: 'bg-[#e74c3c]',
-  warning: 'bg-[#f39c12]',
-  info: 'bg-[#3498db]',
-};
-
-export default function Notification({ message, type = 'info', onClose, duration = 3000 }) {
+export default function Notification({ message, type = 'info', onClose, duration = 4000 }) {
   const [isExiting, setIsExiting] = useState(false);
 
   const handleClose = useCallback(() => {
     setIsExiting(true);
-    setTimeout(() => {
-      onClose?.();
-    }, 300);
+    setTimeout(() => onClose?.(), 300);
   }, [onClose]);
 
   useEffect(() => {
@@ -40,24 +32,16 @@ export default function Notification({ message, type = 'info', onClose, duration
 
   if (!message) return null;
 
-  const Icon = iconMap[type] || FaInfoCircle;
-  const bgClass = bgMap[type] || bgMap.info;
+  const Icon = iconMap[type] || iconMap.info;
+  const typeClass = `notif-${type}`;
 
   return (
-    <div
-      className={`
-        fixed top-5 right-5 z-[9999] flex items-center gap-3
-        px-5 py-4 rounded-lg text-white text-sm font-medium
-        shadow-[0_5px_20px_rgba(0,0,0,0.2)]
-        ${bgClass}
-        ${isExiting ? 'animate-slide-out' : 'animate-slide-in'}
-      `}
-    >
-      <Icon className="text-lg shrink-0" />
-      <span>{message}</span>
+    <div className={`notif ${typeClass} ${isExiting ? 'notif-exit' : 'notif-enter'}`}>
+      <Icon className="notif-icon" />
+      <span className="notif-message">{message}</span>
       <button
+        className="notif-close"
         onClick={handleClose}
-        className="ml-2 text-white/80 hover:text-white transition-colors cursor-pointer"
         aria-label="Close notification"
       >
         <FaTimes />
