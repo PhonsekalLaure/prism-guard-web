@@ -11,12 +11,14 @@ import CmsLayout from '@cms-layouts/CmsLayout';
 import CmsDashboardPage from '@cms-pages/CmsDashboardPage';
 import DeployedGuardsPage from '@cms-pages/DeployedGuardsPage';
 import ServiceRequestsPage from '@cms-pages/ServiceRequestsPage';
+import SetPasswordPage from './pages/SetPasswordPage';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/set-password" element={<SetPasswordPage />} />
 
         {/* HRIS routes — admin only */}
         <Route element={

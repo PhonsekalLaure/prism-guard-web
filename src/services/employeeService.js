@@ -38,8 +38,32 @@ async function getEmployeeStats() {
   return data;
 }
 
+async function createEmployee(formData) {
+  const { data } = await api.post('/', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+  return data;
+}
+
+async function getNextEmployeeId() {
+  const { data } = await api.get('/next-id');
+  return data.nextId;
+}
+
+async function updateEmployee(id, formData) {
+  const { data } = await api.patch(`/${id}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
+  return data;
+}
+
 export default {
   getAllEmployees,
   getEmployeeDetails,
-  getEmployeeStats
+  getEmployeeStats,
+  createEmployee,
+  updateEmployee,
+  getNextEmployeeId
 };
