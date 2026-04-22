@@ -84,7 +84,7 @@ export default function Sidebar({ onLogoutClick, isOpen, onClose }) {
       {/* Footer */}
       <div className="sidebar-footer">
         <div className="nav-divider" />
-        <NavLink to="/admin" className="nav-item">
+        <NavLink to="/admin-management" className="nav-item">
           <FaUserShield />
           <span>Admin Management</span>
         </NavLink>
