@@ -8,6 +8,7 @@ import BillingPage from '@hris-pages/BillingPage';
 import EmployeesPage from '@hris-pages/EmployeesPage';
 import ProfilePage from '@hris-pages/ProfilePage';
 import AdminManagementPage from '@hris-pages/AdminManagementPage';
+import ApplicantsPage from '@hris-pages/ApplicantsPage';
 import CmsLayout from '@cms-layouts/CmsLayout';
 import CmsDashboardPage from '@cms-pages/CmsDashboardPage';
 import DeployedGuardsPage from '@cms-pages/DeployedGuardsPage';
@@ -34,6 +35,7 @@ function App() {
           <Route path="/employees" element={<EmployeesPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/admin-management" element={<AdminManagementPage />} />
+          <Route path="/applicants" element={<ApplicantsPage />} />
         </Route>
 
         {/* CMS routes — client only */}
