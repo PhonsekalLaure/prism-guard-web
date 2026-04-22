@@ -6,7 +6,7 @@ import {
   FaEye, FaFilePdf, FaFileImage, FaDownload, FaCheck, FaUpload, FaSave
 } from 'react-icons/fa';
 import { FaSpinner } from 'react-icons/fa';
-import { AddressAutofill } from '@mapbox/search-js-react';
+import GoogleAddressAutofill from './GoogleAddressAutofill';
 import employeeService from '@services/employeeService';
 import Notification from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
@@ -18,7 +18,7 @@ const tabs = [
   { key: 'payroll',    label: 'Payroll',         icon: FaMoneyCheckAlt },
 ];
 
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_API_TOKEN;
+const GOOGLE_MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 const toProperCase = (str) => {
   if (!str) return '';
@@ -368,28 +368,18 @@ function PersonalTab({ employee, isEditing, editForm, onField, onEdit, onSave, o
               <EditInput label="Email Address"  type="email" value={editForm.contact_email}      onChange={v => onField('contact_email', v)} />
               <div className="ve-edit-field span-2">
                 <label className="ve-edit-label">Residential Address</label>
-                <AddressAutofill
-                  accessToken={MAPBOX_TOKEN}
-                  onRetrieve={(res) => {
-                    const feature = res.features[0];
-                    if (feature) {
-                      const [lng, lat] = feature.geometry.coordinates;
-                      const fullAddress = feature.properties?.full_address || feature.place_name || feature.properties?.name || '';
-                      onField('latitude', lat);
-                      onField('longitude', lng);
-                      setTimeout(() => onField('residential_address', fullAddress), 50);
-                    }
+                <GoogleAddressAutofill
+                  apiKey={GOOGLE_MAPS_KEY}
+                  value={editForm.residential_address}
+                  onChange={(e) => onField('residential_address', e.target.value)}
+                  className="ve-edit-input"
+                  placeholder="Search for an address..."
+                  onPlaceSelected={({ formattedAddress, lat, lng }) => {
+                    onField('residential_address', formattedAddress);
+                    onField('latitude', lat);
+                    onField('longitude', lng);
                   }}
-                >
-                  <input
-                    type="text"
-                    autoComplete="address-line1"
-                    className="ve-edit-input"
-                    placeholder="Start typing your address..."
-                    value={editForm.residential_address}
-                    onChange={(e) => onField('residential_address', e.target.value)}
-                  />
-                </AddressAutofill>
+                />
                 <p className="ae-hint">Validated address saves coordinates for deployment calculations.</p>
               </div>
               <EditInput label="Emergency Contact Name"   value={editForm.emergency_contact_name}   onChange={v => onField('emergency_contact_name', v)} />

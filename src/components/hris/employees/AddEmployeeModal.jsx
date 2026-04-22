@@ -4,7 +4,7 @@ import {
 } from 'react-icons/fa';
 import employeeService from '@services/employeeService';
 import clientService from '@services/clientService';
-import { AddressAutofill } from '@mapbox/search-js-react';
+import GoogleAddressAutofill from './GoogleAddressAutofill';
 import { FaSpinner } from 'react-icons/fa';
 import Notification from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
@@ -16,7 +16,7 @@ const STEPS = [
   { num: 4, label: 'Review' },
 ];
 
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_API_TOKEN;
+const GOOGLE_MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 const toProperCase = (str) => {
   if (!str) return str;
@@ -314,37 +314,18 @@ function Step1Personal({ data, onChange }) {
 
         <div className="ae-form-group span-2">
           <label>Residential Address *</label>
-          <AddressAutofill
-            accessToken={MAPBOX_TOKEN}
-            onRetrieve={(res) => {
-              const feature = res.features[0];
-              if (feature) {
-                 const [lng, lat] = feature.geometry.coordinates;
-                 const fullAddress = feature.properties?.full_address || feature.place_name || feature.properties?.name || '';
-                 onChange('latitude', lat);
-                 onChange('longitude', lng);
-                 // We use a small timeout to let the internal AddressAutofill "magic" finish 
-                 // before we force our full_address into the controlled state.
-                 setTimeout(() => {
-                   onChange('address', fullAddress);
-                 }, 50);
-              }
+          <GoogleAddressAutofill
+            apiKey={GOOGLE_MAPS_KEY}
+            value={data.address}
+            onChange={(e) => onChange('address', e.target.value)}
+            className="ae-input"
+            placeholder="Search for an address..."
+            onPlaceSelected={({ formattedAddress, lat, lng }) => {
+              onChange('address', formattedAddress);
+              onChange('latitude', lat);
+              onChange('longitude', lng);
             }}
-          >
-            <input
-              type="text"
-              autoComplete="address-line1"
-              className="ae-input"
-              placeholder="Start typing your address..."
-              required
-              value={data.address}
-              onChange={(e) => {
-                onChange('address', e.target.value);
-                // If they clear or change the address manually after selecting, we might want to clear lat/lng
-                // But for now, we leave it simple.
-              }}
-            />
-          </AddressAutofill>
+          />
           <p className="ae-hint">Select a validated address to automatically save geographical coordinates for deployment distance calculations.</p>
         </div>
 
