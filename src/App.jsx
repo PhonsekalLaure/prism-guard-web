@@ -14,12 +14,15 @@ import ServiceRequestsPage from '@cms-pages/ServiceRequestsPage';
 import IncidentReportsPage from '@cms-pages/IncidentReportsPage';
 import CmsBillingPage from '@cms-pages/CmsBillingPage';
 import ServiceReviewsPage from '@cms-pages/ServiceReviewsPage';
+import SetPasswordPage from './pages/SetPasswordPage';
+
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/set-password" element={<SetPasswordPage />} />
 
         {/* HRIS routes — admin only */}
         <Route element={
