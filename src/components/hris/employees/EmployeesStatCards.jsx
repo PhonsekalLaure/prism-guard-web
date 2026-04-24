@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import employeeService from '@services/employeeService';
 
-export default function EmployeesStatCards() {
+export default function EmployeesStatCards({ refreshKey = 0 }) {
   const [stats, setStats] = useState({
     totalEmployees: 0,
     onLeave: 0,
@@ -22,7 +22,7 @@ export default function EmployeesStatCards() {
       }
     }
     fetchStats();
-  }, []);
+  }, [refreshKey]);
 
   const statConfig = [
     {

@@ -11,10 +11,10 @@ import clientService from '../../services/clientService';
 export default function EmployeesPage() {
   const [viewEmployee, setViewEmployee] = useState(null);
   const [isAddOpen, setIsAddOpen] = useState(false);
-  
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -34,7 +34,7 @@ export default function EmployeesPage() {
   useEffect(() => {
     async function fetchClients() {
       try {
-        const data = await clientService.getAllClients();
+        const data = await clientService.getClientsList();
         setClientsList(data);
       } catch (err) {
         console.error("Failed to fetch clients:", err);
@@ -61,8 +61,8 @@ export default function EmployeesPage() {
     async function fetchEmployees() {
       try {
         setLoading(true);
+        setError(null);
         const response = await employeeService.getAllEmployees(currentPage, itemsPerPage, filters);
-        // The backend now returns { data: [...], metadata: { total: ... } }
         setEmployees(response.data);
         setTotalItems(response.metadata.total);
       } catch (err) {
@@ -72,14 +72,14 @@ export default function EmployeesPage() {
       }
     }
     fetchEmployees();
-  }, [currentPage, filters]);
+  }, [currentPage, filters, refreshKey]);
 
   return (
     <>
       <EmployeesTopbar onAddEmployee={() => setIsAddOpen(true)} />
 
       <div className="dashboard-content">
-        <EmployeesStatCards />
+        <EmployeesStatCards refreshKey={refreshKey} />
         <EmployeesFilterBar 
           filters={filters} 
           onFilterChange={handleFilterChange} 
@@ -110,11 +110,13 @@ export default function EmployeesPage() {
         isOpen={!!viewEmployee}
         employee={viewEmployee}
         onClose={() => setViewEmployee(null)}
+        onUpdated={() => setRefreshKey((prev) => prev + 1)}
       />
 
       <AddEmployeeModal
         isOpen={isAddOpen}
         onClose={() => setIsAddOpen(false)}
+        onSaved={() => setRefreshKey((prev) => prev + 1)}
       />
     </>
   );

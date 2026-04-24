@@ -56,10 +56,11 @@ const buildForm = (emp) => ({
   employment_type:          emp.employment_type           || '',
 });
 
-export default function ViewEmployeeModal({ isOpen, employee: previewEmployee, onClose }) {
+export default function ViewEmployeeModal({ isOpen, employee: previewEmployee, onClose, onUpdated }) {
   const [activeTab, setActiveTab]         = useState('personal');
   const [employeeDetails, setEmployeeDetails] = useState(null);
   const [loading, setLoading]             = useState(false);
+  const [fetchError, setFetchError]       = useState(false);
   const [previewUrl, setPreviewUrl]       = useState(null);
   const [isEditing, setIsEditing]         = useState(false);
   const [editForm, setEditForm]           = useState({});
@@ -70,14 +71,23 @@ export default function ViewEmployeeModal({ isOpen, employee: previewEmployee, o
   useEffect(() => {
     if (isOpen && previewEmployee?.id) {
       setLoading(true);
+      setFetchError(false);
       employeeService.getEmployeeDetails(previewEmployee.id)
-        .then(data => { setEmployeeDetails(data); setLoading(false); })
-        .catch(err  => { console.error(err); setLoading(false); });
+        .then(data => {
+          setEmployeeDetails(data);
+          setLoading(false);
+        })
+        .catch(err  => {
+          console.error(err);
+          setFetchError(true);
+          setLoading(false);
+        });
     } else {
       setEmployeeDetails(null);
       setActiveTab('personal');
       setIsEditing(false);
       setPendingFiles({});
+      setFetchError(false);
     }
   }, [isOpen, previewEmployee]);
 
@@ -86,7 +96,7 @@ export default function ViewEmployeeModal({ isOpen, employee: previewEmployee, o
 
   /* Start editing — pre-fill form with current values */
   const handleEdit = () => {
-    setEditForm(buildForm(employeeDetails));
+    setEditForm(buildForm(data));
     setPendingFiles({});
     setIsEditing(true);
   };
@@ -126,6 +136,7 @@ export default function ViewEmployeeModal({ isOpen, employee: previewEmployee, o
       setEmployeeDetails(refreshed);
       setIsEditing(false);
       setPendingFiles({});
+      onUpdated?.();
       showNotification('Employee details updated successfully.', 'success');
     } catch (err) {
       console.error(err);
@@ -181,11 +192,17 @@ export default function ViewEmployeeModal({ isOpen, employee: previewEmployee, o
             </div>
           )}
 
-          {!loading && employeeDetails && (
+          {!loading && (
             <>
+              {fetchError && (
+                <div style={{ background:'#fef3c7', border:'1px solid #fde68a', color:'#92400e', borderRadius:'8px', padding:'0.65rem 1rem', fontSize:'0.8rem', fontWeight:600, marginBottom:'1rem' }}>
+                  Could not load full employee details. Showing limited information.
+                </div>
+              )}
               {activeTab === 'personal'   && (
                 <PersonalTab
-                  employee={employeeDetails}
+                  employee={data}
+                  canEdit={!fetchError && !!employeeDetails}
                   isEditing={isEditing}
                   editForm={editForm}
                   onField={handleField}
@@ -197,7 +214,7 @@ export default function ViewEmployeeModal({ isOpen, employee: previewEmployee, o
               )}
               {activeTab === 'employment' && (
                 <EmploymentTab
-                  employee={employeeDetails}
+                  employee={data}
                   isEditing={isEditing}
                   editForm={editForm}
                   onField={handleField}
@@ -205,14 +222,14 @@ export default function ViewEmployeeModal({ isOpen, employee: previewEmployee, o
               )}
               {activeTab === 'compliance' && (
                 <ComplianceTab
-                  employee={employeeDetails}
+                  employee={data}
                   isEditing={isEditing}
                   pendingFiles={pendingFiles}
                   onPreview={setPreviewUrl}
                   onClearanceFile={handleClearanceFile}
                 />
               )}
-              {activeTab === 'payroll' && <PayrollTab employee={employeeDetails} />}
+              {activeTab === 'payroll' && <PayrollTab employee={data} />}
             </>
           )}
 
@@ -278,7 +295,7 @@ function EditSelect({ label, value, onChange, options }) {
 /* ─────────────────────────────────────────────────────────
    Personal Info Tab
 ───────────────────────────────────────────────────────── */
-function PersonalTab({ employee, isEditing, editForm, onField, onEdit, onSave, onCancel, isSaving }) {
+function PersonalTab({ employee, canEdit, isEditing, editForm, onField, onEdit, onSave, onCancel, isSaving }) {
   return (
     <div className="ve-tab-content">
       {/* Profile card */}
@@ -299,11 +316,11 @@ function PersonalTab({ employee, isEditing, editForm, onField, onEdit, onSave, o
         </div>
 
         {/* Edit / Save / Cancel buttons */}
-        {!isEditing ? (
+        {!isEditing && canEdit ? (
           <button className="ve-edit-btn" onClick={onEdit}>
             <FaEdit /> Edit Details
           </button>
-        ) : (
+        ) : isEditing ? (
           <div className="ve-edit-actions">
             <button className="ve-btn-save" onClick={onSave} disabled={isSaving}>
               {isSaving ? 'Saving…' : <><FaSave /> Save Changes</>}
@@ -312,7 +329,7 @@ function PersonalTab({ employee, isEditing, editForm, onField, onEdit, onSave, o
               <FaTimes /> Cancel
             </button>
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* ── View Mode ── */}
@@ -371,7 +388,11 @@ function PersonalTab({ employee, isEditing, editForm, onField, onEdit, onSave, o
                 <GoogleAddressAutofill
                   apiKey={GOOGLE_MAPS_KEY}
                   value={editForm.residential_address}
-                  onChange={(e) => onField('residential_address', e.target.value)}
+                  onChange={(e) => {
+                    onField('residential_address', e.target.value);
+                    onField('latitude', null);
+                    onField('longitude', null);
+                  }}
                   className="ve-edit-input"
                   placeholder="Search for an address..."
                   onPlaceSelected={({ formattedAddress, lat, lng }) => {
