@@ -3,7 +3,7 @@ import { FaSearch, FaTag, FaFilter } from 'react-icons/fa';
 export default function HrisLeaveRequestsFilterBar() {
   return (
     <div className="hlr-filter-bar">
-      <div className="hlr-filter-group" style={{ gridColumn: 'span 2' }}>
+      <div className="hlr-filter-group">
         <label className="hlr-filter-label">
           <FaSearch /> Search Employee
         </label>
