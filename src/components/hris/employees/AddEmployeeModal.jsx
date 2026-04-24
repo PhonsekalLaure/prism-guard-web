@@ -23,7 +23,7 @@ const toProperCase = (str) => {
   return str.toLowerCase().replace(/\b\w/g, s => s.toUpperCase());
 };
 
-export default function AddEmployeeModal({ isOpen, onClose }) {
+export default function AddEmployeeModal({ isOpen, onClose, onSaved }) {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { notification, showNotification, closeNotification } = useNotification();
@@ -55,10 +55,11 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
       }
       async function loadClients() {
         try {
-          const data = await clientService.getAllClients();
+          const data = await clientService.getClientsList();
           setClients(data || []);
         } catch (err) {
           console.error("Failed to load clients:", err);
+          setClients([]);
         }
       }
       loadClients();
@@ -97,6 +98,10 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
         showNotification('Please enter a valid email address', 'error');
         return false;
       }
+      if (address && (formData.latitude == null || formData.longitude == null)) {
+        showNotification('Please select a validated address from the suggestions so coordinates are saved.', 'error');
+        return false;
+      }
       if (mobile.replace(/\D/g, '').length !== 10 || formData.emergencyContact.replace(/\D/g, '').length !== 10) {
         showNotification('Mobile numbers must be exactly 10 digits (excluding +63)', 'error');
         return false;
@@ -112,19 +117,8 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
   };
 
   const nextStep = async () => { 
-    if (validateStep()) {
-      if (currentStep === 1 && !formData.latitude && formData.address) {
-        // Fallback geocoding if user typed but didn't click
-        try {
-          const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(formData.address)}.json?access_token=${MAPBOX_TOKEN}&country=ph`);
-          const data = await res.json();
-          if (data.features && data.features.length > 0) {
-            const [lng, lat] = data.features[0].geometry.coordinates;
-            setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
-          }
-        } catch(e) { console.error('Geocoding fallback failed', e); }
-      }
-      if (currentStep < 4) setCurrentStep(currentStep + 1); 
+    if (validateStep() && currentStep < 4) {
+      setCurrentStep(currentStep + 1);
     }
   };
   const prevStep = () => { if (currentStep > 1) setCurrentStep(currentStep - 1); };
@@ -159,6 +153,7 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
 
       await employeeService.createEmployee(payload);
       showNotification('Employee added successfully and welcome email sent!', 'success');
+      onSaved?.();
       setTimeout(handleClose, 1500);
     } catch (err) {
       console.error("Failed to add employee:", err);
@@ -317,7 +312,11 @@ function Step1Personal({ data, onChange }) {
           <GoogleAddressAutofill
             apiKey={GOOGLE_MAPS_KEY}
             value={data.address}
-            onChange={(e) => onChange('address', e.target.value)}
+            onChange={(e) => {
+              onChange('address', e.target.value);
+              onChange('latitude', null);
+              onChange('longitude', null);
+            }}
             className="ae-input"
             placeholder="Search for an address..."
             onPlaceSelected={({ formattedAddress, lat, lng }) => {
