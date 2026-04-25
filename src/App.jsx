@@ -20,6 +20,7 @@ import IncidentReportsPage from '@cms-pages/IncidentReportsPage';
 import CmsBillingPage from '@cms-pages/CmsBillingPage';
 import ServiceReviewsPage from '@cms-pages/ServiceReviewsPage';
 import SetPasswordPage from './pages/SetPasswordPage';
+import CmsProfilePage from '@cms-pages/CmsProfilePage';
 
 
 function App() {
@@ -59,6 +60,7 @@ function App() {
           <Route path="/cms/incident-reports" element={<IncidentReportsPage />} />
           <Route path="/cms/billing" element={<CmsBillingPage />} />
           <Route path="/cms/reviews" element={<ServiceReviewsPage />} />
+          <Route path="/cms/profile" element={<CmsProfilePage />} />
         </Route>
 
         {/* Default route → login */}
