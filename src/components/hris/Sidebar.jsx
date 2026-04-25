@@ -5,6 +5,7 @@ import {
   FaUserPlus, FaExclamationTriangle, FaBullhorn, FaUserShield, FaSignOutAlt,
 } from 'react-icons/fa';
 import logo from '@assets/logo.png';
+import authService from '@services/authService';
 
 const navGroups = [
   {
@@ -42,7 +43,13 @@ const navGroups = [
   },
 ];
 
+// ─── Header Navigation Support ─────────────────────────────────
+
 export default function Sidebar({ onLogoutClick, isOpen, onClose }) {
+  const profile = authService.getProfile() || {};
+  const fullName = profile.first_name ? `${profile.first_name} ${profile.last_name}` : 'John Juan';
+  const position = profile.position || profile.role || 'President';
+
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
       {/* Header */}
@@ -77,7 +84,7 @@ export default function Sidebar({ onLogoutClick, isOpen, onClose }) {
       {/* Footer */}
       <div className="sidebar-footer">
         <div className="nav-divider" />
-        <NavLink to="/admin" className="nav-item">
+        <NavLink to="/admin-management" className="nav-item">
           <FaUserShield />
           <span>Admin Management</span>
         </NavLink>
@@ -89,8 +96,8 @@ export default function Sidebar({ onLogoutClick, isOpen, onClose }) {
             <FaUsers />
           </div>
           <div className="user-info">
-            <span className="user-name">John Juan</span>
-            <span className="user-role">President</span>
+            <span className="user-name">{fullName}</span>
+            <span className="user-role">{position}</span>
           </div>
           </NavLink>
         </div>

@@ -1,6 +1,42 @@
+import { useState, useEffect } from 'react';
 import { FaUserShield, FaEnvelope, FaPhone, FaKey, FaEdit } from 'react-icons/fa';
+import axios from 'axios';
+import authService from '@services/authService';
+
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export default function ProfileCard() {
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = authService.getToken();
+        const { data } = await axios.get(`${API_BASE}/api/web/profile/me`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setProfile(data);
+      } catch (error) {
+        console.error('Error fetching profile', error);
+        // Fallback to local
+        setProfile(authService.getProfile() || {});
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  if (loading) {
+    return <div className="pf-left-col"><div className="pf-card">Loading...</div></div>;
+  }
+
+  const fullName = profile?.first_name ? `${profile.first_name} ${profile.last_name}` : 'John Juan';
+  const position = profile?.position || profile?.role || 'PRESIDENT';
+  const email = profile?.contact_email || 'president@prismguard.com';
+  const phone = profile?.phone_number || '+63 917 123 4567';
+
   return (
     <div className="pf-left-col">
       {/* Main Profile Card */}
@@ -10,8 +46,8 @@ export default function ProfileCard() {
           <div className="pf-avatar">
             <FaUserShield />
           </div>
-          <h3 className="pf-name">John Juan</h3>
-          <p className="pf-role">PRESIDENT</p>
+          <h3 className="pf-name">{fullName}</h3>
+          <p className="pf-role">{position.toUpperCase()}</p>
         </div>
 
         {/* Contact info */}
@@ -23,7 +59,7 @@ export default function ProfileCard() {
               </div>
               <div>
                 <p className="pf-contact-label">Email Address</p>
-                <p className="pf-contact-value">president@prismguard.com</p>
+                <p className="pf-contact-value">{email}</p>
               </div>
             </div>
 
@@ -33,7 +69,7 @@ export default function ProfileCard() {
               </div>
               <div>
                 <p className="pf-contact-label">Phone Number</p>
-                <p className="pf-contact-value">+63 917 123 4567</p>
+                <p className="pf-contact-value">{phone}</p>
               </div>
             </div>
           </div>
