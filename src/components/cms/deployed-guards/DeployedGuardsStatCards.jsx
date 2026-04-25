@@ -1,39 +1,39 @@
-const stats = [
+const statConfig = [
   {
+    key: 'totalDeployed',
     label: 'Total Deployed',
-    value: '24',
     sub: 'Across All Sites',
     valueColor: '#093269',
     borderColor: '#093269',
   },
   {
+    key: 'onDuty',
     label: 'On Duty',
-    value: '20',
     sub: 'Active Now',
     valueColor: '#16a34a',
     subColor: '#16a34a',
     borderColor: '#16a34a',
   },
   {
+    key: 'onLeave',
     label: 'On Leave',
-    value: '3',
     sub: 'Returning soon',
     valueColor: '#ca8a04',
     borderColor: '#ca8a04',
   },
   {
+    key: 'tempReplaced',
     label: 'Temporarily Replaced',
-    value: '1',
     sub: 'Replacement assigned',
     valueColor: '#dc2626',
     borderColor: '#ef4444',
   },
 ];
 
-export default function DeployedGuardsStatCards() {
+export default function DeployedGuardsStatCards({ stats, loading }) {
   return (
     <div className="stat-grid">
-      {stats.map((s) => (
+      {statConfig.map((s) => (
         <div
           key={s.label}
           className="stat-card"
@@ -41,7 +41,9 @@ export default function DeployedGuardsStatCards() {
         >
           <div>
             <p className="stat-label">{s.label}</p>
-            <h3 className="stat-value" style={{ color: s.valueColor }}>{s.value}</h3>
+            <h3 className="stat-value" style={{ color: s.valueColor }}>
+              {loading || stats === null ? '—' : (stats[s.key] ?? '—')}
+            </h3>
             <p className="stat-sub" style={{ color: s.subColor || '#7f8c8d' }}>{s.sub}</p>
           </div>
         </div>
