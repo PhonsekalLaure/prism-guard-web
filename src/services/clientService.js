@@ -8,6 +8,21 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+function withMultipartFormData(formData) {
+  const headers = { ...api.defaults.headers.common };
+
+  return {
+    headers,
+    transformRequest: [(payload, requestHeaders) => {
+      delete requestHeaders['Content-Type'];
+      delete requestHeaders['content-type'];
+      delete requestHeaders.common;
+      return payload;
+    }],
+    data: formData,
+  };
+}
+
 api.interceptors.request.use((config) => {
   const token = authService.getToken();
   if (token) {
@@ -38,11 +53,23 @@ async function getClientStats() {
 }
 
 async function createClient(clientData) {
+  if (clientData instanceof FormData) {
+    const config = withMultipartFormData(clientData);
+    const { data } = await api.post('/', config.data, config);
+    return data;
+  }
+
   const { data } = await api.post('/', clientData);
   return data;
 }
 
 async function updateClient(id, clientData) {
+  if (clientData instanceof FormData) {
+    const config = withMultipartFormData(clientData);
+    const { data } = await api.patch(`/${id}`, config.data, config);
+    return data;
+  }
+
   const { data } = await api.patch(`/${id}`, clientData);
   return data;
 }
@@ -52,8 +79,8 @@ async function getClientsList() {
   return data || [];
 }
 
-async function getAllSitesList() {
-  const { data } = await api.get('/sites');
+async function getAllSitesList(params = {}) {
+  const { data } = await api.get('/sites', { params });
   return data || [];
 }
 

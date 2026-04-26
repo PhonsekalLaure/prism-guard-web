@@ -52,8 +52,8 @@ async function getEmployeeStats() {
   return data;
 }
 
-async function getDeployableEmployees() {
-  const { data } = await api.get('/deployable');
+async function getDeployableEmployees(params = {}) {
+  const { data } = await api.get('/deployable', { params });
   return data || [];
 }
 
@@ -85,6 +85,17 @@ async function deployEmployee(id, payload) {
   return data;
 }
 
+async function transferEmployeeAssignment(id, payload) {
+  if (payload instanceof FormData) {
+    const config = withMultipartFormData(payload);
+    const { data } = await api.post(`/${id}/transfer`, config.data, config);
+    return data;
+  }
+
+  const { data } = await api.post(`/${id}/transfer`, payload);
+  return data;
+}
+
 export default {
   getAllEmployees,
   getEmployeeDetails,
@@ -93,5 +104,6 @@ export default {
   createEmployee,
   updateEmployee,
   deployEmployee,
+  transferEmployeeAssignment,
   getNextEmployeeId
 };
