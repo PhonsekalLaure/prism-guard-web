@@ -71,11 +71,17 @@ async function updateEmployee(id, formData) {
   return data;
 }
 
+async function deployEmployee(id, payload) {
+  const { data } = await api.post(`/${id}/deploy`, payload);
+  return data;
+}
+
 export default {
   getAllEmployees,
   getEmployeeDetails,
   getEmployeeStats,
   createEmployee,
   updateEmployee,
+  deployEmployee,
   getNextEmployeeId
 };

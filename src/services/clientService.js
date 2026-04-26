@@ -22,6 +22,19 @@ async function getAllClients() {
   return data;
 }
 
+async function getClientsList() {
+  const { data } = await api.get('/list');
+  return data || [];
+}
+
+async function getAllSitesList() {
+  const { data } = await api.get('/sites');
+  return data || [];
+}
+
+
 export default {
-  getAllClients
+  getAllClients,
+  getClientsList,
+  getAllSitesList
 };
