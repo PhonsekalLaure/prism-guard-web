@@ -1,19 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { FaCheck, FaTimes } from 'react-icons/fa';
 
 const DOC_LABELS = {
-  valid_id:                   'Valid ID',
-  resume:                     'Resume',
+  valid_id: 'Valid ID',
+  resume: 'Resume',
   personal_information_sheet: 'Personal Information Sheet',
-  barangay:                   'Barangay Clearance',
-  police:                     'Police Clearance',
-  nbi:                        'NBI Clearance',
-  neuro:                      'Neuro-Psychiatric Exam',
-  drugtest:                   'Drug Test',
-  sg_license:                 'SG License (LTOPF)',
-  contract:                   'Employee Contract',
-  deployment_order:           'Deployment Order',
+  barangay: 'Barangay Clearance',
+  police: 'Police Clearance',
+  nbi: 'NBI Clearance',
+  neuro: 'Neuro-Psychiatric Exam',
+  drugtest: 'Drug Test',
+  sg_license: 'SG License (LTOPF)',
+  contract: 'Employee Contract',
+  deployment_order: 'Deployment Order',
 };
+
+const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const toProperCase = (str) => {
   if (!str) return '';
@@ -36,30 +38,30 @@ function ReviewField({ label, value, highlight }) {
   return (
     <div className="ae-review-field">
       <span className="ae-review-field-label">{label}</span>
-      <span className={`ae-review-field-value ${highlight ? 'highlight' : ''}`}>{value || '—'}</span>
+      <span className={`ae-review-field-value ${highlight ? 'highlight' : ''}`}>{value || '-'}</span>
     </div>
   );
 }
 
 export default function Step4Review({ data }) {
-  const [avatarPreview, setAvatarPreview] = useState(null);
+  const avatarPreview = useMemo(
+    () => (data.avatar ? URL.createObjectURL(data.avatar) : null),
+    [data.avatar]
+  );
 
   useEffect(() => {
-    if (data.avatar) {
-      const reader = new FileReader();
-      reader.onloadend = () => setAvatarPreview(reader.result);
-      reader.readAsDataURL(data.avatar);
-    } else {
-      setAvatarPreview(null);
-    }
-  }, [data.avatar]);
+    return () => {
+      if (avatarPreview) {
+        URL.revokeObjectURL(avatarPreview);
+      }
+    };
+  }, [avatarPreview]);
 
-  const isComplete    = data.firstName && data.lastName && data.employeeId;
-  const docsAttached  = Object.keys(data.documents).filter(k => data.documents[k]);
+  const isComplete = data.firstName && data.lastName && data.employeeId;
+  const docsAttached = Object.keys(data.documents).filter((key) => data.documents[key]);
 
   return (
     <div className="ae-step-content">
-      {/* Header Banner */}
       <div className="ae-review-banner">
         {avatarPreview ? (
           <div className="ae-review-banner-avatar"><img src={avatarPreview} alt="Avatar" /></div>
@@ -77,54 +79,57 @@ export default function Step4Review({ data }) {
       </div>
 
       <div className="ae-review-grid">
-        <ReviewSection title="Personal Identity" icon="👤">
-          <ReviewField label="Full Name"      value={`${toProperCase(data.firstName)} ${toProperCase(data.middleName || '')} ${toProperCase(data.lastName)}`.trim()} />
-          <ReviewField label="Date of Birth"  value={data.dob} />
-          <ReviewField label="Gender"         value={data.gender} />
+        <ReviewSection title="Personal Identity" icon="Personal">
+          <ReviewField label="Full Name" value={`${toProperCase(data.firstName)} ${toProperCase(data.middleName || '')} ${toProperCase(data.lastName)}`.trim()} />
+          <ReviewField label="Date of Birth" value={data.dob} />
+          <ReviewField label="Gender" value={data.gender} />
           <ReviewField label="Marital Status" value={data.civilStatus} />
-          <ReviewField label="Height"         value={data.height ? `${data.height} cm` : null} />
-          <ReviewField label="Education"      value={data.educationalLevel} />
+          <ReviewField label="Height" value={data.height ? `${data.height} cm` : null} />
+          <ReviewField label="Education" value={data.educationalLevel} />
         </ReviewSection>
 
-        <ReviewSection title="Contact & Location" icon="📞">
-          <ReviewField label="Mobile"           value={data.mobile ? `+63 ${data.mobile}` : null} />
-          <ReviewField label="Email"            value={data.email} />
-          <ReviewField label="Address"          value={data.address} />
+        <ReviewSection title="Contact & Location" icon="Contact">
+          <ReviewField label="Mobile" value={data.mobile ? `+63 ${data.mobile}` : null} />
+          <ReviewField label="Email" value={data.email} />
+          <ReviewField label="Address" value={data.address} />
           <ReviewField label="Emergency Contact" value={data.emergencyName} />
           <ReviewField label="Emergency Number" value={data.emergencyContact ? `+63 ${data.emergencyContact}` : null} />
-          <ReviewField label="Relationship"     value={data.emergencyRelationship} />
+          <ReviewField label="Relationship" value={data.emergencyRelationship} />
         </ReviewSection>
 
-        <ReviewSection title="Employment Details" icon="💼">
-          <ReviewField label="Position"      value={data.position} />
-          <ReviewField label="Type"          value={data.employmentType === 'regular' ? 'Regular' : 'Reliever'} />
-          <ReviewField label="Date Hired"    value={data.hireDate} />
-          <ReviewField label="Assignment"    value={data.initialSiteLabel || 'Floating'} />
-          <ReviewField label="Contract End"  value={data.contractEndDate || null} />
-          <ReviewField label="Basic Rate"    value={data.basicRate ? `₱${parseFloat(data.basicRate).toLocaleString()}` : null} highlight={!!data.basicRate} />
+        <ReviewSection title="Employment Details" icon="Employment">
+          <ReviewField label="Position" value={data.position} />
+          <ReviewField label="Type" value={data.employmentType === 'regular' ? 'Regular' : 'Reliever'} />
+          <ReviewField label="Date Hired" value={data.hireDate} />
+          <ReviewField label="Assignment" value={data.initialSiteLabel || 'Floating'} />
+          <ReviewField label="Deployment Start" value={data.deploymentStartDate || null} />
+          <ReviewField label="Deployment End" value={data.deploymentEndDate || null} />
+          <ReviewField label="Contract End" value={data.contractEndDate || null} />
+          <ReviewField label="Schedule Days" value={data.daysOfWeek?.length ? data.daysOfWeek.map((day) => DAY_LABELS[day] || day).join(', ') : null} />
+          <ReviewField label="Shift Hours" value={data.shiftStart && data.shiftEnd ? `${data.shiftStart} - ${data.shiftEnd}` : null} />
+          <ReviewField label="Basic Rate" value={data.basicRate ? `PHP ${parseFloat(data.basicRate).toLocaleString()}` : null} highlight={!!data.basicRate} />
           <ReviewField label="Pay Frequency" value="Semi-monthly" />
         </ReviewSection>
 
-        <ReviewSection title="Government IDs & Credentials" icon="🪪">
-          <ReviewField label="TIN"            value={data.tinNumber} />
-          <ReviewField label="SSS Number"     value={data.sssNumber} />
-          <ReviewField label="Pag-IBIG"       value={data.pagibigNumber} />
-          <ReviewField label="PhilHealth"     value={data.philhealthNumber} />
+        <ReviewSection title="Government IDs & Credentials" icon="IDs">
+          <ReviewField label="TIN" value={data.tinNumber} />
+          <ReviewField label="SSS Number" value={data.sssNumber} />
+          <ReviewField label="Pag-IBIG" value={data.pagibigNumber} />
+          <ReviewField label="PhilHealth" value={data.philhealthNumber} />
           <ReviewField label="License Number" value={data.licenseNumber} />
-          <ReviewField label="Badge Number"   value={data.badgeNumber} />
+          <ReviewField label="Badge Number" value={data.badgeNumber} />
           <ReviewField label="License Expiry" value={data.licenseExpiryDate} />
         </ReviewSection>
       </div>
 
-      {/* Documents Summary */}
       <div className="ae-review-docs">
         <div className="ae-review-docs-header">
-          <span>📎</span>
+          <span>Docs</span>
           <span>Attached Documents ({docsAttached.length})</span>
         </div>
         {docsAttached.length > 0 ? (
           <div className="ae-review-docs-list">
-            {docsAttached.map(docId => (
+            {docsAttached.map((docId) => (
               <span key={docId} className="ae-review-doc-tag">
                 <FaCheck /> {DOC_LABELS[docId] || docId}
               </span>

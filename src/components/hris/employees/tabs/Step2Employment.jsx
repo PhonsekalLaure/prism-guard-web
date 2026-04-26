@@ -1,7 +1,23 @@
 import FormField from './FormField';
 
-export default function Step2Employment({ data, onChange, sites, onSiteChange }) {
+const DAY_OPTIONS = [
+  { value: 0, label: 'Sun' },
+  { value: 1, label: 'Mon' },
+  { value: 2, label: 'Tue' },
+  { value: 3, label: 'Wed' },
+  { value: 4, label: 'Thu' },
+  { value: 5, label: 'Fri' },
+  { value: 6, label: 'Sat' },
+];
+
+export default function Step2Employment({ data, onChange, sites, onSiteChange, toggleScheduleDay }) {
   const isFloating = !data.initialSiteId;
+  const formatSiteLabel = (site) => {
+    const baseLabel = `${site.site_name} - ${site.clients?.company || 'Unknown Client'}`;
+    return site.distance_km != null
+      ? `${baseLabel} (${site.distance_km.toFixed(2)} km)`
+      : baseLabel;
+  };
 
   return (
     <div className="ae-step-content">
@@ -23,7 +39,7 @@ export default function Step2Employment({ data, onChange, sites, onSiteChange })
             { label: 'Floating Status (No Assignment)', value: '' },
             ...sites.map(site => ({
               value: site.id,
-              label: `${site.site_name} - ${site.clients?.company || 'Unknown Client'}`,
+              label: formatSiteLabel(site),
             })),
           ]}
         />
@@ -37,6 +53,69 @@ export default function Step2Employment({ data, onChange, sites, onSiteChange })
           placeholder={isFloating ? 'Select an initial site to enable base pay' : '0.00'}
         />
         <FormField label="Pay Frequency" type="text" value="Semi-monthly" readOnly />
+
+        {!isFloating && (
+          <>
+            <div className="ae-form-group span-2 mt-2">
+              <h4 className="text-sm font-bold text-gray-700 border-b pb-2">Initial Deployment</h4>
+            </div>
+            <FormField
+              label="Deployment Start Date *"
+              type="date"
+              required
+              value={data.deploymentStartDate}
+              onChange={(e) => onChange('deploymentStartDate', e.target.value)}
+            />
+            <FormField
+              label="Deployment End Date *"
+              type="date"
+              required
+              value={data.deploymentEndDate}
+              onChange={(e) => onChange('deploymentEndDate', e.target.value)}
+              min={data.deploymentStartDate || data.hireDate || undefined}
+            />
+            <div className="ae-form-group span-2">
+              <label>Schedule Days *</label>
+              <div className="dep-days-grid">
+                {DAY_OPTIONS.map((day) => {
+                  const active = data.daysOfWeek.includes(day.value);
+                  return (
+                    <button
+                      key={day.value}
+                      type="button"
+                      className={`dep-day-pill${active ? ' active' : ''}`}
+                      onClick={() => toggleScheduleDay(day.value)}
+                    >
+                      {day.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <FormField
+              label="Shift Start *"
+              type="time"
+              required
+              value={data.shiftStart}
+              onChange={(e) => {
+                const start = e.target.value;
+                onChange('shiftStart', start);
+                if (start) {
+                  const [h, m] = start.split(':').map(Number);
+                  const endH = (h + 12) % 24;
+                  onChange('shiftEnd', `${String(endH).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+                }
+              }}
+            />
+            <FormField
+              label="Shift End *"
+              type="time"
+              required
+              value={data.shiftEnd}
+              onChange={(e) => onChange('shiftEnd', e.target.value)}
+            />
+          </>
+        )}
 
         <div className="ae-form-group span-2 mt-2">
           <h4 className="text-sm font-bold text-gray-700 border-b pb-2">Government IDs</h4>

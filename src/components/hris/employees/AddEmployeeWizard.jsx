@@ -31,10 +31,13 @@ const INITIAL_FORM = () => ({
   employeeId: '', hireDate: new Date().toISOString().split('T')[0],
   position: 'Security Guard', employmentType: 'regular',
   initialSiteId: '', initialSiteLabel: '', basicRate: '',
+  deploymentStartDate: '', deploymentEndDate: '',
+  contractEndDate: '',
+  daysOfWeek: [], shiftStart: '', shiftEnd: '',
   tinNumber: '', sssNumber: '', pagibigNumber: '', philhealthNumber: '',
   badgeNumber: '', licenseNumber: '', licenseExpiryDate: '',
   // Step 3
-  documents: {}, contractEndDate: '', avatar: null,
+  documents: {}, avatar: null,
 });
 
 export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode = false }) {
@@ -51,10 +54,13 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
         .then(id  => setFormData(prev => ({ ...prev, employeeId: id })))
         .catch(()  => setFormData(prev => ({ ...prev, employeeId: 'PG-00001' })));
     }
-    clientService.getAllSitesList()
+    clientService.getAllSitesList({
+      latitude: formData.latitude,
+      longitude: formData.longitude,
+    })
       .then(data => setSites(data || []))
       .catch(()  => setSites([]));
-  }, [isOpen]);
+  }, [isOpen, formData.employeeId, formData.latitude, formData.longitude]);
 
   if (!isOpen) return null;
 
@@ -69,10 +75,37 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
     setFormData(prev => ({ ...prev, [field]: value }));
 
   const handleSiteChange = (siteId) => {
-    if (!siteId) { setFormData(prev => ({ ...prev, initialSiteId: '', initialSiteLabel: '', basicRate: '' })); return; }
+    if (!siteId) {
+      setFormData(prev => ({
+        ...prev,
+        initialSiteId: '',
+        initialSiteLabel: '',
+        basicRate: '',
+        deploymentStartDate: '',
+        deploymentEndDate: '',
+        daysOfWeek: [],
+        shiftStart: '',
+        shiftEnd: '',
+      }));
+      return;
+    }
     const site  = sites.find(s => s.id === siteId);
     const label = site ? `${site.site_name} - ${site.clients?.company || 'Unknown Client'}` : '';
-    setFormData(prev => ({ ...prev, initialSiteId: siteId, initialSiteLabel: label }));
+    setFormData(prev => ({
+      ...prev,
+      initialSiteId: siteId,
+      initialSiteLabel: label,
+      deploymentStartDate: prev.deploymentStartDate || prev.hireDate || '',
+    }));
+  };
+
+  const toggleScheduleDay = (dayValue) => {
+    setFormData((prev) => ({
+      ...prev,
+      daysOfWeek: prev.daysOfWeek.includes(dayValue)
+        ? prev.daysOfWeek.filter((day) => day !== dayValue)
+        : [...prev.daysOfWeek, dayValue].sort((a, b) => a - b),
+    }));
   };
 
   const validateStep = () => {
@@ -94,6 +127,17 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
       if (!formData.hireDate || !formData.position || !formData.employmentType) {
         showNotification('Please fill in all required employment fields', 'error'); return false;
       }
+      if (formData.initialSiteId) {
+        if (!formData.deploymentStartDate || !formData.deploymentEndDate) {
+          showNotification('Please set the initial deployment start and end date.', 'error'); return false;
+        }
+        if (formData.daysOfWeek.length === 0) {
+          showNotification('Please select at least one schedule day for the initial deployment.', 'error'); return false;
+        }
+        if (!formData.shiftStart || !formData.shiftEnd) {
+          showNotification('Please set both shift start and shift end for the initial deployment.', 'error'); return false;
+        }
+      }
     } else if (currentStep === 3) {
       if (!formData.documents?.contract) {
         showNotification('Employee onboarding requires an employment contract document.', 'error'); return false;
@@ -113,6 +157,11 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
         setIsSubmitting(false);
         return;
       }
+      if (!formData.contractEndDate) {
+        showNotification('Please set the employee contract end date.', 'error');
+        setIsSubmitting(false);
+        return;
+      }
       const payload = new FormData();
       Object.keys(formData).forEach(key => {
         if (key === 'documents') {
@@ -120,6 +169,8 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
             if (docKey === 'deployment_order' && !formData.initialSiteId) return;
             if (formData.documents[docKey]) payload.append(`document_${docKey}`, formData.documents[docKey]);
           });
+        } else if (key === 'daysOfWeek') {
+          formData.daysOfWeek.forEach((day) => payload.append('daysOfWeek', String(day)));
         } else if (key === 'avatar') {
           if (formData.avatar) payload.append('avatar', formData.avatar);
         } else if (key === 'mobile' || key === 'emergencyContact') {
@@ -183,7 +234,15 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
         {/* Step Content */}
         <form className="ae-modal-body" onSubmit={(e) => e.preventDefault()}>
           {currentStep === 1 && <Step1Personal   data={formData} onChange={handleChange} />}
-          {currentStep === 2 && <Step2Employment data={formData} onChange={handleChange} sites={sites} onSiteChange={handleSiteChange} />}
+          {currentStep === 2 && (
+            <Step2Employment
+              data={formData}
+              onChange={handleChange}
+              sites={sites}
+              onSiteChange={handleSiteChange}
+              toggleScheduleDay={toggleScheduleDay}
+            />
+          )}
           {currentStep === 3 && <Step3Documents  data={formData} onChange={handleChange} />}
           {currentStep === 4 && <Step4Review     data={formData} />}
 

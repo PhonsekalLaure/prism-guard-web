@@ -23,7 +23,6 @@ export default function AddEmployeePage() {
         <AddEmployeeWizard
           isOpen={true}
           onClose={() => navigate('/employees')}
-          onSaved={() => navigate('/employees')}
           pageMode
         />
       </div>

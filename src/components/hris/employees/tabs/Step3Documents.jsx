@@ -86,7 +86,7 @@ export default function Step3Documents({ data, onChange }) {
         <div className="ae-checklist">
           <DocRow doc={{ id: 'contract', label: 'Employee Contract' }} documents={data.documents} onChange={handleFileChange} />
           <div className="ae-check-item flex items-center justify-between">
-            <span className="font-semibold text-sm">Contract End Date</span>
+            <span className="font-semibold text-sm">Employee Contract End Date</span>
             <input
               type="date"
               className="ae-input"

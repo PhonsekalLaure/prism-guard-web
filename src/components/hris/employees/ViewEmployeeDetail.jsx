@@ -91,6 +91,7 @@ export default function ViewEmployeeDetail({
 
   if (!isOpen || !previewEmployee) return null;
   const data = employeeDetails || previewEmployee;
+  const hasActiveDeployment = Array.isArray(data.deployments) && data.deployments.some((deployment) => deployment.status === 'active');
 
   const handleEdit   = () => { setEditForm(buildForm(data)); setPendingFiles({}); setIsEditing(true); };
   const handleCancel = () => { setIsEditing(false); setPendingFiles({}); };
@@ -140,7 +141,10 @@ export default function ViewEmployeeDetail({
     setShowDeployModal(true);
     setDeployForm({ siteId: '', contractStartDate: '', contractEndDate: '', daysOfWeek: [], shiftStart: '', shiftEnd: '', deploymentOrderFile: null });
     try {
-      const sites = await clientService.getAllSitesList();
+      const sites = await clientService.getAllSitesList({
+        latitude: data.latitude,
+        longitude: data.longitude,
+      });
       setSitesList(sites);
     } catch (err) {
       console.error(err);
@@ -162,13 +166,19 @@ export default function ViewEmployeeDetail({
       payload.append('shiftStart', deployForm.shiftStart);
       payload.append('shiftEnd',   deployForm.shiftEnd);
       if (deployForm.deploymentOrderFile) payload.append('document_deployment_order', deployForm.deploymentOrderFile);
-      await employeeService.deployEmployee(data.id, payload);
-      showNotification('Employee deployed successfully!', 'success');
+      if (hasActiveDeployment) {
+        await employeeService.transferEmployeeAssignment(data.id, payload);
+      } else {
+        await employeeService.deployEmployee(data.id, payload);
+      }
+      const refreshed = await employeeService.getEmployeeDetails(previewEmployee.id);
+      setEmployeeDetails(refreshed);
+      showNotification(hasActiveDeployment ? 'Employee transferred successfully!' : 'Employee deployed successfully!', 'success');
       setShowDeployModal(false);
       onUpdated?.();
     } catch (err) {
       console.error(err);
-      showNotification(err.response?.data?.error || 'Failed to deploy employee.', 'error');
+      showNotification(err.response?.data?.error || (hasActiveDeployment ? 'Failed to transfer employee.' : 'Failed to deploy employee.'), 'error');
     } finally {
       setIsDeploying(false);
     }
@@ -291,7 +301,7 @@ export default function ViewEmployeeDetail({
               <FaFileContract /> View Contract
             </button>
             <button className="ve-btn ve-btn-green" onClick={openDeployModal} disabled={data.status === 'terminated'}>
-              <FaMapMarkerAlt /> Assign Client
+              <FaMapMarkerAlt /> {hasActiveDeployment ? 'Transfer Assignment' : 'Assign Client'}
             </button>
             <button className="ve-btn ve-btn-red" onClick={() => setShowTerminateConfirm(true)} disabled={data.status === 'terminated'}>
               <FaUserTimes /> {data.status === 'terminated' ? 'Terminated' : 'Terminate Employee'}

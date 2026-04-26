@@ -11,9 +11,10 @@ const DAY_OPTIONS = [
 ];
 
 function SectionLabel({ icon: Icon, children }) {
+  const RenderedIcon = Icon;
   return (
     <div className="dep-section-label">
-      <Icon />
+      <RenderedIcon />
       <span>{children}</span>
     </div>
   );
@@ -25,11 +26,16 @@ export default function DeployEmployeeDialog({
 }) {
   if (!isOpen) return null;
 
+  const formatSiteLabel = (site) => {
+    const baseLabel = `${site.site_name} - ${site.clients?.company || 'Unknown Client'}`;
+    return site.distance_km != null
+      ? `${baseLabel} (${site.distance_km.toFixed(2)} km)`
+      : baseLabel;
+  };
+
   return (
     <div className="dlg-overlay" onClick={onCancel}>
       <div className="dlg-card dep-card" onClick={(e) => e.stopPropagation()}>
-
-        {/* Header */}
         <div className="dep-header">
           <div className="dep-header-icon">
             <FaMapMarkerAlt />
@@ -40,10 +46,7 @@ export default function DeployEmployeeDialog({
           </div>
         </div>
 
-        {/* Scrollable body */}
         <div className="dep-body">
-
-          {/* Site */}
           <div>
             <SectionLabel icon={FaBuilding}>Client Site</SectionLabel>
             <label className="dep-field-label">Select Site <span className="req">*</span></label>
@@ -52,16 +55,15 @@ export default function DeployEmployeeDialog({
               value={deployForm.siteId}
               onChange={(e) => setDeployForm((f) => ({ ...f, siteId: e.target.value }))}
             >
-              <option value="">— Select a site —</option>
+              <option value="">- Select a site -</option>
               {sitesList.map((site) => (
                 <option key={site.id} value={site.id}>
-                  {site.site_name} — {site.clients?.company || 'Unknown Client'}
+                  {formatSiteLabel(site)}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Contract period */}
           <div>
             <SectionLabel icon={FaCalendarAlt}>Contract Period</SectionLabel>
             <div className="dep-grid-2">
@@ -86,7 +88,6 @@ export default function DeployEmployeeDialog({
             </div>
           </div>
 
-          {/* Schedule days */}
           <div>
             <SectionLabel icon={FaCalendarAlt}>
               Schedule Days <span style={{ color: '#ef4444' }}>*</span>
@@ -109,7 +110,6 @@ export default function DeployEmployeeDialog({
             </div>
           </div>
 
-          {/* Shift times */}
           <div>
             <SectionLabel icon={FaClock}>
               Shift Hours <span style={{ color: '#ef4444' }}>*</span>
@@ -121,7 +121,18 @@ export default function DeployEmployeeDialog({
                   type="time"
                   className="dep-input"
                   value={deployForm.shiftStart}
-                  onChange={(e) => setDeployForm((f) => ({ ...f, shiftStart: e.target.value }))}
+                  onChange={(e) => {
+                    const start = e.target.value;
+                    setDeployForm((f) => {
+                      const next = { ...f, shiftStart: start };
+                      if (start) {
+                        const [h, m] = start.split(':').map(Number);
+                        const endH = (h + 12) % 24;
+                        next.shiftEnd = `${String(endH).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+                      }
+                      return next;
+                    });
+                  }}
                 />
               </div>
               <div>
@@ -136,7 +147,6 @@ export default function DeployEmployeeDialog({
             </div>
           </div>
 
-          {/* Deployment order */}
           <div>
             <SectionLabel icon={FaFileUpload}>Deployment Order</SectionLabel>
             <label className={`dep-file-zone${deployForm.deploymentOrderFile ? ' has-file' : ''}`}>
@@ -162,10 +172,8 @@ export default function DeployEmployeeDialog({
               />
             </label>
           </div>
-
         </div>
 
-        {/* Footer */}
         <div className="dlg-footer">
           <button className="dlg-btn dlg-btn-ghost" onClick={onCancel} disabled={isDeploying}>
             Cancel
@@ -176,10 +184,9 @@ export default function DeployEmployeeDialog({
             disabled={isDeploying || !deployForm.siteId}
           >
             {isDeploying ? <FaSpinner className="animate-spin" /> : <FaMapMarkerAlt />}
-            {isDeploying ? 'Deploying…' : 'Deploy Employee'}
+            {isDeploying ? 'Deploying...' : 'Deploy Employee'}
           </button>
         </div>
-
       </div>
     </div>
   );
