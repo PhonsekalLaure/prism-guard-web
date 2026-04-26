@@ -154,6 +154,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onSaved }) {
         ...prev,
         initialSiteId: '',
         initialSiteLabel: '',
+        basicRate: '',
       }));
       return;
     }
@@ -387,6 +388,8 @@ function Step1Personal({ data, onChange }) {
 
 /* Step 2: Employment */
 function Step2Employment({ data, onChange, sites, onSiteChange }) {
+  const isFloating = !data.initialSiteId;
+
   return (
     <div className="ae-step-content">
       <h3 className="ae-step-heading">Employment Details</h3>
@@ -409,7 +412,7 @@ function Step2Employment({ data, onChange, sites, onSiteChange }) {
             })),
           ]}
         />
-        <FormField label="Basic Rate (Monthly)" type="number" placeholder="0.00" prefix="₱" value={data.basicRate} onChange={(e) => onChange('basicRate', e.target.value)} />
+        <FormField label="Basic Rate (Monthly)" type="number" placeholder={isFloating ? 'Select an initial site to enable base pay' : '0.00'} prefix="₱" value={data.basicRate} onChange={(e) => onChange('basicRate', e.target.value)} disabled={isFloating} />
         <FormField label="Pay Frequency" type="text" value="Semi-monthly" readOnly />
         
         <div className="ae-form-group span-2 mt-2">
@@ -436,6 +439,7 @@ function Step3Documents({ data, onChange }) {
   const generalDocs = [
     { id: 'valid_id', label: 'Valid ID' },
     { id: 'resume', label: 'Resume' },
+    { id: 'personal_information_sheet', label: 'Personal Information Sheet' },
   ];
 
   const clearanceDocs = [
@@ -563,6 +567,7 @@ function Step4Review({ data }) {
   const docLabels = {
     valid_id: 'Valid ID',
     resume: 'Resume',
+    personal_information_sheet: 'Personal Information Sheet',
     barangay: 'Barangay Clearance',
     police: 'Police Clearance',
     nbi: 'NBI Clearance',
@@ -687,14 +692,14 @@ function Step4Review({ data }) {
 }
 
 /* Reusable form field */
-function FormField({ label, type, options, placeholder, required, hint, value, onChange, readOnly, span2, prefix }) {
+function FormField({ label, type, options, placeholder, required, hint, value, onChange, readOnly, disabled, span2, prefix }) {
   const wrapClass = `ae-form-group ${span2 ? 'span-2' : ''}`;
 
   if (type === 'select') {
     return (
       <div className={wrapClass}>
         <label>{label}</label>
-        <select className="ae-input" required={required} value={value} onChange={onChange}>
+        <select className="ae-input" required={required} value={value} onChange={onChange} disabled={disabled}>
           {options?.map((opt) => {
             const isObj = typeof opt === 'object';
             const val = isObj ? opt.value : opt;
@@ -710,7 +715,7 @@ function FormField({ label, type, options, placeholder, required, hint, value, o
     return (
       <div className={wrapClass}>
         <label>{label}</label>
-        <textarea className="ae-input ae-textarea" rows="2" placeholder={placeholder} required={required} value={value} onChange={onChange} />
+        <textarea className="ae-input ae-textarea" rows="2" placeholder={placeholder} required={required} value={value} onChange={onChange} disabled={disabled} />
         {hint && <p className="ae-hint">{hint}</p>}
       </div>
     );
@@ -729,6 +734,7 @@ function FormField({ label, type, options, placeholder, required, hint, value, o
           value={value}
           onChange={onChange}
           readOnly={readOnly}
+          disabled={disabled}
         />
       </div>
       {hint && <p className="ae-hint">{hint}</p>}
