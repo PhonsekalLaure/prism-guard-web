@@ -27,7 +27,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onSaved }) {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { notification, showNotification, closeNotification } = useNotification();
-  const [clients, setClients] = useState([]);
+  const [sites, setSites] = useState([]);
   const [formData, setFormData] = useState({
     // Step 1: Personal Info
     firstName: '', lastName: '', middleName: '', suffix: '', dob: '', 
@@ -38,6 +38,8 @@ export default function AddEmployeeModal({ isOpen, onClose, onSaved }) {
     emergencyName: '', emergencyContact: '', emergencyRelationship: '',
     // Step 2: Employment
     employeeId: '', hireDate: new Date().toISOString().split('T')[0], position: 'Security Guard', employmentType: 'regular',
+    initialSiteId: '', initialSiteLabel: '',
+    basicRate: '',
     tinNumber: '', sssNumber: '', pagibigNumber: '', philhealthNumber: '',
     badgeNumber: '', licenseNumber: '', licenseExpiryDate: '',
     // Step 3: Documents
@@ -56,16 +58,16 @@ export default function AddEmployeeModal({ isOpen, onClose, onSaved }) {
             setFormData(prev => ({ ...prev, employeeId: 'PG-00001' }));
           });
       }
-      async function loadClients() {
+      async function loadSites() {
         try {
-          const data = await clientService.getClientsList();
-          setClients(data || []);
+          const data = await clientService.getAllSitesList();
+          setSites(data || []);
         } catch (err) {
-          console.error("Failed to load clients:", err);
-          setClients([]);
+          console.error("Failed to load client sites:", err);
+          setSites([]);
         }
       }
-      loadClients();
+      loadSites();
     }
   }, [isOpen]);
 
@@ -82,7 +84,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onSaved }) {
       bloodType: '', placeOfBirth: '', provincialAddress: '',
       emergencyName: '', emergencyContact: '', emergencyRelationship: '',
       employeeId: '', hireDate: new Date().toISOString().split('T')[0], position: 'Security Guard', employmentType: 'regular',
-      initialAssignment: 'Floating Status (No Assignment)', basicRate: '', 
+      initialSiteId: '', initialSiteLabel: '', basicRate: '',
       tinNumber: '', sssNumber: '', pagibigNumber: '', philhealthNumber: '',
       badgeNumber: '', licenseNumber: '', licenseExpiryDate: '',
       documents: {},
@@ -94,8 +96,21 @@ export default function AddEmployeeModal({ isOpen, onClose, onSaved }) {
 
   const validateStep = () => {
     if (currentStep === 1) {
-      const { firstName, lastName, dob, gender, height, civilStatus, educationalLevel, mobile, email, address } = formData;
-      if (!firstName || !lastName || !dob || !gender || !height || !civilStatus || !educationalLevel || !mobile || !email || !address) {
+      const {
+        firstName,
+        lastName,
+        dob,
+        gender,
+        height,
+        civilStatus,
+        educationalLevel,
+        mobile,
+        email,
+        address,
+        emergencyName,
+        emergencyContact,
+      } = formData;
+      if (!firstName || !lastName || !dob || !gender || !height || !civilStatus || !educationalLevel || !mobile || !email || !address || !emergencyName || !emergencyContact) {
         showNotification('Please fill in all required fields marked with *', 'error');
         return false;
       }
@@ -133,6 +148,27 @@ export default function AddEmployeeModal({ isOpen, onClose, onSaved }) {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleSiteChange = (siteId) => {
+    if (!siteId) {
+      setFormData(prev => ({
+        ...prev,
+        initialSiteId: '',
+        initialSiteLabel: '',
+      }));
+      return;
+    }
+
+    const selectedSite = sites.find(site => site.id === siteId);
+    const companyName = selectedSite?.clients?.company || 'Unknown Client';
+    const siteLabel = selectedSite ? `${selectedSite.site_name} - ${companyName}` : '';
+
+    setFormData(prev => ({
+      ...prev,
+      initialSiteId: siteId,
+      initialSiteLabel: siteLabel,
+    }));
+  };
+
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
@@ -141,6 +177,9 @@ export default function AddEmployeeModal({ isOpen, onClose, onSaved }) {
         if (key === 'documents') {
           // Append each file with a specific field name for backend mapping
           Object.keys(formData.documents).forEach(docKey => {
+            if (docKey === 'deployment_order' && !formData.initialSiteId) {
+              return;
+            }
             if (formData.documents[docKey]) {
               payload.append(`document_${docKey}`, formData.documents[docKey]);
             }
@@ -217,7 +256,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onSaved }) {
         {/* Step Content */}
         <form className="ae-modal-body" onSubmit={(e) => e.preventDefault()}>
           {currentStep === 1 && <Step1Personal data={formData} onChange={handleChange} />}
-          {currentStep === 2 && <Step2Employment data={formData} onChange={handleChange} clients={clients} />}
+          {currentStep === 2 && <Step2Employment data={formData} onChange={handleChange} sites={sites} onSiteChange={handleSiteChange} />}
           {currentStep === 3 && <Step3Documents data={formData} onChange={handleChange} />}
           {currentStep === 4 && <Step4Review data={formData} onChange={handleChange} />}
 
@@ -304,9 +343,9 @@ function Step1Personal({ data, onChange }) {
         <FormField label="Last Name *" type="text" required value={data.lastName} onChange={(e) => onChange('lastName', e.target.value)} />
         <FormField label="Middle Name" type="text" value={data.middleName} onChange={(e) => onChange('middleName', e.target.value)} />
         <FormField label="Suffix" type="text" value={data.suffix} onChange={(e) => onChange('suffix', e.target.value)} />
-        <FormField label="Date of Birth *" type="date" required hint="Age will be auto-calculated (18-45 required)" value={data.dob} onChange={(e) => onChange('dob', e.target.value)} />
+        <FormField label="Date of Birth *" type="date" required value={data.dob} onChange={(e) => onChange('dob', e.target.value)} />
         <FormField label="Gender *" type="select" options={['Select gender', 'Male', 'Female']} required value={data.gender} onChange={(e) => onChange('gender', e.target.value)} />
-        <FormField label="Height *" type="text" placeholder="e.g., 170 cm" required hint={"Min: 163 cm / 5'4\" (M), 157 cm / 5'2\" (F)"} value={data.height} onChange={(e) => onChange('height', e.target.value)} />
+        <FormField label="Height *" type="text" placeholder="e.g., 170 cm" required value={data.height} onChange={(e) => onChange('height', e.target.value)} />
         <FormField label="Marital Status *" type="select" options={['Select status', 'Single', 'Married', 'Widowed']} required value={data.civilStatus} onChange={(e) => onChange('civilStatus', e.target.value)} />
         <FormField label="Citizenship *" type="text" value="Filipino" readOnly />
         <FormField label="Educational Attainment *" type="select" options={['Select level', 'Elementary Graduate', 'High School Graduate', 'Vocational / TESDA', 'College Level', 'Bachelor\'s Degree', 'Master\'s Degree', 'Doctorate']} required value={data.educationalLevel} onChange={(e) => onChange('educationalLevel', e.target.value)} />
@@ -347,7 +386,7 @@ function Step1Personal({ data, onChange }) {
 }
 
 /* Step 2: Employment */
-function Step2Employment({ data, onChange, clients }) {
+function Step2Employment({ data, onChange, sites, onSiteChange }) {
   return (
     <div className="ae-step-content">
       <h3 className="ae-step-heading">Employment Details</h3>
@@ -356,7 +395,20 @@ function Step2Employment({ data, onChange, clients }) {
         <FormField label="Date Hired *" type="date" required value={data.hireDate} onChange={(e) => onChange('hireDate', e.target.value)} />
         <FormField label="Position/Rank *" type="select" options={['Security Guard', 'Lady Guard', 'Security Officer I', 'Security Officer II', 'Detachment Commander']} required value={data.position} onChange={(e) => onChange('position', e.target.value)} />
         <FormField label="Employment Status *" type="select" options={[{label: 'Regular', value: 'regular'}, {label: 'Reliever', value: 'reliever'}]} required value={data.employmentType} onChange={(e) => onChange('employmentType', e.target.value)} />
-        <FormField label="Initial Assignment" type="select" options={['Floating Status (No Assignment)', ...clients.map(c => c.company)]} span2 value={data.initialAssignment} onChange={(e) => onChange('initialAssignment', e.target.value)} />
+        <FormField
+          label="Initial Assignment"
+          type="select"
+          span2
+          value={data.initialSiteId}
+          onChange={(e) => onSiteChange(e.target.value)}
+          options={[
+            { label: 'Floating Status (No Assignment)', value: '' },
+            ...sites.map(site => ({
+              value: site.id,
+              label: `${site.site_name} - ${site.clients?.company || 'Unknown Client'}`,
+            })),
+          ]}
+        />
         <FormField label="Basic Rate (Monthly)" type="number" placeholder="0.00" prefix="₱" value={data.basicRate} onChange={(e) => onChange('basicRate', e.target.value)} />
         <FormField label="Pay Frequency" type="text" value="Semi-monthly" readOnly />
         
@@ -402,7 +454,7 @@ function Step3Documents({ data, onChange }) {
     onChange('documents', { ...data.documents, [id]: file });
   };
 
-  const isFloating = !data.initialAssignment || data.initialAssignment === 'Floating Status (No Assignment)';
+  const isFloating = !data.initialSiteId;
 
   const DocRow = ({ doc, disabled = false }) => {
     const file = data.documents[doc.id];
@@ -483,7 +535,7 @@ function Step3Documents({ data, onChange }) {
           <DocRow doc={{ id: 'deployment_order', label: 'Deployment Order' }} disabled={isFloating} />
           {isFloating && (
             <p className="ae-hint" style={{ marginTop: '-0.25rem', paddingLeft: '1rem' }}>
-              Deployment order upload is available when a client is selected as initial assignment.
+              Deployment order upload is available when an initial site assignment is selected.
             </p>
           )}
         </div>
@@ -587,7 +639,7 @@ function Step4Review({ data }) {
           <ReviewField label="Position" value={data.position} />
           <ReviewField label="Type" value={data.employmentType === 'regular' ? 'Regular' : 'Reliever'} />
           <ReviewField label="Date Hired" value={data.hireDate} />
-          <ReviewField label="Assignment" value={data.initialAssignment || 'Floating'} />
+          <ReviewField label="Assignment" value={data.initialSiteLabel || 'Floating'} />
           <ReviewField label="Contract End" value={data.contractEndDate || null} />
           <ReviewField label="Basic Rate" value={data.basicRate ? `₱${parseFloat(data.basicRate).toLocaleString()}` : null} highlight={!!data.basicRate} />
           <ReviewField label="Pay Frequency" value="Semi-monthly" />

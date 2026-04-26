@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   FaTimes, FaUser, FaBriefcase, FaShieldAlt, FaMoneyCheckAlt,
-  FaIdCard, FaAddressBook, FaFileContract, FaCalendarCheck,
+  FaIdCard, FaAddressBook, FaFileContract,
   FaUserTimes, FaEdit, FaCertificate, FaFileAlt, FaHistory,
   FaEye, FaFilePdf, FaFileImage, FaDownload, FaCheck, FaUpload, FaSave,
   FaMapMarkerAlt
@@ -12,7 +12,6 @@ import employeeService from '@services/employeeService';
 import clientService from '@services/clientService';
 import Notification from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
-import { useNavigate } from 'react-router-dom';
 
 const tabs = [
   { key: 'personal',   label: 'Personal Info', icon: FaUser },
@@ -55,8 +54,10 @@ const buildForm = (emp) => ({
   provincial_address:       emp.provincial_address        || '',
   latitude:                 emp.latitude                  || null,
   longitude:                emp.longitude                 || null,
+  citizenship:              emp.citizenship               || 'Filipino',
   emergency_contact_name:   emp.emergency_contact_name    || '',
   emergency_contact_number: (emp.emergency_contact_number || '').replace(/^\+63/, ''),
+  emergency_contact_relationship: emp.emergency_contact_relationship || '',
   // Employment
   position:                 emp.position                  || '',
   employment_type:          emp.employment_type           || '',
@@ -66,7 +67,6 @@ const buildForm = (emp) => ({
 });
 
 export default function ViewEmployeeModal({ isOpen, employee: previewEmployee, onClose, onUpdated }) {
-  const navigate = useNavigate();
   const [activeTab, setActiveTab]         = useState('personal');
   const [employeeDetails, setEmployeeDetails] = useState(null);
   const [loading, setLoading]             = useState(false);
@@ -323,21 +323,12 @@ export default function ViewEmployeeModal({ isOpen, employee: previewEmployee, o
             <button 
               className="ve-btn ve-btn-gold" 
               onClick={() => {
-                const url = data.contract_document_url;
+                const url = data.document_url;
                 if (url) window.open(url, '_blank');
                 else showNotification('No contract document found.', 'error');
               }}
             >
               <FaFileContract /> View Contract
-            </button>
-            <button 
-              className="ve-btn ve-btn-blue"
-              onClick={() => {
-                onClose();
-                navigate(`/hris/attendance?employeeId=${data.id}`);
-              }}
-            >
-              <FaCalendarCheck /> View Attendance
             </button>
             <button 
               className="ve-btn ve-btn-green"
@@ -599,6 +590,7 @@ function PersonalTab({ employee, canEdit, isEditing, editForm, pendingFiles, onF
               <InfoCell label="Provincial Address" value={employee.provincial_address || 'N/A'} span2 />
               <InfoCell label="Emergency Contact"  value={employee.emergency_contact_name || 'N/A'} />
               <InfoCell label="Emergency Number"   value={employee.emergency_contact_number || 'N/A'} />
+              <InfoCell label="Relationship"       value={employee.emergency_contact_relationship || 'N/A'} />
             </div>
           </div>
         </>
@@ -621,6 +613,7 @@ function PersonalTab({ employee, canEdit, isEditing, editForm, pendingFiles, onF
               <EditInput  label="Height (cm)"            type="number" value={editForm.height_cm}          onChange={v => onField('height_cm', v)} placeholder="e.g. 170" />
               <EditSelect label="Educational Attainment" value={editForm.educational_level}                onChange={v => onField('educational_level', v)}
                 options={EDUCATIONAL_LEVELS} />
+              <EditInput  label="Citizenship"           value={editForm.citizenship}                       onChange={v => onField('citizenship', v)} />
             </div>
           </div>
 
@@ -654,6 +647,7 @@ function PersonalTab({ employee, canEdit, isEditing, editForm, pendingFiles, onF
               </div>
               <EditInput label="Emergency Contact Name"   value={editForm.emergency_contact_name}   onChange={v => onField('emergency_contact_name', v)} />
               <EditInput label="Emergency Contact Number" value={editForm.emergency_contact_number} onChange={v => onField('emergency_contact_number', v)} placeholder="10-digit number" />
+              <EditInput label="Relationship"             value={editForm.emergency_contact_relationship} onChange={v => onField('emergency_contact_relationship', v)} placeholder="e.g. Parent, Spouse" />
             </div>
           </div>
         </>
