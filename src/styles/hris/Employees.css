@@ -688,6 +688,9 @@
 .ve-btn-blue:hover { background: #0a4080; }
 .ve-btn-red  { background: #ef4444; }
 .ve-btn-red:hover  { background: #dc2626; }
+.ve-btn-green { background: #059669; }
+.ve-btn-green:hover { background: #047857; }
+.ve-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ── Edit Mode ──────────────────────────────────── */
 .ve-edit-actions {
@@ -1419,6 +1422,89 @@ textarea.ve-edit-input { resize: vertical; min-height: 64px; }
   .ae-review-grid { grid-template-columns: 1fr; }
   .ae-review-banner { flex-wrap: wrap; }
   .ae-review-banner-id { margin-left: 0; text-align: left; }
+}
+
+/* Document Section Groups */
+.ae-doc-section {
+  margin-bottom: 1.25rem;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.ae-doc-section:last-child {
+  margin-bottom: 0;
+}
+
+.ae-doc-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 1rem;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.ae-doc-section-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #093269;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.ae-doc-section-hint {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #e6b215;
+  background: #fffbea;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  border: 1px solid #fde68a;
+}
+
+.ae-doc-section .ae-checklist {
+  padding: 0.5rem;
+}
+
+.ae-doc-section .ae-check-item {
+  border: none;
+  border-bottom: 1px solid #f1f5f9;
+  border-radius: 0;
+  padding: 0.7rem 0.5rem;
+}
+
+.ae-doc-section .ae-check-item:last-child {
+  border-bottom: none;
+}
+
+/* Disabled document upload */
+.ae-doc-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.ae-upload-disabled {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+  pointer-events: none;
+}
+
+/* Review Banner Avatar */
+.ae-review-banner-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+}
+
+.ae-review-banner-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* Navigation Buttons */

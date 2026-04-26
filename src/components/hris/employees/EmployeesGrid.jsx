@@ -55,9 +55,10 @@ export default function EmployeesGrid({
                       <p className="employee-id">{emp.employee_id_number}</p>
                     </div>
                   </div>
-                  <span className={`employee-badge badge-${emp.status}`}>
-                    {emp.status.toUpperCase()}
+                  <span className={`employee-badge badge-${emp.status || 'unknown'}`}>
+                    {emp.status?.toUpperCase() || 'UNKNOWN'}
                   </span>
+
                 </div>
 
                 <div className="employee-info-section">
