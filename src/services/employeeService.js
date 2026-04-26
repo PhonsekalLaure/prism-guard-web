@@ -75,6 +75,12 @@ async function updateEmployee(id, formData) {
 }
 
 async function deployEmployee(id, payload) {
+  if (payload instanceof FormData) {
+    const config = withMultipartFormData(payload);
+    const { data } = await api.post(`/${id}/deploy`, config.data, config);
+    return data;
+  }
+
   const { data } = await api.post(`/${id}/deploy`, payload);
   return data;
 }
