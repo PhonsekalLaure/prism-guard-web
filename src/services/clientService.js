@@ -8,7 +8,6 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Auth interceptor
 api.interceptors.request.use((config) => {
   const token = authService.getToken();
   if (token) {
@@ -18,12 +17,13 @@ api.interceptors.request.use((config) => {
 });
 
 async function getAllClients(page = 1, limit = 6, filters = {}) {
-  const params = new URLSearchParams({
-    page: page.toString(),
-    limit: limit.toString(),
-    ...filters
+  const { data } = await api.get('/', {
+    params: {
+      page,
+      limit,
+      ...filters,
+    }
   });
-  const { data } = await api.get(`/?${params}`);
   return data;
 }
 
@@ -34,11 +34,6 @@ async function getClientDetails(id) {
 
 async function getClientStats() {
   const { data } = await api.get('/stats');
-  return data;
-}
-
-async function getClientsList() {
-  const { data } = await api.get('/list');
   return data;
 }
 
@@ -62,14 +57,12 @@ async function getAllSitesList() {
   return data || [];
 }
 
-
 export default {
   getAllClients,
   getClientDetails,
   getClientStats,
   getClientsList,
   createClient,
-  updateClient
-  getClientsList,
+  updateClient,
   getAllSitesList
 };

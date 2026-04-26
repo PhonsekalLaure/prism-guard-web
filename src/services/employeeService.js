@@ -8,6 +8,21 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+function withMultipartFormData(formData) {
+  const headers = { ...api.defaults.headers.common };
+
+  return {
+    headers,
+    transformRequest: [(payload, requestHeaders) => {
+      delete requestHeaders['Content-Type'];
+      delete requestHeaders['content-type'];
+      delete requestHeaders.common;
+      return payload;
+    }],
+    data: formData,
+  };
+}
+
 api.interceptors.request.use((config) => {
   const token = authService.getToken();
   if (token) {
@@ -18,13 +33,12 @@ api.interceptors.request.use((config) => {
 
 async function getAllEmployees(page = 1, limit = 6, filters = {}) {
   const { data } = await api.get('/', {
-    params: { 
-      page, 
+    params: {
+      page,
       limit,
       ...filters
     }
   });
-  // The backend now returns { data: [...], metadata: { ... } }
   return data;
 }
 
@@ -38,17 +52,14 @@ async function getEmployeeStats() {
   return data;
 }
 
+async function getDeployableEmployees() {
+  const { data } = await api.get('/deployable');
+  return data || [];
+}
+
 async function createEmployee(formData) {
-  const headers = { ...api.defaults.headers.common };
-  const { data } = await api.post('/', formData, {
-    headers,
-    transformRequest: [(payload, requestHeaders) => {
-      delete requestHeaders['Content-Type'];
-      delete requestHeaders['content-type'];
-      delete requestHeaders.common;
-      return payload;
-    }]
-  });
+  const config = withMultipartFormData(formData);
+  const { data } = await api.post('/', config.data, config);
   return data;
 }
 
@@ -58,16 +69,8 @@ async function getNextEmployeeId() {
 }
 
 async function updateEmployee(id, formData) {
-  const headers = { ...api.defaults.headers.common };
-  const { data } = await api.patch(`/${id}`, formData, {
-    headers,
-    transformRequest: [(payload, requestHeaders) => {
-      delete requestHeaders['Content-Type'];
-      delete requestHeaders['content-type'];
-      delete requestHeaders.common;
-      return payload;
-    }]
-  });
+  const config = withMultipartFormData(formData);
+  const { data } = await api.patch(`/${id}`, config.data, config);
   return data;
 }
 
@@ -80,6 +83,7 @@ export default {
   getAllEmployees,
   getEmployeeDetails,
   getEmployeeStats,
+  getDeployableEmployees,
   createEmployee,
   updateEmployee,
   deployEmployee,
