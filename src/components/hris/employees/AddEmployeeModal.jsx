@@ -23,7 +23,7 @@ const toProperCase = (str) => {
   return str.toLowerCase().replace(/\b\w/g, s => s.toUpperCase());
 };
 
-export default function AddEmployeeModal({ isOpen, onClose }) {
+export default function AddEmployeeModal({ isOpen, onClose, onSaved }) {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { notification, showNotification, closeNotification } = useNotification();
@@ -34,12 +34,15 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
     gender: '', height: '', civilStatus: '', citizenship: 'Filipino', 
     educationalLevel: '', mobile: '', email: '', 
     address: '', latitude: null, longitude: null, 
+    bloodType: '', placeOfBirth: '', provincialAddress: '',
     emergencyName: '', emergencyContact: '', emergencyRelationship: '',
     // Step 2: Employment
     employeeId: '', hireDate: new Date().toISOString().split('T')[0], position: 'Security Guard', employmentType: 'regular',
     tinNumber: '', sssNumber: '', pagibigNumber: '', philhealthNumber: '',
+    badgeNumber: '', licenseNumber: '', licenseExpiryDate: '',
     // Step 3: Documents
     documents: {},
+    contractEndDate: '',
     avatar: null
   });
 
@@ -55,10 +58,11 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
       }
       async function loadClients() {
         try {
-          const data = await clientService.getAllClients();
+          const data = await clientService.getClientsList();
           setClients(data || []);
         } catch (err) {
           console.error("Failed to load clients:", err);
+          setClients([]);
         }
       }
       loadClients();
@@ -71,15 +75,18 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
     setCurrentStep(1);
     setIsSubmitting(false);
     setFormData({
-      firstName: '', lastName: '', middleName: '', dob: '', 
+      firstName: '', lastName: '', middleName: '', suffix: '', dob: '', 
       gender: '', height: '', civilStatus: '', citizenship: 'Filipino', 
       educationalLevel: '', mobile: '', email: '', 
       address: '', latitude: null, longitude: null, 
+      bloodType: '', placeOfBirth: '', provincialAddress: '',
       emergencyName: '', emergencyContact: '', emergencyRelationship: '',
       employeeId: '', hireDate: new Date().toISOString().split('T')[0], position: 'Security Guard', employmentType: 'regular',
       initialAssignment: 'Floating Status (No Assignment)', basicRate: '', 
       tinNumber: '', sssNumber: '', pagibigNumber: '', philhealthNumber: '',
+      badgeNumber: '', licenseNumber: '', licenseExpiryDate: '',
       documents: {},
+      contractEndDate: '',
       avatar: null
     });
     onClose();
@@ -97,6 +104,10 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
         showNotification('Please enter a valid email address', 'error');
         return false;
       }
+      if (address && (formData.latitude == null || formData.longitude == null)) {
+        showNotification('Please select a validated address from the suggestions so coordinates are saved.', 'error');
+        return false;
+      }
       if (mobile.replace(/\D/g, '').length !== 10 || formData.emergencyContact.replace(/\D/g, '').length !== 10) {
         showNotification('Mobile numbers must be exactly 10 digits (excluding +63)', 'error');
         return false;
@@ -112,19 +123,8 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
   };
 
   const nextStep = async () => { 
-    if (validateStep()) {
-      if (currentStep === 1 && !formData.latitude && formData.address) {
-        // Fallback geocoding if user typed but didn't click
-        try {
-          const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(formData.address)}.json?access_token=${MAPBOX_TOKEN}&country=ph`);
-          const data = await res.json();
-          if (data.features && data.features.length > 0) {
-            const [lng, lat] = data.features[0].geometry.coordinates;
-            setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
-          }
-        } catch(e) { console.error('Geocoding fallback failed', e); }
-      }
-      if (currentStep < 4) setCurrentStep(currentStep + 1); 
+    if (validateStep() && currentStep < 4) {
+      setCurrentStep(currentStep + 1);
     }
   };
   const prevStep = () => { if (currentStep > 1) setCurrentStep(currentStep - 1); };
@@ -159,6 +159,7 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
 
       await employeeService.createEmployee(payload);
       showNotification('Employee added successfully and welcome email sent!', 'success');
+      onSaved?.();
       setTimeout(handleClose, 1500);
     } catch (err) {
       console.error("Failed to add employee:", err);
@@ -218,7 +219,7 @@ export default function AddEmployeeModal({ isOpen, onClose }) {
           {currentStep === 1 && <Step1Personal data={formData} onChange={handleChange} />}
           {currentStep === 2 && <Step2Employment data={formData} onChange={handleChange} clients={clients} />}
           {currentStep === 3 && <Step3Documents data={formData} onChange={handleChange} />}
-          {currentStep === 4 && <Step4Review data={formData} />}
+          {currentStep === 4 && <Step4Review data={formData} onChange={handleChange} />}
 
           {/* Navigation */}
           <div className="ae-nav-buttons">
@@ -308,7 +309,9 @@ function Step1Personal({ data, onChange }) {
         <FormField label="Height *" type="text" placeholder="e.g., 170 cm" required hint={"Min: 163 cm / 5'4\" (M), 157 cm / 5'2\" (F)"} value={data.height} onChange={(e) => onChange('height', e.target.value)} />
         <FormField label="Marital Status *" type="select" options={['Select status', 'Single', 'Married', 'Widowed']} required value={data.civilStatus} onChange={(e) => onChange('civilStatus', e.target.value)} />
         <FormField label="Citizenship *" type="text" value="Filipino" readOnly />
-        <FormField label="Educational Attainment *" type="select" options={['Select level', 'High School', 'College Level', 'Degree Holder']} required value={data.educationalLevel} onChange={(e) => onChange('educationalLevel', e.target.value)} />
+        <FormField label="Educational Attainment *" type="select" options={['Select level', 'Elementary Graduate', 'High School Graduate', 'Vocational / TESDA', 'College Level', 'Bachelor\'s Degree', 'Master\'s Degree', 'Doctorate']} required value={data.educationalLevel} onChange={(e) => onChange('educationalLevel', e.target.value)} />
+        <FormField label="Blood Type" type="select" options={['Select blood type', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']} value={data.bloodType} onChange={(e) => onChange('bloodType', e.target.value)} />
+        <FormField label="Place of Birth" type="text" placeholder="e.g., Manila City" value={data.placeOfBirth} onChange={(e) => onChange('placeOfBirth', e.target.value)} />
         <FormField label="Mobile Number *" type="tel" placeholder="912 345 6789" prefix="+63" span2 required value={data.mobile} onChange={(e) => onChange('mobile', e.target.value)} />
         <FormField label="Email Address *" type="email" span2 required value={data.email} onChange={(e) => onChange('email', e.target.value)} />
 
@@ -317,7 +320,11 @@ function Step1Personal({ data, onChange }) {
           <GoogleAddressAutofill
             apiKey={GOOGLE_MAPS_KEY}
             value={data.address}
-            onChange={(e) => onChange('address', e.target.value)}
+            onChange={(e) => {
+              onChange('address', e.target.value);
+              onChange('latitude', null);
+              onChange('longitude', null);
+            }}
             className="ae-input"
             placeholder="Search for an address..."
             onPlaceSelected={({ formattedAddress, lat, lng }) => {
@@ -328,6 +335,8 @@ function Step1Personal({ data, onChange }) {
           />
           <p className="ae-hint">Select a validated address to automatically save geographical coordinates for deployment distance calculations.</p>
         </div>
+
+        <FormField label="Provincial Address" type="textarea" placeholder="Complete provincial address" span2 value={data.provincialAddress} onChange={(e) => onChange('provincialAddress', e.target.value)} />
 
         <FormField label="Emergency Contact Name *" type="text" required value={data.emergencyName} onChange={(e) => onChange('emergencyName', e.target.value)} />
         <FormField label="Emergency Contact Number *" type="tel" placeholder="912 345 6789" prefix="+63" required value={data.emergencyContact} onChange={(e) => onChange('emergencyContact', e.target.value)} />
@@ -358,6 +367,13 @@ function Step2Employment({ data, onChange, clients }) {
         <FormField label="SSS Number" type="text" placeholder="00-0000000-0" value={data.sssNumber} onChange={(e) => onChange('sssNumber', e.target.value)} />
         <FormField label="Pag-IBIG Number" type="text" placeholder="0000-0000-0000" value={data.pagibigNumber} onChange={(e) => onChange('pagibigNumber', e.target.value)} />
         <FormField label="PhilHealth Number" type="text" placeholder="00-000000000-0" value={data.philhealthNumber} onChange={(e) => onChange('philhealthNumber', e.target.value)} />
+
+        <div className="ae-form-group span-2 mt-2">
+          <h4 className="text-sm font-bold text-gray-700 border-b pb-2">License & Credentials</h4>
+        </div>
+        <FormField label="License Number" type="text" placeholder="e.g., SG-12345678" value={data.licenseNumber} onChange={(e) => onChange('licenseNumber', e.target.value)} />
+        <FormField label="Badge Number" type="text" placeholder="e.g., B-1234" value={data.badgeNumber} onChange={(e) => onChange('badgeNumber', e.target.value)} />
+        <FormField label="License Expiry Date" type="date" value={data.licenseExpiryDate} onChange={(e) => onChange('licenseExpiryDate', e.target.value)} />
       </div>
     </div>
   );
@@ -365,44 +381,112 @@ function Step2Employment({ data, onChange, clients }) {
 
 /* Step 3: Documents */
 function Step3Documents({ data, onChange }) {
-  const docs = [
-    { id: 'biodata', label: '201 File / Bio-data' },
-    { id: 'les', label: 'Security License (LES)' },
-    { id: 'nbi', label: 'NBI Clearance' },
+  const generalDocs = [
+    { id: 'valid_id', label: 'Valid ID' },
+    { id: 'resume', label: 'Resume' },
+  ];
+
+  const clearanceDocs = [
+    { id: 'barangay', label: 'Barangay Clearance' },
     { id: 'police', label: 'Police Clearance' },
-    { id: 'neuro', label: 'Neuro-Psychiatric Test Result' },
-    { id: 'drugtest', label: 'Drug Test Result' },
+    { id: 'nbi', label: 'NBI Clearance' },
+    { id: 'neuro', label: 'Neuro-Psychiatric Exam' },
+    { id: 'drugtest', label: 'Drug Test' },
+  ];
+
+  const licenseDocs = [
+    { id: 'sg_license', label: 'Security Guard License (LTOPF / ID)' },
   ];
 
   const handleFileChange = (id, file) => {
     onChange('documents', { ...data.documents, [id]: file });
   };
 
+  const isFloating = !data.initialAssignment || data.initialAssignment === 'Floating Status (No Assignment)';
+
+  const DocRow = ({ doc, disabled = false }) => {
+    const file = data.documents[doc.id];
+    return (
+      <div className={`ae-check-item flex items-center justify-between ${disabled ? 'ae-doc-disabled' : ''}`}>
+        <span className="font-semibold text-sm">{doc.label}</span>
+        <div className="flex items-center gap-2">
+          {file && <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded truncate max-w-[150px]">{file.name}</span>}
+          <label className={`ae-btn ae-btn-secondary !py-1 !px-3 !text-xs cursor-pointer m-0 inline-block ${disabled ? 'ae-upload-disabled' : ''}`}>
+            {file ? 'Change' : 'Upload'}
+            <input
+              type="file"
+              className="hidden"
+              accept="image/*,.pdf"
+              disabled={disabled}
+              onChange={(e) => handleFileChange(doc.id, e.target.files[0])}
+            />
+          </label>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="ae-step-content">
       <h3 className="ae-step-heading">Requirements & File Uploads</h3>
-      <p className="ae-hint mb-4">Attach image or PDF files for the mandatory clearances.</p>
-      <div className="ae-checklist">
-        {docs.map((doc) => {
-          const file = data.documents[doc.id];
-          return (
-            <div key={doc.id} className="ae-check-item flex items-center justify-between">
-              <span className="font-semibold text-sm">{doc.label}</span>
-              <div className="flex items-center gap-2">
-                {file && <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded truncate max-w-[150px]">{file.name}</span>}
-                <label className="ae-btn ae-btn-secondary !py-1 !px-3 !text-xs cursor-pointer m-0 inline-block">
-                  {file ? 'Change' : 'Upload'}
-                  <input 
-                    type="file" 
-                    className="hidden" 
-                    accept="image/*,.pdf" 
-                    onChange={(e) => handleFileChange(doc.id, e.target.files[0])}
-                  />
-                </label>
-              </div>
-            </div>
-          );
-        })}
+      <p className="ae-hint mb-4">Attach image or PDF files for employee documents, clearances, and contracts.</p>
+
+      {/* Section 1: General Documents */}
+      <div className="ae-doc-section">
+        <div className="ae-doc-section-header">
+          <span className="ae-doc-section-title">📄 General Documents</span>
+        </div>
+        <div className="ae-checklist">
+          {generalDocs.map((doc) => <DocRow key={doc.id} doc={doc} />)}
+        </div>
+      </div>
+
+      {/* Section 2: Clearances & Exams */}
+      <div className="ae-doc-section">
+        <div className="ae-doc-section-header">
+          <span className="ae-doc-section-title">🛡️ Clearances & Exams</span>
+          <span className="ae-doc-section-hint">Auto-renewed every year</span>
+        </div>
+        <div className="ae-checklist">
+          {clearanceDocs.map((doc) => <DocRow key={doc.id} doc={doc} />)}
+        </div>
+      </div>
+
+      {/* Section 3: License */}
+      <div className="ae-doc-section">
+        <div className="ae-doc-section-header">
+          <span className="ae-doc-section-title">🪪 License</span>
+          <span className="ae-doc-section-hint">Renewed every 2 years</span>
+        </div>
+        <div className="ae-checklist">
+          {licenseDocs.map((doc) => <DocRow key={doc.id} doc={doc} />)}
+        </div>
+      </div>
+
+      {/* Section 4: Contract & Deployment */}
+      <div className="ae-doc-section">
+        <div className="ae-doc-section-header">
+          <span className="ae-doc-section-title">📋 Contract & Deployment</span>
+        </div>
+        <div className="ae-checklist">
+          <DocRow doc={{ id: 'contract', label: 'Employee Contract' }} />
+          <div className="ae-check-item flex items-center justify-between">
+            <span className="font-semibold text-sm">Contract End Date</span>
+            <input
+              type="date"
+              className="ae-input" style={{ width: '200px', padding: '0.4rem 0.6rem', fontSize: '0.82rem' }}
+              value={data.contractEndDate}
+              onChange={(e) => onChange('contractEndDate', e.target.value)}
+              min={data.hireDate || undefined}
+            />
+          </div>
+          <DocRow doc={{ id: 'deployment_order', label: 'Deployment Order' }} disabled={isFloating} />
+          {isFloating && (
+            <p className="ae-hint" style={{ marginTop: '-0.25rem', paddingLeft: '1rem' }}>
+              Deployment order upload is available when a client is selected as initial assignment.
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -410,15 +494,31 @@ function Step3Documents({ data, onChange }) {
 
 /* Step 4: Review */
 function Step4Review({ data }) {
+  const [avatarPreview, setAvatarPreview] = useState(null);
+
+  useEffect(() => {
+    if (data.avatar) {
+      const reader = new FileReader();
+      reader.onloadend = () => setAvatarPreview(reader.result);
+      reader.readAsDataURL(data.avatar);
+    } else {
+      setAvatarPreview(null);
+    }
+  }, [data.avatar]);
+
   const isComplete = data.firstName && data.lastName && data.employeeId;
   const docsAttached = Object.keys(data.documents).filter(k => data.documents[k]);
   const docLabels = {
-    biodata: '201 File / Bio-data',
-    les: 'Security License (LES)',
-    nbi: 'NBI Clearance',
+    valid_id: 'Valid ID',
+    resume: 'Resume',
+    barangay: 'Barangay Clearance',
     police: 'Police Clearance',
-    neuro: 'Neuro-Psychiatric Test',
-    drugtest: 'Drug Test Result',
+    nbi: 'NBI Clearance',
+    neuro: 'Neuro-Psychiatric Exam',
+    drugtest: 'Drug Test',
+    sg_license: 'SG License (LTOPF)',
+    contract: 'Employee Contract',
+    deployment_order: 'Deployment Order',
   };
 
   const ReviewSection = ({ title, icon, children }) => (
@@ -442,9 +542,15 @@ function Step4Review({ data }) {
     <div className="ae-step-content">
       {/* Header Banner */}
       <div className="ae-review-banner">
-        <div className="ae-review-banner-icon">
-          <FaCheck />
-        </div>
+        {avatarPreview ? (
+          <div className="ae-review-banner-avatar">
+            <img src={avatarPreview} alt="Avatar" />
+          </div>
+        ) : (
+          <div className="ae-review-banner-icon">
+            <FaCheck />
+          </div>
+        )}
         <div>
           <h3 className="ae-review-banner-title">Ready to Add Employee</h3>
           <p className="ae-review-banner-sub">Review all information carefully before confirming.</p>
@@ -482,16 +588,20 @@ function Step4Review({ data }) {
           <ReviewField label="Type" value={data.employmentType === 'regular' ? 'Regular' : 'Reliever'} />
           <ReviewField label="Date Hired" value={data.hireDate} />
           <ReviewField label="Assignment" value={data.initialAssignment || 'Floating'} />
+          <ReviewField label="Contract End" value={data.contractEndDate || null} />
           <ReviewField label="Basic Rate" value={data.basicRate ? `₱${parseFloat(data.basicRate).toLocaleString()}` : null} highlight={!!data.basicRate} />
           <ReviewField label="Pay Frequency" value="Semi-monthly" />
         </ReviewSection>
 
-        {/* Gov IDs */}
-        <ReviewSection title="Government IDs" icon="🪪">
+        {/* Gov IDs & License */}
+        <ReviewSection title="Government IDs & Credentials" icon="🪪">
           <ReviewField label="TIN" value={data.tinNumber} />
           <ReviewField label="SSS Number" value={data.sssNumber} />
           <ReviewField label="Pag-IBIG" value={data.pagibigNumber} />
           <ReviewField label="PhilHealth" value={data.philhealthNumber} />
+          <ReviewField label="License Number" value={data.licenseNumber} />
+          <ReviewField label="Badge Number" value={data.badgeNumber} />
+          <ReviewField label="License Expiry" value={data.licenseExpiryDate} />
         </ReviewSection>
       </div>
 

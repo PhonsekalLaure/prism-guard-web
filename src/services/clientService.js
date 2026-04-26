@@ -52,6 +52,17 @@ async function updateClient(id, clientData) {
   return data;
 }
 
+async function getClientsList() {
+  const { data } = await api.get('/list');
+  return data || [];
+}
+
+async function getAllSitesList() {
+  const { data } = await api.get('/sites');
+  return data || [];
+}
+
+
 export default {
   getAllClients,
   getClientDetails,
@@ -59,4 +70,6 @@ export default {
   getClientsList,
   createClient,
   updateClient
+  getClientsList,
+  getAllSitesList
 };

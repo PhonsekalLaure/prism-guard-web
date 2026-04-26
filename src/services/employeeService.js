@@ -39,10 +39,15 @@ async function getEmployeeStats() {
 }
 
 async function createEmployee(formData) {
+  const headers = { ...api.defaults.headers.common };
   const { data } = await api.post('/', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
+    headers,
+    transformRequest: [(payload, requestHeaders) => {
+      delete requestHeaders['Content-Type'];
+      delete requestHeaders['content-type'];
+      delete requestHeaders.common;
+      return payload;
+    }]
   });
   return data;
 }
@@ -53,9 +58,21 @@ async function getNextEmployeeId() {
 }
 
 async function updateEmployee(id, formData) {
+  const headers = { ...api.defaults.headers.common };
   const { data } = await api.patch(`/${id}`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
+    headers,
+    transformRequest: [(payload, requestHeaders) => {
+      delete requestHeaders['Content-Type'];
+      delete requestHeaders['content-type'];
+      delete requestHeaders.common;
+      return payload;
+    }]
   });
+  return data;
+}
+
+async function deployEmployee(id, payload) {
+  const { data } = await api.post(`/${id}/deploy`, payload);
   return data;
 }
 
@@ -65,5 +82,6 @@ export default {
   getEmployeeStats,
   createEmployee,
   updateEmployee,
+  deployEmployee,
   getNextEmployeeId
 };
