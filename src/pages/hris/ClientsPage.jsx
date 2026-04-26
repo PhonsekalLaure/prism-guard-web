@@ -91,6 +91,7 @@ export default function ClientsPage() {
         isOpen={!!viewClient}
         client={viewClient}
         onClose={() => setViewClient(null)}
+        onUpdated={() => setRefreshKey((prev) => prev + 1)}
       />
 
       <AddClientModal

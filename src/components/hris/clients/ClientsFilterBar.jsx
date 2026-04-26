@@ -42,6 +42,7 @@ export default function ClientsFilterBar({ filters, onFilterChange }) {
           <option value="all">All Status</option>
           <option value="active">Active</option>
           <option value="inactive">Inactive</option>
+          <option value="terminated">Terminated</option>
         </select>
       </div>
     </div>

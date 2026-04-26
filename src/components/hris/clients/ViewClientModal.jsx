@@ -1,9 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   FaTimes, FaBuilding, FaMapMarkerAlt, FaFileInvoiceDollar, FaTicketAlt,
-  FaAddressBook, FaFileContract, FaHistory, FaUsers, FaExclamationTriangle
+  FaAddressBook, FaFileContract, FaHistory, FaUsers
 } from 'react-icons/fa';
 import clientService from '@services/clientService';
+import employeeService from '@services/employeeService';
+import Notification from '@components/ui/Notification';
+import useNotification from '@hooks/useNotification';
 
 const tabs = [
   { key: 'general',  label: 'General Info',     icon: FaBuilding },
@@ -19,23 +22,48 @@ const fmtDate = (d) => d
 const fmtMoney = (v) => v == null ? 'N/A'
   : new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(v);
 
-export default function ViewClientModal({ isOpen, client: previewClient, onClose }) {
+export default function ViewClientModal({ isOpen, client: previewClient, onClose, onUpdated }) {
   const [activeTab, setActiveTab] = useState('general');
   const [clientDetails, setClientDetails] = useState(null);
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState(false);
+  const [showDeployModal, setShowDeployModal] = useState(false);
+  const [deployableEmployees, setDeployableEmployees] = useState([]);
+  const [loadingDeployableEmployees, setLoadingDeployableEmployees] = useState(false);
+  const [selectedEmployeeIds, setSelectedEmployeeIds] = useState([]);
+  const [deployForm, setDeployForm] = useState({
+    siteId: '',
+    contractStartDate: '',
+    contractEndDate: '',
+  });
+  const [isDeploying, setIsDeploying] = useState(false);
+  const { notification, showNotification, closeNotification } = useNotification();
+
+  const loadClientDetails = async (clientId) => {
+    setLoading(true);
+    setFetchError(false);
+    try {
+      const data = await clientService.getClientDetails(clientId);
+      setClientDetails(data);
+    } catch (err) {
+      console.error(err);
+      setFetchError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (isOpen && previewClient?.id) {
-      setLoading(true);
-      setFetchError(false);
-      clientService.getClientDetails(previewClient.id)
-        .then(data => { setClientDetails(data); setLoading(false); })
-        .catch(err => { console.error(err); setFetchError(true); setLoading(false); });
+      loadClientDetails(previewClient.id);
     } else {
       setClientDetails(null);
       setFetchError(false);
       setActiveTab('general');
+      setShowDeployModal(false);
+      setDeployableEmployees([]);
+      setSelectedEmployeeIds([]);
+      setDeployForm({ siteId: '', contractStartDate: '', contractEndDate: '' });
     }
   }, [isOpen, previewClient]);
 
@@ -43,9 +71,107 @@ export default function ViewClientModal({ isOpen, client: previewClient, onClose
 
   // Always fall back to previewClient so the modal never renders blank
   const data = clientDetails || previewClient;
+  const activeSites = (data.sites || []).filter((site) => site.is_active);
+
+  const openDeployModal = async (siteId = '') => {
+    setShowDeployModal(true);
+    setSelectedEmployeeIds([]);
+    setDeployForm({
+      siteId: siteId || activeSites[0]?.id || '',
+      contractStartDate: '',
+      contractEndDate: '',
+    });
+    setLoadingDeployableEmployees(true);
+
+    try {
+      const employees = await employeeService.getDeployableEmployees();
+      setDeployableEmployees(employees);
+    } catch (err) {
+      console.error(err);
+      showNotification(err.response?.data?.error || 'Failed to load available guards.', 'error');
+    } finally {
+      setLoadingDeployableEmployees(false);
+    }
+  };
+
+  const handleEmployeeToggle = (employeeId) => {
+    setSelectedEmployeeIds((current) => (
+      current.includes(employeeId)
+        ? current.filter((id) => id !== employeeId)
+        : [...current, employeeId]
+    ));
+  };
+
+  const handleDeployGuards = async () => {
+    if (!deployForm.siteId) {
+      showNotification('Please select an active site.', 'error');
+      return;
+    }
+
+    if (selectedEmployeeIds.length === 0) {
+      showNotification('Please select at least one available guard.', 'error');
+      return;
+    }
+
+    setIsDeploying(true);
+
+    const successfulDeployments = [];
+    const failedDeployments = [];
+
+    for (const employeeId of selectedEmployeeIds) {
+      try {
+        await employeeService.deployEmployee(employeeId, {
+          siteId: deployForm.siteId,
+          contractStartDate: deployForm.contractStartDate || undefined,
+          contractEndDate: deployForm.contractEndDate || undefined,
+        });
+        successfulDeployments.push(employeeId);
+      } catch (err) {
+        failedDeployments.push(
+          err.response?.data?.error || err.message || `Failed to deploy employee ${employeeId}.`
+        );
+      }
+    }
+
+    try {
+      await loadClientDetails(previewClient.id);
+      onUpdated?.();
+    } finally {
+      setIsDeploying(false);
+    }
+
+    if (successfulDeployments.length > 0 && failedDeployments.length === 0) {
+      showNotification(
+        `${successfulDeployments.length} guard${successfulDeployments.length > 1 ? 's were' : ' was'} deployed successfully.`,
+        'success'
+      );
+      setShowDeployModal(false);
+      return;
+    }
+
+    if (successfulDeployments.length > 0) {
+      showNotification(
+        `${successfulDeployments.length} deployed, ${failedDeployments.length} failed. ${failedDeployments[0]}`,
+        'error'
+      );
+      setShowDeployModal(false);
+      return;
+    }
+
+    showNotification(failedDeployments[0] || 'Failed to deploy selected guards.', 'error');
+  };
 
   return (
     <div className="vc-modal-overlay" onClick={onClose}>
+      {notification && (
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          duration={notification.duration}
+          onClose={closeNotification}
+        />
+      )}
+
       <div className="vc-modal-content" onClick={(e) => e.stopPropagation()}>
 
         {/* ── Header ── */}
@@ -90,12 +216,128 @@ export default function ViewClientModal({ isOpen, client: previewClient, onClose
                 </div>
               )}
               {activeTab === 'general'  && <GeneralTab  client={data} />}
-              {activeTab === 'sites'    && <SitesTab    client={data} />}
+              {activeTab === 'sites'    && <SitesTab client={data} onDeployGuard={openDeployModal} />}
               {activeTab === 'billings' && <BillingsTab client={data} />}
               {activeTab === 'tickets'  && <TicketsTab  client={data} />}
             </>
           )}
         </div>
+
+        {showDeployModal && (
+          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-4" onClick={() => setShowDeployModal(false)}>
+            <div
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-gray-200">
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900">Deploy Guards</h3>
+                  <p className="text-sm text-slate-600">Select an active site and assign one or more available guards.</p>
+                </div>
+                <button className="vc-close-btn" onClick={() => setShowDeployModal(false)}><FaTimes /></button>
+              </div>
+
+              <div className="px-6 py-5 overflow-y-auto max-h-[calc(85vh-148px)]">
+                <div className="grid md:grid-cols-3 gap-4 mb-5">
+                  <label className="flex flex-col gap-2">
+                    <span className="text-sm font-semibold text-slate-700">Site</span>
+                    <select
+                      className="border border-slate-300 rounded-lg px-3 py-2"
+                      value={deployForm.siteId}
+                      onChange={(e) => setDeployForm((current) => ({ ...current, siteId: e.target.value }))}
+                    >
+                      <option value="">Select site</option>
+                      {activeSites.map((site) => (
+                        <option key={site.id} value={site.id}>
+                          {site.site_name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="flex flex-col gap-2">
+                    <span className="text-sm font-semibold text-slate-700">Contract Start</span>
+                    <input
+                      type="date"
+                      className="border border-slate-300 rounded-lg px-3 py-2"
+                      value={deployForm.contractStartDate}
+                      onChange={(e) => setDeployForm((current) => ({ ...current, contractStartDate: e.target.value }))}
+                    />
+                  </label>
+
+                  <label className="flex flex-col gap-2">
+                    <span className="text-sm font-semibold text-slate-700">Contract End</span>
+                    <input
+                      type="date"
+                      className="border border-slate-300 rounded-lg px-3 py-2"
+                      value={deployForm.contractEndDate}
+                      onChange={(e) => setDeployForm((current) => ({ ...current, contractEndDate: e.target.value }))}
+                    />
+                  </label>
+                </div>
+
+                <div className="rounded-xl border border-slate-200 overflow-hidden">
+                  <div className="px-4 py-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between gap-4">
+                    <div>
+                      <p className="font-semibold text-slate-900">Available Guards</p>
+                      <p className="text-sm text-slate-600">Only active employees without an active deployment are listed.</p>
+                    </div>
+                    <span className="text-sm font-semibold text-slate-700">
+                      {selectedEmployeeIds.length} selected
+                    </span>
+                  </div>
+
+                  <div className="max-h-[360px] overflow-y-auto">
+                    {loadingDeployableEmployees ? (
+                      <div className="px-4 py-8 text-center text-slate-600">Loading available guards...</div>
+                    ) : deployableEmployees.length === 0 ? (
+                      <div className="px-4 py-8 text-center text-slate-600">No deployable guards are currently available.</div>
+                    ) : (
+                      deployableEmployees.map((employee) => (
+                        <label
+                          key={employee.id}
+                          className="flex items-start gap-3 px-4 py-3 border-b border-slate-100 last:border-b-0 cursor-pointer hover:bg-slate-50"
+                        >
+                          <input
+                            type="checkbox"
+                            className="mt-1"
+                            checked={selectedEmployeeIds.includes(employee.id)}
+                            onChange={() => handleEmployeeToggle(employee.id)}
+                          />
+                          <div className="min-w-0">
+                            <p className="font-semibold text-slate-900">{employee.name}</p>
+                            <p className="text-sm text-slate-600">
+                              {employee.employee_id_number} • {employee.position}
+                            </p>
+                          </div>
+                        </label>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-slate-50">
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 font-semibold"
+                  onClick={() => setShowDeployModal(false)}
+                  disabled={isDeploying}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded-lg bg-brand-blue text-white font-semibold disabled:opacity-60"
+                  onClick={handleDeployGuards}
+                  disabled={isDeploying || loadingDeployableEmployees || deployableEmployees.length === 0}
+                >
+                  {isDeploying ? 'Deploying...' : 'Deploy Selected Guards'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -166,14 +408,25 @@ function GeneralTab({ client }) {
 /* ─────────────────────────────────────────────
    Sites Tab
 ───────────────────────────────────────────── */
-function SitesTab({ client }) {
+function SitesTab({ client, onDeployGuard }) {
   const sites = client.sites || [];
   return (
     <div className="vc-tab-content">
       <div className="vc-section">
-        <h3 className="vc-section-title">
-          <FaMapMarkerAlt className="vc-section-icon" /> Deployment Sites
-        </h3>
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <h3 className="vc-section-title !mb-0">
+            <FaMapMarkerAlt className="vc-section-icon" /> Deployment Sites
+          </h3>
+          {sites.some((site) => site.is_active) && (
+            <button
+              type="button"
+              className="px-4 py-2 rounded-lg bg-brand-blue text-white font-semibold"
+              onClick={() => onDeployGuard()}
+            >
+              Deploy Guard
+            </button>
+          )}
+        </div>
 
         {sites.length > 0 ? (
           <div className="vc-sites-grid">
@@ -190,6 +443,17 @@ function SitesTab({ client }) {
                 </div>
                 <div className="vc-site-meta">
                   <span><FaMapMarkerAlt /> Geofence: {site.geofence_radius_meters}m radius</span>
+                  <span><FaUsers /> Active Guards: {site.active_guard_count ?? 0}</span>
+                </div>
+                <div className="mt-4">
+                  <button
+                    type="button"
+                    className={`px-4 py-2 rounded-lg font-semibold ${site.is_active ? 'bg-brand-blue text-white' : 'bg-slate-200 text-slate-500 cursor-not-allowed'}`}
+                    onClick={() => site.is_active && onDeployGuard(site.id)}
+                    disabled={!site.is_active}
+                  >
+                    {site.is_active ? 'Deploy Guard Here' : 'Inactive Site'}
+                  </button>
                 </div>
               </div>
             ))}
