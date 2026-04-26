@@ -4,7 +4,8 @@ import employeeService from '@services/employeeService';
 export default function EmployeesStatCards({ refreshKey = 0 }) {
   const [stats, setStats] = useState({
     totalEmployees: 0,
-    onLeave: 0,
+    inactive: 0,
+    terminated: 0,
     absentToday: 0,
     activeOnDuty: 0
   });
@@ -14,7 +15,14 @@ export default function EmployeesStatCards({ refreshKey = 0 }) {
     async function fetchStats() {
       try {
         const data = await employeeService.getEmployeeStats();
-        setStats(data);
+        setStats(data || {
+          totalEmployees: 0,
+          inactive: 0,
+          terminated: 0,
+          absentToday: 0,
+          activeOnDuty: 0
+        });
+
       } catch (err) {
         console.error("Failed to fetch employee stats:", err);
       } finally {
@@ -32,8 +40,8 @@ export default function EmployeesStatCards({ refreshKey = 0 }) {
       borderColor: '#093269',
     },
     {
-      label: 'On Leave',
-      value: stats.onLeave,
+      label: 'Inactive',
+      value: stats.inactive,
       valueColor: '#e6b215',
       borderColor: '#e6b215',
     },
