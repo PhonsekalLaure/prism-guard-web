@@ -1,30 +1,20 @@
 import { useState, useEffect } from 'react';
-import employeeService from '@services/employeeService';
+import clientService from '@services/clientService';
 
-export default function EmployeesStatCards({ refreshKey = 0 }) {
+export default function ClientsStatCards({ refreshKey = 0 }) {
   const [stats, setStats] = useState({
-    totalEmployees: 0,
-    inactive: 0,
-    terminated: 0,
-    absentToday: 0,
-    activeOnDuty: 0
+    totalClients: 0,
+    activeContracts: 0
   });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchStats() {
       try {
-        const data = await employeeService.getEmployeeStats();
-        setStats(data || {
-          totalEmployees: 0,
-          inactive: 0,
-          terminated: 0,
-          absentToday: 0,
-          activeOnDuty: 0
-        });
-
+        const data = await clientService.getClientStats();
+        setStats(data);
       } catch (err) {
-        console.error("Failed to fetch employee stats:", err);
+        console.error("Failed to fetch client stats:", err);
       } finally {
         setLoading(false);
       }
@@ -34,33 +24,21 @@ export default function EmployeesStatCards({ refreshKey = 0 }) {
 
   const statConfig = [
     {
-      label: 'Total Employees',
-      value: stats.totalEmployees,
+      label: 'Total Clients',
+      value: stats.totalClients,
       valueColor: '#093269',
       borderColor: '#093269',
     },
     {
-      label: 'Inactive',
-      value: stats.inactive,
+      label: 'Active Contracts',
+      value: stats.activeContracts,
       valueColor: '#e6b215',
       borderColor: '#e6b215',
-    },
-    {
-      label: 'Absent Today',
-      value: stats.absentToday,
-      valueColor: '#ef4444',
-      borderColor: '#ef4444',
-    },
-    {
-      label: 'Active On Duty',
-      value: stats.activeOnDuty,
-      valueColor: '#16a34a',
-      borderColor: '#16a34a',
     },
   ];
 
   return (
-    <div className="stat-grid">
+    <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
       {statConfig.map((s) => (
         <div
           key={s.label}

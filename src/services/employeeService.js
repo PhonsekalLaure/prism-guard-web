@@ -8,6 +8,21 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+function withMultipartFormData(formData) {
+  const headers = { ...api.defaults.headers.common };
+
+  return {
+    headers,
+    transformRequest: [(payload, requestHeaders) => {
+      delete requestHeaders['Content-Type'];
+      delete requestHeaders['content-type'];
+      delete requestHeaders.common;
+      return payload;
+    }],
+    data: formData,
+  };
+}
+
 api.interceptors.request.use((config) => {
   const token = authService.getToken();
   if (token) {
@@ -18,13 +33,12 @@ api.interceptors.request.use((config) => {
 
 async function getAllEmployees(page = 1, limit = 6, filters = {}) {
   const { data } = await api.get('/', {
-    params: { 
-      page, 
+    params: {
+      page,
       limit,
       ...filters
     }
   });
-  // The backend now returns { data: [...], metadata: { ... } }
   return data;
 }
 
@@ -38,12 +52,14 @@ async function getEmployeeStats() {
   return data;
 }
 
+async function getDeployableEmployees(params = {}) {
+  const { data } = await api.get('/deployable', { params });
+  return data || [];
+}
+
 async function createEmployee(formData) {
-  const { data } = await api.post('/', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  });
+  const config = withMultipartFormData(formData);
+  const { data } = await api.post('/', config.data, config);
   return data;
 }
 
@@ -53,9 +69,30 @@ async function getNextEmployeeId() {
 }
 
 async function updateEmployee(id, formData) {
-  const { data } = await api.patch(`/${id}`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  });
+  const config = withMultipartFormData(formData);
+  const { data } = await api.patch(`/${id}`, config.data, config);
+  return data;
+}
+
+async function deployEmployee(id, payload) {
+  if (payload instanceof FormData) {
+    const config = withMultipartFormData(payload);
+    const { data } = await api.post(`/${id}/deploy`, config.data, config);
+    return data;
+  }
+
+  const { data } = await api.post(`/${id}/deploy`, payload);
+  return data;
+}
+
+async function transferEmployeeAssignment(id, payload) {
+  if (payload instanceof FormData) {
+    const config = withMultipartFormData(payload);
+    const { data } = await api.post(`/${id}/transfer`, config.data, config);
+    return data;
+  }
+
+  const { data } = await api.post(`/${id}/transfer`, payload);
   return data;
 }
 
@@ -63,7 +100,10 @@ export default {
   getAllEmployees,
   getEmployeeDetails,
   getEmployeeStats,
+  getDeployableEmployees,
   createEmployee,
   updateEmployee,
+  deployEmployee,
+  transferEmployeeAssignment,
   getNextEmployeeId
 };
