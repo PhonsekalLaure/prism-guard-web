@@ -15,17 +15,15 @@ import EmploymentTab  from './tabs/EmploymentTab';
 import ComplianceTab  from './tabs/ComplianceTab';
 import PayrollTab     from './tabs/PayrollTab';
 
+// Dialogs
+import TerminateEmployeeDialog from './TerminateEmployeeDialog';
+import DeployEmployeeDialog    from './DeployEmployeeDialog';
+
 const TABS = [
   { key: 'personal',   label: 'Personal Info', icon: FaUser },
   { key: 'employment', label: 'Employment',     icon: FaBriefcase },
   { key: 'compliance', label: 'Compliance',     icon: FaShieldAlt },
   { key: 'payroll',    label: 'Payroll',        icon: FaMoneyCheckAlt },
-];
-
-const DAY_OPTIONS = [
-  { value: 0, label: 'Sun' }, { value: 1, label: 'Mon' }, { value: 2, label: 'Tue' },
-  { value: 3, label: 'Wed' }, { value: 4, label: 'Thu' }, { value: 5, label: 'Fri' },
-  { value: 6, label: 'Sat' },
 ];
 
 const buildForm = (emp) => ({
@@ -302,99 +300,25 @@ export default function ViewEmployeeDetail({
         </div>
       </div>
 
-      {/* ── Terminate Confirmation Dialog ── */}
-      {showTerminateConfirm && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-sm w-full p-6" onClick={e => e.stopPropagation()}>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Terminate Employee?</h3>
-            <p className="text-sm text-gray-600 mb-6">
-              Are you sure you want to terminate <strong>{data.full_name || data.name}</strong>?
-              This will mark their status as terminated and they will no longer be assignable to clients.
-            </p>
-            <div className="flex justify-end gap-3">
-              <button className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200" onClick={() => setShowTerminateConfirm(false)} disabled={isSaving}>
-                Cancel
-              </button>
-              <button className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50 flex items-center gap-2" onClick={handleTerminate} disabled={isSaving}>
-                {isSaving && <FaSpinner className="animate-spin" />}
-                Yes, Terminate
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <TerminateEmployeeDialog
+        isOpen={showTerminateConfirm}
+        employeeName={data.full_name || data.name}
+        isSaving={isSaving}
+        onCancel={() => setShowTerminateConfirm(false)}
+        onConfirm={handleTerminate}
+      />
 
-      {/* ── Deploy / Assign Client Dialog ── */}
-      {showDeployModal && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6" onClick={e => e.stopPropagation()}>
-            <h3 className="text-xl font-bold text-gray-900 mb-1">Assign to Client Site</h3>
-            <p className="text-sm text-gray-500 mb-5">Deploy <strong>{data.full_name || data.name}</strong> to a client site.</p>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Client Site *</label>
-                <select className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500" value={deployForm.siteId} onChange={e => setDeployForm(f => ({ ...f, siteId: e.target.value }))}>
-                  <option value="">— Select a site —</option>
-                  {sitesList.map(site => (
-                    <option key={site.id} value={site.id}>{site.site_name} — {site.clients?.company || 'Unknown Client'}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                  <input type="date" className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" value={deployForm.contractStartDate} onChange={e => setDeployForm(f => ({ ...f, contractStartDate: e.target.value }))} />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-                  <input type="date" className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" value={deployForm.contractEndDate} onChange={e => setDeployForm(f => ({ ...f, contractEndDate: e.target.value }))} />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Days of Week *</label>
-                <div className="grid grid-cols-4 gap-2">
-                  {DAY_OPTIONS.map(day => (
-                    <label key={day.value} className="flex items-center gap-2 text-sm text-gray-700">
-                      <input type="checkbox" checked={deployForm.daysOfWeek.includes(day.value)} onChange={() => toggleScheduleDay(day.value)} />
-                      <span>{day.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Shift Start *</label>
-                  <input type="time" className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" value={deployForm.shiftStart} onChange={e => setDeployForm(f => ({ ...f, shiftStart: e.target.value }))} />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Shift End *</label>
-                  <input type="time" className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" value={deployForm.shiftEnd} onChange={e => setDeployForm(f => ({ ...f, shiftEnd: e.target.value }))} />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Deployment Order</label>
-                <input type="file" accept="image/*,application/pdf" className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" onChange={e => setDeployForm(f => ({ ...f, deploymentOrderFile: e.target.files?.[0] || null }))} />
-                {deployForm.deploymentOrderFile && <p className="mt-1 text-xs text-emerald-700">{deployForm.deploymentOrderFile.name}</p>}
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 mt-6">
-              <button className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200" onClick={() => setShowDeployModal(false)} disabled={isDeploying}>
-                Cancel
-              </button>
-              <button className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700 disabled:opacity-50 flex items-center gap-2" onClick={handleDeploy} disabled={isDeploying || !deployForm.siteId}>
-                {isDeploying && <FaSpinner className="animate-spin" />}
-                Deploy
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeployEmployeeDialog
+        isOpen={showDeployModal}
+        employeeName={data.full_name || data.name}
+        sitesList={sitesList}
+        deployForm={deployForm}
+        setDeployForm={setDeployForm}
+        isDeploying={isDeploying}
+        onCancel={() => setShowDeployModal(false)}
+        onDeploy={handleDeploy}
+        toggleScheduleDay={toggleScheduleDay}
+      />
     </div>
   );
 }
