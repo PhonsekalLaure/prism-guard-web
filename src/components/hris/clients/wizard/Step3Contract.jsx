@@ -1,4 +1,4 @@
-import { FaFileContract } from 'react-icons/fa';
+import { FaFileContract, FaFileUpload } from 'react-icons/fa';
 import FormField from './ClientFormField';
 
 export default function Step3Contract({ data, onChange }) {
@@ -32,14 +32,38 @@ export default function Step3Contract({ data, onChange }) {
         />
         <FormField
           label="Billing Type"
-          type="select"
-          options={[
-            { value: 'semi_monthly', label: 'Semi-Monthly' },
-            { value: 'monthly',      label: 'Monthly'      },
-            { value: 'weekly',       label: 'Weekly'       },
-          ]}
-          value={data.billingType}
-          onChange={(e) => onChange('billingType', e.target.value)}
+          type="text"
+          value="Semi-Monthly"
+          readOnly
+        />
+        
+        <FormField
+          label="Contract Document"
+          span2
+          customInput={
+            <label className={`dep-file-zone${data.contractUrl ? ' has-file' : ''}`}>
+              <FaFileUpload className="dep-file-icon" />
+              <div className="dep-file-info">
+                {data.contractUrl ? (
+                  <>
+                    <p className="dep-file-name">{data.contractUrl.name}</p>
+                    <p className="dep-file-hint">Click to replace file</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="dep-file-name" style={{ color: '#64748b' }}>Upload contract document</p>
+                    <p className="dep-file-hint">PDF or Image accepted</p>
+                  </>
+                )}
+              </div>
+              <input
+                type="file"
+                className="hidden"
+                accept="image/*,application/pdf"
+                onChange={(e) => onChange('contractUrl', e.target.files?.[0] || null)}
+              />
+            </label>
+          }
         />
       </div>
     </div>

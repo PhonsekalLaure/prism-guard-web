@@ -23,7 +23,6 @@ export default function AddClientPage() {
         <AddClientWizard
           isOpen={true}
           onClose={() => navigate('/clients')}
-          onSaved={() => navigate('/clients')}
           pageMode
         />
       </div>

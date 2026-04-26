@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FaArrowRight, FaArrowLeft, FaCheck, FaSpinner } from 'react-icons/fa';
 import clientService from '@services/clientService';
+import employeeService from '@services/employeeService';
 import Notification from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
 
@@ -8,6 +9,7 @@ import Step1ContactInfo    from './wizard/Step1ContactInfo';
 import Step2CompanyDetails from './wizard/Step2CompanyDetails';
 import Step3Contract       from './wizard/Step3Contract';
 import Step4Sites          from './wizard/Step4Sites';
+import Step5InitialDeployment from './wizard/Step5InitialDeployment';
 import Step5Review         from './wizard/Step5Review';
 
 const STEPS = [
@@ -15,22 +17,109 @@ const STEPS = [
   { num: 2, label: 'Company Details' },
   { num: 3, label: 'Contract'        },
   { num: 4, label: 'Sites'           },
-  { num: 5, label: 'Review'          },
+  { num: 5, label: 'Initial Guard'   },
+  { num: 6, label: 'Review'          },
 ];
 
 const INITIAL_FORM_DATA = {
   firstName: '', lastName: '', middleName: '', suffix: '',
   mobile: '', email: '', company: '', billingAddress: '',
-  contractStartDate: '', contractEndDate: '',
-  ratePerGuard: '', billingType: 'semi_monthly',
+  contractStartDate: new Date().toISOString().split('T')[0], contractEndDate: '',
+  ratePerGuard: '', billingType: 'semi_monthly', contractUrl: null,
   sites: [],
+  initialDeployment: {
+    siteIndex: '',
+    employeeIds: [],
+    employeeNames: [],
+    baseSalary: '',
+    contractStartDate: '',
+    contractEndDate: '',
+    daysOfWeek: [],
+    shiftStart: '',
+    shiftEnd: '',
+    filters: {
+      tallOnly: false,
+      experiencedOnly: false,
+    },
+  },
 };
 
 export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = false }) {
   const [currentStep,  setCurrentStep]  = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deployableEmployees, setDeployableEmployees] = useState([]);
+  const [loadingDeployable, setLoadingDeployable] = useState(false);
   const [formData,     setFormData]     = useState(INITIAL_FORM_DATA);
   const { notification, showNotification, closeNotification } = useNotification();
+
+  useEffect(() => {
+    if (!isOpen || currentStep !== 5) return;
+
+    const selectedSite = formData.initialDeployment.siteIndex === ''
+      ? null
+      : formData.sites[Number(formData.initialDeployment.siteIndex)];
+
+    if (selectedSite?.latitude === '' || selectedSite?.latitude == null || selectedSite?.longitude === '' || selectedSite?.longitude == null) {
+      setDeployableEmployees([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadDeployableEmployees = async () => {
+      setLoadingDeployable(true);
+      try {
+        const employees = await employeeService.getDeployableEmployees({
+          siteLatitude: selectedSite.latitude,
+          siteLongitude: selectedSite.longitude,
+          tallOnly: formData.initialDeployment.filters.tallOnly,
+          experiencedOnly: formData.initialDeployment.filters.experiencedOnly,
+        });
+        if (!cancelled) {
+          setDeployableEmployees(employees);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setDeployableEmployees([]);
+          showNotification(err.response?.data?.error || 'Failed to load deployable guards.', 'error');
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingDeployable(false);
+        }
+      }
+    };
+
+    loadDeployableEmployees();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    isOpen,
+    currentStep,
+    formData.sites,
+    formData.initialDeployment.siteIndex,
+    formData.initialDeployment.filters.tallOnly,
+    formData.initialDeployment.filters.experiencedOnly,
+    showNotification,
+  ]);
+
+  useEffect(() => {
+    if (formData.initialDeployment.employeeIds.length === 0) return;
+    const validEmployees = deployableEmployees.filter((employee) => formData.initialDeployment.employeeIds.includes(employee.id));
+    if (validEmployees.length === formData.initialDeployment.employeeIds.length) return;
+
+    setFormData((prev) => ({
+      ...prev,
+      initialDeployment: {
+        ...prev.initialDeployment,
+        employeeIds: validEmployees.map((employee) => employee.id),
+        employeeNames: validEmployees.map((employee) => employee.name),
+        baseSalary: '',
+      },
+    }));
+  }, [deployableEmployees, formData.initialDeployment.employeeIds]);
 
   if (!isOpen) return null;
 
@@ -40,8 +129,102 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
 
   const handleChange  = (field, value) => setFormData((prev) => ({ ...prev, [field]: value }));
   const addSite       = () => setFormData((prev) => ({ ...prev, sites: [...prev.sites, { siteName: '', siteAddress: '', latitude: '', longitude: '', geofenceRadius: 50 }] }));
-  const removeSite    = (i) => setFormData((prev) => ({ ...prev, sites: prev.sites.filter((_, idx) => idx !== i) }));
+  const removeSite    = (i) => setFormData((prev) => {
+    const nextSites = prev.sites.filter((_, idx) => idx !== i);
+    const selectedSiteIndex = prev.initialDeployment.siteIndex === '' ? null : Number(prev.initialDeployment.siteIndex);
+    let nextDeployment = prev.initialDeployment;
+
+    if (selectedSiteIndex === i) {
+      nextDeployment = {
+        ...prev.initialDeployment,
+        siteIndex: '',
+        employeeIds: [],
+        employeeNames: [],
+      };
+    } else if (selectedSiteIndex !== null && selectedSiteIndex > i) {
+      nextDeployment = {
+        ...prev.initialDeployment,
+        siteIndex: String(selectedSiteIndex - 1),
+      };
+    }
+
+    return {
+      ...prev,
+      sites: nextSites,
+      initialDeployment: nextDeployment,
+    };
+  });
   const updateSite    = (i, field, value) => setFormData((prev) => ({ ...prev, sites: prev.sites.map((s, idx) => idx === i ? { ...s, [field]: value } : s) }));
+  const handleDeploymentField = (field, value) => {
+    setFormData((prev) => {
+      const nextDeployment = {
+        ...prev.initialDeployment,
+        [field]: value,
+      };
+
+      if (field === 'siteIndex') {
+        nextDeployment.employeeIds = [];
+        nextDeployment.employeeNames = [];
+        nextDeployment.baseSalary = '';
+        nextDeployment.contractStartDate = prev.initialDeployment.contractStartDate || prev.contractStartDate || '';
+        nextDeployment.contractEndDate = prev.initialDeployment.contractEndDate || prev.contractEndDate || '';
+      }
+
+      return {
+        ...prev,
+        initialDeployment: nextDeployment,
+      };
+    });
+  };
+  const handleDeploymentFilterChange = (field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      initialDeployment: {
+        ...prev.initialDeployment,
+        filters: {
+          ...prev.initialDeployment.filters,
+          [field]: value,
+        },
+      },
+    }));
+  };
+  const handleDeploymentEmployeeSelect = (employee) => {
+    setFormData((prev) => ({
+      ...prev,
+      initialDeployment: (() => {
+        const isSelected = prev.initialDeployment.employeeIds.includes(employee.id);
+        const nextEmployeeIds = isSelected
+          ? prev.initialDeployment.employeeIds.filter((id) => id !== employee.id)
+          : [...prev.initialDeployment.employeeIds, employee.id];
+        const nextEmployeeNames = nextEmployeeIds
+          .map((id) => {
+            if (id === employee.id) return employee.name;
+            const matchedEmployee = deployableEmployees.find((item) => item.id === id);
+            return matchedEmployee?.name || prev.initialDeployment.employeeNames[prev.initialDeployment.employeeIds.indexOf(id)] || id;
+          });
+
+        return {
+          ...prev.initialDeployment,
+          employeeIds: nextEmployeeIds,
+          employeeNames: nextEmployeeNames,
+          baseSalary: prev.initialDeployment.baseSalary || employee.base_salary || '',
+          contractStartDate: prev.initialDeployment.contractStartDate || prev.contractStartDate || '',
+          contractEndDate: prev.initialDeployment.contractEndDate || prev.contractEndDate || '',
+        };
+      })(),
+    }));
+  };
+  const toggleDeploymentScheduleDay = (dayValue) => {
+    setFormData((prev) => ({
+      ...prev,
+      initialDeployment: {
+        ...prev.initialDeployment,
+        daysOfWeek: prev.initialDeployment.daysOfWeek.includes(dayValue)
+          ? prev.initialDeployment.daysOfWeek.filter((day) => day !== dayValue)
+          : [...prev.initialDeployment.daysOfWeek, dayValue].sort((a, b) => a - b),
+      },
+    }));
+  };
 
   const validateStep = () => {
     switch (currentStep) {
@@ -82,6 +265,26 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
           }
         }
         return true;
+      case 5:
+        if (formData.initialDeployment.employeeIds.length === 0) {
+          return true;
+        }
+        if (formData.initialDeployment.siteIndex === '') {
+          showNotification('Please select the deployment site for the guard.', 'error'); return false;
+        }
+        if (!formData.initialDeployment.baseSalary) {
+          showNotification('Please set the guard base pay.', 'error'); return false;
+        }
+        if (!formData.initialDeployment.contractStartDate || !formData.initialDeployment.contractEndDate) {
+          showNotification('Please set the assignment contract start and end dates.', 'error'); return false;
+        }
+        if (formData.initialDeployment.daysOfWeek.length === 0) {
+          showNotification('Please select at least one schedule day for the initial deployment.', 'error'); return false;
+        }
+        if (!formData.initialDeployment.shiftStart || !formData.initialDeployment.shiftEnd) {
+          showNotification('Please set both shift start and shift end for the initial deployment.', 'error'); return false;
+        }
+        return true;
       default:
         return true;
     }
@@ -94,7 +297,40 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
     if (!validateStep()) return;
     setIsSubmitting(true);
     try {
-      await clientService.createClient(formData);
+      const payload = {
+        ...formData,
+        initialDeployment: formData.initialDeployment.employeeIds.length > 0
+          ? {
+            siteIndex: Number(formData.initialDeployment.siteIndex),
+            employeeIds: formData.initialDeployment.employeeIds,
+            baseSalary: formData.initialDeployment.baseSalary,
+            contractStartDate: formData.initialDeployment.contractStartDate,
+            contractEndDate: formData.initialDeployment.contractEndDate,
+            daysOfWeek: formData.initialDeployment.daysOfWeek,
+            shiftStart: formData.initialDeployment.shiftStart,
+            shiftEnd: formData.initialDeployment.shiftEnd,
+          }
+          : null,
+      };
+      const requestData = new FormData();
+
+      Object.entries(payload).forEach(([key, value]) => {
+        if (key === 'contractUrl') {
+          if (value instanceof File) {
+            requestData.append(key, value);
+          }
+          return;
+        }
+
+        if (key === 'sites' || key === 'initialDeployment') {
+          requestData.append(key, JSON.stringify(value));
+          return;
+        }
+
+        requestData.append(key, value == null ? '' : String(value));
+      });
+
+      await clientService.createClient(requestData);
       showNotification('Client created successfully! An invitation email has been sent.', 'success');
       onSaved?.();
       setTimeout(() => { resetForm(); onClose(); }, 1200);
@@ -163,7 +399,18 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
                 onRemoveSite={removeSite}
               />
             )}
-            {currentStep === 5 && <Step5Review data={formData} />}
+            {currentStep === 5 && (
+              <Step5InitialDeployment
+                data={formData}
+                deployableEmployees={deployableEmployees}
+                loadingDeployable={loadingDeployable}
+                onDeploymentField={handleDeploymentField}
+                onFilterChange={handleDeploymentFilterChange}
+                onSelectEmployee={handleDeploymentEmployeeSelect}
+                toggleScheduleDay={toggleDeploymentScheduleDay}
+              />
+            )}
+            {currentStep === 6 && <Step5Review data={formData} />}
 
             {/* Navigation */}
             <div className="ae-nav-buttons">

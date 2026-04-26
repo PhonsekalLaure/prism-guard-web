@@ -6,6 +6,7 @@ const toProperCase = (str) => {
 };
 
 const formatBillingType = (value) => toProperCase(value || '').replace('-', ' ');
+const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 function ReviewSection({ title, icon, children }) {
   return (
@@ -30,6 +31,7 @@ function ReviewField({ label, value, highlight }) {
 
 export default function Step5Review({ data }) {
   const sitesCount = data.sites.length;
+  const hasInitialDeployment = (data.initialDeployment?.employeeIds?.length || 0) > 0;
 
   return (
     <div className="ae-step-content">
@@ -81,6 +83,28 @@ export default function Step5Review({ data }) {
             />
           ))}
           {sitesCount > 3 && <ReviewField label="Additional" value={`+${sitesCount - 3} more`} />}
+        </ReviewSection>
+
+        <ReviewSection title="Initial Deployment" icon="D">
+          <ReviewField
+            label="Assigned Guards"
+            value={hasInitialDeployment ? data.initialDeployment.employeeNames.join(', ') : 'No initial guard assigned'}
+          />
+          {hasInitialDeployment && (
+            <>
+              <ReviewField
+                label="Site"
+                value={data.sites[Number(data.initialDeployment.siteIndex)]?.siteName || data.sites[Number(data.initialDeployment.siteIndex)]?.siteAddress || ''}
+              />
+              <ReviewField label="Base Pay" value={data.initialDeployment.baseSalary ? `PHP ${Number(data.initialDeployment.baseSalary).toLocaleString()}` : ''} />
+              <ReviewField label="Contract Start" value={data.initialDeployment.contractStartDate} />
+              <ReviewField label="Contract End" value={data.initialDeployment.contractEndDate} />
+              <ReviewField
+                label="Schedule"
+                value={data.initialDeployment.daysOfWeek.length > 0 ? `${data.initialDeployment.daysOfWeek.map((day) => DAY_LABELS[day] || day).join(', ')} | ${data.initialDeployment.shiftStart} - ${data.initialDeployment.shiftEnd}` : ''}
+              />
+            </>
+          )}
         </ReviewSection>
       </div>
     </div>
