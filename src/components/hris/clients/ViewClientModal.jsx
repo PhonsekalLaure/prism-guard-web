@@ -144,14 +144,15 @@ export default function ViewClientModal({ isOpen, client: previewClient, onClose
 
     for (const employeeId of selectedEmployeeIds) {
       try {
-        await employeeService.deployEmployee(employeeId, {
-          siteId: deployForm.siteId,
-          contractStartDate: deployForm.contractStartDate || undefined,
-          contractEndDate: deployForm.contractEndDate || undefined,
-          daysOfWeek: deployForm.daysOfWeek,
-          shiftStart: deployForm.shiftStart,
-          shiftEnd: deployForm.shiftEnd,
-        });
+        const payload = new FormData();
+        payload.append('siteId', deployForm.siteId);
+        if (deployForm.contractStartDate) payload.append('contractStartDate', deployForm.contractStartDate);
+        if (deployForm.contractEndDate) payload.append('contractEndDate', deployForm.contractEndDate);
+        deployForm.daysOfWeek.forEach((day) => payload.append('daysOfWeek', String(day)));
+        payload.append('shiftStart', deployForm.shiftStart);
+        payload.append('shiftEnd', deployForm.shiftEnd);
+
+        await employeeService.deployEmployee(employeeId, payload);
         successfulDeployments.push(employeeId);
       } catch (err) {
         failedDeployments.push(
