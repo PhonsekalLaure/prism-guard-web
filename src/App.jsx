@@ -13,6 +13,7 @@ import HrisServiceRequestsPage from '@hris-pages/HrisServiceRequestsPage';
 import HrisServiceReviewsPage from '@hris-pages/HrisServiceReviewsPage';
 import HrisLeaveRequestsPage from '@hris-pages/HrisLeaveRequestsPage';
 import HrisAttendancePage from '@hris-pages/HrisAttendancePage';
+import HrisCashAdvancePage from '@hris-pages/HrisCashAdvancePage';
 import CmsLayout from '@cms-layouts/CmsLayout';
 import CmsDashboardPage from '@cms-pages/CmsDashboardPage';
 import DeployedGuardsPage from '@cms-pages/DeployedGuardsPage';
@@ -48,6 +49,7 @@ function App() {
           <Route path="/service-reviews" element={<HrisServiceReviewsPage />} />
           <Route path="/leaves" element={<HrisLeaveRequestsPage />} />
           <Route path="/attendance" element={<HrisAttendancePage />} />
+          <Route path="/cash-advance" element={<HrisCashAdvancePage />} />
         </Route>
 
         {/* CMS routes — client only */}
