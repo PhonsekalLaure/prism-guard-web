@@ -1,6 +1,6 @@
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { FaArrowLeft, FaBars } from 'react-icons/fa';
-import AddEmployeeModal from '@hris-components/employees/AddEmployeeModal';
+import AddEmployeeWizard from '@hris-components/employees/AddEmployeeWizard';
 
 export default function AddEmployeePage() {
   const navigate          = useNavigate();
@@ -20,7 +20,7 @@ export default function AddEmployeePage() {
       </header>
 
       <div className="dashboard-content ep-page-body">
-        <AddEmployeeModal
+        <AddEmployeeWizard
           isOpen={true}
           onClose={() => navigate('/employees')}
           onSaved={() => navigate('/employees')}
