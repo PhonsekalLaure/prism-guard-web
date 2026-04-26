@@ -6,6 +6,8 @@ import DashboardPage from '@hris-pages/DashboardPage';
 import ClientsPage from '@hris-pages/ClientsPage';
 import BillingPage from '@hris-pages/BillingPage';
 import EmployeesPage from '@hris-pages/EmployeesPage';
+import EmployeeDetailPage from '@hris-pages/EmployeeDetailPage';
+import AddEmployeePage from '@hris-pages/AddEmployeePage';
 import ProfilePage from '@hris-pages/ProfilePage';
 import CmsLayout from '@cms-layouts/CmsLayout';
 import CmsDashboardPage from '@cms-pages/CmsDashboardPage';
@@ -34,6 +36,8 @@ function App() {
           <Route path="/clients" element={<ClientsPage />} />
           <Route path="/billing" element={<BillingPage />} />
           <Route path="/employees" element={<EmployeesPage />} />
+          <Route path="/employees/new" element={<AddEmployeePage />} />
+          <Route path="/employees/:id" element={<EmployeeDetailPage />} />
           <Route path="/profile" element={<ProfilePage />} />
         </Route>
 

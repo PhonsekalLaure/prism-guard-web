@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   FaBriefcase, FaBuilding, FaCalendarAlt, FaEye, FaSearch
 } from 'react-icons/fa';
@@ -9,9 +10,9 @@ export default function EmployeesGrid({
   totalItems = 0,
   currentPage = 1,
   onPageChange,
-  onResetFilters,
-  onViewEmployee 
+  onResetFilters
 }) {
+  const navigate = useNavigate();
   const itemsPerPage = 6;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
@@ -79,7 +80,7 @@ export default function EmployeesGrid({
                 <div className="employee-card-footer">
                   <button
                     className="employee-view-link"
-                    onClick={() => onViewEmployee?.(emp)}
+                    onClick={() => navigate(`/employees/${emp.id}`)}
                   >
                     <FaEye />
                     View Details
