@@ -37,6 +37,16 @@ const EDUCATIONAL_LEVELS = [
   'College Level', "Bachelor's Degree", "Master's Degree", 'Doctorate',
 ];
 
+const DAY_OPTIONS = [
+  { value: 0, label: 'Sun' },
+  { value: 1, label: 'Mon' },
+  { value: 2, label: 'Tue' },
+  { value: 3, label: 'Wed' },
+  { value: 4, label: 'Thu' },
+  { value: 5, label: 'Fri' },
+  { value: 6, label: 'Sat' },
+];
+
 /* Build a blank edit form from current employee data */
 const buildForm = (emp) => ({
   // Personal
@@ -79,7 +89,15 @@ export default function ViewEmployeeModal({ isOpen, employee: previewEmployee, o
   const [showTerminateConfirm, setShowTerminateConfirm] = useState(false);
   const [showDeployModal, setShowDeployModal] = useState(false);
   const [sitesList, setSitesList] = useState([]);
-  const [deployForm, setDeployForm] = useState({ siteId: '', contractStartDate: '', contractEndDate: '' });
+  const [deployForm, setDeployForm] = useState({
+    siteId: '',
+    contractStartDate: '',
+    contractEndDate: '',
+    daysOfWeek: [],
+    shiftStart: '',
+    shiftEnd: '',
+    deploymentOrderFile: null,
+  });
   const [isDeploying, setIsDeploying] = useState(false);
   const { notification, showNotification, closeNotification } = useNotification();
 
@@ -181,7 +199,15 @@ export default function ViewEmployeeModal({ isOpen, employee: previewEmployee, o
 
   const openDeployModal = async () => {
     setShowDeployModal(true);
-    setDeployForm({ siteId: '', contractStartDate: '', contractEndDate: '' });
+    setDeployForm({
+      siteId: '',
+      contractStartDate: '',
+      contractEndDate: '',
+      daysOfWeek: [],
+      shiftStart: '',
+      shiftEnd: '',
+      deploymentOrderFile: null,
+    });
     try {
       const sites = await clientService.getAllSitesList();
       setSitesList(sites);
@@ -196,13 +222,28 @@ export default function ViewEmployeeModal({ isOpen, employee: previewEmployee, o
       showNotification('Please select a client site.', 'error');
       return;
     }
+    if (deployForm.daysOfWeek.length === 0) {
+      showNotification('Please select at least one schedule day.', 'error');
+      return;
+    }
+    if (!deployForm.shiftStart || !deployForm.shiftEnd) {
+      showNotification('Please set both shift start and shift end time.', 'error');
+      return;
+    }
     setIsDeploying(true);
     try {
-      await employeeService.deployEmployee(data.id, {
-        siteId: deployForm.siteId,
-        contractStartDate: deployForm.contractStartDate || undefined,
-        contractEndDate: deployForm.contractEndDate || undefined
-      });
+      const payload = new FormData();
+      payload.append('siteId', deployForm.siteId);
+      if (deployForm.contractStartDate) payload.append('contractStartDate', deployForm.contractStartDate);
+      if (deployForm.contractEndDate) payload.append('contractEndDate', deployForm.contractEndDate);
+      deployForm.daysOfWeek.forEach((day) => payload.append('daysOfWeek', String(day)));
+      payload.append('shiftStart', deployForm.shiftStart);
+      payload.append('shiftEnd', deployForm.shiftEnd);
+      if (deployForm.deploymentOrderFile) {
+        payload.append('document_deployment_order', deployForm.deploymentOrderFile);
+      }
+
+      await employeeService.deployEmployee(data.id, payload);
       showNotification('Employee deployed successfully!', 'success');
       setShowDeployModal(false);
       onUpdated?.();
@@ -212,6 +253,15 @@ export default function ViewEmployeeModal({ isOpen, employee: previewEmployee, o
     } finally {
       setIsDeploying(false);
     }
+  };
+
+  const toggleScheduleDay = (dayValue) => {
+    setDeployForm((current) => ({
+      ...current,
+      daysOfWeek: current.daysOfWeek.includes(dayValue)
+        ? current.daysOfWeek.filter((day) => day !== dayValue)
+        : [...current.daysOfWeek, dayValue].sort((a, b) => a - b),
+    }));
   };
 
   return (
@@ -425,6 +475,56 @@ export default function ViewEmployeeModal({ isOpen, employee: previewEmployee, o
                   />
                 </div>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Days of Week *</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {DAY_OPTIONS.map((day) => (
+                    <label key={day.value} className="flex items-center gap-2 text-sm text-gray-700">
+                      <input
+                        type="checkbox"
+                        checked={deployForm.daysOfWeek.includes(day.value)}
+                        onChange={() => toggleScheduleDay(day.value)}
+                      />
+                      <span>{day.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Shift Start *</label>
+                  <input
+                    type="time"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    value={deployForm.shiftStart}
+                    onChange={(e) => setDeployForm(f => ({ ...f, shiftStart: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Shift End *</label>
+                  <input
+                    type="time"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    value={deployForm.shiftEnd}
+                    onChange={(e) => setDeployForm(f => ({ ...f, shiftEnd: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Deployment Order</label>
+                <input
+                  type="file"
+                  accept="image/*,application/pdf"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  onChange={(e) => setDeployForm(f => ({ ...f, deploymentOrderFile: e.target.files?.[0] || null }))}
+                />
+                {deployForm.deploymentOrderFile && (
+                  <p className="mt-1 text-xs text-emerald-700">{deployForm.deploymentOrderFile.name}</p>
+                )}
+              </div>
             </div>
 
             <div className="flex justify-end gap-3 mt-6">
@@ -454,7 +554,7 @@ export default function ViewEmployeeModal({ isOpen, employee: previewEmployee, o
 /* ─────────────────────────────────────────────────────────
    Shared: edit field wrappers
 ───────────────────────────────────────────────────────── */
-function EditInput({ label, value, onChange, type = 'text', placeholder }) {
+function EditInput({ label, value, onChange, type = 'text', placeholder, readOnly = false, disabled = false }) {
   return (
     <div className="ve-edit-field">
       <label className="ve-edit-label">{label}</label>
@@ -464,6 +564,8 @@ function EditInput({ label, value, onChange, type = 'text', placeholder }) {
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder || label}
+        readOnly={readOnly}
+        disabled={disabled}
       />
     </div>
   );
@@ -613,7 +715,7 @@ function PersonalTab({ employee, canEdit, isEditing, editForm, pendingFiles, onF
               <EditInput  label="Height (cm)"            type="number" value={editForm.height_cm}          onChange={v => onField('height_cm', v)} placeholder="e.g. 170" />
               <EditSelect label="Educational Attainment" value={editForm.educational_level}                onChange={v => onField('educational_level', v)}
                 options={EDUCATIONAL_LEVELS} />
-              <EditInput  label="Citizenship"           value={editForm.citizenship}                       onChange={v => onField('citizenship', v)} />
+              <EditInput  label="Citizenship"           value={editForm.citizenship}                       onChange={v => onField('citizenship', v)} readOnly disabled />
             </div>
           </div>
 
@@ -723,9 +825,8 @@ function ComplianceTab({ employee, isEditing, pendingFiles, onPreview, onClearan
   const docLabels = {
     valid_id: 'Valid ID',
     resume:   'Resume',
-    biodata:  '201 File / Bio-data (Legacy)',
+    personal_information_sheet: 'Personal Information Sheet',
     sg_license: 'Security Guard License (LTOPF)',
-    les:      'Security License (Legacy)',
     barangay: 'Barangay Clearance',
     police:   'Police Clearance',
     nbi:      'NBI Clearance',
@@ -752,9 +853,23 @@ function ComplianceTab({ employee, isEditing, pendingFiles, onPreview, onClearan
   // Build a map of existing clearances keyed by type
   const existingMap = {};
   (employee.clearances || []).forEach(c => { existingMap[c.clearance_type] = c; });
+  if (!existingMap.personal_information_sheet && existingMap.biodata) {
+    existingMap.personal_information_sheet = existingMap.biodata;
+  }
+  if (!existingMap.sg_license && existingMap.les) {
+    existingMap.sg_license = existingMap.les;
+  }
+  if (employee.deployment_order_url) {
+    existingMap.deployment_order = {
+      clearance_type: 'deployment_order',
+      document_url: employee.deployment_order_url,
+    };
+  }
 
   // In view mode, show only what exists; in edit mode show all slots
-  const displayTypes = isEditing ? ALL_TYPES : (employee.clearances?.length > 0 ? ALL_TYPES.filter(t => existingMap[t]) : []);
+  const displayTypes = isEditing
+    ? ALL_TYPES.filter((type) => type !== 'deployment_order' || employee.current_company !== 'Floating' || !!existingMap.deployment_order)
+    : ALL_TYPES.filter((type) => !!existingMap[type]);
 
   return (
     <div className="ve-tab-content">

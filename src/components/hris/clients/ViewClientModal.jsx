@@ -15,6 +15,16 @@ const tabs = [
   { key: 'tickets',  label: 'Service Tickets',   icon: FaTicketAlt },
 ];
 
+const DAY_OPTIONS = [
+  { value: 0, label: 'Sun' },
+  { value: 1, label: 'Mon' },
+  { value: 2, label: 'Tue' },
+  { value: 3, label: 'Wed' },
+  { value: 4, label: 'Thu' },
+  { value: 5, label: 'Fri' },
+  { value: 6, label: 'Sat' },
+];
+
 const fmtDate = (d) => d
   ? new Date(d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
   : 'N/A';
@@ -35,6 +45,9 @@ export default function ViewClientModal({ isOpen, client: previewClient, onClose
     siteId: '',
     contractStartDate: '',
     contractEndDate: '',
+    daysOfWeek: [],
+    shiftStart: '',
+    shiftEnd: '',
   });
   const [isDeploying, setIsDeploying] = useState(false);
   const { notification, showNotification, closeNotification } = useNotification();
@@ -63,7 +76,7 @@ export default function ViewClientModal({ isOpen, client: previewClient, onClose
       setShowDeployModal(false);
       setDeployableEmployees([]);
       setSelectedEmployeeIds([]);
-      setDeployForm({ siteId: '', contractStartDate: '', contractEndDate: '' });
+      setDeployForm({ siteId: '', contractStartDate: '', contractEndDate: '', daysOfWeek: [], shiftStart: '', shiftEnd: '' });
     }
   }, [isOpen, previewClient]);
 
@@ -80,6 +93,9 @@ export default function ViewClientModal({ isOpen, client: previewClient, onClose
       siteId: siteId || activeSites[0]?.id || '',
       contractStartDate: '',
       contractEndDate: '',
+      daysOfWeek: [],
+      shiftStart: '',
+      shiftEnd: '',
     });
     setLoadingDeployableEmployees(true);
 
@@ -112,6 +128,14 @@ export default function ViewClientModal({ isOpen, client: previewClient, onClose
       showNotification('Please select at least one available guard.', 'error');
       return;
     }
+    if (deployForm.daysOfWeek.length === 0) {
+      showNotification('Please select at least one schedule day.', 'error');
+      return;
+    }
+    if (!deployForm.shiftStart || !deployForm.shiftEnd) {
+      showNotification('Please set both shift start and shift end time.', 'error');
+      return;
+    }
 
     setIsDeploying(true);
 
@@ -124,6 +148,9 @@ export default function ViewClientModal({ isOpen, client: previewClient, onClose
           siteId: deployForm.siteId,
           contractStartDate: deployForm.contractStartDate || undefined,
           contractEndDate: deployForm.contractEndDate || undefined,
+          daysOfWeek: deployForm.daysOfWeek,
+          shiftStart: deployForm.shiftStart,
+          shiftEnd: deployForm.shiftEnd,
         });
         successfulDeployments.push(employeeId);
       } catch (err) {
@@ -159,6 +186,15 @@ export default function ViewClientModal({ isOpen, client: previewClient, onClose
     }
 
     showNotification(failedDeployments[0] || 'Failed to deploy selected guards.', 'error');
+  };
+
+  const toggleScheduleDay = (dayValue) => {
+    setDeployForm((current) => ({
+      ...current,
+      daysOfWeek: current.daysOfWeek.includes(dayValue)
+        ? current.daysOfWeek.filter((day) => day !== dayValue)
+        : [...current.daysOfWeek, dayValue].sort((a, b) => a - b),
+    }));
   };
 
   return (
@@ -272,6 +308,44 @@ export default function ViewClientModal({ isOpen, client: previewClient, onClose
                       className="border border-slate-300 rounded-lg px-3 py-2"
                       value={deployForm.contractEndDate}
                       onChange={(e) => setDeployForm((current) => ({ ...current, contractEndDate: e.target.value }))}
+                    />
+                  </label>
+                </div>
+
+                <div className="mb-5">
+                  <span className="text-sm font-semibold text-slate-700 block mb-2">Days of Week</span>
+                  <div className="grid grid-cols-4 gap-2">
+                    {DAY_OPTIONS.map((day) => (
+                      <label key={day.value} className="flex items-center gap-2 text-sm text-slate-700">
+                        <input
+                          type="checkbox"
+                          checked={deployForm.daysOfWeek.includes(day.value)}
+                          onChange={() => toggleScheduleDay(day.value)}
+                        />
+                        <span>{day.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4 mb-5">
+                  <label className="flex flex-col gap-2">
+                    <span className="text-sm font-semibold text-slate-700">Shift Start</span>
+                    <input
+                      type="time"
+                      className="border border-slate-300 rounded-lg px-3 py-2"
+                      value={deployForm.shiftStart}
+                      onChange={(e) => setDeployForm((current) => ({ ...current, shiftStart: e.target.value }))}
+                    />
+                  </label>
+
+                  <label className="flex flex-col gap-2">
+                    <span className="text-sm font-semibold text-slate-700">Shift End</span>
+                    <input
+                      type="time"
+                      className="border border-slate-300 rounded-lg px-3 py-2"
+                      value={deployForm.shiftEnd}
+                      onChange={(e) => setDeployForm((current) => ({ ...current, shiftEnd: e.target.value }))}
                     />
                   </label>
                 </div>
