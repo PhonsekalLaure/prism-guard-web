@@ -53,7 +53,7 @@ const buildForm = (emp) => ({
   license_expiry_date:              emp.license_expiry_date              || '',
 });
 
-export default function ViewEmployeeModal({
+export default function ViewEmployeeDetail({
   isOpen, employee: previewEmployee, onClose, onUpdated, pageMode = false,
 }) {
   const [activeTab,        setActiveTab]        = useState('personal');

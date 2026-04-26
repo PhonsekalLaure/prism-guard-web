@@ -1,6 +1,6 @@
 import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
 import { FaArrowLeft, FaBars } from 'react-icons/fa';
-import ViewEmployeeModal from '@hris-components/employees/ViewEmployeeModal';
+import ViewEmployeeDetail from '@hris-components/employees/ViewEmployeeDetail';
 
 export default function EmployeeDetailPage() {
   const { id }              = useParams();
@@ -21,7 +21,7 @@ export default function EmployeeDetailPage() {
       </header>
 
       <div className="dashboard-content ep-page-body">
-        <ViewEmployeeModal
+        <ViewEmployeeDetail
           isOpen={true}
           employee={{ id }}
           onClose={() => navigate('/employees')}
