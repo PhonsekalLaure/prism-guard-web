@@ -14,6 +14,8 @@ import HrisServiceReviewsPage from '@hris-pages/HrisServiceReviewsPage';
 import HrisLeaveRequestsPage from '@hris-pages/HrisLeaveRequestsPage';
 import HrisAttendancePage from '@hris-pages/HrisAttendancePage';
 import HrisCashAdvancePage from '@hris-pages/HrisCashAdvancePage';
+import HrisPayrollPage from '@hris-pages/HrisPayrollPage';
+import HrisIncidentsPage from '@hris-pages/HrisIncidentsPage';
 import CmsLayout from '@cms-layouts/CmsLayout';
 import CmsDashboardPage from '@cms-pages/CmsDashboardPage';
 import DeployedGuardsPage from '@cms-pages/DeployedGuardsPage';
@@ -50,6 +52,8 @@ function App() {
           <Route path="/leaves" element={<HrisLeaveRequestsPage />} />
           <Route path="/attendance" element={<HrisAttendancePage />} />
           <Route path="/cash-advance" element={<HrisCashAdvancePage />} />
+          <Route path="/payroll" element={<HrisPayrollPage />} />
+          <Route path="/incidents" element={<HrisIncidentsPage />} />
         </Route>
 
         {/* CMS routes — client only */}
