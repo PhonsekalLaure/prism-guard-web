@@ -7,25 +7,36 @@ import {
   FaEdit,
 } from 'react-icons/fa';
 
-const contactItems = [
-  {
-    icon: FaEnvelope,
-    label: 'Email',
-    value: 'admin@feutech.edu.ph',
-  },
-  {
-    icon: FaPhone,
-    label: 'Phone',
-    value: '+63 917 123 4567',
-  },
-  {
-    icon: FaMapMarkerAlt,
-    label: 'Address',
-    value: 'P. Paredes St., Sampaloc, Manila',
-  },
-];
+function formatClientSince(dateStr) {
+  if (!dateStr) return null;
+  return new Date(dateStr).toLocaleDateString('en-PH', {
+    month: 'long',
+    year: 'numeric',
+  });
+}
 
-export default function CompanyCard({ onChangePassword }) {
+export default function CompanyCard({ profile, onChangePassword }) {
+  const contactItems = [
+    {
+      icon: FaEnvelope,
+      label: 'Email',
+      value: profile?.contact_email || '—',
+    },
+    {
+      icon: FaPhone,
+      label: 'Phone',
+      value: profile?.phone_number || '—',
+    },
+    {
+      icon: FaMapMarkerAlt,
+      label: 'Address',
+      value: profile?.billing_address || '—',
+    },
+  ];
+
+  const clientSince = formatClientSince(profile?.client_since);
+  const contractStatus = profile?.contract_status || null;
+
   return (
     <div className="cms-profile-company-card">
       {/* Header */}
@@ -33,9 +44,19 @@ export default function CompanyCard({ onChangePassword }) {
         <div className="cms-profile-company-card__logo">
           <FaBuilding />
         </div>
-        <h3 className="cms-profile-company-card__name">FEU Institute of Technology</h3>
-        <p className="cms-profile-company-card__since">Client since January 2024</p>
-        <span className="cms-profile-company-card__badge">Active Contract</span>
+        <h3 className="cms-profile-company-card__name">
+          {profile?.company || '—'}
+        </h3>
+        {clientSince && (
+          <p className="cms-profile-company-card__since">Client since {clientSince}</p>
+        )}
+        {contractStatus && (
+          <span
+            className={`cms-profile-company-card__badge cms-profile-company-card__badge--${contractStatus.toLowerCase().replace(' ', '-')}`}
+          >
+            {contractStatus === 'Active' ? 'Active Contract' : contractStatus}
+          </span>
+        )}
       </div>
 
       {/* Contact Info */}
@@ -54,12 +75,15 @@ export default function CompanyCard({ onChangePassword }) {
 
         <hr className="cms-profile-card__divider" />
 
-        {/* Actions — matches HRIS ProfileCard */}
+        {/* Actions */}
         <div className="cms-profile-card__actions">
           <button className="cms-profile-card__btn cms-profile-card__btn--outline">
             <FaEdit /> Edit Profile
           </button>
-          <button className="cms-profile-card__btn cms-profile-card__btn--gold" onClick={onChangePassword}>
+          <button
+            className="cms-profile-card__btn cms-profile-card__btn--gold"
+            onClick={onChangePassword}
+          >
             <FaKey /> Change Password
           </button>
         </div>
