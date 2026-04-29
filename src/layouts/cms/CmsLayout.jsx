@@ -12,6 +12,9 @@ import '@styles/cms/CmsBilling.css';
 export default function CmsLayout() {
   const [showLogout, setShowLogout] = useState(false);
 
+  // Profile is cached in localStorage at login — no extra network call needed
+  const profile = authService.getProfile();
+
   const handleLogout = async () => {
     await authService.logout();
     window.location.href = '/login';
@@ -19,7 +22,7 @@ export default function CmsLayout() {
 
   return (
     <div className="cms-layout">
-      <CmsSidebar onLogoutClick={() => setShowLogout(true)} />
+      <CmsSidebar profile={profile} onLogoutClick={() => setShowLogout(true)} />
       <main className="cms-main">
         <Outlet context={{ toggleSidebar: () => {} }} />
       </main>
