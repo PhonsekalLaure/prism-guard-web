@@ -10,7 +10,7 @@ import Step2CompanyDetails from './wizard/Step2CompanyDetails';
 import Step3Contract       from './wizard/Step3Contract';
 import Step4Sites          from './wizard/Step4Sites';
 import Step5InitialDeployment from './wizard/Step5InitialDeployment';
-import Step5Review         from './wizard/Step5Review';
+import Step6Review         from './wizard/Step6Review';
 
 const STEPS = [
   { num: 1, label: 'Contact Info'    },
@@ -29,14 +29,7 @@ const INITIAL_FORM_DATA = {
   sites: [],
   initialDeployment: {
     siteIndex: '',
-    employeeIds: [],
-    employeeNames: [],
-    baseSalary: '',
-    contractStartDate: '',
-    contractEndDate: '',
-    daysOfWeek: [],
-    shiftStart: '',
-    shiftEnd: '',
+    assignments: [],
     filters: {
       tallOnly: false,
       experiencedOnly: false,
@@ -106,20 +99,29 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
   ]);
 
   useEffect(() => {
-    if (formData.initialDeployment.employeeIds.length === 0) return;
-    const validEmployees = deployableEmployees.filter((employee) => formData.initialDeployment.employeeIds.includes(employee.id));
-    if (validEmployees.length === formData.initialDeployment.employeeIds.length) return;
+    if (formData.initialDeployment.assignments.length === 0) return;
+    const validEmployeeIds = new Set(deployableEmployees.map((employee) => employee.id));
+    const nextAssignments = formData.initialDeployment.assignments
+      .filter((assignment) => validEmployeeIds.has(assignment.employeeId))
+      .map((assignment) => {
+        const matchedEmployee = deployableEmployees.find((employee) => employee.id === assignment.employeeId);
+        return matchedEmployee
+          ? { ...assignment, employeeName: matchedEmployee.name }
+          : assignment;
+      });
+    if (nextAssignments.length === formData.initialDeployment.assignments.length
+      && nextAssignments.every((assignment, index) => assignment.employeeName === formData.initialDeployment.assignments[index].employeeName)) {
+      return;
+    }
 
     setFormData((prev) => ({
       ...prev,
       initialDeployment: {
         ...prev.initialDeployment,
-        employeeIds: validEmployees.map((employee) => employee.id),
-        employeeNames: validEmployees.map((employee) => employee.name),
-        baseSalary: '',
+        assignments: nextAssignments,
       },
     }));
-  }, [deployableEmployees, formData.initialDeployment.employeeIds]);
+  }, [deployableEmployees, formData.initialDeployment.assignments]);
 
   if (!isOpen) return null;
 
@@ -138,8 +140,7 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
       nextDeployment = {
         ...prev.initialDeployment,
         siteIndex: '',
-        employeeIds: [],
-        employeeNames: [],
+        assignments: [],
       };
     } else if (selectedSiteIndex !== null && selectedSiteIndex > i) {
       nextDeployment = {
@@ -163,11 +164,7 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
       };
 
       if (field === 'siteIndex') {
-        nextDeployment.employeeIds = [];
-        nextDeployment.employeeNames = [];
-        nextDeployment.baseSalary = '';
-        nextDeployment.contractStartDate = prev.initialDeployment.contractStartDate || prev.contractStartDate || '';
-        nextDeployment.contractEndDate = prev.initialDeployment.contractEndDate || prev.contractEndDate || '';
+        nextDeployment.assignments = [];
       }
 
       return {
@@ -192,36 +189,58 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
     setFormData((prev) => ({
       ...prev,
       initialDeployment: (() => {
-        const isSelected = prev.initialDeployment.employeeIds.includes(employee.id);
-        const nextEmployeeIds = isSelected
-          ? prev.initialDeployment.employeeIds.filter((id) => id !== employee.id)
-          : [...prev.initialDeployment.employeeIds, employee.id];
-        const nextEmployeeNames = nextEmployeeIds
-          .map((id) => {
-            if (id === employee.id) return employee.name;
-            const matchedEmployee = deployableEmployees.find((item) => item.id === id);
-            return matchedEmployee?.name || prev.initialDeployment.employeeNames[prev.initialDeployment.employeeIds.indexOf(id)] || id;
-          });
+        const isSelected = prev.initialDeployment.assignments.some((assignment) => assignment.employeeId === employee.id);
+        const nextAssignments = isSelected
+          ? prev.initialDeployment.assignments.filter((assignment) => assignment.employeeId !== employee.id)
+          : [
+            ...prev.initialDeployment.assignments,
+            {
+              employeeId: employee.id,
+              employeeName: employee.name,
+              baseSalary: employee.base_salary || '',
+              contractStartDate: prev.contractStartDate || '',
+              contractEndDate: prev.contractEndDate || '',
+              daysOfWeek: [],
+              shiftStart: '',
+              shiftEnd: '',
+            },
+          ];
 
         return {
           ...prev.initialDeployment,
-          employeeIds: nextEmployeeIds,
-          employeeNames: nextEmployeeNames,
-          baseSalary: prev.initialDeployment.baseSalary || employee.base_salary || '',
-          contractStartDate: prev.initialDeployment.contractStartDate || prev.contractStartDate || '',
-          contractEndDate: prev.initialDeployment.contractEndDate || prev.contractEndDate || '',
+          assignments: nextAssignments,
         };
       })(),
     }));
   };
-  const toggleDeploymentScheduleDay = (dayValue) => {
+  const handleAssignmentField = (employeeId, field, value) => {
     setFormData((prev) => ({
       ...prev,
       initialDeployment: {
         ...prev.initialDeployment,
-        daysOfWeek: prev.initialDeployment.daysOfWeek.includes(dayValue)
-          ? prev.initialDeployment.daysOfWeek.filter((day) => day !== dayValue)
-          : [...prev.initialDeployment.daysOfWeek, dayValue].sort((a, b) => a - b),
+        assignments: prev.initialDeployment.assignments.map((assignment) => (
+          assignment.employeeId === employeeId
+            ? { ...assignment, [field]: value }
+            : assignment
+        )),
+      },
+    }));
+  };
+  const toggleAssignmentScheduleDay = (employeeId, dayValue) => {
+    setFormData((prev) => ({
+      ...prev,
+      initialDeployment: {
+        ...prev.initialDeployment,
+        assignments: prev.initialDeployment.assignments.map((assignment) => (
+          assignment.employeeId === employeeId
+            ? {
+              ...assignment,
+              daysOfWeek: assignment.daysOfWeek.includes(dayValue)
+                ? assignment.daysOfWeek.filter((day) => day !== dayValue)
+                : [...assignment.daysOfWeek, dayValue].sort((a, b) => a - b),
+            }
+            : assignment
+        )),
       },
     }));
   };
@@ -266,23 +285,25 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
         }
         return true;
       case 5:
-        if (formData.initialDeployment.employeeIds.length === 0) {
+        if (formData.initialDeployment.assignments.length === 0) {
           return true;
         }
         if (formData.initialDeployment.siteIndex === '') {
           showNotification('Please select the deployment site for the guard.', 'error'); return false;
         }
-        if (!formData.initialDeployment.baseSalary) {
-          showNotification('Please set the guard base pay.', 'error'); return false;
-        }
-        if (!formData.initialDeployment.contractStartDate || !formData.initialDeployment.contractEndDate) {
-          showNotification('Please set the assignment contract start and end dates.', 'error'); return false;
-        }
-        if (formData.initialDeployment.daysOfWeek.length === 0) {
-          showNotification('Please select at least one schedule day for the initial deployment.', 'error'); return false;
-        }
-        if (!formData.initialDeployment.shiftStart || !formData.initialDeployment.shiftEnd) {
-          showNotification('Please set both shift start and shift end for the initial deployment.', 'error'); return false;
+        for (const assignment of formData.initialDeployment.assignments) {
+          if (!assignment.baseSalary) {
+            showNotification(`Please set the base pay for ${assignment.employeeName || 'each selected guard'}.`, 'error'); return false;
+          }
+          if (!assignment.contractStartDate || !assignment.contractEndDate) {
+            showNotification(`Please set the assignment contract dates for ${assignment.employeeName || 'each selected guard'}.`, 'error'); return false;
+          }
+          if (assignment.daysOfWeek.length === 0) {
+            showNotification(`Please select at least one schedule day for ${assignment.employeeName || 'each selected guard'}.`, 'error'); return false;
+          }
+          if (!assignment.shiftStart || !assignment.shiftEnd) {
+            showNotification(`Please set both shift start and shift end for ${assignment.employeeName || 'each selected guard'}.`, 'error'); return false;
+          }
         }
         return true;
       default:
@@ -299,16 +320,19 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
     try {
       const payload = {
         ...formData,
-        initialDeployment: formData.initialDeployment.employeeIds.length > 0
+        initialDeployment: formData.initialDeployment.assignments.length > 0
           ? {
             siteIndex: Number(formData.initialDeployment.siteIndex),
-            employeeIds: formData.initialDeployment.employeeIds,
-            baseSalary: formData.initialDeployment.baseSalary,
-            contractStartDate: formData.initialDeployment.contractStartDate,
-            contractEndDate: formData.initialDeployment.contractEndDate,
-            daysOfWeek: formData.initialDeployment.daysOfWeek,
-            shiftStart: formData.initialDeployment.shiftStart,
-            shiftEnd: formData.initialDeployment.shiftEnd,
+            assignments: formData.initialDeployment.assignments.map((assignment) => ({
+              employeeId: assignment.employeeId,
+              employeeName: assignment.employeeName,
+              baseSalary: assignment.baseSalary,
+              contractStartDate: assignment.contractStartDate,
+              contractEndDate: assignment.contractEndDate,
+              daysOfWeek: assignment.daysOfWeek,
+              shiftStart: assignment.shiftStart,
+              shiftEnd: assignment.shiftEnd,
+            })),
           }
           : null,
       };
@@ -407,10 +431,11 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
                 onDeploymentField={handleDeploymentField}
                 onFilterChange={handleDeploymentFilterChange}
                 onSelectEmployee={handleDeploymentEmployeeSelect}
-                toggleScheduleDay={toggleDeploymentScheduleDay}
+                onAssignmentField={handleAssignmentField}
+                onAssignmentScheduleDay={toggleAssignmentScheduleDay}
               />
             )}
-            {currentStep === 6 && <Step5Review data={formData} />}
+            {currentStep === 6 && <Step6Review data={formData} />}
 
             {/* Navigation */}
             <div className="ae-nav-buttons">
