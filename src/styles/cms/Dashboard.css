@@ -200,8 +200,16 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.cms-sidebar-avatar--img {
+  background: transparent;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.25);
 }
 
 .cms-sidebar-user-info {
