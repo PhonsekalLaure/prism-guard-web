@@ -96,6 +96,11 @@ async function transferEmployeeAssignment(id, payload) {
   return data;
 }
 
+async function relieveEmployeeAssignment(id, payload = {}) {
+  const { data } = await api.post(`/${id}/relieve`, payload);
+  return data;
+}
+
 export default {
   getAllEmployees,
   getEmployeeDetails,
@@ -105,5 +110,6 @@ export default {
   updateEmployee,
   deployEmployee,
   transferEmployeeAssignment,
+  relieveEmployeeAssignment,
   getNextEmployeeId
 };

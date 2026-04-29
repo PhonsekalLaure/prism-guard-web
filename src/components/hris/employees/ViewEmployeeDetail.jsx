@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   FaTimes, FaUser, FaBriefcase, FaShieldAlt, FaMoneyCheckAlt,
-  FaFileContract, FaUserTimes, FaMapMarkerAlt,
+  FaFileContract, FaUserTimes, FaMapMarkerAlt, FaUserMinus,
 } from 'react-icons/fa';
 import { FaSpinner } from 'react-icons/fa';
 import employeeService from '@services/employeeService';
@@ -18,6 +18,7 @@ import PayrollTab     from './tabs/PayrollTab';
 // Dialogs
 import TerminateEmployeeDialog from './TerminateEmployeeDialog';
 import DeployEmployeeDialog    from './DeployEmployeeDialog';
+import RelieveEmployeeDialog   from './RelieveEmployeeDialog';
 
 const TABS = [
   { key: 'personal',   label: 'Personal Info', icon: FaUser },
@@ -64,6 +65,7 @@ export default function ViewEmployeeDetail({
   const [pendingFiles,     setPendingFiles]     = useState({});
   const [isSaving,         setIsSaving]         = useState(false);
   const [showTerminateConfirm, setShowTerminateConfirm] = useState(false);
+  const [showRelieveConfirm, setShowRelieveConfirm] = useState(false);
   const [showDeployModal,  setShowDeployModal]  = useState(false);
   const [sitesList,        setSitesList]        = useState([]);
   const [deployForm,       setDeployForm]       = useState({
@@ -132,6 +134,23 @@ export default function ViewEmployeeDetail({
     } catch (err) {
       console.error(err);
       showNotification(err.response?.data?.error || 'Failed to terminate employee.', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleRelieve = async () => {
+    try {
+      setIsSaving(true);
+      await employeeService.relieveEmployeeAssignment(previewEmployee.id);
+      const refreshed = await employeeService.getEmployeeDetails(previewEmployee.id);
+      setEmployeeDetails(refreshed);
+      setShowRelieveConfirm(false);
+      onUpdated?.();
+      showNotification('Employee relieved from current assignment.', 'success');
+    } catch (err) {
+      console.error(err);
+      showNotification(err.response?.data?.error || 'Failed to relieve employee from current assignment.', 'error');
     } finally {
       setIsSaving(false);
     }
@@ -303,6 +322,11 @@ export default function ViewEmployeeDetail({
             <button className="ve-btn ve-btn-green" onClick={openDeployModal} disabled={data.status === 'terminated'}>
               <FaMapMarkerAlt /> {hasActiveDeployment ? 'Transfer Assignment' : 'Assign Client'}
             </button>
+            {hasActiveDeployment && (
+              <button className="ve-btn ve-btn-blue" onClick={() => setShowRelieveConfirm(true)} disabled={data.status === 'terminated'}>
+                <FaUserMinus /> Relieve From Post
+              </button>
+            )}
             <button className="ve-btn ve-btn-red" onClick={() => setShowTerminateConfirm(true)} disabled={data.status === 'terminated'}>
               <FaUserTimes /> {data.status === 'terminated' ? 'Terminated' : 'Terminate Employee'}
             </button>
@@ -316,6 +340,14 @@ export default function ViewEmployeeDetail({
         isSaving={isSaving}
         onCancel={() => setShowTerminateConfirm(false)}
         onConfirm={handleTerminate}
+      />
+
+      <RelieveEmployeeDialog
+        isOpen={showRelieveConfirm}
+        employeeName={data.full_name || data.name}
+        isSaving={isSaving}
+        onCancel={() => setShowRelieveConfirm(false)}
+        onConfirm={handleRelieve}
       />
 
       <DeployEmployeeDialog
