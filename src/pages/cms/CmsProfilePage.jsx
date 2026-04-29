@@ -1,14 +1,65 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CmsProfileTopbar from '@cms-components/profile/CmsProfileTopbar';
 import CompanyCard from '@cms-components/profile/CompanyCard';
 import CompanyInformation from '@cms-components/profile/CompanyInformation';
 import ContactPerson from '@cms-components/profile/ContactPerson';
 import ContractSummary from '@cms-components/profile/ContractSummary';
 import ChangePasswordModal from '@cms-components/profile/ChangePasswordModal';
+import profileService from '@services/profileService';
 import '@styles/cms/CmsProfile.css';
 
 export default function CmsProfilePage() {
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchProfile() {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await profileService.getProfile();
+        if (!cancelled) setProfile(data);
+      } catch (err) {
+        if (!cancelled) setError(err?.response?.data?.error || 'Failed to load profile.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    fetchProfile();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Called by ContactPerson after a successful save to keep local state in sync
+  function handleProfileUpdate(updates) {
+    setProfile((prev) => ({ ...prev, ...updates }));
+  }
+
+  if (loading) {
+    return (
+      <>
+        <CmsProfileTopbar />
+        <div className="cms-content">
+          <div className="cms-profile-loading">Loading profile…</div>
+        </div>
+      </>
+    );
+  }
+
+  if (error) {
+    return (
+      <>
+        <CmsProfileTopbar />
+        <div className="cms-content">
+          <div className="cms-profile-error">{error}</div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -18,14 +69,17 @@ export default function CmsProfilePage() {
         <div className="cms-profile-layout">
           {/* Left Column */}
           <div className="cms-profile-left-col">
-            <CompanyCard onChangePassword={() => setIsChangePasswordOpen(true)} />
+            <CompanyCard
+              profile={profile}
+              onChangePassword={() => setIsChangePasswordOpen(true)}
+            />
           </div>
 
           {/* Right Column */}
           <div className="cms-profile-right-col">
-            <CompanyInformation />
-            <ContactPerson />
-            <ContractSummary />
+            <CompanyInformation profile={profile} />
+            <ContactPerson profile={profile} onProfileUpdate={handleProfileUpdate} />
+            <ContractSummary profile={profile} />
           </div>
         </div>
       </div>
