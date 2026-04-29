@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
-  FaTimes, FaBuilding, FaMapMarkerAlt, FaFileInvoiceDollar, FaTicketAlt, FaFileContract
+  FaTimes, FaBuilding, FaMapMarkerAlt, FaFileInvoiceDollar, FaTicketAlt,
+  FaFileContract, FaUserPlus,
 } from 'react-icons/fa';
 import clientService from '@services/clientService';
 import employeeService from '@services/employeeService';
@@ -14,11 +15,27 @@ import TicketsTab from './tabs/TicketsTab';
 import GuardDeploymentSelector from './GuardDeploymentSelector';
 
 const TABS = [
-  { key: 'general', label: 'General Info', icon: FaBuilding },
-  { key: 'sites', label: 'Sites', icon: FaMapMarkerAlt },
-  { key: 'billings', label: 'Billings', icon: FaFileInvoiceDollar },
-  { key: 'tickets', label: 'Service Tickets', icon: FaTicketAlt },
+  { key: 'general',  label: 'General Info',     icon: FaBuilding },
+  { key: 'sites',    label: 'Sites',             icon: FaMapMarkerAlt },
+  { key: 'billings', label: 'Billings',          icon: FaFileInvoiceDollar },
+  { key: 'tickets',  label: 'Service Tickets',   icon: FaTicketAlt },
 ];
+
+/* Build an edit-form snapshot from the current client data */
+const buildEditForm = (client) => ({
+  firstName:        client.first_name        || '',
+  lastName:         client.last_name         || '',
+  middleName:       client.middle_name       || '',
+  suffix:           client.suffix            || '',
+  mobile:           (client.phone_number     || '').replace(/^\+63/, ''),
+  email:            client.contact_email     || '',
+  company:          client.company           || '',
+  billingAddress:   client.billing_address   || '',
+  ratePerGuard:     client.rate_per_guard    || '',
+  billingType:      client.billing_type      || 'semi_monthly',
+  contractStartDate: client.contract_start_date || '',
+  contractEndDate:   client.contract_end_date   || '',
+});
 
 export default function ViewClientDetail({
   isOpen, client: previewClient, onClose, onUpdated, pageMode = false,
@@ -27,6 +44,13 @@ export default function ViewClientDetail({
   const [clientDetails, setClientDetails] = useState(null);
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState(false);
+
+  /* Edit state */
+  const [isEditing, setIsEditing]   = useState(false);
+  const [editForm,  setEditForm]    = useState({});
+  const [isSaving,  setIsSaving]    = useState(false);
+
+  /* Deploy modal state */
   const [showDeployModal, setShowDeployModal] = useState(false);
   const [deployableEmployees, setDeployableEmployees] = useState([]);
   const [loadingDeployable, setLoadingDeployable] = useState(false);
@@ -65,6 +89,7 @@ export default function ViewClientDetail({
       setClientDetails(null);
       setFetchError(false);
       setActiveTab('general');
+      setIsEditing(false);
       setShowDeployModal(false);
       setDeployableEmployees([]);
       setSelectedEmployee(null);
@@ -80,13 +105,12 @@ export default function ViewClientDetail({
       });
     }
   }, [isOpen, previewClient]);
+
   const data = clientDetails || previewClient || null;
   const activeSites = (data?.sites || []).filter((site) => site.is_active);
 
   useEffect(() => {
-    if (!showDeployModal || !deployForm.siteId) {
-      return;
-    }
+    if (!showDeployModal || !deployForm.siteId) return;
 
     const selectedSite = (data?.sites || [])
       .filter((site) => site.is_active)
@@ -107,38 +131,52 @@ export default function ViewClientDetail({
           tallOnly: deployFilters.tallOnly,
           experiencedOnly: deployFilters.experiencedOnly,
         });
-        if (!cancelled) {
-          setDeployableEmployees(employees);
-        }
+        if (!cancelled) setDeployableEmployees(employees);
       } catch (err) {
         if (!cancelled) {
           setDeployableEmployees([]);
           showNotification(err.response?.data?.error || 'Failed to load available guards.', 'error');
         }
       } finally {
-        if (!cancelled) {
-          setLoadingDeployable(false);
-        }
+        if (!cancelled) setLoadingDeployable(false);
       }
     };
 
     loadDeployableEmployees();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [showDeployModal, deployForm.siteId, deployFilters.tallOnly, deployFilters.experiencedOnly, data?.sites, showNotification]);
 
   useEffect(() => {
     if (!selectedEmployee?.id) return;
-    if (deployableEmployees.some((employee) => employee.id === selectedEmployee.id)) return;
-
+    if (deployableEmployees.some((e) => e.id === selectedEmployee.id)) return;
     setSelectedEmployee(null);
     setDeployForm((cur) => ({ ...cur, baseSalary: '' }));
   }, [deployableEmployees, selectedEmployee]);
 
   if (!isOpen || !previewClient) return null;
 
+  /* ── Edit handlers ── */
+  const handleEdit   = () => { setEditForm(buildEditForm(data)); setIsEditing(true); };
+  const handleCancel = () => { setIsEditing(false); };
+  const handleField  = (key, value) => setEditForm((f) => ({ ...f, [key]: value }));
+
+  /* Frontend-only save (no API call per spec) */
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      // TODO: wire up clientService.updateClient when backend is ready
+      await new Promise((r) => setTimeout(r, 600)); // simulate save
+      setIsEditing(false);
+      showNotification('Client details updated successfully.', 'success');
+      onUpdated?.();
+    } catch (err) {
+      showNotification('Failed to save changes.', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  /* ── Deploy handlers ── */
   const openDeployModal = (siteId = '') => {
     setShowDeployModal(true);
     setSelectedEmployee(null);
@@ -158,24 +196,21 @@ export default function ViewClientDetail({
     setDeployForm((cur) => ({
       ...cur,
       daysOfWeek: cur.daysOfWeek.includes(dayValue)
-        ? cur.daysOfWeek.filter((day) => day !== dayValue)
+        ? cur.daysOfWeek.filter((d) => d !== dayValue)
         : [...cur.daysOfWeek, dayValue].sort((a, b) => a - b),
     }));
   };
 
   const handleEmployeeSelect = (employee) => {
     setSelectedEmployee(employee);
-    setDeployForm((cur) => ({
-      ...cur,
-      baseSalary: cur.baseSalary || employee.base_salary || '',
-    }));
+    setDeployForm((cur) => ({ ...cur, baseSalary: cur.baseSalary || employee.base_salary || '' }));
   };
 
   const handleDeployGuard = async () => {
-    if (!deployForm.siteId) { showNotification('Please select an active site.', 'error'); return; }
-    if (!selectedEmployee?.id) { showNotification('Please select a guard.', 'error'); return; }
-    if (!deployForm.baseSalary) { showNotification('Please set the guard base pay.', 'error'); return; }
-    if (deployForm.daysOfWeek.length === 0) { showNotification('Please select at least one schedule day.', 'error'); return; }
+    if (!deployForm.siteId)                    { showNotification('Please select an active site.', 'error'); return; }
+    if (!selectedEmployee?.id)                 { showNotification('Please select a guard.', 'error'); return; }
+    if (!deployForm.baseSalary)                { showNotification('Please set the guard base pay.', 'error'); return; }
+    if (deployForm.daysOfWeek.length === 0)    { showNotification('Please select at least one schedule day.', 'error'); return; }
     if (!deployForm.shiftStart || !deployForm.shiftEnd) { showNotification('Please set both shift start and end time.', 'error'); return; }
 
     setIsDeploying(true);
@@ -184,10 +219,10 @@ export default function ViewClientDetail({
       payload.append('siteId', deployForm.siteId);
       payload.append('baseSalary', deployForm.baseSalary);
       if (deployForm.contractStartDate) payload.append('contractStartDate', deployForm.contractStartDate);
-      if (deployForm.contractEndDate) payload.append('contractEndDate', deployForm.contractEndDate);
+      if (deployForm.contractEndDate)   payload.append('contractEndDate',   deployForm.contractEndDate);
       deployForm.daysOfWeek.forEach((day) => payload.append('daysOfWeek', String(day)));
       payload.append('shiftStart', deployForm.shiftStart);
-      payload.append('shiftEnd', deployForm.shiftEnd);
+      payload.append('shiftEnd',   deployForm.shiftEnd);
       await employeeService.deployEmployee(selectedEmployee.id, payload);
       await loadClientDetails(previewClient.id);
       onUpdated?.();
@@ -200,7 +235,7 @@ export default function ViewClientDetail({
     }
   };
 
-  const outerClass = pageMode ? 'ep-page-wrapper' : 'vc-modal-overlay';
+  const outerClass   = pageMode ? 'ep-page-wrapper'    : 'vc-modal-overlay';
   const contentClass = pageMode ? 'ep-detail-container' : 'vc-modal-content';
 
   return (
@@ -215,34 +250,18 @@ export default function ViewClientDetail({
       )}
 
       <div className={contentClass} onClick={pageMode ? undefined : (e) => e.stopPropagation()}>
+        {/* ── Header (title only, no action buttons) ── */}
         <div className="vc-modal-header">
           <div>
             <h2>Client Details</h2>
             <p>{data.company || 'Client'}</p>
-          </div>
-          <div className="flex items-center gap-3 mr-8">
-            <button
-              type="button"
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 text-slate-700 font-semibold hover:bg-slate-200 transition-colors"
-              onClick={() => { const url = data.contract_url; if (url) window.open(url, '_blank'); else showNotification('No contract document found.', 'error'); }}
-            >
-              <FaFileContract /> View Contract
-            </button>
-            {activeSites.length > 0 && (
-              <button
-                type="button"
-                className="px-4 py-2 rounded-lg bg-brand-blue text-white font-semibold hover:bg-blue-700 transition-colors"
-                onClick={() => openDeployModal()}
-              >
-                Deploy Guard
-              </button>
-            )}
           </div>
           {!pageMode && (
             <button className="vc-close-btn" onClick={onClose}><FaTimes /></button>
           )}
         </div>
 
+        {/* ── Tab bar ── */}
         <div className="vc-tabs-bar">
           {TABS.map((tab) => (
             <button
@@ -255,6 +274,7 @@ export default function ViewClientDetail({
           ))}
         </div>
 
+        {/* ── Body ── */}
         <div className="vc-modal-body relative min-h-[400px]">
           {loading && (
             <div className="absolute inset-0 z-10 flex justify-center items-center bg-white/70">
@@ -272,15 +292,43 @@ export default function ViewClientDetail({
                   Could not load full client details. Showing limited information.
                 </div>
               )}
-              {activeTab === 'general' && <GeneralTab client={data} />}
-              {activeTab === 'sites' && <SitesTab client={data} onDeployGuard={openDeployModal} />}
-              {activeTab === 'billings' && <BillingsTab client={data} />}
-              {activeTab === 'tickets' && <TicketsTab client={data} />}
+              {activeTab === 'general' && (
+                <GeneralTab
+                  client={data}
+                  canEdit={!fetchError && !!clientDetails}
+                  isEditing={isEditing}
+                  editForm={editForm}
+                  onEdit={handleEdit}
+                  onSave={handleSave}
+                  onCancel={handleCancel}
+                  onField={handleField}
+                  isSaving={isSaving}
+                />
+              )}
+              {activeTab === 'sites'    && <SitesTab    client={data} onDeployGuard={openDeployModal} />}
+              {activeTab === 'billings' && <BillingsTab  client={data} />}
+              {activeTab === 'tickets'  && <TicketsTab   client={data} />}
             </>
           )}
+
+          {/* ── Action Buttons (mirrors Employee pattern) ── */}
+          <div className="ve-action-buttons mt-6">
+            <button
+              className="ve-btn ve-btn-gold"
+              onClick={() => { const url = data.contract_url; if (url) window.open(url, '_blank'); else showNotification('No contract document found.', 'error'); }}
+            >
+              <FaFileContract /> View Contract
+            </button>
+            {activeSites.length > 0 && (
+              <button className="ve-btn ve-btn-green" onClick={() => openDeployModal()}>
+                <FaUserPlus /> Deploy Guard
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
+      {/* ── Deploy Guard modal ── */}
       {showDeployModal && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 p-4" onClick={() => setShowDeployModal(false)}>
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
