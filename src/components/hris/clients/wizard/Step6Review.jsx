@@ -29,9 +29,10 @@ function ReviewField({ label, value, highlight }) {
   );
 }
 
-export default function Step5Review({ data }) {
+export default function Step6Review({ data }) {
   const sitesCount = data.sites.length;
-  const hasInitialDeployment = (data.initialDeployment?.employeeIds?.length || 0) > 0;
+  const assignments = data.initialDeployment?.assignments || [];
+  const hasInitialDeployment = assignments.length > 0;
 
   return (
     <div className="ae-step-content">
@@ -65,6 +66,7 @@ export default function Step5Review({ data }) {
         <ReviewSection title="Contract Terms" icon="T">
           <ReviewField label="Contract Start" value={data.contractStartDate} />
           <ReviewField label="Contract End"   value={data.contractEndDate} />
+          <ReviewField label="Contract Document" value={data.contractUrl?.name || 'No document uploaded'} />
           <ReviewField
             label="Rate per Guard"
             value={data.ratePerGuard ? `PHP ${Number(data.ratePerGuard).toLocaleString()}` : ''}
@@ -87,8 +89,8 @@ export default function Step5Review({ data }) {
 
         <ReviewSection title="Initial Deployment" icon="D">
           <ReviewField
-            label="Assigned Guards"
-            value={hasInitialDeployment ? data.initialDeployment.employeeNames.join(', ') : 'No initial guard assigned'}
+            label="Selected Guards"
+            value={hasInitialDeployment ? `${assignments.length} selected` : 'No initial guard assigned'}
           />
           {hasInitialDeployment && (
             <>
@@ -96,13 +98,21 @@ export default function Step5Review({ data }) {
                 label="Site"
                 value={data.sites[Number(data.initialDeployment.siteIndex)]?.siteName || data.sites[Number(data.initialDeployment.siteIndex)]?.siteAddress || ''}
               />
-              <ReviewField label="Base Pay" value={data.initialDeployment.baseSalary ? `PHP ${Number(data.initialDeployment.baseSalary).toLocaleString()}` : ''} />
-              <ReviewField label="Contract Start" value={data.initialDeployment.contractStartDate} />
-              <ReviewField label="Contract End" value={data.initialDeployment.contractEndDate} />
-              <ReviewField
-                label="Schedule"
-                value={data.initialDeployment.daysOfWeek.length > 0 ? `${data.initialDeployment.daysOfWeek.map((day) => DAY_LABELS[day] || day).join(', ')} | ${data.initialDeployment.shiftStart} - ${data.initialDeployment.shiftEnd}` : ''}
-              />
+              {assignments.map((assignment, index) => (
+                <div key={assignment.employeeId} className="ae-review-field" style={{ display: 'block' }}>
+                  <span className="ae-review-field-label">{`Guard ${index + 1}`}</span>
+                  <div className="mt-1 text-sm text-slate-700 space-y-1">
+                    <div>{assignment.employeeName || assignment.employeeId}</div>
+                    <div>{assignment.baseSalary ? `Base Pay: PHP ${Number(assignment.baseSalary).toLocaleString()}` : 'Base Pay: -'}</div>
+                    <div>{`Contract: ${assignment.contractStartDate || '-'} to ${assignment.contractEndDate || '-'}`}</div>
+                    <div>
+                      {assignment.daysOfWeek.length > 0
+                        ? `Schedule: ${assignment.daysOfWeek.map((day) => DAY_LABELS[day] || day).join(', ')} | ${assignment.shiftStart} - ${assignment.shiftEnd}`
+                        : 'Schedule: -'}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </>
           )}
         </ReviewSection>

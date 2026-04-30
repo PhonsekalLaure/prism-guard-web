@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import {
   FaTimes, FaUser, FaBriefcase, FaShieldAlt, FaMoneyCheckAlt,
-  FaFileContract, FaUserTimes, FaMapMarkerAlt,
+  FaFileContract, FaUserTimes, FaMapMarkerAlt, FaUserMinus,
 } from 'react-icons/fa';
 import { FaSpinner } from 'react-icons/fa';
 import employeeService from '@services/employeeService';
 import clientService from '@services/clientService';
+import authService from '@services/authService';
 import Notification from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
+import { hasPermission } from '@utils/adminPermissions';
 
 // Tab fragments
 import PersonalTab    from './tabs/PersonalTab';
@@ -18,6 +20,7 @@ import PayrollTab     from './tabs/PayrollTab';
 // Dialogs
 import TerminateEmployeeDialog from './TerminateEmployeeDialog';
 import DeployEmployeeDialog    from './DeployEmployeeDialog';
+import RelieveEmployeeDialog   from './RelieveEmployeeDialog';
 
 const TABS = [
   { key: 'personal',   label: 'Personal Info', icon: FaUser },
@@ -54,6 +57,8 @@ const buildForm = (emp) => ({
 export default function ViewEmployeeDetail({
   isOpen, employee: previewEmployee, onClose, onUpdated, pageMode = false,
 }) {
+  const profile = authService.getProfile() || {};
+  const canWriteEmployees = hasPermission(profile, 'employees.write');
   const [activeTab,        setActiveTab]        = useState('personal');
   const [employeeDetails,  setEmployeeDetails]  = useState(null);
   const [loading,          setLoading]          = useState(false);
@@ -64,6 +69,7 @@ export default function ViewEmployeeDetail({
   const [pendingFiles,     setPendingFiles]     = useState({});
   const [isSaving,         setIsSaving]         = useState(false);
   const [showTerminateConfirm, setShowTerminateConfirm] = useState(false);
+  const [showRelieveConfirm, setShowRelieveConfirm] = useState(false);
   const [showDeployModal,  setShowDeployModal]  = useState(false);
   const [sitesList,        setSitesList]        = useState([]);
   const [deployForm,       setDeployForm]       = useState({
@@ -132,6 +138,23 @@ export default function ViewEmployeeDetail({
     } catch (err) {
       console.error(err);
       showNotification(err.response?.data?.error || 'Failed to terminate employee.', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleRelieve = async () => {
+    try {
+      setIsSaving(true);
+      await employeeService.relieveEmployeeAssignment(previewEmployee.id);
+      const refreshed = await employeeService.getEmployeeDetails(previewEmployee.id);
+      setEmployeeDetails(refreshed);
+      setShowRelieveConfirm(false);
+      onUpdated?.();
+      showNotification('Employee relieved from current assignment.', 'success');
+    } catch (err) {
+      console.error(err);
+      showNotification(err.response?.data?.error || 'Failed to relieve employee from current assignment.', 'error');
     } finally {
       setIsSaving(false);
     }
@@ -235,13 +258,26 @@ export default function ViewEmployeeDetail({
         </div>
 
         {/* Body */}
-        <div className="ve-modal-body relative min-h-[400px]">
+        <div className="ve-modal-body">
           {loading && (
-            <div className="absolute inset-0 z-10 flex justify-center items-center bg-white/70">
-              <svg className="animate-spin h-10 w-10 text-brand-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
+            <div className="detail-skeleton">
+              <div className="dsk-profile-card">
+                <div className="dsk-avatar" />
+                <div className="dsk-profile-lines">
+                  <div className="dsk-line xl" />
+                  <div className="dsk-line md" />
+                  <div className="dsk-line sm" />
+                </div>
+              </div>
+              <div className="dsk-grid cols-2">
+                {[1,2,3,4,5,6].map(i => <div key={i} className="dsk-info-cell"><div className="dsk-line sm" /><div className="dsk-line lg" /></div>)}
+              </div>
+              <div className="dsk-grid cols-2" style={{ marginTop: '1rem' }}>
+                {[1,2,3,4].map(i => <div key={i} className="dsk-info-cell"><div className="dsk-line sm" /><div className="dsk-line lg" /></div>)}
+              </div>
+              <div className="dsk-actions">
+                {[1,2,3].map(i => <div key={i} className="dsk-btn" />)}
+              </div>
             </div>
           )}
 
@@ -256,7 +292,7 @@ export default function ViewEmployeeDetail({
               {activeTab === 'personal'   && (
                 <PersonalTab
                   employee={data}
-                  canEdit={!fetchError && !!employeeDetails}
+                  canEdit={canWriteEmployees && !fetchError && !!employeeDetails}
                   isEditing={isEditing}
                   editForm={editForm}
                   pendingFiles={pendingFiles}
@@ -300,10 +336,15 @@ export default function ViewEmployeeDetail({
             >
               <FaFileContract /> View Contract
             </button>
-            <button className="ve-btn ve-btn-green" onClick={openDeployModal} disabled={data.status === 'terminated'}>
+            <button className="ve-btn ve-btn-green" onClick={openDeployModal} disabled={!canWriteEmployees || data.status === 'terminated'}>
               <FaMapMarkerAlt /> {hasActiveDeployment ? 'Transfer Assignment' : 'Assign Client'}
             </button>
-            <button className="ve-btn ve-btn-red" onClick={() => setShowTerminateConfirm(true)} disabled={data.status === 'terminated'}>
+            {hasActiveDeployment && (
+              <button className="ve-btn ve-btn-blue" onClick={() => setShowRelieveConfirm(true)} disabled={!canWriteEmployees || data.status === 'terminated'}>
+                <FaUserMinus /> Relieve From Post
+              </button>
+            )}
+            <button className="ve-btn ve-btn-red" onClick={() => setShowTerminateConfirm(true)} disabled={!canWriteEmployees || data.status === 'terminated'}>
               <FaUserTimes /> {data.status === 'terminated' ? 'Terminated' : 'Terminate Employee'}
             </button>
           </div>
@@ -316,6 +357,14 @@ export default function ViewEmployeeDetail({
         isSaving={isSaving}
         onCancel={() => setShowTerminateConfirm(false)}
         onConfirm={handleTerminate}
+      />
+
+      <RelieveEmployeeDialog
+        isOpen={showRelieveConfirm}
+        employeeName={data.full_name || data.name}
+        isSaving={isSaving}
+        onCancel={() => setShowRelieveConfirm(false)}
+        onConfirm={handleRelieve}
       />
 
       <DeployEmployeeDialog

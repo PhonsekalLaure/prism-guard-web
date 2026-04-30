@@ -46,15 +46,15 @@ function App() {
           </ProtectedRoute>
         }>
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/clients" element={<ClientsPage />} />
-          <Route path="/clients/new" element={<AddClientPage />} />
-          <Route path="/clients/:id" element={<ClientDetailPage />} />
+          <Route path="/clients" element={<ProtectedRoute requiredPermissions={['clients.read']}><ClientsPage /></ProtectedRoute>} />
+          <Route path="/clients/new" element={<ProtectedRoute requiredPermissions={['clients.write']}><AddClientPage /></ProtectedRoute>} />
+          <Route path="/clients/:id" element={<ProtectedRoute requiredPermissions={['clients.read']}><ClientDetailPage /></ProtectedRoute>} />
           <Route path="/billing" element={<BillingPage />} />
-          <Route path="/employees" element={<EmployeesPage />} />
-          <Route path="/employees/new" element={<AddEmployeePage />} />
-          <Route path="/employees/:id" element={<EmployeeDetailPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/admin-management" element={<AdminManagementPage />} />
+          <Route path="/employees" element={<ProtectedRoute requiredPermissions={['employees.read']}><EmployeesPage /></ProtectedRoute>} />
+          <Route path="/employees/new" element={<ProtectedRoute requiredPermissions={['employees.write']}><AddEmployeePage /></ProtectedRoute>} />
+          <Route path="/employees/:id" element={<ProtectedRoute requiredPermissions={['employees.read']}><EmployeeDetailPage /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute requiredPermissions={['profile.self.read']}><ProfilePage /></ProtectedRoute>} />
+          <Route path="/admin-management" element={<ProtectedRoute requiredPermissions={['admins.manage']}><AdminManagementPage /></ProtectedRoute>} />
           <Route path="/applicants" element={<ApplicantsPage />} />
           <Route path="/service-request" element={<HrisServiceRequestsPage />} />
           <Route path="/service-reviews" element={<HrisServiceReviewsPage />} />

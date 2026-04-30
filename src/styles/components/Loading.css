@@ -1,0 +1,273 @@
+/* =======================================================
+   HRIS LOADING & SKELETON SCREENS
+   ======================================================= */
+
+/* ── Utility ────────────────────────────────────────────── */
+@keyframes dlg-spin {
+  to { transform: rotate(360deg); }
+}
+.animate-spin {
+  animation: dlg-spin 0.7s linear infinite;
+}
+
+/* ========================================================
+   DETAIL VIEW SKELETON (dsk-*)
+   Shared by ViewAdminModal, ViewEmployeeDetail, ViewClientDetail, Profile
+   ======================================================== */
+
+@keyframes dsk-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+/* Wrapper */
+.detail-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0.25rem 0;
+  animation: dsk-fadein 0.2s ease;
+}
+@keyframes dsk-fadein {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Shimmer base — applied to any shimmer element */
+.dsk-avatar,
+.dsk-line,
+.dsk-info-cell,
+.dsk-info-card,
+.dsk-icon-wrap,
+.dsk-role-banner,
+.dsk-chip,
+.dsk-btn {
+  background: linear-gradient(90deg, #f0f2f5 25%, #e4e7eb 50%, #f0f2f5 75%);
+  background-size: 200% 100%;
+  animation: dsk-shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+/* ── Profile card row (employee / client) ── */
+.dsk-profile-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: linear-gradient(135deg, #f0f4ff, #e8f0fe);
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+}
+
+.dsk-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dsk-profile-lines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+/* ── Generic lines ── */
+.dsk-line {
+  height: 12px;
+  border-radius: 6px;
+}
+.dsk-line.xl  { width: 55%; height: 18px; }
+.dsk-line.lg  { width: 75%; }
+.dsk-line.md  { width: 50%; }
+.dsk-line.sm  { width: 35%; height: 10px; }
+
+/* ── Info grid ── */
+.dsk-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+.dsk-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+.dsk-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+/* Info cell — mimics ve-info-cell / va-info-card */
+.dsk-info-cell {
+  background: #f8f9fc;
+  border: 1px solid #eff0f5;
+  border-radius: 10px;
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+/* Info card with icon — mimics va-info-card */
+.dsk-info-card {
+  background: #f8f9fc;
+  border: 1px solid #eff0f5;
+  border-radius: 10px;
+  padding: 0.85rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+.dsk-icon-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+/* ── Role banner — mimics va-role-banner ── */
+.dsk-role-banner {
+  height: 64px;
+  border-radius: 10px;
+  border: 1.5px solid #e5e7eb;
+}
+
+/* ── Permission chips — mimics va-permission-chip ── */
+.dsk-chip {
+  height: 36px;
+  border-radius: 8px;
+}
+
+/* ── Action buttons row ── */
+.dsk-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #e2e8f0;
+}
+.dsk-btn {
+  flex: 1;
+  height: 40px;
+  border-radius: 8px;
+}
+
+
+/* ========================================================
+   ADMIN CARD GRID SKELETON
+   ======================================================== */
+.admin-card-skeleton { pointer-events: none; }
+.skeleton-header { height: 48px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: dsk-shimmer 1.4s infinite; }
+.skeleton-avatar { width: 48px; height: 48px; border-radius: 50%; background: #e5e7eb; animation: dsk-shimmer 1.4s infinite; flex-shrink: 0; }
+.skeleton-lines { flex: 1; display: flex; flex-direction: column; gap: 0.4rem; }
+.skeleton-line { height: 12px; border-radius: 6px; background: #e5e7eb; animation: dsk-shimmer 1.4s infinite; }
+
+
+/* ========================================================
+   EMPLOYEE CARD GRID SKELETON
+   ======================================================== */
+.employee-card-skeleton {
+  pointer-events: none;
+}
+
+@keyframes emp-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+.employee-card-skeleton .skeleton-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: emp-shimmer 1.4s infinite;
+  flex-shrink: 0;
+}
+
+.employee-card-skeleton .skeleton-lines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.employee-card-skeleton .skeleton-line {
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: emp-shimmer 1.4s infinite;
+}
+.employee-card-skeleton .skeleton-line.long  { width: 70%; }
+.employee-card-skeleton .skeleton-line.short { width: 45%; }
+
+.employee-card-skeleton .skeleton-badge {
+  width: 56px;
+  height: 20px;
+  border-radius: 20px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: emp-shimmer 1.4s infinite;
+  flex-shrink: 0;
+}
+
+.employee-card-skeleton .skeleton-block {
+  height: 14px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: emp-shimmer 1.4s infinite;
+  margin-top: 0.55rem;
+}
+.employee-card-skeleton .skeleton-block.short { width: 60%; }
+
+
+/* ========================================================
+   CLIENT CARD GRID SKELETON
+   ======================================================== */
+.client-card-skeleton {
+  pointer-events: none;
+}
+
+@keyframes cli-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+/* Dark header skeleton mirrors the blue gradient header */
+.client-skeleton-header {
+  min-height: 90px;
+  background: linear-gradient(90deg, #0a3a7a 25%, #0e4a96 50%, #0a3a7a 75%) !important;
+  background-size: 200% 100% !important;
+  animation: cli-shimmer 1.4s infinite;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.client-card-skeleton .skeleton-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.25);
+  flex-shrink: 0;
+}
+
+.client-card-skeleton .skeleton-lines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.client-card-skeleton .skeleton-line {
+  height: 11px;
+  border-radius: 6px;
+}
+.client-card-skeleton .skeleton-line.long  { width: 70%; }
+.client-card-skeleton .skeleton-line.short { width: 45%; }
+
+.client-card-skeleton .skeleton-block {
+  height: 13px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: cli-shimmer 1.4s infinite;
+  margin-top: 0.5rem;
+}
+.client-card-skeleton .skeleton-block.short { width: 60%; }

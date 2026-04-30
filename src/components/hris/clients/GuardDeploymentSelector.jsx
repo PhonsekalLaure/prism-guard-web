@@ -96,7 +96,7 @@ export default function GuardDeploymentSelector({
             <p className="font-semibold text-slate-900">Closest guards appear first.</p>
             <p className="text-sm text-slate-600">
               {isMultiSelect
-                ? 'Select one or more guards to configure a shared initial assignment.'
+                ? 'Select one or more guards, then configure each selected guard below.'
                 : 'Select one guard to configure the initial assignment.'}
             </p>
           </div>
@@ -142,95 +142,99 @@ export default function GuardDeploymentSelector({
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-4">
-        <div>
-          <SectionLabel icon={FaMoneyCheckAlt}>Base Pay</SectionLabel>
-          <label className="dep-field-label">{isMultiSelect ? 'Base Pay For Selected Guards' : 'Base Pay'} <span className="req">*</span></label>
-          <input
-            type="number"
-            min="0"
-            className="dep-input"
-            value={deploymentForm.baseSalary}
-            onChange={(e) => onFieldChange('baseSalary', e.target.value)}
-            placeholder="0.00"
-          />
-        </div>
-        <div>
-          <SectionLabel icon={FaClock}>Contract Period</SectionLabel>
-          <div className="dep-grid-2">
+      {!isMultiSelect && (
+        <>
+          <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="dep-field-label">Start Date</label>
+              <SectionLabel icon={FaMoneyCheckAlt}>Base Pay</SectionLabel>
+              <label className="dep-field-label">Base Pay <span className="req">*</span></label>
               <input
-                type="date"
+                type="number"
+                min="0"
                 className="dep-input"
-                value={deploymentForm.contractStartDate}
-                onChange={(e) => onFieldChange('contractStartDate', e.target.value)}
+                value={deploymentForm.baseSalary}
+                onChange={(e) => onFieldChange('baseSalary', e.target.value)}
+                placeholder="0.00"
               />
             </div>
             <div>
-              <label className="dep-field-label">End Date</label>
-              <input
-                type="date"
-                className="dep-input"
-                value={deploymentForm.contractEndDate}
-                onChange={(e) => onFieldChange('contractEndDate', e.target.value)}
-              />
+              <SectionLabel icon={FaClock}>Contract Period</SectionLabel>
+              <div className="dep-grid-2">
+                <div>
+                  <label className="dep-field-label">Start Date</label>
+                  <input
+                    type="date"
+                    className="dep-input"
+                    value={deploymentForm.contractStartDate}
+                    onChange={(e) => onFieldChange('contractStartDate', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="dep-field-label">End Date</label>
+                  <input
+                    type="date"
+                    className="dep-input"
+                    value={deploymentForm.contractEndDate}
+                    onChange={(e) => onFieldChange('contractEndDate', e.target.value)}
+                  />
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      <div>
-        <SectionLabel icon={FaClock}>Schedule Days <span style={{ color: '#ef4444' }}>*</span></SectionLabel>
-        <div className="dep-days-grid">
-          {DAY_OPTIONS.map((day) => {
-            const active = deploymentForm.daysOfWeek.includes(day.value);
-            return (
-              <button
-                key={day.value}
-                type="button"
-                className={`dep-day-pill${active ? ' active' : ''}`}
-                onClick={() => toggleScheduleDay(day.value)}
-              >
-                {active && <FaCheck className="dep-day-check" />}
-                {day.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+          <div>
+            <SectionLabel icon={FaClock}>Schedule Days <span style={{ color: '#ef4444' }}>*</span></SectionLabel>
+            <div className="dep-days-grid">
+              {DAY_OPTIONS.map((day) => {
+                const active = deploymentForm.daysOfWeek.includes(day.value);
+                return (
+                  <button
+                    key={day.value}
+                    type="button"
+                    className={`dep-day-pill${active ? ' active' : ''}`}
+                    onClick={() => toggleScheduleDay(day.value)}
+                  >
+                    {active && <FaCheck className="dep-day-check" />}
+                    {day.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
-      <div>
-        <SectionLabel icon={FaClock}>Shift Hours <span style={{ color: '#ef4444' }}>*</span></SectionLabel>
-        <div className="dep-grid-2">
           <div>
-            <label className="dep-field-label">Shift Start <span className="req">*</span></label>
-            <input
-              type="time"
-              className="dep-input"
-              value={deploymentForm.shiftStart}
-              onChange={(e) => {
-                const start = e.target.value;
-                onFieldChange('shiftStart', start);
-                if (start) {
-                  const [h, m] = start.split(':').map(Number);
-                  const endH = (h + 12) % 24;
-                  onFieldChange('shiftEnd', `${String(endH).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
-                }
-              }}
-            />
+            <SectionLabel icon={FaClock}>Shift Hours <span style={{ color: '#ef4444' }}>*</span></SectionLabel>
+            <div className="dep-grid-2">
+              <div>
+                <label className="dep-field-label">Shift Start <span className="req">*</span></label>
+                <input
+                  type="time"
+                  className="dep-input"
+                  value={deploymentForm.shiftStart}
+                  onChange={(e) => {
+                    const start = e.target.value;
+                    onFieldChange('shiftStart', start);
+                    if (start) {
+                      const [h, m] = start.split(':').map(Number);
+                      const endH = (h + 12) % 24;
+                      onFieldChange('shiftEnd', `${String(endH).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+                    }
+                  }}
+                />
+              </div>
+              <div>
+                <label className="dep-field-label">Shift End <span className="req">*</span></label>
+                <input
+                  type="time"
+                  className="dep-input"
+                  value={deploymentForm.shiftEnd}
+                  onChange={(e) => onFieldChange('shiftEnd', e.target.value)}
+                />
+              </div>
+            </div>
           </div>
-          <div>
-            <label className="dep-field-label">Shift End <span className="req">*</span></label>
-            <input
-              type="time"
-              className="dep-input"
-              value={deploymentForm.shiftEnd}
-              onChange={(e) => onFieldChange('shiftEnd', e.target.value)}
-            />
-          </div>
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 }

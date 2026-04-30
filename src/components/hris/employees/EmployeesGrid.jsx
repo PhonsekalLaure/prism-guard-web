@@ -10,7 +10,8 @@ export default function EmployeesGrid({
   totalItems = 0,
   currentPage = 1,
   onPageChange,
-  onResetFilters
+  onResetFilters,
+  loading = false,
 }) {
   const navigate = useNavigate();
   const itemsPerPage = 6;
@@ -19,6 +20,32 @@ export default function EmployeesGrid({
   // Note: currentEmployees is now just the employees prop because the backend already paginated it
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + employees.length, totalItems);
+
+  if (loading) {
+    return (
+      <div className="employees-grid">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div key={i} className="employee-card employee-card-skeleton">
+            <div className="employee-card-body">
+              <div className="employee-card-header-row">
+                <div className="employee-header-left">
+                  <div className="skeleton-avatar" />
+                  <div className="skeleton-lines">
+                    <div className="skeleton-line long" />
+                    <div className="skeleton-line short" />
+                  </div>
+                </div>
+                <div className="skeleton-badge" />
+              </div>
+              <div className="skeleton-block" />
+              <div className="skeleton-block" />
+              <div className="skeleton-block short" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <>
