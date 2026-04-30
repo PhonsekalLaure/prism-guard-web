@@ -55,7 +55,7 @@ export default function CompanyInformation({ profile }) {
     {
       id: 'clientSince',
       label: 'Client Since',
-      value: formatDate(profile?.client_since),
+      value: formatDate(profile?.contract_start_date),
       colSpan: 'half',
     },
     {
