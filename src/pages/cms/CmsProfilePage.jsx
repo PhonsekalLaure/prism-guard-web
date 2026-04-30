@@ -13,6 +13,7 @@ export default function CmsProfilePage() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -71,6 +72,7 @@ export default function CmsProfilePage() {
           <div className="cms-profile-left-col">
             <CompanyCard
               profile={profile}
+              onEditProfile={() => setIsEditing(true)}
               onChangePassword={() => setIsChangePasswordOpen(true)}
             />
           </div>
@@ -78,7 +80,12 @@ export default function CmsProfilePage() {
           {/* Right Column */}
           <div className="cms-profile-right-col">
             <CompanyInformation profile={profile} />
-            <ContactPerson profile={profile} onProfileUpdate={handleProfileUpdate} />
+            <ContactPerson
+              profile={profile}
+              onProfileUpdate={handleProfileUpdate}
+              isEditing={isEditing}
+              onCancelEdit={() => setIsEditing(false)}
+            />
             <ContractSummary profile={profile} />
           </div>
         </div>

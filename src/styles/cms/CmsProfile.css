@@ -2,7 +2,44 @@
    CMS PROFILE PAGE — Custom styles
    ============================================= */
 
-/* ─── Topbar Button ─── */
+/* ─── Topbar Edit / Cancel Buttons ─── */
+.cms-profile-topbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: none;
+  padding: 0.55rem 1.15rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.cms-profile-topbar-btn--edit {
+  background: #e6b215;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(230, 178, 21, 0.3);
+}
+
+.cms-profile-topbar-btn--edit:hover {
+  background: #d4a012;
+  box-shadow: 0 6px 18px rgba(230, 178, 21, 0.4);
+}
+
+.cms-profile-topbar-btn--cancel {
+  background: #fff;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.cms-profile-topbar-btn--cancel:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+/* ─── Topbar Button (legacy) ─── */
 .cms-profile-change-password-btn {
   display: inline-flex;
   align-items: center;

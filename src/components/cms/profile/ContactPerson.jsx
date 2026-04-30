@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { FaUserTie, FaSave, FaSpinner } from 'react-icons/fa';
 import profileService from '@services/profileService';
 
-export default function ContactPerson({ profile, onProfileUpdate }) {
+export default function ContactPerson({ profile, onProfileUpdate, isEditing, onCancelEdit }) {
   const [form, setForm] = useState({
     firstName: '',
     lastName: '',
@@ -24,6 +24,14 @@ export default function ContactPerson({ profile, onProfileUpdate }) {
       });
     }
   }, [profile]);
+
+  // Reset feedback messages when leaving edit mode
+  useEffect(() => {
+    if (!isEditing) {
+      setError(null);
+      setSuccess(false);
+    }
+  }, [isEditing]);
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -56,6 +64,11 @@ export default function ContactPerson({ profile, onProfileUpdate }) {
           phone_number: form.phone,
         });
       }
+
+      // Exit edit mode after a brief success flash
+      setTimeout(() => {
+        if (onCancelEdit) onCancelEdit();
+      }, 800);
     } catch (err) {
       setError(err?.response?.data?.error || 'Failed to save changes. Please try again.');
     } finally {
@@ -84,15 +97,21 @@ export default function ContactPerson({ profile, onProfileUpdate }) {
                 <label htmlFor={name} className="cms-profile-field__label">
                   {label}
                 </label>
-                <input
-                  id={name}
-                  name={name}
-                  type={type}
-                  value={form[name]}
-                  onChange={handleChange}
-                  className="cms-profile-form__input"
-                  disabled={saving}
-                />
+                {isEditing ? (
+                  <input
+                    id={name}
+                    name={name}
+                    type={type}
+                    value={form[name]}
+                    onChange={handleChange}
+                    className="cms-profile-form__input"
+                    disabled={saving}
+                  />
+                ) : (
+                  <div className="cms-profile-field__value">
+                    {form[name] || <span style={{ color: '#9ca3af', fontWeight: 400 }}>—</span>}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -104,16 +123,18 @@ export default function ContactPerson({ profile, onProfileUpdate }) {
             <p className="cms-profile-form__success">Changes saved successfully.</p>
           )}
 
-          <div className="cms-profile-form__actions">
-            <button
-              type="submit"
-              className="cms-profile-form__save-btn"
-              disabled={saving}
-            >
-              {saving ? <FaSpinner className="cms-profile-form__spinner" /> : <FaSave />}
-              {saving ? 'Saving…' : 'Save Changes'}
-            </button>
-          </div>
+          {isEditing && (
+            <div className="cms-profile-form__actions">
+              <button
+                type="submit"
+                className="cms-profile-form__save-btn"
+                disabled={saving}
+              >
+                {saving ? <FaSpinner className="cms-profile-form__spinner" /> : <FaSave />}
+                {saving ? 'Saving…' : 'Save Changes'}
+              </button>
+            </div>
+          )}
         </form>
       </div>
     </div>

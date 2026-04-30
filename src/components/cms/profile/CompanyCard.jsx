@@ -15,7 +15,7 @@ function formatClientSince(dateStr) {
   });
 }
 
-export default function CompanyCard({ profile, onChangePassword }) {
+export default function CompanyCard({ profile, onEditProfile, onChangePassword }) {
   const contactItems = [
     {
       icon: FaEnvelope,
@@ -77,7 +77,10 @@ export default function CompanyCard({ profile, onChangePassword }) {
 
         {/* Actions */}
         <div className="cms-profile-card__actions">
-          <button className="cms-profile-card__btn cms-profile-card__btn--outline">
+          <button
+            className="cms-profile-card__btn cms-profile-card__btn--outline"
+            onClick={onEditProfile}
+          >
             <FaEdit /> Edit Profile
           </button>
           <button
