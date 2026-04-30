@@ -10,13 +10,37 @@ export default function ClientsGrid({
   currentPage = 1,
   onPageChange,
   onResetFilters,
-  onViewClient
+  onViewClient,
+  loading = false,
 }) {
   const itemsPerPage = 6;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + clients.length, totalItems);
+
+  if (loading) {
+    return (
+      <div className="clients-grid">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div key={i} className="client-card client-card-skeleton">
+            <div className="client-card-header client-skeleton-header">
+              <div className="skeleton-avatar" style={{ borderRadius: '12px' }} />
+              <div className="skeleton-lines" style={{ marginTop: '0.6rem' }}>
+                <div className="skeleton-line long" style={{ background: 'rgba(255,255,255,0.25)' }} />
+                <div className="skeleton-line short" style={{ background: 'rgba(255,255,255,0.18)' }} />
+              </div>
+            </div>
+            <div className="client-card-body">
+              <div className="skeleton-block" />
+              <div className="skeleton-block" />
+              <div className="skeleton-block short" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <>

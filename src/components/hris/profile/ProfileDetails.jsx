@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { FaBriefcase, FaUser } from 'react-icons/fa';
 import axios from 'axios';
 import authService from '@services/authService';
+import { getAdminRoleLabel } from '@utils/adminPermissions';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -28,11 +29,39 @@ export default function ProfileDetails() {
   }, []);
 
   if (loading) {
-    return <div className="pf-details-card">Loading...</div>;
+    return (
+      <div className="pf-details-card detail-skeleton">
+        <div className="pf-section">
+          <div className="dsk-line md" style={{ height: '20px', marginBottom: '1.25rem' }} />
+          <div className="pf-form-grid">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="pf-field">
+                <div className="dsk-line sm" style={{ marginBottom: '0.4rem' }} />
+                <div className="dsk-line lg" style={{ height: '42px', width: '100%', borderRadius: '8px' }} />
+              </div>
+            ))}
+          </div>
+        </div>
+        <hr className="pf-section-divider" />
+        <div className="pf-section">
+          <div className="dsk-line md" style={{ height: '20px', marginBottom: '1.25rem' }} />
+          <div className="pf-form-grid">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="pf-field">
+                <div className="dsk-line sm" style={{ marginBottom: '0.4rem' }} />
+                <div className="dsk-line lg" style={{ height: '42px', width: '100%', borderRadius: '8px' }} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const userId = profile?.employee_id_number || 'ADMIN-001';
-  const position = profile?.position || profile?.role || 'PRESIDENT';
+  const position = profile?.role === 'admin'
+    ? getAdminRoleLabel(profile?.admin_role, profile?.role || 'Administrator')
+    : (profile?.position || profile?.role || 'Client');
   const dateJoinedStr = profile?.hire_date 
     ? new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(profile.hire_date))
     : 'January 15, 2020';
@@ -50,7 +79,7 @@ export default function ProfileDetails() {
         </h3>
         <div className="pf-form-grid">
           <ReadonlyField label="User ID" value={userId} />
-          <ReadonlyField label="Position" value={position.toUpperCase()} />
+          <ReadonlyField label="Position" value={String(position).toUpperCase()} />
           <ReadonlyField label="Date Joined" value={dateJoinedStr} />
         </div>
       </div>

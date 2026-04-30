@@ -2,6 +2,7 @@ import { FaMapMarkerAlt, FaUsers } from 'react-icons/fa';
 
 export default function SitesTab({ client, onDeployGuard }) {
   const sites = client.sites || [];
+  const canDeployGuard = typeof onDeployGuard === 'function';
 
   return (
     <div className="vc-tab-content">
@@ -10,7 +11,7 @@ export default function SitesTab({ client, onDeployGuard }) {
           <h3 className="vc-section-title !mb-0">
             <FaMapMarkerAlt className="vc-section-icon" /> Deployment Sites
           </h3>
-          {sites.some((site) => site.is_active) && (
+          {canDeployGuard && sites.some((site) => site.is_active) && (
             <button
               type="button"
               className="px-4 py-2 rounded-lg bg-brand-blue text-white font-semibold"
@@ -41,11 +42,13 @@ export default function SitesTab({ client, onDeployGuard }) {
                 <div className="mt-4">
                   <button
                     type="button"
-                    className={`px-4 py-2 rounded-lg font-semibold ${site.is_active ? 'bg-brand-blue text-white' : 'bg-slate-200 text-slate-500 cursor-not-allowed'}`}
-                    onClick={() => site.is_active && onDeployGuard(site.id)}
-                    disabled={!site.is_active}
+                    className={`px-4 py-2 rounded-lg font-semibold ${site.is_active && canDeployGuard ? 'bg-brand-blue text-white' : 'bg-slate-200 text-slate-500 cursor-not-allowed'}`}
+                    onClick={() => site.is_active && canDeployGuard && onDeployGuard(site.id)}
+                    disabled={!site.is_active || !canDeployGuard}
                   >
-                    {site.is_active ? 'Deploy Guard Here' : 'Inactive Site'}
+                    {site.is_active
+                      ? (canDeployGuard ? 'Deploy Guard Here' : 'View Only')
+                      : 'Inactive Site'}
                   </button>
                 </div>
               </div>

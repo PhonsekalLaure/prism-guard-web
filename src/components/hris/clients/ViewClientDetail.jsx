@@ -5,8 +5,10 @@ import {
 } from 'react-icons/fa';
 import clientService from '@services/clientService';
 import employeeService from '@services/employeeService';
+import authService from '@services/authService';
 import Notification from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
+import { hasPermission } from '@utils/adminPermissions';
 
 import GeneralTab from './tabs/GeneralTab';
 import SitesTab from './tabs/SitesTab';
@@ -40,6 +42,9 @@ const buildEditForm = (client) => ({
 export default function ViewClientDetail({
   isOpen, client: previewClient, onClose, onUpdated, pageMode = false,
 }) {
+  const profile = authService.getProfile() || {};
+  const canWriteClients = hasPermission(profile, 'clients.write');
+  const canWriteEmployees = hasPermission(profile, 'employees.write');
   const [activeTab, setActiveTab] = useState('general');
   const [clientDetails, setClientDetails] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -275,13 +280,26 @@ export default function ViewClientDetail({
         </div>
 
         {/* ── Body ── */}
-        <div className="vc-modal-body relative min-h-[400px]">
+        <div className="vc-modal-body">
           {loading && (
-            <div className="absolute inset-0 z-10 flex justify-center items-center bg-white/70">
-              <svg className="animate-spin h-10 w-10 text-brand-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
+            <div className="detail-skeleton">
+              <div className="dsk-profile-card">
+                <div className="dsk-avatar" style={{ borderRadius: '14px' }} />
+                <div className="dsk-profile-lines">
+                  <div className="dsk-line xl" />
+                  <div className="dsk-line md" />
+                  <div className="dsk-line sm" />
+                </div>
+              </div>
+              <div className="dsk-grid cols-2">
+                {[1,2,3,4,5,6].map(i => <div key={i} className="dsk-info-cell"><div className="dsk-line sm" /><div className="dsk-line lg" /></div>)}
+              </div>
+              <div className="dsk-grid cols-2" style={{ marginTop: '1rem' }}>
+                {[1,2,3,4].map(i => <div key={i} className="dsk-info-cell"><div className="dsk-line sm" /><div className="dsk-line lg" /></div>)}
+              </div>
+              <div className="dsk-actions">
+                {[1,2].map(i => <div key={i} className="dsk-btn" />)}
+              </div>
             </div>
           )}
 
@@ -295,7 +313,7 @@ export default function ViewClientDetail({
               {activeTab === 'general' && (
                 <GeneralTab
                   client={data}
-                  canEdit={!fetchError && !!clientDetails}
+                  canEdit={canWriteClients && !fetchError && !!clientDetails}
                   isEditing={isEditing}
                   editForm={editForm}
                   onEdit={handleEdit}
@@ -305,7 +323,7 @@ export default function ViewClientDetail({
                   isSaving={isSaving}
                 />
               )}
-              {activeTab === 'sites'    && <SitesTab    client={data} onDeployGuard={openDeployModal} />}
+              {activeTab === 'sites'    && <SitesTab    client={data} onDeployGuard={canWriteEmployees ? openDeployModal : undefined} />}
               {activeTab === 'billings' && <BillingsTab  client={data} />}
               {activeTab === 'tickets'  && <TicketsTab   client={data} />}
             </>
@@ -320,7 +338,7 @@ export default function ViewClientDetail({
               <FaFileContract /> View Contract
             </button>
             {activeSites.length > 0 && (
-              <button className="ve-btn ve-btn-green" onClick={() => openDeployModal()}>
+              <button className="ve-btn ve-btn-green" onClick={() => openDeployModal()} disabled={!canWriteEmployees}>
                 <FaUserPlus /> Deploy Guard
               </button>
             )}
