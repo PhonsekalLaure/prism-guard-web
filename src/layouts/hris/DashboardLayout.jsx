@@ -10,6 +10,8 @@ import '@styles/hris/Dashboard.css';
 import '@styles/hris/Clients.css';
 import '@styles/hris/Billing.css';
 import '@styles/hris/Employees.css';
+import '@styles/components/Dialogs.css';
+import '@styles/components/Loading.css';
 import '@styles/hris/Profile.css';
 
 export default function DashboardLayout() {

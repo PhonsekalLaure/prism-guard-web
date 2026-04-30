@@ -1,45 +1,78 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ClientsTopbar from '@hris-components/clients/ClientsTopbar';
+import ClientsStatCards from '@hris-components/clients/ClientsStatCards';
 import ClientsFilterBar from '@hris-components/clients/ClientsFilterBar';
 import ClientsGrid from '@hris-components/clients/ClientsGrid';
-import AddClientModal from '@hris-components/clients/AddClientModal';
 
-
+import clientService from '../../services/clientService';
+import authService from '@services/authService';
+import { hasPermission } from '@utils/adminPermissions';
 
 export default function ClientsPage() {
-  const [isAddClientOpen, setIsAddClientOpen] = useState(false);
+  const navigate            = useNavigate();
+  const profile = authService.getProfile() || {};
+  const canWriteClients = hasPermission(profile, 'clients.write');
+  const [clients,           setClients]           = useState([]);
+  const [loading,           setLoading]           = useState(true);
+  const [error,             setError]             = useState(null);
+  const [refreshKey,        setRefreshKey]        = useState(0);
+  const [currentPage,       setCurrentPage]       = useState(1);
+  const [totalItems,        setTotalItems]        = useState(0);
+  const itemsPerPage = 6;
+
+  const [filters, setFilters] = useState({ search: '', status: 'all' });
+
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+    setCurrentPage(1);
+  };
+
+  const handleResetFilters = () => {
+    setFilters({ search: '', status: 'all' });
+    setCurrentPage(1);
+  };
+
+  useEffect(() => {
+    async function fetchClients() {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await clientService.getAllClients(currentPage, itemsPerPage, filters);
+        setClients(response.data);
+        setTotalItems(response.metadata.total);
+      } catch (err) {
+        setError(err.response?.data?.error || err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchClients();
+  }, [currentPage, filters, refreshKey]);
 
   return (
     <>
-      <ClientsTopbar onAddClient={() => setIsAddClientOpen(true)} />
+      <ClientsTopbar canAddClient={canWriteClients} onAddClient={() => navigate('/clients/new')} />
 
       <div className="dashboard-content">
-        {/* Summary stats */}
-        <div className="stat-grid two-cols">
-          <div className="stat-card" style={{ borderLeftColor: '#093269' }}>
-            <div>
-              <p className="stat-label">Total Clients</p>
-              <h3 className="stat-value" style={{ color: '#093269' }}>126</h3>
-              <p className="stat-sub" style={{ opacity: 0 }}>Spacer</p>
-            </div>
-          </div>
-          <div className="stat-card" style={{ borderLeftColor: '#e6b215' }}>
-            <div>
-              <p className="stat-label">Total Guards Deployed</p>
-              <h3 className="stat-value" style={{ color: '#e6b215' }}>118</h3>
-              <p className="stat-sub" style={{ opacity: 0 }}>Spacer</p>
-            </div>
-          </div>
-        </div>
+        <ClientsStatCards refreshKey={refreshKey} />
+        <ClientsFilterBar filters={filters} onFilterChange={handleFilterChange} />
 
-        <ClientsFilterBar />
-        <ClientsGrid />
+        {error ? (
+          <div className="admin-alert-box admin-alert-error" style={{ marginTop: '1rem' }}>Error loading clients: {error}</div>
+        ) : (
+          <ClientsGrid
+            clients={clients}
+            totalItems={totalItems}
+            currentPage={currentPage}
+            onPageChange={setCurrentPage}
+            onResetFilters={handleResetFilters}
+            onViewClient={(client) => navigate(`/clients/${client.id}`)}
+            loading={loading}
+          />
+        )}
       </div>
 
-      <AddClientModal 
-        isOpen={isAddClientOpen} 
-        onClose={() => setIsAddClientOpen(false)} 
-      />
     </>
   );
 }

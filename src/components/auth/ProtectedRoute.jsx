@@ -1,16 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import authService from '@services/authService';
+import { hasAllPermissions } from '@utils/adminPermissions';
 
 /**
- * ProtectedRoute — wraps child routes and enforces authentication + role checks.
- *
- * Props:
- *   allowedRoles — array of roles permitted to access the wrapped routes (e.g. ['admin'])
- *   children     — the child route elements to render
+ * ProtectedRoute wraps child routes and enforces authentication, role checks,
+ * and optional admin-scoped permission checks.
  */
-export default function ProtectedRoute({ allowedRoles, children }) {
-  const [status, setStatus] = useState('loading'); // 'loading' | 'authenticated' | 'unauthenticated' | 'forbidden'
+export default function ProtectedRoute({ allowedRoles, requiredPermissions, children }) {
+  const [status, setStatus] = useState('loading');
   const [redirect, setRedirect] = useState(null);
 
   useEffect(() => {
@@ -26,9 +24,19 @@ export default function ProtectedRoute({ allowedRoles, children }) {
         return;
       }
 
-      // Check role if allowedRoles is specified
       if (allowedRoles && !allowedRoles.includes(result.profile.role)) {
-        // User is auth'd but wrong role — redirect them to their correct area
+        setRedirect(result.redirect);
+        setStatus('forbidden');
+        return;
+      }
+
+      if (result.must_change_password) {
+        setRedirect(result.redirect);
+        setStatus('forbidden');
+        return;
+      }
+
+      if (requiredPermissions && !hasAllPermissions(result.profile, requiredPermissions)) {
         setRedirect(result.redirect);
         setStatus('forbidden');
         return;
@@ -40,7 +48,7 @@ export default function ProtectedRoute({ allowedRoles, children }) {
     checkAuth();
 
     return () => { cancelled = true; };
-  }, []);
+  }, [allowedRoles, requiredPermissions]);
 
   if (status === 'loading') {
     return (
@@ -52,8 +60,9 @@ export default function ProtectedRoute({ allowedRoles, children }) {
         fontFamily: "'Poppins', sans-serif",
         color: '#093269',
         fontSize: '1rem',
-      }}>
-        Loading…
+      }}
+      >
+        Loading...
       </div>
     );
   }

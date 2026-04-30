@@ -1,10 +1,24 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FaSearch, FaBuilding, FaFilter } from 'react-icons/fa';
 
-export default function EmployeesFilterBar() {
-  const [search, setSearch] = useState('');
-  const [client, setClient] = useState('all');
-  const [status, setStatus] = useState('all');
+export default function EmployeesFilterBar({ filters, onFilterChange, clients = [] }) {
+  const [localSearch, setLocalSearch] = useState(filters.search || '');
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localSearch !== filters.search) {
+        onFilterChange({ ...filters, search: localSearch });
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [localSearch, onFilterChange, filters]);
+
+  // Sync local search with props (in case filters are reset externally)
+  useEffect(() => {
+    setLocalSearch(filters.search || '');
+  }, [filters.search]);
 
   return (
     <div className="filter-bar three-cols">
@@ -15,9 +29,9 @@ export default function EmployeesFilterBar() {
         </label>
         <input
           type="text"
-          placeholder="Search by employee name"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by first or last name"
+          value={localSearch}
+          onChange={(e) => setLocalSearch(e.target.value)}
           className="filter-input"
         />
       </div>
@@ -27,12 +41,16 @@ export default function EmployeesFilterBar() {
           <FaBuilding className="filter-icon" />
           Assigned Client
         </label>
-        <select value={client} onChange={(e) => setClient(e.target.value)} className="filter-select">
+        <select 
+          value={filters.client || 'all'} 
+          onChange={(e) => onFilterChange({ ...filters, client: e.target.value })} 
+          className="filter-select"
+        >
           <option value="all">All Clients</option>
-          <option value="feu">FEU Institute of Tech</option>
-          <option value="sm-moa">SM Mall of Asia</option>
-          <option value="sm-north">SM North Edsa</option>
-          <option value="unassigned">Unassigned</option>
+          {clients.map(c => (
+            <option key={c.id} value={c.id}>{c.company}</option>
+          ))}
+          <option value="unassigned">Floating / Unassigned</option>
         </select>
       </div>
 
@@ -41,11 +59,15 @@ export default function EmployeesFilterBar() {
           <FaFilter className="filter-icon" />
           Status
         </label>
-        <select value={status} onChange={(e) => setStatus(e.target.value)} className="filter-select">
+        <select 
+          value={filters.status || 'all'} 
+          onChange={(e) => onFilterChange({ ...filters, status: e.target.value })} 
+          className="filter-select"
+        >
           <option value="all">All Status</option>
           <option value="active">Active</option>
-          <option value="on-leave">On Leave</option>
-          <option value="absent">Absent</option>
+          <option value="inactive">Inactive</option>
+          <option value="terminated">Terminated</option>
         </select>
       </div>
     </div>

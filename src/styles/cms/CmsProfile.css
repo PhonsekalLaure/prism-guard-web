@@ -1,0 +1,1015 @@
+/* =============================================
+   CMS PROFILE PAGE — Custom styles
+   ============================================= */
+
+/* ─── Topbar Edit / Cancel Buttons ─── */
+.cms-profile-topbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: none;
+  padding: 0.55rem 1.15rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.cms-profile-topbar-btn--edit {
+  background: #e6b215;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(230, 178, 21, 0.3);
+}
+
+.cms-profile-topbar-btn--edit:hover {
+  background: #d4a012;
+  box-shadow: 0 6px 18px rgba(230, 178, 21, 0.4);
+}
+
+.cms-profile-topbar-btn--cancel {
+  background: #fff;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.cms-profile-topbar-btn--cancel:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+/* ─── Topbar Button (legacy) ─── */
+.cms-profile-change-password-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #e6b215;
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 12px rgba(230, 178, 21, 0.3);
+}
+
+.cms-profile-change-password-btn:hover {
+  background: #d4a012;
+  box-shadow: 0 6px 18px rgba(230, 178, 21, 0.4);
+}
+
+/* ─── Card Action Buttons (matches HRIS pf-btn pattern) ─── */
+.cms-profile-card__divider {
+  border: 0;
+  height: 1px;
+  background: #f0f0f0;
+  margin: 1.25rem 0;
+}
+
+.cms-profile-card__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.cms-profile-card__btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.7rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cms-profile-card__btn--outline {
+  background: #fff;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.cms-profile-card__btn--outline:hover {
+  background: #f8f9fa;
+  border-color: #cbd5e1;
+}
+
+.cms-profile-card__btn--gold {
+  background: #e6b215;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(230, 178, 21, 0.2);
+}
+
+.cms-profile-card__btn--gold:hover {
+  background: #d4a012;
+  box-shadow: 0 4px 12px rgba(230, 178, 21, 0.3);
+}
+
+/* =============================================
+   PAGE LAYOUT
+   ============================================= */
+.cms-profile-layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.cms-profile-left-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.cms-profile-right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* =============================================
+   COMPANY CARD
+   ============================================= */
+.cms-profile-company-card {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e8e8e8;
+  overflow: hidden;
+}
+
+.cms-profile-company-card__header {
+  background: linear-gradient(135deg, #093269 0%, #0a4080 100%);
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+
+.cms-profile-company-card__logo {
+  width: 80px;
+  height: 80px;
+  background: #fff;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  color: #093269;
+  font-size: 2.2rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.cms-profile-company-card__name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 0.3rem;
+}
+
+.cms-profile-company-card__since {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 0.75rem;
+}
+
+.cms-profile-company-card__badge {
+  display: inline-block;
+  background: #10b981;
+  color: #fff;
+  padding: 0.25rem 0.9rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.cms-profile-company-card__body {
+  padding: 1.4rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.cms-profile-company-card__contact-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+}
+
+.cms-profile-company-card__contact-icon {
+  width: 34px;
+  height: 34px;
+  background: #f1f5f9;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #093269;
+  font-size: 0.82rem;
+  flex-shrink: 0;
+}
+
+.cms-profile-company-card__contact-label {
+  font-size: 0.68rem;
+  color: #9ca3af;
+  margin: 0 0 0.15rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.cms-profile-company-card__contact-value {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1a202c;
+  margin: 0;
+}
+
+.cms-profile-company-card__contact-value.cms-profile-link {
+  color: #2563eb;
+}
+
+/* =============================================
+   SERVICE STATS
+   ============================================= */
+.cms-profile-stats {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e8e8e8;
+  padding: 1.4rem 1.5rem;
+}
+
+.cms-profile-stats__title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #093269;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cms-profile-stats__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.cms-profile-stats__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+}
+
+.cms-profile-stats__label {
+  color: #6b7280;
+}
+
+.cms-profile-stats__value {
+  font-weight: 700;
+}
+
+.cms-profile-stats__value--primary {
+  color: #093269;
+}
+
+.cms-profile-stats__value--danger {
+  color: #dc2626;
+}
+
+.cms-profile-stats__value--warning {
+  color: #e6b215;
+}
+
+.cms-profile-stats__value--success {
+  color: #16a34a;
+}
+
+/* =============================================
+   SHARED SECTION WRAPPER (right-column cards)
+   Matches HRIS pf-details-card pattern
+   ============================================= */
+.cms-profile-details-card {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e8e8e8;
+  padding: 2rem;
+}
+
+.cms-profile-section {
+  margin-bottom: 0;
+}
+
+.cms-profile-section__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #093269;
+  margin: 0 0 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cms-profile-section__icon {
+  font-size: 0.95rem;
+}
+
+.cms-profile-section-divider {
+  border: 0;
+  height: 1px;
+  background: #f0f0f0;
+  margin: 1.75rem 0;
+}
+
+/* =============================================
+   FIELD STYLES (matches HRIS pf-field pattern)
+   ============================================= */
+.cms-profile-field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.cms-profile-field-grid__full {
+  grid-column: 1 / -1;
+}
+
+.cms-profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.cms-profile-field__label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.cms-profile-field__value {
+  padding: 0.75rem 1rem;
+  background: #f8f9fa;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #1e293b;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* =============================================
+   SHARED FORM STYLES
+   ============================================= */
+.cms-profile-form__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.cms-profile-form__col-full {
+  grid-column: 1 / -1;
+}
+
+.cms-profile-form__stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cms-profile-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.cms-profile-form__label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.cms-profile-form__input {
+  width: 100%;
+  padding: 0.65rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-family: 'Poppins', sans-serif;
+  color: #2d3748;
+  background: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.cms-profile-form__input:focus {
+  border-color: #e6b215;
+  box-shadow: 0 0 0 3px rgba(230, 178, 21, 0.12);
+}
+
+.cms-profile-form__input--readonly {
+  background: #f8f9fa;
+  cursor: default;
+  color: #4b5563;
+}
+
+.cms-profile-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.5rem;
+}
+
+.cms-profile-form__save-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #093269;
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1.3rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.cms-profile-form__save-btn:hover {
+  background: #0a4080;
+}
+
+/* =============================================
+   SITES / LOCATIONS
+   ============================================= */
+.cms-profile-sites__add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: none;
+  border: none;
+  color: #e6b215;
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.cms-profile-sites__add-btn:hover {
+  color: #d4a012;
+  text-decoration: underline;
+}
+
+.cms-profile-sites__list {
+  display: flex;
+  flex-direction: column;
+}
+
+.cms-profile-sites__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.4rem;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.2s;
+}
+
+.cms-profile-sites__row:last-child {
+  border-bottom: none;
+}
+
+.cms-profile-sites__row:hover {
+  background: #f8fafc;
+}
+
+.cms-profile-sites__row-left {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.cms-profile-sites__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.cms-profile-sites__avatar--primary {
+  background: #093269;
+}
+
+.cms-profile-sites__avatar--blue {
+  background: #2563eb;
+}
+
+.cms-profile-sites__avatar--green {
+  background: #16a34a;
+}
+
+.cms-profile-sites__name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1a202c;
+  margin: 0 0 0.15rem;
+}
+
+.cms-profile-sites__address {
+  font-size: 0.72rem;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.cms-profile-sites__row-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.cms-profile-sites__guard-badge {
+  background: #dcfce7;
+  color: #15803d;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.cms-profile-sites__edit-btn {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0.25rem;
+  transition: color 0.2s;
+}
+
+.cms-profile-sites__edit-btn:hover {
+  color: #e6b215;
+}
+
+/* =============================================
+   CONTRACT SUMMARY
+   ============================================= */
+.cms-profile-contract__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.85rem;
+  margin-bottom: 1.1rem;
+}
+
+.cms-profile-contract__cell {
+  background: #f8f9fa;
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.cms-profile-contract__cell-label {
+  font-size: 0.7rem;
+  color: #9ca3af;
+  margin: 0 0 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.cms-profile-contract__cell-value {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0;
+}
+
+.cms-profile-contract__id {
+  color: #093269 !important;
+}
+
+.cms-profile-contract__status {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #16a34a;
+  margin: 0;
+}
+
+.cms-profile-contract__renewal-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background: #fef9c3;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1.1rem;
+}
+
+.cms-profile-contract__renewal-icon {
+  color: #a16207;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.cms-profile-contract__renewal-text {
+  font-size: 0.82rem;
+  color: #92400e;
+  margin: 0;
+  line-height: 1.55;
+}
+
+.cms-profile-contract__view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #093269;
+  color: #fff;
+  border: none;
+  padding: 0.65rem 1.3rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.cms-profile-contract__view-btn:hover {
+  background: #0a4080;
+}
+
+/* =============================================
+   CHANGE PASSWORD MODAL
+   ============================================= */
+.cms-profile-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: cmsProfileFadeIn 0.25s ease;
+}
+
+.cms-profile-modal-content {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  width: 100%;
+  max-width: 460px;
+  overflow: hidden;
+  margin: 0 1rem;
+  animation: cmsProfileSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cms-profile-modal__header {
+  background: linear-gradient(135deg, #093269 0%, #0a4080 100%);
+  padding: 1.4rem 1.8rem;
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cms-profile-modal__header h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0 0 0.15rem;
+  color: #fff;
+}
+
+.cms-profile-modal__header p {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+.cms-profile-modal__close {
+  background: rgba(255, 255, 255, 0.12);
+  border: none;
+  color: #fff;
+  font-size: 1rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cms-profile-modal__close:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: rotate(90deg);
+}
+
+.cms-profile-modal__body {
+  padding: 1.75rem 1.8rem;
+}
+
+.cms-profile-modal__icon-wrap {
+  width: 60px;
+  height: 60px;
+  background: rgba(9, 50, 105, 0.08);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #093269;
+  font-size: 1.4rem;
+  margin: 0 auto 1.4rem;
+}
+
+.cms-profile-modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cms-profile-modal__password-wrap {
+  position: relative;
+}
+
+.cms-profile-modal__password-wrap .cms-profile-form__input {
+  padding-right: 2.8rem;
+}
+
+.cms-profile-modal__toggle-show {
+  position: absolute;
+  right: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0.2rem;
+  transition: color 0.2s;
+}
+
+.cms-profile-modal__toggle-show:hover {
+  color: #093269;
+}
+
+.cms-profile-modal__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding-top: 0.5rem;
+}
+
+.cms-profile-modal__submit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: #e6b215;
+  color: #fff;
+  border: none;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.cms-profile-modal__submit-btn:hover {
+  background: #d4a012;
+}
+
+.cms-profile-modal__cancel-btn {
+  background: #f1f5f9;
+  color: #475569;
+  border: none;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.cms-profile-modal__cancel-btn:hover {
+  background: #e2e8f0;
+}
+
+/* =============================================
+   ANIMATIONS
+   ============================================= */
+@keyframes cmsProfileFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes cmsProfileSlideUp {
+  from { opacity: 0; transform: translateY(30px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* =============================================
+   RESPONSIVE
+   ============================================= */
+@media (max-width: 1280px) {
+  .cms-profile-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .cms-profile-contract__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .cms-profile-form__grid,
+  .cms-profile-field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cms-profile-form__col-full,
+  .cms-profile-field-grid__full {
+    grid-column: auto;
+  }
+
+  .cms-profile-contract__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .cms-profile-details-card {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .cms-profile-contract__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =============================================
+   LOADING / ERROR PAGE STATES
+   ============================================= */
+.cms-profile-loading,
+.cms-profile-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 14px;
+  border: 1px solid #e8e8e8;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.cms-profile-loading {
+  color: #64748b;
+}
+
+.cms-profile-error {
+  color: #dc2626;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+/* =============================================
+   FORM FEEDBACK MESSAGES
+   ============================================= */
+.cms-profile-form__error,
+.cms-profile-modal__error {
+  font-size: 0.82rem;
+  color: #dc2626;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 0.55rem 0.9rem;
+  margin: 0;
+}
+
+.cms-profile-form__success {
+  font-size: 0.82rem;
+  color: #15803d;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  padding: 0.55rem 0.9rem;
+  margin: 0;
+}
+
+/* =============================================
+   SPINNER ANIMATION
+   ============================================= */
+.cms-profile-form__spinner {
+  animation: cms-profile-spin 0.8s linear infinite;
+}
+
+@keyframes cms-profile-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Disabled state for save / submit buttons */
+.cms-profile-form__save-btn:disabled,
+.cms-profile-modal__submit-btn:disabled,
+.cms-profile-modal__cancel-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* =============================================
+   CONTRACT STATUS VARIANTS
+   ============================================= */
+.cms-profile-contract__status--active {
+  color: #16a34a;
+}
+
+.cms-profile-contract__status--expired {
+  color: #dc2626;
+}
+
+.cms-profile-contract__status--upcoming {
+  color: #d97706;
+}
+
+/* =============================================
+   MODAL SUCCESS VIEW
+   ============================================= */
+.cms-profile-modal__success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1rem 0;
+  text-align: center;
+}
+
+.cms-profile-modal__success p {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #15803d;
+}
+
+/* =============================================
+   COMPANY CARD BADGE VARIANTS
+   ============================================= */
+.cms-profile-company-card__badge--expired {
+  background: #dc2626;
+}
+
+.cms-profile-company-card__badge--upcoming {
+  background: #d97706;
+}
+
+.cms-profile-company-card__badge--no-contract {
+  background: #9ca3af;
+}
+
+/* =============================================
+   CONTRACT VIEW BUTTON — DISABLED STATE
+   ============================================= */
+.cms-profile-contract__view-btn {
+  text-decoration: none;
+}
+
+.cms-profile-contract__view-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #9ca3af;
+}
+
+.cms-profile-contract__view-btn:not([disabled]):hover {
+  background: #0a4080;
+}
