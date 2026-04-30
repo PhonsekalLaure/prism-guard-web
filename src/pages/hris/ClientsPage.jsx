@@ -6,9 +6,13 @@ import ClientsFilterBar from '@hris-components/clients/ClientsFilterBar';
 import ClientsGrid from '@hris-components/clients/ClientsGrid';
 
 import clientService from '../../services/clientService';
+import authService from '@services/authService';
+import { hasPermission } from '@utils/adminPermissions';
 
 export default function ClientsPage() {
   const navigate            = useNavigate();
+  const profile = authService.getProfile() || {};
+  const canWriteClients = hasPermission(profile, 'clients.write');
   const [clients,           setClients]           = useState([]);
   const [loading,           setLoading]           = useState(true);
   const [error,             setError]             = useState(null);
@@ -48,21 +52,14 @@ export default function ClientsPage() {
 
   return (
     <>
-      <ClientsTopbar onAddClient={() => navigate('/clients/new')} />
+      <ClientsTopbar canAddClient={canWriteClients} onAddClient={() => navigate('/clients/new')} />
 
       <div className="dashboard-content">
         <ClientsStatCards refreshKey={refreshKey} />
         <ClientsFilterBar filters={filters} onFilterChange={handleFilterChange} />
 
-        {loading ? (
-          <div className="flex justify-center items-center py-20">
-            <svg className="animate-spin h-10 w-10 text-brand-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
-          </div>
-        ) : error ? (
-          <div className="text-red-500 text-center py-10">Error loading clients: {error}</div>
+        {error ? (
+          <div className="admin-alert-box admin-alert-error" style={{ marginTop: '1rem' }}>Error loading clients: {error}</div>
         ) : (
           <ClientsGrid
             clients={clients}
@@ -71,6 +68,7 @@ export default function ClientsPage() {
             onPageChange={setCurrentPage}
             onResetFilters={handleResetFilters}
             onViewClient={(client) => navigate(`/clients/${client.id}`)}
+            loading={loading}
           />
         )}
       </div>

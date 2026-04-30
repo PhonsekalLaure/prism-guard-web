@@ -1,7 +1,7 @@
 import { FaBars, FaUserPlus } from 'react-icons/fa';
 import { useOutletContext, useNavigate } from 'react-router-dom';
 
-export default function EmployeesTopbar() {
+export default function EmployeesTopbar({ canAddEmployee = true }) {
   const { toggleSidebar } = useOutletContext();
   const navigate = useNavigate();
 
@@ -17,10 +17,12 @@ export default function EmployeesTopbar() {
             <p className="subtitle">Manage security personnel records and information</p>
           </div>
         </div>
-        <button className="btn-add-employee" onClick={() => navigate('/employees/new')}>
-          <FaUserPlus />
-          Add New Employee
-        </button>
+        {canAddEmployee && (
+          <button className="btn-add-employee" onClick={() => navigate('/employees/new')}>
+            <FaUserPlus />
+            Add New Employee
+          </button>
+        )}
       </div>
     </header>
   );
