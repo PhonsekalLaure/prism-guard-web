@@ -5,6 +5,7 @@ import { FaCheckCircle, FaEye, FaEyeSlash } from 'react-icons/fa';
 import BrandPanel from '@components/login/BrandPanel';
 import Notification from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
+import authService from '@services/authService';
 import '@styles/Login.css';
 import '@styles/SetPassword.css';
 
@@ -12,6 +13,7 @@ import '@styles/SetPassword.css';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const PASSWORD_POLICY_REGEX = /^(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
 
 export default function SetPasswordPage() {
   const [password, setPassword] = useState('');
@@ -27,7 +29,24 @@ export default function SetPasswordPage() {
     // Supabase automatically handles the hash fragment and signs the user in
     // when they come from an invite or recovery link.
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      let { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        const accessToken = localStorage.getItem('access_token');
+        const refreshToken = localStorage.getItem('refresh_token');
+
+        if (accessToken && refreshToken) {
+          const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+
+          if (!sessionError) {
+            session = sessionData.session;
+          }
+        }
+      }
+
       if (!session && !success) {
         showNotification(
           'Invalid or expired invitation link. Please contact your administrator.',
@@ -37,13 +56,13 @@ export default function SetPasswordPage() {
       }
     };
     checkSession();
-  }, [success]);
+  }, [showNotification, success]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (password.length < 8) {
-      showNotification('Password must be at least 8 characters long.', 'error');
+    if (!PASSWORD_POLICY_REGEX.test(password)) {
+      showNotification('Password must be at least 8 characters and include at least one special character.', 'error');
       return;
     }
 
@@ -54,13 +73,17 @@ export default function SetPasswordPage() {
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password });
+      const { error } = await supabase.auth.updateUser({
+        password,
+        data: { must_change_password: false },
+      });
       if (error) throw error;
 
       setSuccess(true);
       showNotification('Password set successfully! Redirecting to login...', 'success');
       // Auto-logout after setting password to force a clean login
       await supabase.auth.signOut();
+      authService.clearTokens();
 
       setTimeout(() => navigate('/login'), 3000);
     } catch (err) {
