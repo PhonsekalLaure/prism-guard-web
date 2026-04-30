@@ -1,37 +1,27 @@
 import { FaBuilding } from 'react-icons/fa';
 
-const readonlyFields = [
-  {
-    id: 'companyName',
-    label: 'Company Name',
-    value: 'FEU Institute of Technology',
-    colSpan: 'half',
-  },
-  {
-    id: 'industry',
-    label: 'Industry',
-    value: 'Education',
-    colSpan: 'half',
-  },
-  {
-    id: 'address',
-    label: 'Business Address',
-    value: 'P. Paredes St., Sampaloc, Manila, NCR 1008',
-    colSpan: 'full',
-  },
-  {
-    id: 'tin',
-    label: 'TIN',
-    value: '000-123-456-789',
-    colSpan: 'half',
-  },
-  {
-    id: 'clientId',
-    label: 'Client ID',
-    value: 'CLI-2024-001',
-    colSpan: 'half',
-  },
-];
+function formatBillingType(billingType) {
+  if (!billingType) return '—';
+  return billingType
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join('-');
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '—';
+  return new Date(dateStr).toLocaleDateString('en-PH', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+function formatClientId(id) {
+  if (!id) return '—';
+  // Show last 8 characters of UUID prefixed with "CLI-"
+  return `CLI-${id.slice(-8).toUpperCase()}`;
+}
 
 function ReadonlyField({ label, value }) {
   return (
@@ -42,7 +32,40 @@ function ReadonlyField({ label, value }) {
   );
 }
 
-export default function CompanyInformation() {
+export default function CompanyInformation({ profile }) {
+  const fields = [
+    {
+      id: 'companyName',
+      label: 'Company Name',
+      value: profile?.company || '—',
+      colSpan: 'half',
+    },
+    {
+      id: 'billingType',
+      label: 'Billing Type',
+      value: formatBillingType(profile?.billing_type),
+      colSpan: 'half',
+    },
+    {
+      id: 'address',
+      label: 'Business Address',
+      value: profile?.billing_address || '—',
+      colSpan: 'full',
+    },
+    {
+      id: 'clientSince',
+      label: 'Client Since',
+      value: formatDate(profile?.contract_start_date),
+      colSpan: 'half',
+    },
+    {
+      id: 'clientId',
+      label: 'Client ID',
+      value: formatClientId(profile?.id),
+      colSpan: 'half',
+    },
+  ];
+
   return (
     <div className="cms-profile-details-card">
       <div className="cms-profile-section">
@@ -50,7 +73,7 @@ export default function CompanyInformation() {
           <FaBuilding className="cms-profile-section__icon" /> Company Information
         </h3>
         <div className="cms-profile-field-grid">
-          {readonlyFields.map(({ id, label, value, colSpan }) => (
+          {fields.map(({ id, label, value, colSpan }) => (
             <div
               key={id}
               className={colSpan === 'full' ? 'cms-profile-field-grid__full' : ''}

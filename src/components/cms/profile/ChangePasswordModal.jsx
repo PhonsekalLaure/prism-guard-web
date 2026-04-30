@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { FaTimes, FaLock, FaEye, FaEyeSlash, FaKey } from 'react-icons/fa';
+import { FaTimes, FaLock, FaEye, FaEyeSlash, FaKey, FaSpinner } from 'react-icons/fa';
+import profileService from '@services/profileService';
 
 export default function ChangePasswordModal({ isOpen, onClose }) {
   const [form, setForm] = useState({
@@ -12,21 +13,60 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
     newPassword: false,
     confirmPassword: false,
   });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
 
   if (!isOpen) return null;
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setError(null);
+    setSuccess(false);
   };
 
   const toggleShow = (field) => {
     setShow((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // TODO: wire to API
+  const handleClose = () => {
+    // Reset state on close
+    setForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    setShow({ currentPassword: false, newPassword: false, confirmPassword: false });
+    setError(null);
+    setSuccess(false);
     onClose();
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(false);
+
+    if (form.newPassword !== form.confirmPassword) {
+      setError('New password and confirmation do not match.');
+      return;
+    }
+
+    if (form.newPassword.length < 8) {
+      setError('New password must be at least 8 characters.');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await profileService.changePassword({
+        currentPassword: form.currentPassword,
+        newPassword: form.newPassword,
+        confirmPassword: form.confirmPassword,
+      });
+      setSuccess(true);
+      setForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (err) {
+      setError(err?.response?.data?.error || 'Failed to update password. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const fields = [
@@ -36,7 +76,7 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
   ];
 
   return (
-    <div className="cms-profile-modal-overlay" onClick={onClose}>
+    <div className="cms-profile-modal-overlay" onClick={handleClose}>
       <div
         className="cms-profile-modal-content"
         onClick={(e) => e.stopPropagation()}
@@ -47,7 +87,7 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
             <h2>Change Password</h2>
             <p>Update your account password</p>
           </div>
-          <button className="cms-profile-modal__close" onClick={onClose}>
+          <button className="cms-profile-modal__close" onClick={handleClose}>
             <FaTimes />
           </button>
         </div>
@@ -59,45 +99,76 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
             <FaLock />
           </div>
 
-          <form onSubmit={handleSubmit} className="cms-profile-modal__form">
-            {fields.map(({ name, label }) => (
-              <div key={name} className="cms-profile-form__field">
-                <label htmlFor={name} className="cms-profile-form__label">
-                  {label}
-                </label>
-                <div className="cms-profile-modal__password-wrap">
-                  <input
-                    id={name}
-                    name={name}
-                    type={show[name] ? 'text' : 'password'}
-                    value={form[name]}
-                    onChange={handleChange}
-                    className="cms-profile-form__input"
-                    placeholder="••••••••"
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="cms-profile-modal__toggle-show"
-                    onClick={() => toggleShow(name)}
-                    aria-label={show[name] ? 'Hide password' : 'Show password'}
-                  >
-                    {show[name] ? <FaEyeSlash /> : <FaEye />}
-                  </button>
-                </div>
-              </div>
-            ))}
-
-            <div className="cms-profile-modal__actions">
-              <button type="submit" className="cms-profile-modal__submit-btn">
-                <FaKey />
-                Update Password
-              </button>
-              <button type="button" className="cms-profile-modal__cancel-btn" onClick={onClose}>
-                Cancel
+          {success ? (
+            <div className="cms-profile-modal__success">
+              <p>Password updated successfully!</p>
+              <button
+                type="button"
+                className="cms-profile-modal__cancel-btn"
+                onClick={handleClose}
+              >
+                Close
               </button>
             </div>
-          </form>
+          ) : (
+            <form onSubmit={handleSubmit} className="cms-profile-modal__form">
+              {fields.map(({ name, label }) => (
+                <div key={name} className="cms-profile-form__field">
+                  <label htmlFor={name} className="cms-profile-form__label">
+                    {label}
+                  </label>
+                  <div className="cms-profile-modal__password-wrap">
+                    <input
+                      id={name}
+                      name={name}
+                      type={show[name] ? 'text' : 'password'}
+                      value={form[name]}
+                      onChange={handleChange}
+                      className="cms-profile-form__input"
+                      placeholder="••••••••"
+                      required
+                      disabled={saving}
+                    />
+                    <button
+                      type="button"
+                      className="cms-profile-modal__toggle-show"
+                      onClick={() => toggleShow(name)}
+                      aria-label={show[name] ? 'Hide password' : 'Show password'}
+                    >
+                      {show[name] ? <FaEyeSlash /> : <FaEye />}
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              {error && (
+                <p className="cms-profile-modal__error">{error}</p>
+              )}
+
+              <div className="cms-profile-modal__actions">
+                <button
+                  type="submit"
+                  className="cms-profile-modal__submit-btn"
+                  disabled={saving}
+                >
+                  {saving ? (
+                    <FaSpinner className="cms-profile-form__spinner" />
+                  ) : (
+                    <FaKey />
+                  )}
+                  {saving ? 'Updating…' : 'Update Password'}
+                </button>
+                <button
+                  type="button"
+                  className="cms-profile-modal__cancel-btn"
+                  onClick={handleClose}
+                  disabled={saving}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
         </div>
       </div>
     </div>

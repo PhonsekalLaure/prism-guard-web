@@ -2,7 +2,44 @@
    CMS PROFILE PAGE — Custom styles
    ============================================= */
 
-/* ─── Topbar Button ─── */
+/* ─── Topbar Edit / Cancel Buttons ─── */
+.cms-profile-topbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: none;
+  padding: 0.55rem 1.15rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.cms-profile-topbar-btn--edit {
+  background: #e6b215;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(230, 178, 21, 0.3);
+}
+
+.cms-profile-topbar-btn--edit:hover {
+  background: #d4a012;
+  box-shadow: 0 6px 18px rgba(230, 178, 21, 0.4);
+}
+
+.cms-profile-topbar-btn--cancel {
+  background: #fff;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.cms-profile-topbar-btn--cancel:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+/* ─── Topbar Button (legacy) ─── */
 .cms-profile-change-password-btn {
   display: inline-flex;
   align-items: center;
@@ -839,4 +876,140 @@
   .cms-profile-contract__grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* =============================================
+   LOADING / ERROR PAGE STATES
+   ============================================= */
+.cms-profile-loading,
+.cms-profile-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 14px;
+  border: 1px solid #e8e8e8;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.cms-profile-loading {
+  color: #64748b;
+}
+
+.cms-profile-error {
+  color: #dc2626;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+/* =============================================
+   FORM FEEDBACK MESSAGES
+   ============================================= */
+.cms-profile-form__error,
+.cms-profile-modal__error {
+  font-size: 0.82rem;
+  color: #dc2626;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 0.55rem 0.9rem;
+  margin: 0;
+}
+
+.cms-profile-form__success {
+  font-size: 0.82rem;
+  color: #15803d;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  padding: 0.55rem 0.9rem;
+  margin: 0;
+}
+
+/* =============================================
+   SPINNER ANIMATION
+   ============================================= */
+.cms-profile-form__spinner {
+  animation: cms-profile-spin 0.8s linear infinite;
+}
+
+@keyframes cms-profile-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Disabled state for save / submit buttons */
+.cms-profile-form__save-btn:disabled,
+.cms-profile-modal__submit-btn:disabled,
+.cms-profile-modal__cancel-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* =============================================
+   CONTRACT STATUS VARIANTS
+   ============================================= */
+.cms-profile-contract__status--active {
+  color: #16a34a;
+}
+
+.cms-profile-contract__status--expired {
+  color: #dc2626;
+}
+
+.cms-profile-contract__status--upcoming {
+  color: #d97706;
+}
+
+/* =============================================
+   MODAL SUCCESS VIEW
+   ============================================= */
+.cms-profile-modal__success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1rem 0;
+  text-align: center;
+}
+
+.cms-profile-modal__success p {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #15803d;
+}
+
+/* =============================================
+   COMPANY CARD BADGE VARIANTS
+   ============================================= */
+.cms-profile-company-card__badge--expired {
+  background: #dc2626;
+}
+
+.cms-profile-company-card__badge--upcoming {
+  background: #d97706;
+}
+
+.cms-profile-company-card__badge--no-contract {
+  background: #9ca3af;
+}
+
+/* =============================================
+   CONTRACT VIEW BUTTON — DISABLED STATE
+   ============================================= */
+.cms-profile-contract__view-btn {
+  text-decoration: none;
+}
+
+.cms-profile-contract__view-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #9ca3af;
+}
+
+.cms-profile-contract__view-btn:not([disabled]):hover {
+  background: #0a4080;
 }
