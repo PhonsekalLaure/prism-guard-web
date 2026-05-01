@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { FaCheck, FaTimes } from 'react-icons/fa';
 
 const DOC_LABELS = {
@@ -44,18 +44,27 @@ function ReviewField({ label, value, highlight }) {
 }
 
 export default function Step4Review({ data }) {
-  const avatarPreview = useMemo(
-    () => (data.avatar ? URL.createObjectURL(data.avatar) : null),
-    [data.avatar]
-  );
+  const [avatarPreview, setAvatarPreview] = useState(null);
 
   useEffect(() => {
-    return () => {
-      if (avatarPreview) {
-        URL.revokeObjectURL(avatarPreview);
+    if (!data.avatar) {
+      setAvatarPreview(null);
+      return undefined;
+    }
+
+    let isActive = true;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (isActive) {
+        setAvatarPreview(reader.result);
       }
     };
-  }, [avatarPreview]);
+    reader.readAsDataURL(data.avatar);
+
+    return () => {
+      isActive = false;
+    };
+  }, [data.avatar]);
 
   const isComplete = data.firstName && data.lastName && data.employeeId;
   const docsAttached = Object.keys(data.documents).filter((key) => data.documents[key]);
