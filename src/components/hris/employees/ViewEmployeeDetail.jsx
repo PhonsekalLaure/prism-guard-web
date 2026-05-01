@@ -332,7 +332,20 @@ export default function ViewEmployeeDetail({
           <div className="ve-action-buttons mt-6">
             <button
               className="ve-btn ve-btn-gold"
-              onClick={() => { const url = data.document_url; if (url) window.open(url, '_blank'); else showNotification('No contract document found.', 'error'); }}
+              onClick={async () => {
+                const url = data.document_url;
+                if (!url) {
+                  showNotification('No contract document found.', 'error');
+                  return;
+                }
+
+                try {
+                  await authService.openFileUrl(url);
+                } catch (err) {
+                  console.error(err);
+                  showNotification('Failed to open contract document.', 'error');
+                }
+              }}
             >
               <FaFileContract /> View Contract
             </button>
