@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import authService from '@services/authService';
 import { hasAllPermissions } from '@utils/adminPermissions';
+import FullScreenLoader from '@components/ui/FullScreenLoader';
 
 /**
  * ProtectedRoute wraps child routes and enforces authentication, role checks,
@@ -51,20 +52,7 @@ export default function ProtectedRoute({ allowedRoles, requiredPermissions, chil
   }, [allowedRoles, requiredPermissions]);
 
   if (status === 'loading') {
-    return (
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100vh',
-        fontFamily: "'Poppins', sans-serif",
-        color: '#093269',
-        fontSize: '1rem',
-      }}
-      >
-        Loading...
-      </div>
-    );
+    return <FullScreenLoader />;
   }
 
   if (status === 'unauthenticated') {
