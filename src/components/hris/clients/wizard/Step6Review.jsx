@@ -54,6 +54,7 @@ export default function Step6Review({ data }) {
             label="Contact Name"
             value={`${toProperCase(data.firstName)} ${toProperCase(data.middleName)} ${toProperCase(data.lastName)} ${toProperCase(data.suffix)}`.replace(/\s+/g, ' ').trim()}
           />
+          <ReviewField label="Avatar" value={data.avatar?.name || 'No avatar uploaded'} />
           <ReviewField label="Email"  value={data.email} />
           <ReviewField label="Mobile" value={data.mobile ? `+63 ${data.mobile}` : ''} />
         </ReviewSection>

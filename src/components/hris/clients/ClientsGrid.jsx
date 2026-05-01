@@ -69,7 +69,11 @@ export default function ClientsGrid({
               <div className="client-card-header">
                 {/* Avatar / Initials — matches employee-avatar style */}
                 <div className="client-avatar">
-                  {client.initials || '??'}
+                  {client.avatar_url ? (
+                    <img src={client.avatar_url} alt={client.initials || client.company} className="w-full h-full object-cover" />
+                  ) : (
+                    client.initials || '??'
+                  )}
                 </div>
 
                 <span className={`client-badge badge-${client.status}`}>

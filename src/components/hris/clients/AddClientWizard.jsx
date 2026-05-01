@@ -24,6 +24,7 @@ const STEPS = [
 const INITIAL_FORM_DATA = {
   firstName: '', lastName: '', middleName: '', suffix: '',
   mobile: '', email: '', company: '', billingAddress: '',
+  avatar: null,
   contractStartDate: new Date().toISOString().split('T')[0], contractEndDate: '',
   ratePerGuard: '', billingType: 'semi_monthly', contractUrl: null,
   sites: [],
@@ -339,7 +340,7 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
       const requestData = new FormData();
 
       Object.entries(payload).forEach(([key, value]) => {
-        if (key === 'contractUrl') {
+        if (key === 'avatar' || key === 'contractUrl') {
           if (value instanceof File) {
             requestData.append(key, value);
           }

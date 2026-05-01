@@ -53,6 +53,7 @@ export default function ViewClientDetail({
   /* Edit state */
   const [isEditing, setIsEditing]   = useState(false);
   const [editForm,  setEditForm]    = useState({});
+  const [pendingFiles, setPendingFiles] = useState({});
   const [isSaving,  setIsSaving]    = useState(false);
 
   /* Deploy modal state */
@@ -95,6 +96,7 @@ export default function ViewClientDetail({
       setFetchError(false);
       setActiveTab('general');
       setIsEditing(false);
+      setPendingFiles({});
       setShowDeployModal(false);
       setDeployableEmployees([]);
       setSelectedEmployee(null);
@@ -161,21 +163,32 @@ export default function ViewClientDetail({
   if (!isOpen || !previewClient) return null;
 
   /* ── Edit handlers ── */
-  const handleEdit   = () => { setEditForm(buildEditForm(data)); setIsEditing(true); };
-  const handleCancel = () => { setIsEditing(false); };
+  const handleEdit   = () => { setEditForm(buildEditForm(data)); setPendingFiles({}); setIsEditing(true); };
+  const handleCancel = () => { setIsEditing(false); setPendingFiles({}); };
   const handleField  = (key, value) => setEditForm((f) => ({ ...f, [key]: value }));
+  const handleFile = (key, file) => setPendingFiles((prev) => ({ ...prev, [key]: file }));
 
-  /* Frontend-only save (no API call per spec) */
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // TODO: wire up clientService.updateClient when backend is ready
-      await new Promise((r) => setTimeout(r, 600)); // simulate save
+      const formData = new FormData();
+      Object.entries(editForm).forEach(([key, value]) => {
+        if (key === 'email') return;
+        formData.append(key, value ?? '');
+      });
+      Object.entries(pendingFiles).forEach(([key, file]) => {
+        if (file) formData.append(key, file);
+      });
+
+      await clientService.updateClient(previewClient.id, formData);
+      const refreshed = await clientService.getClientDetails(previewClient.id);
+      setClientDetails(refreshed);
       setIsEditing(false);
+      setPendingFiles({});
       showNotification('Client details updated successfully.', 'success');
       onUpdated?.();
     } catch (err) {
-      showNotification('Failed to save changes.', 'error');
+      showNotification(err.response?.data?.error || 'Failed to save changes.', 'error');
     } finally {
       setIsSaving(false);
     }
@@ -316,10 +329,12 @@ export default function ViewClientDetail({
                   canEdit={canWriteClients && !fetchError && !!clientDetails}
                   isEditing={isEditing}
                   editForm={editForm}
+                  pendingFiles={pendingFiles}
                   onEdit={handleEdit}
                   onSave={handleSave}
                   onCancel={handleCancel}
                   onField={handleField}
+                  onFile={handleFile}
                   isSaving={isSaving}
                 />
               )}
@@ -333,7 +348,20 @@ export default function ViewClientDetail({
           <div className="ve-action-buttons mt-6">
             <button
               className="ve-btn ve-btn-gold"
-              onClick={() => { const url = data.contract_url; if (url) window.open(url, '_blank'); else showNotification('No contract document found.', 'error'); }}
+              onClick={async () => {
+                const url = data.contract_url;
+                if (!url) {
+                  showNotification('No contract document found.', 'error');
+                  return;
+                }
+
+                try {
+                  await authService.openFileUrl(url);
+                } catch (err) {
+                  console.error(err);
+                  showNotification('Failed to open contract document.', 'error');
+                }
+              }}
             >
               <FaFileContract /> View Contract
             </button>
@@ -379,8 +407,8 @@ export default function ViewClientDetail({
                 loadingEmployees={loadingDeployable}
                 filters={deployFilters}
                 onFilterChange={(field, value) => setDeployFilters((cur) => ({ ...cur, [field]: value }))}
-                selectedEmployeeId={selectedEmployee?.id || ''}
-                onSelectEmployee={handleEmployeeSelect}
+                selectedEmployeeIds={selectedEmployee?.id ? [selectedEmployee.id] : []}
+                onToggleEmployee={handleEmployeeSelect}
                 deploymentForm={deployForm}
                 onFieldChange={(field, value) => setDeployForm((cur) => ({ ...cur, [field]: value }))}
                 toggleScheduleDay={toggleScheduleDay}
