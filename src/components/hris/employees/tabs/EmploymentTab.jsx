@@ -59,7 +59,13 @@ export default function EmploymentTab({ employee, isEditing, editForm, onField }
               options={[{ value: 'regular', label: 'Regular' }, { value: 'reliever', label: 'Reliever' }]} />
             <EditInput label="Badge Number"    value={editForm.badge_number}        onChange={v => onField('badge_number', v)} />
             <EditInput label="License Number"  value={editForm.license_number}      onChange={v => onField('license_number', v)} />
-            <EditInput label="License Expiry"  type="date" value={editForm.license_expiry_date} onChange={v => onField('license_expiry_date', v)} />
+            <EditInput
+              label="License Expiry"
+              type="date"
+              value={editForm.license_expiry_date}
+              onChange={v => onField('license_expiry_date', v)}
+              min={new Date().toISOString().split('T')[0]}
+            />
           </div>
         )}
       </div>
