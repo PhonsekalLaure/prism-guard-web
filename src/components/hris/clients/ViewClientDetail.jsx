@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   FaTimes, FaBuilding, FaMapMarkerAlt, FaFileInvoiceDollar, FaTicketAlt,
-  FaFileContract, FaUserPlus,
+  FaFileContract, FaUserPlus, FaUserMinus,
 } from 'react-icons/fa';
 import clientService from '@services/clientService';
 import employeeService from '@services/employeeService';
@@ -15,6 +15,8 @@ import SitesTab from './tabs/SitesTab';
 import BillingsTab from './tabs/BillingsTab';
 import TicketsTab from './tabs/TicketsTab';
 import GuardDeploymentSelector from './GuardDeploymentSelector';
+import DeactivateClientDialog from './DeactivateClientDialog';
+import RelieveAllClientGuardsDialog from './RelieveAllClientGuardsDialog';
 
 const TABS = [
   { key: 'general',  label: 'General Info',     icon: FaBuilding },
@@ -55,6 +57,8 @@ export default function ViewClientDetail({
   const [editForm,  setEditForm]    = useState({});
   const [pendingFiles, setPendingFiles] = useState({});
   const [isSaving,  setIsSaving]    = useState(false);
+  const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false);
+  const [showRelieveAllConfirm, setShowRelieveAllConfirm] = useState(false);
 
   /* Deploy modal state */
   const [showDeployModal, setShowDeployModal] = useState(false);
@@ -97,6 +101,8 @@ export default function ViewClientDetail({
       setActiveTab('general');
       setIsEditing(false);
       setPendingFiles({});
+      setShowDeactivateConfirm(false);
+      setShowRelieveAllConfirm(false);
       setShowDeployModal(false);
       setDeployableEmployees([]);
       setSelectedEmployee(null);
@@ -189,6 +195,39 @@ export default function ViewClientDetail({
       onUpdated?.();
     } catch (err) {
       showNotification(err.response?.data?.error || 'Failed to save changes.', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeactivate = async () => {
+    setIsSaving(true);
+    try {
+      await clientService.deactivateClient(previewClient.id);
+      showNotification('Client deactivated successfully.', 'success');
+      setShowDeactivateConfirm(false);
+      onUpdated?.();
+      onClose();
+    } catch (err) {
+      showNotification(err.response?.data?.error || 'Failed to deactivate client.', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleRelieveAllGuards = async () => {
+    setIsSaving(true);
+    try {
+      const response = await clientService.relieveAllClientGuards(previewClient.id);
+      await loadClientDetails(previewClient.id);
+      onUpdated?.();
+      setShowRelieveAllConfirm(false);
+      showNotification(
+        `Relieved ${response?.data?.relieved_guard_count || data.guard_count || 0} guard(s) from this client.`,
+        'success'
+      );
+    } catch (err) {
+      showNotification(err.response?.data?.error || 'Failed to relieve client guards.', 'error');
     } finally {
       setIsSaving(false);
     }
@@ -338,7 +377,7 @@ export default function ViewClientDetail({
                   isSaving={isSaving}
                 />
               )}
-              {activeTab === 'sites'    && <SitesTab    client={data} onDeployGuard={canWriteEmployees ? openDeployModal : undefined} />}
+              {activeTab === 'sites'    && <SitesTab    client={data} onDeployGuard={canWriteEmployees && data.status === 'active' ? openDeployModal : undefined} />}
               {activeTab === 'billings' && <BillingsTab  client={data} />}
               {activeTab === 'tickets'  && <TicketsTab   client={data} />}
             </>
@@ -366,27 +405,39 @@ export default function ViewClientDetail({
               <FaFileContract /> View Contract
             </button>
             {activeSites.length > 0 && (
-              <button className="ve-btn ve-btn-green" onClick={() => openDeployModal()} disabled={!canWriteEmployees}>
+              <button className="ve-btn ve-btn-green" onClick={() => openDeployModal()} disabled={!canWriteEmployees || data.status !== 'active'}>
                 <FaUserPlus /> Deploy Guard
               </button>
             )}
+            {data.guard_count > 0 && (
+              <button className="ve-btn ve-btn-blue" onClick={() => setShowRelieveAllConfirm(true)} disabled={!canWriteEmployees || data.status !== 'active'}>
+                <FaUserMinus /> Relieve All Guards
+              </button>
+            )}
+            <button className="ve-btn ve-btn-red" onClick={() => setShowDeactivateConfirm(true)} disabled={!canWriteClients || data.status !== 'active'}>
+              <FaUserMinus /> {data.status === 'inactive' ? 'Inactive' : 'Deactivate Client'}
+            </button>
           </div>
         </div>
       </div>
 
-      {/* ── Deploy Guard modal ── */}
       {showDeployModal && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 p-4" onClick={() => setShowDeployModal(false)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-gray-200">
-              <div>
-                <h3 className="text-xl font-bold text-slate-900">Deploy Guard</h3>
-                <p className="text-sm text-slate-600">Select an active site, then pick the best-fit guard for it.</p>
+        <div className="dlg-overlay" onClick={() => setShowDeployModal(false)}>
+          <div className="dlg-card dlg-card-wide" onClick={(e) => e.stopPropagation()}>
+            <div className="dep-header">
+              <div className="dep-header-icon">
+                <FaUserPlus />
               </div>
-              <button className="vc-close-btn" onClick={() => setShowDeployModal(false)}><FaTimes /></button>
+              <div className="dep-header-text">
+                <h3>Deploy Guard</h3>
+                <p>Select an active site, then pick the <strong>best-fit guard</strong>.</p>
+              </div>
+              <button className="dep-close-btn" onClick={() => setShowDeployModal(false)}>
+                <FaTimes />
+              </button>
             </div>
 
-            <div className="px-6 py-5 overflow-y-auto max-h-[calc(85vh-148px)]">
+            <div className="dep-body">
               <GuardDeploymentSelector
                 siteOptions={activeSites.map((site) => ({ value: site.id, label: site.site_name }))}
                 siteValue={deployForm.siteId}
@@ -416,17 +467,44 @@ export default function ViewClientDetail({
               />
             </div>
 
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-slate-50">
-              <button type="button" className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 font-semibold" onClick={() => setShowDeployModal(false)} disabled={isDeploying}>
+            <div className="dlg-footer">
+              <button
+                type="button"
+                className="dlg-btn dlg-btn-ghost"
+                onClick={() => setShowDeployModal(false)}
+                disabled={isDeploying}
+              >
                 Cancel
               </button>
-              <button type="button" className="px-4 py-2 rounded-lg bg-brand-blue text-white font-semibold disabled:opacity-60" onClick={handleDeployGuard} disabled={isDeploying || loadingDeployable || deployableEmployees.length === 0}>
+              <button
+                type="button"
+                className="dlg-btn dlg-btn-deploy"
+                onClick={handleDeployGuard}
+                disabled={isDeploying || loadingDeployable || deployableEmployees.length === 0}
+              >
                 {isDeploying ? 'Deploying...' : 'Deploy Guard'}
               </button>
             </div>
           </div>
         </div>
       )}
+
+      <DeactivateClientDialog
+        isOpen={showDeactivateConfirm}
+        clientName={data.company || 'Client'}
+        isSaving={isSaving}
+        onCancel={() => setShowDeactivateConfirm(false)}
+        onConfirm={handleDeactivate}
+      />
+
+      <RelieveAllClientGuardsDialog
+        isOpen={showRelieveAllConfirm}
+        clientName={data.company || 'Client'}
+        guardCount={data.guard_count || 0}
+        isSaving={isSaving}
+        onCancel={() => setShowRelieveAllConfirm(false)}
+        onConfirm={handleRelieveAllGuards}
+      />
     </div>
   );
 }

@@ -65,10 +65,10 @@ export default function DeployEmployeeDialog({
           </div>
 
           <div>
-            <SectionLabel icon={FaCalendarAlt}>Contract Period</SectionLabel>
+            <SectionLabel icon={FaCalendarAlt}>Deployment Contract Period</SectionLabel>
             <div className="dep-grid-2">
               <div>
-                <label className="dep-field-label">Start Date</label>
+                <label className="dep-field-label">Deployment Contract Start Date</label>
                 <input
                   type="date"
                   className="dep-input"
@@ -77,12 +77,13 @@ export default function DeployEmployeeDialog({
                 />
               </div>
               <div>
-                <label className="dep-field-label">End Date</label>
+                <label className="dep-field-label">Deployment Contract End Date</label>
                 <input
                   type="date"
                   className="dep-input"
                   value={deployForm.contractEndDate}
                   onChange={(e) => setDeployForm((f) => ({ ...f, contractEndDate: e.target.value }))}
+                  min={deployForm.contractStartDate || undefined}
                 />
               </div>
             </div>
@@ -148,8 +149,10 @@ export default function DeployEmployeeDialog({
           </div>
 
           <div>
-            <SectionLabel icon={FaFileUpload}>Deployment Order</SectionLabel>
-            <label className={`dep-file-zone${deployForm.deploymentOrderFile ? ' has-file' : ''}`}>
+            <SectionLabel icon={FaFileUpload}>
+              Deployment Order <span style={{ color: '#ef4444' }}>*</span>
+            </SectionLabel>
+            <label className={`dep-file-zone${deployForm.deploymentOrderFile ? ' has-file' : ' required-file'}`}>
               <FaFileUpload className="dep-file-icon" />
               <div className="dep-file-info">
                 {deployForm.deploymentOrderFile ? (
@@ -160,7 +163,7 @@ export default function DeployEmployeeDialog({
                 ) : (
                   <>
                     <p className="dep-file-name" style={{ color: '#64748b' }}>Upload deployment order</p>
-                    <p className="dep-file-hint">Image or PDF accepted</p>
+                    <p className="dep-file-hint">Required — Image or PDF accepted</p>
                   </>
                 )}
               </div>

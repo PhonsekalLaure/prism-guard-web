@@ -121,6 +121,7 @@
   color: #fff;
   flex-shrink: 0;
   letter-spacing: 0.5px;
+  overflow: hidden;
 }
 
 /* Status badge — top-right */
@@ -751,15 +752,16 @@
   gap: 1.25rem;
 }
 
-/* ── Profile card (General tab header) ── */
+/* ── Profile card (General tab header) — matches employee dark card ── */
 .vc-profile-card {
-  background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%);
-  border: 1px solid #dbeafe;
+  background: linear-gradient(135deg, #093269 0%, #0a4080 100%);
+  border: none;
   border-radius: 14px;
   padding: 1.25rem 1.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  color: #fff;
 }
 
 .vc-profile-left {
@@ -771,7 +773,8 @@
 .vc-profile-avatar {
   width: 58px;
   height: 58px;
-  background: linear-gradient(135deg, #093269, #0a4080);
+  background: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 14px;
   display: flex;
   align-items: center;
@@ -781,18 +784,19 @@
   font-size: 1.15rem;
   flex-shrink: 0;
   letter-spacing: 0.5px;
+  overflow: hidden;
 }
 
 .vc-profile-name {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #1a202c;
+  color: #fff;
   margin: 0 0 0.2rem;
 }
 
 .vc-profile-sub {
   font-size: 0.8rem;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.8);
   margin: 0 0 0.4rem;
 }
 
@@ -817,6 +821,7 @@
 .vc-profile-contract {
   font-size: 0.75rem;
   font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 /* ── Section ── */

@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import {
   FaTimes, FaUser, FaBriefcase, FaShieldAlt, FaMoneyCheckAlt,
-  FaFileContract, FaUserTimes, FaMapMarkerAlt, FaUserMinus,
+  FaFileContract, FaMapMarkerAlt, FaUserMinus,
 } from 'react-icons/fa';
-import { FaSpinner } from 'react-icons/fa';
 import employeeService from '@services/employeeService';
 import clientService from '@services/clientService';
 import authService from '@services/authService';
@@ -18,9 +17,9 @@ import ComplianceTab  from './tabs/ComplianceTab';
 import PayrollTab     from './tabs/PayrollTab';
 
 // Dialogs
-import TerminateEmployeeDialog from './TerminateEmployeeDialog';
 import DeployEmployeeDialog    from './DeployEmployeeDialog';
 import RelieveEmployeeDialog   from './RelieveEmployeeDialog';
+import DeactivateEmployeeDialog from './DeactivateEmployeeDialog';
 
 const TABS = [
   { key: 'personal',   label: 'Personal Info', icon: FaUser },
@@ -54,6 +53,22 @@ const buildForm = (emp) => ({
   license_expiry_date:              emp.license_expiry_date              || '',
 });
 
+function isEarlierDate(startDate, endDate) {
+  return Boolean(startDate && endDate && new Date(endDate) < new Date(startDate));
+}
+
+function isPastDate(dateValue) {
+  if (!dateValue) return false;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const parsedDate = new Date(dateValue);
+  parsedDate.setHours(0, 0, 0, 0);
+
+  return parsedDate < today;
+}
+
 export default function ViewEmployeeDetail({
   isOpen, employee: previewEmployee, onClose, onUpdated, pageMode = false,
 }) {
@@ -68,7 +83,7 @@ export default function ViewEmployeeDetail({
   const [editForm,         setEditForm]         = useState({});
   const [pendingFiles,     setPendingFiles]     = useState({});
   const [isSaving,         setIsSaving]         = useState(false);
-  const [showTerminateConfirm, setShowTerminateConfirm] = useState(false);
+  const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false);
   const [showRelieveConfirm, setShowRelieveConfirm] = useState(false);
   const [showDeployModal,  setShowDeployModal]  = useState(false);
   const [sitesList,        setSitesList]        = useState([]);
@@ -92,6 +107,8 @@ export default function ViewEmployeeDetail({
       setIsEditing(false);
       setPendingFiles({});
       setFetchError(false);
+      setShowDeactivateConfirm(false);
+      setShowRelieveConfirm(false);
     }
   }, [isOpen, previewEmployee]);
 
@@ -105,6 +122,11 @@ export default function ViewEmployeeDetail({
   const handleClearanceFile = (type, file) => setPendingFiles(prev => ({ ...prev, [type]: file }));
 
   const handleSave = async () => {
+    if (isPastDate(editForm.license_expiry_date)) {
+      showNotification('License expiry date cannot be earlier than today.', 'error');
+      return;
+    }
+
     setIsSaving(true);
     try {
       const formData = new FormData();
@@ -125,19 +147,17 @@ export default function ViewEmployeeDetail({
     }
   };
 
-  const handleTerminate = async () => {
+  const handleDeactivate = async () => {
     try {
       setIsSaving(true);
-      const formData = new FormData();
-      formData.append('status', 'terminated');
-      await employeeService.updateEmployee(previewEmployee.id, formData);
-      showNotification('Employee terminated successfully.', 'success');
-      setShowTerminateConfirm(false);
+      await employeeService.deactivateEmployee(previewEmployee.id);
+      showNotification('Employee deactivated successfully.', 'success');
+      setShowDeactivateConfirm(false);
       onUpdated?.();
       onClose();
     } catch (err) {
       console.error(err);
-      showNotification(err.response?.data?.error || 'Failed to terminate employee.', 'error');
+      showNotification(err.response?.data?.error || 'Failed to deactivate employee.', 'error');
     } finally {
       setIsSaving(false);
     }
@@ -177,8 +197,13 @@ export default function ViewEmployeeDetail({
 
   const handleDeploy = async () => {
     if (!deployForm.siteId)                    { showNotification('Please select a client site.', 'error'); return; }
+    if (isEarlierDate(deployForm.contractStartDate, deployForm.contractEndDate)) {
+      showNotification('Deployment contract end date cannot be earlier than deployment contract start date.', 'error');
+      return;
+    }
     if (deployForm.daysOfWeek.length === 0)    { showNotification('Please select at least one schedule day.', 'error'); return; }
     if (!deployForm.shiftStart || !deployForm.shiftEnd) { showNotification('Please set both shift start and shift end time.', 'error'); return; }
+    if (!hasActiveDeployment && !deployForm.deploymentOrderFile) { showNotification('Please upload the deployment order document.', 'error'); return; }
     setIsDeploying(true);
     try {
       const payload = new FormData();
@@ -349,27 +374,27 @@ export default function ViewEmployeeDetail({
             >
               <FaFileContract /> View Contract
             </button>
-            <button className="ve-btn ve-btn-green" onClick={openDeployModal} disabled={!canWriteEmployees || data.status === 'terminated'}>
+            <button className="ve-btn ve-btn-green" onClick={openDeployModal} disabled={!canWriteEmployees || data.status !== 'active'}>
               <FaMapMarkerAlt /> {hasActiveDeployment ? 'Transfer Assignment' : 'Assign Client'}
             </button>
             {hasActiveDeployment && (
-              <button className="ve-btn ve-btn-blue" onClick={() => setShowRelieveConfirm(true)} disabled={!canWriteEmployees || data.status === 'terminated'}>
+              <button className="ve-btn ve-btn-blue" onClick={() => setShowRelieveConfirm(true)} disabled={!canWriteEmployees || data.status !== 'active'}>
                 <FaUserMinus /> Relieve From Post
               </button>
             )}
-            <button className="ve-btn ve-btn-red" onClick={() => setShowTerminateConfirm(true)} disabled={!canWriteEmployees || data.status === 'terminated'}>
-              <FaUserTimes /> {data.status === 'terminated' ? 'Terminated' : 'Terminate Employee'}
+            <button className="ve-btn ve-btn-red" onClick={() => setShowDeactivateConfirm(true)} disabled={!canWriteEmployees || data.status !== 'active'}>
+              <FaUserMinus /> {data.status === 'inactive' ? 'Inactive' : 'Deactivate Employee'}
             </button>
           </div>
         </div>
       </div>
 
-      <TerminateEmployeeDialog
-        isOpen={showTerminateConfirm}
+      <DeactivateEmployeeDialog
+        isOpen={showDeactivateConfirm}
         employeeName={data.full_name || data.name}
         isSaving={isSaving}
-        onCancel={() => setShowTerminateConfirm(false)}
-        onConfirm={handleTerminate}
+        onCancel={() => setShowDeactivateConfirm(false)}
+        onConfirm={handleDeactivate}
       />
 
       <RelieveEmployeeDialog

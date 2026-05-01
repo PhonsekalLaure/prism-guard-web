@@ -366,6 +366,20 @@
   background: #f0fdf4;
 }
 
+.dep-file-zone.required-file {
+  border-color: #fca5a5;
+  background: #fff5f5;
+}
+
+.dep-file-zone.required-file:hover {
+  border-color: #ef4444;
+  background: #fef2f2;
+}
+
+.dep-file-zone.required-file .dep-file-icon {
+  color: #ef4444;
+}
+
 .dep-file-icon {
   font-size: 1.25rem;
   color: #94a3b8;
@@ -420,3 +434,329 @@
   box-shadow: none;
 }
 
+
+/* ════════════════════════════════════════════════
+   GUARD DEPLOYMENT SELECTOR  (gds- namespace)
+   Premium UI used in Step5 wizard + Deploy modal
+   ════════════════════════════════════════════════ */
+
+.gds-root {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+/* ── Panel card ── */
+.gds-panel {
+  background: #fff;
+  border: 1.5px solid #e8edf4;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.gds-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.75rem 1.1rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #f0f4f8 100%);
+  border-bottom: 1.5px solid #e8edf4;
+}
+
+.gds-panel-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 0.65rem;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(29,78,216,0.3);
+}
+
+.gds-panel-title {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #0f172a;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+.gds-panel-body {
+  padding: 1rem 1.1rem;
+}
+
+/* ── Filter pills ── */
+.gds-filter-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.gds-filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 20px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.gds-filter-pill input[type="checkbox"] {
+  display: none;
+}
+
+.gds-filter-pill svg { font-size: 0.65rem; }
+
+.gds-filter-pill:hover {
+  border-color: #93c5fd;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.gds-filter-pill.active {
+  border-color: #1d4ed8;
+  background: #1d4ed8;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(29,78,216,0.28);
+}
+
+/* ── Guard list hint bar ── */
+.gds-guard-list-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.6rem 1.1rem;
+  background: #fffbeb;
+  border-bottom: 1.5px solid #fde68a;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #92400e;
+  font-family: 'Poppins', sans-serif;
+}
+
+.gds-guard-list-hint svg { font-size: 0.65rem; color: #d97706; }
+
+/* ── Guard list container ── */
+.gds-guard-list {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+/* ── Individual guard card ── */
+.gds-guard-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 0.85rem 1.1rem;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: background 0.12s;
+  position: relative;
+}
+
+.gds-guard-card:last-child { border-bottom: none; }
+.gds-guard-card:hover { background: #f8fafc; }
+
+.gds-guard-card.selected {
+  background: #eff6ff;
+  border-left: 3px solid #1d4ed8;
+  padding-left: calc(1.1rem - 1px);
+}
+
+/* ── Guard selection input ── */
+.gds-guard-radio {
+  margin-top: 0.3rem;
+  flex-shrink: 0;
+  accent-color: #1d4ed8;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+/* ── Guard avatar ── */
+.gds-guard-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #093269 0%, #0a4080 100%);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 2px solid rgba(255,255,255,0.25);
+  box-shadow: 0 2px 6px rgba(9,50,105,0.18);
+  transition: background 0.15s;
+}
+
+.gds-guard-card.selected .gds-guard-avatar {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%);
+  box-shadow: 0 2px 8px rgba(29,78,216,0.28);
+}
+
+/* ── Guard info ── */
+.gds-guard-info { flex: 1; min-width: 0; }
+
+.gds-guard-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.15rem;
+}
+
+.gds-guard-name {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gds-guard-distance {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #1d4ed8;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  padding: 0.15rem 0.55rem;
+  border-radius: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.gds-guard-card.selected .gds-guard-distance {
+  background: #1d4ed8;
+  color: #fff;
+  border-color: #1d4ed8;
+}
+
+.gds-guard-sub {
+  font-size: 0.7rem;
+  color: #64748b;
+  margin: 0 0 0.45rem;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* ── Guard stat chips ── */
+.gds-guard-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.gds-guard-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  padding: 0.18rem 0.55rem;
+  border-radius: 6px;
+  font-size: 0.66rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.gds-guard-chip svg { font-size: 0.58rem; color: #64748b; }
+
+/* ── Empty & loading states ── */
+.gds-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+}
+
+.gds-empty-icon { font-size: 1.8rem; color: #cbd5e1; margin-bottom: 0.5rem; }
+
+.gds-empty-text {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  font-family: 'Poppins', sans-serif;
+  margin: 0;
+}
+
+.gds-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2.5rem 1.5rem;
+  font-size: 0.78rem;
+  color: #64748b;
+  font-family: 'Poppins', sans-serif;
+}
+
+.gds-loading-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #1d4ed8;
+  animation: gds-pulse 1.2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.gds-loading-dot:nth-child(2) { animation-delay: 0.2s; }
+.gds-loading-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes gds-pulse {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40%            { transform: scale(1);   opacity: 1;   }
+}
+
+/* ── Wide deploy card (for ViewClientDetail modal) ── */
+.dlg-card-wide {
+  max-width: 720px;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Close button for light headers ── */
+.dep-close-btn {
+  background: #f1f5f9;
+  border: 1.5px solid #e2e8f0;
+  color: #64748b;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.15s;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.dep-close-btn:hover {
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
