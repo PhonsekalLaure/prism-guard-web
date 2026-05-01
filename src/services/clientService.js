@@ -74,6 +74,16 @@ async function updateClient(id, clientData) {
   return data;
 }
 
+async function deactivateClient(id) {
+  const { data } = await api.post(`/${id}/deactivate`);
+  return data;
+}
+
+async function relieveAllClientGuards(id, payload = {}) {
+  const { data } = await api.post(`/${id}/relieve-all`, payload);
+  return data;
+}
+
 async function getClientsList() {
   const { data } = await api.get('/list');
   return data || [];
@@ -91,5 +101,7 @@ export default {
   getClientsList,
   createClient,
   updateClient,
+  deactivateClient,
+  relieveAllClientGuards,
   getAllSitesList
 };

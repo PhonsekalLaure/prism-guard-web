@@ -54,6 +54,15 @@ function isCloudinaryUrl(url) {
   }
 }
 
+function isAbsoluteUrl(url) {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function openFileUrl(url) {
   if (!url) {
     throw new Error('No file URL provided');
@@ -72,21 +81,31 @@ async function getFileObjectUrl(url) {
     throw new Error('No file URL provided');
   }
 
-  if (isCloudinaryUrl(url)) {
-    return url;
-  }
-
   const token = getToken();
-  if (!token) {
+  const headers = {};
+
+  if (!isCloudinaryUrl(url) && token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  if (!isAbsoluteUrl(url)) {
     return url;
   }
 
-  const { data } = await axios.get(url, {
-    responseType: 'blob',
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  try {
+    const { data } = await axios.get(url, {
+      responseType: 'blob',
+      headers,
+    });
 
-  return URL.createObjectURL(data);
+    return URL.createObjectURL(data);
+  } catch (error) {
+    if (isCloudinaryUrl(url)) {
+      return url;
+    }
+
+    throw error;
+  }
 }
 
 // ─── Auth API calls ──────────────────────────────────────────
