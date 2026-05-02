@@ -20,6 +20,7 @@ import PayrollTab     from './tabs/PayrollTab';
 import DeployEmployeeDialog    from './DeployEmployeeDialog';
 import RelieveEmployeeDialog   from './RelieveEmployeeDialog';
 import DeactivateEmployeeDialog from './DeactivateEmployeeDialog';
+import RenewEmployeeContractDialog from './RenewEmployeeContractDialog';
 
 const TABS = [
   { key: 'personal',   label: 'Personal Info', icon: FaUser },
@@ -85,10 +86,16 @@ export default function ViewEmployeeDetail({
   const [isSaving,         setIsSaving]         = useState(false);
   const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false);
   const [showRelieveConfirm, setShowRelieveConfirm] = useState(false);
+  const [showRenewContractDialog, setShowRenewContractDialog] = useState(false);
   const [showDeployModal,  setShowDeployModal]  = useState(false);
   const [sitesList,        setSitesList]        = useState([]);
+  const [renewalForm, setRenewalForm] = useState({
+    contractStartDate: '',
+    contractEndDate: '',
+    contractFile: null,
+  });
   const [deployForm,       setDeployForm]       = useState({
-    siteId: '', contractStartDate: '', contractEndDate: '',
+    siteId: '', baseSalary: '', contractStartDate: '', contractEndDate: '',
     daysOfWeek: [], shiftStart: '', shiftEnd: '', deploymentOrderFile: null,
   });
   const [isDeploying, setIsDeploying] = useState(false);
@@ -109,12 +116,17 @@ export default function ViewEmployeeDetail({
       setFetchError(false);
       setShowDeactivateConfirm(false);
       setShowRelieveConfirm(false);
+      setShowRenewContractDialog(false);
+      setRenewalForm({ contractStartDate: '', contractEndDate: '', contractFile: null });
     }
   }, [isOpen, previewEmployee]);
 
   if (!isOpen || !previewEmployee) return null;
   const data = employeeDetails || previewEmployee;
   const hasActiveDeployment = Array.isArray(data.deployments) && data.deployments.some((deployment) => deployment.status === 'active');
+  const contractNeedsRenewal = Boolean(data.employment_contract_needs_renewal);
+  const hasValidEmploymentContract = data.employment_contract_valid !== false;
+  const contractActionMessage = data.admin_action_message || 'Employment contract needs admin review.';
 
   const handleEdit   = () => { setEditForm(buildForm(data)); setPendingFiles({}); setIsEditing(true); };
   const handleCancel = () => { setIsEditing(false); setPendingFiles({}); };
@@ -180,9 +192,75 @@ export default function ViewEmployeeDetail({
     }
   };
 
+  const openRenewContractDialog = () => {
+    const baseStartDate = data.current_contract_end_date
+      ? (() => {
+        const nextDay = new Date(data.current_contract_end_date);
+        nextDay.setDate(nextDay.getDate() + 1);
+        return nextDay.toISOString().split('T')[0];
+      })()
+      : new Date().toISOString().split('T')[0];
+
+    setRenewalForm({
+      contractStartDate: baseStartDate,
+      contractEndDate: '',
+      contractFile: null,
+    });
+    setShowRenewContractDialog(true);
+  };
+
+  const handleRenewContract = async () => {
+    if (!renewalForm.contractStartDate || !renewalForm.contractEndDate) {
+      showNotification('Please set both renewal contract dates.', 'error');
+      return;
+    }
+    if (isEarlierDate(renewalForm.contractStartDate, renewalForm.contractEndDate)) {
+      showNotification('Renewal contract end date cannot be earlier than renewal contract start date.', 'error');
+      return;
+    }
+    if (!renewalForm.contractFile) {
+      showNotification('Please upload the renewed employment contract document.', 'error');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const payload = new FormData();
+      payload.append('contract_start_date', renewalForm.contractStartDate);
+      payload.append('contract_end_date', renewalForm.contractEndDate);
+      payload.append('document_contract', renewalForm.contractFile);
+      await employeeService.updateEmployee(previewEmployee.id, payload);
+      const refreshed = await employeeService.getEmployeeDetails(previewEmployee.id);
+      setEmployeeDetails(refreshed);
+      setShowRenewContractDialog(false);
+      setRenewalForm({ contractStartDate: '', contractEndDate: '', contractFile: null });
+      onUpdated?.();
+      showNotification('Employment contract renewed successfully.', 'success');
+    } catch (err) {
+      console.error(err);
+      showNotification(err.response?.data?.error || 'Failed to renew employment contract.', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const openDeployModal = async () => {
+    if (!hasValidEmploymentContract) {
+      showNotification(contractActionMessage, 'error');
+      return;
+    }
+
     setShowDeployModal(true);
-    setDeployForm({ siteId: '', contractStartDate: '', contractEndDate: '', daysOfWeek: [], shiftStart: '', shiftEnd: '', deploymentOrderFile: null });
+    setDeployForm({
+      siteId: '',
+      baseSalary: data.base_salary || '',
+      contractStartDate: '',
+      contractEndDate: '',
+      daysOfWeek: [],
+      shiftStart: '',
+      shiftEnd: '',
+      deploymentOrderFile: null,
+    });
     try {
       const sites = await clientService.getAllSitesList({
         latitude: data.latitude,
@@ -197,6 +275,10 @@ export default function ViewEmployeeDetail({
 
   const handleDeploy = async () => {
     if (!deployForm.siteId)                    { showNotification('Please select a client site.', 'error'); return; }
+    if (!deployForm.baseSalary || Number(deployForm.baseSalary) <= 0) {
+      showNotification('Please set the guard monthly base pay.', 'error');
+      return;
+    }
     if (isEarlierDate(deployForm.contractStartDate, deployForm.contractEndDate)) {
       showNotification('Deployment contract end date cannot be earlier than deployment contract start date.', 'error');
       return;
@@ -208,6 +290,7 @@ export default function ViewEmployeeDetail({
     try {
       const payload = new FormData();
       payload.append('siteId', deployForm.siteId);
+      payload.append('baseSalary', deployForm.baseSalary);
       if (deployForm.contractStartDate) payload.append('contractStartDate', deployForm.contractStartDate);
       if (deployForm.contractEndDate)   payload.append('contractEndDate',   deployForm.contractEndDate);
       deployForm.daysOfWeek.forEach(day => payload.append('daysOfWeek', String(day)));
@@ -313,6 +396,11 @@ export default function ViewEmployeeDetail({
                   Could not load full employee details. Showing limited information.
                 </div>
               )}
+              {contractNeedsRenewal && (
+                <div style={{ background:'#fef2f2', border:'1px solid #fecaca', color:'#991b1b', borderRadius:'8px', padding:'0.65rem 1rem', fontSize:'0.8rem', fontWeight:700, marginBottom:'1rem' }}>
+                  {contractActionMessage}
+                </div>
+              )}
 
               {activeTab === 'personal'   && (
                 <PersonalTab
@@ -374,7 +462,10 @@ export default function ViewEmployeeDetail({
             >
               <FaFileContract /> View Contract
             </button>
-            <button className="ve-btn ve-btn-green" onClick={openDeployModal} disabled={!canWriteEmployees || data.status !== 'active'}>
+            <button className="ve-btn ve-btn-blue" onClick={openRenewContractDialog} disabled={!canWriteEmployees || data.status !== 'active'}>
+              <FaFileContract /> Renew Contract
+            </button>
+            <button className="ve-btn ve-btn-green" onClick={openDeployModal} disabled={!canWriteEmployees || data.status !== 'active' || !hasValidEmploymentContract}>
               <FaMapMarkerAlt /> {hasActiveDeployment ? 'Transfer Assignment' : 'Assign Client'}
             </button>
             {hasActiveDeployment && (
@@ -415,6 +506,21 @@ export default function ViewEmployeeDetail({
         onCancel={() => setShowDeployModal(false)}
         onDeploy={handleDeploy}
         toggleScheduleDay={toggleScheduleDay}
+        isTransfer={hasActiveDeployment}
+      />
+
+      <RenewEmployeeContractDialog
+        isOpen={showRenewContractDialog}
+        employeeName={data.full_name || data.name}
+        form={renewalForm}
+        isSaving={isSaving}
+        onFieldChange={(field, value) => setRenewalForm((cur) => ({ ...cur, [field]: value }))}
+        onFileChange={(file) => setRenewalForm((cur) => ({ ...cur, contractFile: file }))}
+        onCancel={() => {
+          if (isSaving) return;
+          setShowRenewContractDialog(false);
+        }}
+        onSave={handleRenewContract}
       />
     </div>
   );
