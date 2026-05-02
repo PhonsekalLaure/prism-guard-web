@@ -40,6 +40,11 @@ export default function EmploymentTab({ employee, isEditing, editForm, onField }
           <InfoCell label="Date Started"    value={hireDateStr}                                                               variant="blue" />
           <InfoCell label="Tenure"          value={tenureStr}                                                                 variant="blue" />
           <InfoCell label="Status"          value={employee.status?.toUpperCase()}                                            valueColor={employee.status === 'active' ? '#16a34a' : '#d97706'} />
+          <InfoCell
+            label="Employment Contract"
+            value={(employee.employment_contract_status || 'unknown').replace(/_/g, ' ').toUpperCase()}
+            valueColor={employee.employment_contract_valid === false ? '#dc2626' : '#16a34a'}
+          />
           <InfoCell label="Assigned Company" value={`${employee.current_company} - ${employee.current_site}`}                span2 />
         </div>
 

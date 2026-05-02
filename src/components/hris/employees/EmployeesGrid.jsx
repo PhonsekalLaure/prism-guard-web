@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  FaBriefcase, FaBuilding, FaCalendarAlt, FaEye, FaSearch
+  FaBriefcase, FaBuilding, FaCalendarAlt, FaExclamationTriangle, FaEye, FaSearch
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
 
@@ -90,6 +90,12 @@ export default function EmployeesGrid({
                 </div>
 
                 <div className="employee-info-section">
+                  {emp.employment_contract_needs_renewal && (
+                    <div className="employee-info-row" style={{ color: '#b91c1c', fontWeight: 700 }}>
+                      <FaExclamationTriangle />
+                      <span>Employment contract needs renewal</span>
+                    </div>
+                  )}
                   <div className="employee-info-row">
                     <FaBriefcase />
                     <span>{emp.position}</span>
