@@ -1,6 +1,6 @@
-import { FaMapMarkerAlt, FaUsers } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaPencilAlt, FaPlus, FaUsers } from 'react-icons/fa';
 
-export default function SitesTab({ client, onDeployGuard }) {
+export default function SitesTab({ client, onDeployGuard, onAddSite, onEditSite, onDeactivateSite, canManageSites = false }) {
   const sites = client.sites || [];
   const canDeployGuard = typeof onDeployGuard === 'function';
 
@@ -11,15 +11,27 @@ export default function SitesTab({ client, onDeployGuard }) {
           <h3 className="vc-section-title !mb-0">
             <FaMapMarkerAlt className="vc-section-icon" /> Deployment Sites
           </h3>
-          {canDeployGuard && sites.some((site) => site.is_active) && (
-            <button
-              type="button"
-              className="px-4 py-2 rounded-lg bg-brand-blue text-white font-semibold"
-              onClick={() => onDeployGuard()}
-            >
-              Deploy Guard
-            </button>
-          )}
+          <div className="flex flex-wrap gap-2">
+            {canManageSites && (
+              <button
+                type="button"
+                className="px-4 py-2 rounded-lg bg-slate-700 text-white font-semibold"
+                onClick={() => onAddSite?.()}
+              >
+                <FaPlus className="inline mr-2" />
+                Add Site
+              </button>
+            )}
+            {canDeployGuard && sites.some((site) => site.is_active) && (
+              <button
+                type="button"
+                className="px-4 py-2 rounded-lg bg-brand-blue text-white font-semibold"
+                onClick={() => onDeployGuard()}
+              >
+                Deploy Guard
+              </button>
+            )}
+          </div>
         </div>
 
         {sites.length > 0 ? (
@@ -40,16 +52,39 @@ export default function SitesTab({ client, onDeployGuard }) {
                   <span><FaUsers /> Active Guards: {site.active_guard_count ?? 0}</span>
                 </div>
                 <div className="mt-4">
-                  <button
-                    type="button"
-                    className={`px-4 py-2 rounded-lg font-semibold ${site.is_active && canDeployGuard ? 'bg-brand-blue text-white' : 'bg-slate-200 text-slate-500 cursor-not-allowed'}`}
-                    onClick={() => site.is_active && canDeployGuard && onDeployGuard(site.id)}
-                    disabled={!site.is_active || !canDeployGuard}
-                  >
-                    {site.is_active
-                      ? (canDeployGuard ? 'Deploy Guard Here' : 'View Only')
-                      : 'Inactive Site'}
-                  </button>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      className={`px-4 py-2 rounded-lg font-semibold ${site.is_active && canDeployGuard ? 'bg-brand-blue text-white' : 'bg-slate-200 text-slate-500 cursor-not-allowed'}`}
+                      onClick={() => site.is_active && canDeployGuard && onDeployGuard(site.id)}
+                      disabled={!site.is_active || !canDeployGuard}
+                    >
+                      {site.is_active
+                        ? (canDeployGuard ? 'Deploy Guard Here' : 'View Only')
+                        : 'Inactive Site'}
+                    </button>
+                    {canManageSites && (
+                      <>
+                        <button
+                          type="button"
+                          className={`px-4 py-2 rounded-lg font-semibold ${site.is_active ? 'bg-slate-100 text-slate-700' : 'bg-slate-200 text-slate-500 cursor-not-allowed'}`}
+                          onClick={() => site.is_active && onEditSite?.(site)}
+                          disabled={!site.is_active}
+                        >
+                          <FaPencilAlt className="inline mr-2" />
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          className={`px-4 py-2 rounded-lg font-semibold ${site.is_active ? 'bg-red-50 text-red-700' : 'bg-slate-200 text-slate-500 cursor-not-allowed'}`}
+                          onClick={() => site.is_active && onDeactivateSite?.(site)}
+                          disabled={!site.is_active}
+                        >
+                          Deactivate
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

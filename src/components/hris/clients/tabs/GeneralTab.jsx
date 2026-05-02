@@ -52,10 +52,12 @@ export default function GeneralTab({
   isSaving = false,
 }) {
   const avatarInputRef = useRef(null);
+  const contractInputRef = useRef(null);
   const contractColor =
     client.contract_status === 'Active'  ? '#16a34a' :
     client.contract_status === 'Expired' ? '#dc2626' : '#d97706';
   const avatarFile = pendingFiles?.avatar || null;
+  const contractFile = pendingFiles?.contractUrl || null;
   const avatarPreview = useMemo(
     () => (avatarFile ? URL.createObjectURL(avatarFile) : null),
     [avatarFile]
@@ -183,7 +185,7 @@ export default function GeneralTab({
               <EditInput label="Middle Name"     value={editForm.middleName}     onChange={(v) => onField('middleName', v)} />
               <EditInput label="Suffix"          value={editForm.suffix}         onChange={(v) => onField('suffix', v)} placeholder="Jr., Sr., III…" />
               <EditInput label="Mobile Number"   value={editForm.mobile}         onChange={(v) => onField('mobile', v)} placeholder="10-digit number" />
-              <EditInput label="Email Address"   value={editForm.email}          onChange={(v) => onField('email', v)} type="email" readOnly disabled />
+              <EditInput label="Email Address"   value={editForm.email}          onChange={(v) => onField('email', v)} type="email" />
               <EditInput label="Company Name"    value={editForm.company}        onChange={(v) => onField('company', v)} />
               <div className="vc-edit-field span-2">
                 <label className="vc-edit-label">Billing Address</label>
@@ -213,6 +215,27 @@ export default function GeneralTab({
                 onChange={(v) => onField('billingType', v)}
                 options={BILLING_TYPE_OPTIONS}
               />
+              <div className="vc-edit-field span-2">
+                <label className="vc-edit-label">Contract Document</label>
+                <input
+                  ref={contractInputRef}
+                  type="file"
+                  className="ve-edit-input"
+                  accept="image/*,application/pdf"
+                  onChange={(e) => {
+                    if (e.target.files?.[0]) {
+                      onFile?.('contractUrl', e.target.files[0]);
+                    }
+                  }}
+                />
+                <p className="ae-hint" style={{ marginTop: '0.35rem' }}>
+                  {contractFile
+                    ? `Selected: ${contractFile.name}`
+                    : client.contract_url
+                      ? 'Upload a replacement contract document to update the saved client contract.'
+                      : 'Upload the current client contract document.'}
+                </p>
+              </div>
             </div>
           </div>
         </>
