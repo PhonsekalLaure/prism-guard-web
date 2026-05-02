@@ -94,6 +94,21 @@ async function getAllSitesList(params = {}) {
   return data || [];
 }
 
+async function createClientSite(id, siteData) {
+  const { data } = await api.post(`/${id}/sites`, siteData);
+  return data;
+}
+
+async function updateClientSite(id, siteId, siteData) {
+  const { data } = await api.patch(`/${id}/sites/${siteId}`, siteData);
+  return data;
+}
+
+async function deactivateClientSite(id, siteId) {
+  const { data } = await api.post(`/${id}/sites/${siteId}/deactivate`);
+  return data;
+}
+
 export default {
   getAllClients,
   getClientDetails,
@@ -103,5 +118,8 @@ export default {
   updateClient,
   deactivateClient,
   relieveAllClientGuards,
-  getAllSitesList
+  getAllSitesList,
+  createClientSite,
+  updateClientSite,
+  deactivateClientSite,
 };

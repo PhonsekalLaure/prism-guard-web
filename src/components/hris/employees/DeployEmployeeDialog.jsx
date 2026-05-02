@@ -1,4 +1,4 @@
-import { FaSpinner, FaMapMarkerAlt, FaCalendarAlt, FaClock, FaBuilding, FaFileUpload, FaCheck } from 'react-icons/fa';
+import { FaSpinner, FaMapMarkerAlt, FaCalendarAlt, FaClock, FaBuilding, FaFileUpload, FaCheck, FaMoneyCheckAlt } from 'react-icons/fa';
 
 const DAY_OPTIONS = [
   { value: 0, label: 'Sun' },
@@ -22,7 +22,7 @@ function SectionLabel({ icon: Icon, children }) {
 
 export default function DeployEmployeeDialog({
   isOpen, employeeName, sitesList, deployForm, setDeployForm,
-  isDeploying, onCancel, onDeploy, toggleScheduleDay,
+  isDeploying, onCancel, onDeploy, toggleScheduleDay, isTransfer = false,
 }) {
   if (!isOpen) return null;
 
@@ -41,7 +41,7 @@ export default function DeployEmployeeDialog({
             <FaMapMarkerAlt />
           </div>
           <div className="dep-header-text">
-            <h3>Assign to Client Site</h3>
+            <h3>{isTransfer ? 'Transfer Assignment' : 'Assign to Client Site'}</h3>
             <p>Deploying <strong>{employeeName}</strong></p>
           </div>
         </div>
@@ -62,6 +62,20 @@ export default function DeployEmployeeDialog({
                 </option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <SectionLabel icon={FaMoneyCheckAlt}>Guard Salary</SectionLabel>
+            <label className="dep-field-label">Monthly Base Pay <span className="req">*</span></label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              className="dep-input"
+              value={deployForm.baseSalary}
+              onChange={(e) => setDeployForm((f) => ({ ...f, baseSalary: e.target.value }))}
+              placeholder="0.00"
+            />
           </div>
 
           <div>
@@ -187,7 +201,7 @@ export default function DeployEmployeeDialog({
             disabled={isDeploying || !deployForm.siteId}
           >
             {isDeploying ? <FaSpinner className="animate-spin" /> : <FaMapMarkerAlt />}
-            {isDeploying ? 'Deploying...' : 'Deploy Employee'}
+            {isDeploying ? (isTransfer ? 'Transferring...' : 'Deploying...') : (isTransfer ? 'Transfer Employee' : 'Deploy Employee')}
           </button>
         </div>
       </div>
