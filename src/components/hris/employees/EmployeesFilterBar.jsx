@@ -67,7 +67,6 @@ export default function EmployeesFilterBar({ filters, onFilterChange, clients = 
           <option value="all">All Status</option>
           <option value="active">Active</option>
           <option value="inactive">Inactive</option>
-          <option value="terminated">Terminated</option>
         </select>
       </div>
     </div>

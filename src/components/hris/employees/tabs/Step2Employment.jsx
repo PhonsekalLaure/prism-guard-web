@@ -130,7 +130,13 @@ export default function Step2Employment({ data, onChange, sites, onSiteChange, t
         </div>
         <FormField label="License Number"    type="text" value={data.licenseNumber}     onChange={(e) => onChange('licenseNumber',     e.target.value)} placeholder="e.g., SG-12345678" />
         <FormField label="Badge Number"      type="text" value={data.badgeNumber}       onChange={(e) => onChange('badgeNumber',       e.target.value)} placeholder="e.g., B-1234" />
-        <FormField label="License Expiry Date" type="date" value={data.licenseExpiryDate} onChange={(e) => onChange('licenseExpiryDate', e.target.value)} />
+        <FormField
+          label="License Expiry Date"
+          type="date"
+          value={data.licenseExpiryDate}
+          onChange={(e) => onChange('licenseExpiryDate', e.target.value)}
+          min={new Date().toISOString().split('T')[0]}
+        />
       </div>
     </div>
   );

@@ -40,6 +40,22 @@ const INITIAL_FORM = () => ({
   documents: {}, avatar: null,
 });
 
+function isEarlierDate(startDate, endDate) {
+  return Boolean(startDate && endDate && new Date(endDate) < new Date(startDate));
+}
+
+function isPastDate(dateValue) {
+  if (!dateValue) return false;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const parsedDate = new Date(dateValue);
+  parsedDate.setHours(0, 0, 0, 0);
+
+  return parsedDate < today;
+}
+
 export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode = false }) {
   const [currentStep,  setCurrentStep]  = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -131,6 +147,9 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
         if (!formData.deploymentStartDate || !formData.deploymentEndDate) {
           showNotification('Please set the initial deployment start and end date.', 'error'); return false;
         }
+        if (isEarlierDate(formData.deploymentStartDate, formData.deploymentEndDate)) {
+          showNotification('Deployment end date cannot be earlier than deployment start date.', 'error'); return false;
+        }
         if (formData.daysOfWeek.length === 0) {
           showNotification('Please select at least one schedule day for the initial deployment.', 'error'); return false;
         }
@@ -138,9 +157,15 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
           showNotification('Please set both shift start and shift end for the initial deployment.', 'error'); return false;
         }
       }
+      if (isPastDate(formData.licenseExpiryDate)) {
+        showNotification('License expiry date cannot be earlier than today.', 'error'); return false;
+      }
     } else if (currentStep === 3) {
       if (!formData.documents?.contract) {
         showNotification('Employee onboarding requires an employment contract document.', 'error'); return false;
+      }
+      if (formData.contractEndDate && isEarlierDate(formData.hireDate, formData.contractEndDate)) {
+        showNotification('Employment contract end date cannot be earlier than employment contract start date.', 'error'); return false;
       }
     }
     return true;
@@ -159,6 +184,21 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
       }
       if (!formData.contractEndDate) {
         showNotification('Please set the employee contract end date.', 'error');
+        setIsSubmitting(false);
+        return;
+      }
+      if (isEarlierDate(formData.hireDate, formData.contractEndDate)) {
+        showNotification('Employment contract end date cannot be earlier than employment contract start date.', 'error');
+        setIsSubmitting(false);
+        return;
+      }
+      if (formData.initialSiteId && isEarlierDate(formData.deploymentStartDate, formData.deploymentEndDate)) {
+        showNotification('Deployment end date cannot be earlier than deployment start date.', 'error');
+        setIsSubmitting(false);
+        return;
+      }
+      if (isPastDate(formData.licenseExpiryDate)) {
+        showNotification('License expiry date cannot be earlier than today.', 'error');
         setIsSubmitting(false);
         return;
       }

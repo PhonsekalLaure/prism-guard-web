@@ -1,4 +1,7 @@
-import { FaBuilding, FaCheck, FaClock, FaMapMarkerAlt, FaMoneyCheckAlt, FaRulerVertical, FaUserTie } from 'react-icons/fa';
+import {
+  FaBuilding, FaCheck, FaClock, FaFilter, FaMapMarkerAlt,
+  FaFileUpload, FaMoneyCheckAlt, FaRulerVertical, FaShieldAlt, FaUserTie,
+} from 'react-icons/fa';
 
 const DAY_OPTIONS = [
   { value: 0, label: 'Sun' },
@@ -10,24 +13,24 @@ const DAY_OPTIONS = [
   { value: 6, label: 'Sat' },
 ];
 
-function SectionLabel({ icon: Icon, children }) {
+function PanelHeader({ icon: Icon, children }) {
   const RenderedIcon = Icon;
   return (
-    <div className="dep-section-label">
-      <RenderedIcon />
-      <span>{children}</span>
+    <div className="gds-panel-header">
+      <div className="gds-panel-icon"><RenderedIcon /></div>
+      <p className="gds-panel-title">{children}</p>
     </div>
   );
 }
 
 function formatDistance(distanceKm) {
-  if (distanceKm == null) return 'Distance unavailable';
-  return `${distanceKm.toFixed(2)} km away`;
+  if (distanceKm == null) return 'No coords';
+  return `${distanceKm.toFixed(2)} km`;
 }
 
 function formatExperience(years) {
-  if (!years) return 'Newly hired';
-  return `${years.toFixed(1)} years experience`;
+  if (!years) return 'New hire';
+  return `${years.toFixed(1)} yrs exp`;
 }
 
 export default function GuardDeploymentSelector({
@@ -49,116 +52,157 @@ export default function GuardDeploymentSelector({
   const isMultiSelect = selectionMode === 'multiple';
 
   return (
-    <div className="space-y-5">
-      <div>
-        <SectionLabel icon={FaBuilding}>Client Site</SectionLabel>
-        <label className="dep-field-label">Select Site <span className="req">*</span></label>
-        <select
-          className="dep-input"
-          value={siteValue}
-          onChange={(e) => onSiteChange(e.target.value)}
-        >
-          <option value="">Select site</option>
-          {siteOptions.map((site) => (
-            <option key={site.value} value={site.value}>
-              {site.label}
-            </option>
-          ))}
-        </select>
-      </div>
+    <div className="gds-root">
 
-      <div>
-        <SectionLabel icon={FaMapMarkerAlt}>Guard Filters</SectionLabel>
-        <div className="flex flex-wrap gap-3">
-          <label className="flex items-center gap-2 text-sm text-slate-700">
-            <input
-              type="checkbox"
-              checked={filters.tallOnly}
-              onChange={(e) => onFilterChange('tallOnly', e.target.checked)}
-            />
-            <span>Tall guards (170 cm and above)</span>
-          </label>
-          <label className="flex items-center gap-2 text-sm text-slate-700">
-            <input
-              type="checkbox"
-              checked={filters.experiencedOnly}
-              onChange={(e) => onFilterChange('experiencedOnly', e.target.checked)}
-            />
-            <span>Experienced guards (2+ years)</span>
-          </label>
+      {/* ── Site selector ── */}
+      <div className="gds-panel">
+        <PanelHeader icon={FaBuilding}>Client Site</PanelHeader>
+        <div className="gds-panel-body">
+          <label className="dep-field-label">Select Site <span className="req">*</span></label>
+          <select
+            className="dep-input"
+            value={siteValue}
+            onChange={(e) => onSiteChange(e.target.value)}
+          >
+            <option value="">— Select a site —</option>
+            {siteOptions.map((site) => (
+              <option key={site.value} value={site.value}>{site.label}</option>
+            ))}
+          </select>
         </div>
       </div>
 
-      <div>
-        <SectionLabel icon={FaUserTie}>Recommended Guards</SectionLabel>
-        <div className="rounded-xl border border-slate-200 overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-200 bg-slate-50">
-            <p className="font-semibold text-slate-900">Closest guards appear first.</p>
-            <p className="text-sm text-slate-600">
-              {isMultiSelect
-                ? 'Select one or more guards, then configure each selected guard below.'
-                : 'Select one guard to configure the initial assignment.'}
-            </p>
+      {/* ── Guard filters ── */}
+      <div className="gds-panel">
+        <PanelHeader icon={FaFilter}>Guard Filters</PanelHeader>
+        <div className="gds-panel-body">
+          <div className="gds-filter-pills">
+            <label className={`gds-filter-pill${filters.tallOnly ? ' active' : ''}`}>
+              <input
+                type="checkbox"
+                checked={filters.tallOnly}
+                onChange={(e) => onFilterChange('tallOnly', e.target.checked)}
+              />
+              <FaRulerVertical /> Tall (170 cm+)
+            </label>
+            <label className={`gds-filter-pill${filters.experiencedOnly ? ' active' : ''}`}>
+              <input
+                type="checkbox"
+                checked={filters.experiencedOnly}
+                onChange={(e) => onFilterChange('experiencedOnly', e.target.checked)}
+              />
+              <FaShieldAlt /> Experienced (2+ yrs)
+            </label>
           </div>
-          <div className="max-h-[320px] overflow-y-auto">
-            {loadingEmployees ? (
-              <div className="px-4 py-8 text-center text-slate-600">Loading available guards...</div>
-            ) : employees.length === 0 ? (
-              <div className="px-4 py-8 text-center text-slate-600">{emptyMessage}</div>
-            ) : (
-              employees.map((employee) => {
-                const isSelected = selectedEmployeeIds.includes(employee.id);
-                return (
-                  <label
-                    key={employee.id}
-                    className={`flex gap-3 px-4 py-3 border-b border-slate-100 last:border-b-0 cursor-pointer hover:bg-slate-50 ${isSelected ? 'bg-blue-50' : ''}`}
-                  >
-                    <input
-                      type={isMultiSelect ? 'checkbox' : 'radio'}
-                      name={isMultiSelect ? `selectedGuard-${employee.id}` : 'selectedGuard'}
-                      className="mt-1"
-                      checked={isSelected}
-                      onChange={() => onToggleEmployee(employee)}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <p className="font-semibold text-slate-900">{employee.name}</p>
-                        <span className="text-sm font-semibold text-brand-blue" title={employee.distance_km == null ? 'This guard does not have saved residential coordinates yet.' : undefined}>
-                          {formatDistance(employee.distance_km)}
-                        </span>
-                      </div>
-                      <p className="text-sm text-slate-600">{employee.employee_id_number} | {employee.position}</p>
-                      <div className="mt-2 flex flex-wrap gap-3 text-xs text-slate-600">
-                        <span className="inline-flex items-center gap-1"><FaRulerVertical /> {employee.height_cm ? `${employee.height_cm} cm` : 'Height unavailable'}</span>
-                        <span className="inline-flex items-center gap-1"><FaCheck /> {formatExperience(employee.years_experience)}</span>
-                        <span className="inline-flex items-center gap-1"><FaMoneyCheckAlt /> {employee.base_salary ? `PHP ${Number(employee.base_salary).toLocaleString()}` : 'Base pay unset'}</span>
-                      </div>
+        </div>
+      </div>
+
+      {/* ── Guard list ── */}
+      <div className="gds-panel">
+        <PanelHeader icon={FaUserTie}>Available Guards</PanelHeader>
+        <div className="gds-guard-list-hint">
+          <FaMapMarkerAlt />
+          {isMultiSelect
+            ? 'Guards ranked by proximity to site. Select one or more.'
+            : 'Guards ranked by proximity to site. Select one guard.'}
+        </div>
+        <div className="gds-guard-list">
+          {loadingEmployees ? (
+            <div className="gds-loading">
+              <div className="gds-loading-dot" />
+              <div className="gds-loading-dot" />
+              <div className="gds-loading-dot" />
+              <span>Loading available guards…</span>
+            </div>
+          ) : employees.length === 0 ? (
+            <div className="gds-empty">
+              <div className="gds-empty-icon"><FaUserTie /></div>
+              <p className="gds-empty-text">{emptyMessage}</p>
+            </div>
+          ) : (
+            employees.map((employee) => {
+              const isSelected = selectedEmployeeIds.includes(employee.id);
+              return (
+                <label
+                  key={employee.id}
+                  className={`gds-guard-card${isSelected ? ' selected' : ''}`}
+                >
+                  <input
+                    type={isMultiSelect ? 'checkbox' : 'radio'}
+                    name={isMultiSelect ? `selectedGuard-${employee.id}` : 'selectedGuard'}
+                    className="gds-guard-radio"
+                    checked={isSelected}
+                    onChange={() => onToggleEmployee(employee)}
+                  />
+                  <div className="gds-guard-avatar">
+                    {(employee.name || 'G').charAt(0).toUpperCase()}
+                  </div>
+                  <div className="gds-guard-info">
+                    <div className="gds-guard-row">
+                      <p className="gds-guard-name">{employee.name}</p>
+                      <span
+                        className="gds-guard-distance"
+                        title={employee.distance_km == null ? 'No residential coordinates saved yet' : undefined}
+                      >
+                        {formatDistance(employee.distance_km)}
+                      </span>
                     </div>
-                  </label>
-                );
-              })
-            )}
-          </div>
+                    <p className="gds-guard-sub">
+                      {employee.employee_id_number} · {employee.position}
+                    </p>
+                    <div className="gds-guard-chips">
+                      <span className="gds-guard-chip">
+                        <FaRulerVertical />
+                        {employee.height_cm ? `${employee.height_cm} cm` : 'No height'}
+                      </span>
+                      <span className="gds-guard-chip">
+                        <FaShieldAlt />
+                        {formatExperience(employee.years_experience)}
+                      </span>
+                      <span className="gds-guard-chip">
+                        <FaMoneyCheckAlt />
+                        {employee.base_salary
+                          ? `₱${Number(employee.base_salary).toLocaleString()}`
+                          : 'No base pay'}
+                      </span>
+                    </div>
+                  </div>
+                </label>
+              );
+            })
+          )}
         </div>
       </div>
 
+      {/* ── Single-select assignment config ── */}
       {!isMultiSelect && (
         <>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <SectionLabel icon={FaMoneyCheckAlt}>Base Pay</SectionLabel>
-              <label className="dep-field-label">Base Pay <span className="req">*</span></label>
-              <input
-                type="number"
-                min="0"
-                className="dep-input"
-                value={deploymentForm.baseSalary}
-                onChange={(e) => onFieldChange('baseSalary', e.target.value)}
-                placeholder="0.00"
-              />
+          <div className="gds-panel">
+            <PanelHeader icon={FaMoneyCheckAlt}>Base Pay</PanelHeader>
+            <div className="gds-panel-body">
+              <label className="dep-field-label">Monthly Base Pay <span className="req">*</span></label>
+              <div style={{ position: 'relative' }}>
+                <span style={{
+                  position: 'absolute', left: '0.85rem', top: '50%',
+                  transform: 'translateY(-50%)', fontSize: '0.78rem',
+                  fontWeight: 700, color: '#64748b',
+                }}>₱</span>
+                <input
+                  type="number"
+                  min="0"
+                  className="dep-input"
+                  style={{ paddingLeft: '1.75rem' }}
+                  value={deploymentForm.baseSalary}
+                  onChange={(e) => onFieldChange('baseSalary', e.target.value)}
+                  placeholder="0.00"
+                />
+              </div>
             </div>
-            <div>
-              <SectionLabel icon={FaClock}>Contract Period</SectionLabel>
+          </div>
+
+          <div className="gds-panel">
+            <PanelHeader icon={FaClock}>Contract Period</PanelHeader>
+            <div className="gds-panel-body">
               <div className="dep-grid-2">
                 <div>
                   <label className="dep-field-label">Start Date</label>
@@ -182,55 +226,88 @@ export default function GuardDeploymentSelector({
             </div>
           </div>
 
-          <div>
-            <SectionLabel icon={FaClock}>Schedule Days <span style={{ color: '#ef4444' }}>*</span></SectionLabel>
-            <div className="dep-days-grid">
-              {DAY_OPTIONS.map((day) => {
-                const active = deploymentForm.daysOfWeek.includes(day.value);
-                return (
-                  <button
-                    key={day.value}
-                    type="button"
-                    className={`dep-day-pill${active ? ' active' : ''}`}
-                    onClick={() => toggleScheduleDay(day.value)}
-                  >
-                    {active && <FaCheck className="dep-day-check" />}
-                    {day.label}
-                  </button>
-                );
-              })}
+          <div className="gds-panel">
+            <PanelHeader icon={FaClock}>
+              Schedule <span style={{ color: '#ef4444' }}>*</span>
+            </PanelHeader>
+            <div className="gds-panel-body">
+              <label className="dep-field-label" style={{ marginBottom: '0.5rem' }}>
+                Work Days <span className="req">*</span>
+              </label>
+              <div className="dep-days-grid" style={{ marginBottom: '1rem' }}>
+                {DAY_OPTIONS.map((day) => {
+                  const active = deploymentForm.daysOfWeek.includes(day.value);
+                  return (
+                    <button
+                      key={day.value}
+                      type="button"
+                      className={`dep-day-pill${active ? ' active' : ''}`}
+                      onClick={() => toggleScheduleDay(day.value)}
+                    >
+                      {active && <FaCheck className="dep-day-check" />}
+                      {day.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="dep-grid-2">
+                <div>
+                  <label className="dep-field-label">Shift Start <span className="req">*</span></label>
+                  <input
+                    type="time"
+                    className="dep-input"
+                    value={deploymentForm.shiftStart}
+                    onChange={(e) => {
+                      const start = e.target.value;
+                      onFieldChange('shiftStart', start);
+                      if (start) {
+                        const [h, m] = start.split(':').map(Number);
+                        const endH = (h + 12) % 24;
+                        onFieldChange('shiftEnd', `${String(endH).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+                      }
+                    }}
+                  />
+                </div>
+                <div>
+                  <label className="dep-field-label">Shift End <span className="req">*</span></label>
+                  <input
+                    type="time"
+                    className="dep-input"
+                    value={deploymentForm.shiftEnd}
+                    onChange={(e) => onFieldChange('shiftEnd', e.target.value)}
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
-          <div>
-            <SectionLabel icon={FaClock}>Shift Hours <span style={{ color: '#ef4444' }}>*</span></SectionLabel>
-            <div className="dep-grid-2">
-              <div>
-                <label className="dep-field-label">Shift Start <span className="req">*</span></label>
+          <div className="gds-panel">
+            <PanelHeader icon={FaFileUpload}>
+              Deployment Order <span style={{ color: '#ef4444' }}>*</span>
+            </PanelHeader>
+            <div className="gds-panel-body">
+              <label className={`dep-file-zone${deploymentForm.deploymentOrderFile ? ' has-file' : ' required-file'}`}>
+                <FaFileUpload className="dep-file-icon" />
+                <div className="dep-file-info">
+                  {deploymentForm.deploymentOrderFile ? (
+                    <>
+                      <p className="dep-file-name">{deploymentForm.deploymentOrderFile.name}</p>
+                      <p className="dep-file-hint">Click to replace file</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="dep-file-name" style={{ color: '#64748b' }}>Upload deployment order</p>
+                      <p className="dep-file-hint">Required - Image or PDF accepted</p>
+                    </>
+                  )}
+                </div>
                 <input
-                  type="time"
-                  className="dep-input"
-                  value={deploymentForm.shiftStart}
-                  onChange={(e) => {
-                    const start = e.target.value;
-                    onFieldChange('shiftStart', start);
-                    if (start) {
-                      const [h, m] = start.split(':').map(Number);
-                      const endH = (h + 12) % 24;
-                      onFieldChange('shiftEnd', `${String(endH).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
-                    }
-                  }}
+                  type="file"
+                  className="hidden"
+                  accept="image/*,application/pdf"
+                  onChange={(e) => onFieldChange('deploymentOrderFile', e.target.files?.[0] || null)}
                 />
-              </div>
-              <div>
-                <label className="dep-field-label">Shift End <span className="req">*</span></label>
-                <input
-                  type="time"
-                  className="dep-input"
-                  value={deploymentForm.shiftEnd}
-                  onChange={(e) => onFieldChange('shiftEnd', e.target.value)}
-                />
-              </div>
+              </label>
             </div>
           </div>
         </>

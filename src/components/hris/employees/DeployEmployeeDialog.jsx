@@ -1,4 +1,4 @@
-import { FaSpinner, FaMapMarkerAlt, FaCalendarAlt, FaClock, FaBuilding, FaFileUpload, FaCheck } from 'react-icons/fa';
+import { FaSpinner, FaMapMarkerAlt, FaCalendarAlt, FaClock, FaBuilding, FaFileUpload, FaCheck, FaMoneyCheckAlt } from 'react-icons/fa';
 
 const DAY_OPTIONS = [
   { value: 0, label: 'Sun' },
@@ -22,7 +22,7 @@ function SectionLabel({ icon: Icon, children }) {
 
 export default function DeployEmployeeDialog({
   isOpen, employeeName, sitesList, deployForm, setDeployForm,
-  isDeploying, onCancel, onDeploy, toggleScheduleDay,
+  isDeploying, onCancel, onDeploy, toggleScheduleDay, isTransfer = false,
 }) {
   if (!isOpen) return null;
 
@@ -41,7 +41,7 @@ export default function DeployEmployeeDialog({
             <FaMapMarkerAlt />
           </div>
           <div className="dep-header-text">
-            <h3>Assign to Client Site</h3>
+            <h3>{isTransfer ? 'Transfer Assignment' : 'Assign to Client Site'}</h3>
             <p>Deploying <strong>{employeeName}</strong></p>
           </div>
         </div>
@@ -65,10 +65,24 @@ export default function DeployEmployeeDialog({
           </div>
 
           <div>
-            <SectionLabel icon={FaCalendarAlt}>Contract Period</SectionLabel>
+            <SectionLabel icon={FaMoneyCheckAlt}>Guard Salary</SectionLabel>
+            <label className="dep-field-label">Monthly Base Pay <span className="req">*</span></label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              className="dep-input"
+              value={deployForm.baseSalary}
+              onChange={(e) => setDeployForm((f) => ({ ...f, baseSalary: e.target.value }))}
+              placeholder="0.00"
+            />
+          </div>
+
+          <div>
+            <SectionLabel icon={FaCalendarAlt}>Deployment Contract Period</SectionLabel>
             <div className="dep-grid-2">
               <div>
-                <label className="dep-field-label">Start Date</label>
+                <label className="dep-field-label">Deployment Contract Start Date</label>
                 <input
                   type="date"
                   className="dep-input"
@@ -77,12 +91,13 @@ export default function DeployEmployeeDialog({
                 />
               </div>
               <div>
-                <label className="dep-field-label">End Date</label>
+                <label className="dep-field-label">Deployment Contract End Date</label>
                 <input
                   type="date"
                   className="dep-input"
                   value={deployForm.contractEndDate}
                   onChange={(e) => setDeployForm((f) => ({ ...f, contractEndDate: e.target.value }))}
+                  min={deployForm.contractStartDate || undefined}
                 />
               </div>
             </div>
@@ -148,8 +163,10 @@ export default function DeployEmployeeDialog({
           </div>
 
           <div>
-            <SectionLabel icon={FaFileUpload}>Deployment Order</SectionLabel>
-            <label className={`dep-file-zone${deployForm.deploymentOrderFile ? ' has-file' : ''}`}>
+            <SectionLabel icon={FaFileUpload}>
+              Deployment Order <span style={{ color: '#ef4444' }}>*</span>
+            </SectionLabel>
+            <label className={`dep-file-zone${deployForm.deploymentOrderFile ? ' has-file' : ' required-file'}`}>
               <FaFileUpload className="dep-file-icon" />
               <div className="dep-file-info">
                 {deployForm.deploymentOrderFile ? (
@@ -160,7 +177,7 @@ export default function DeployEmployeeDialog({
                 ) : (
                   <>
                     <p className="dep-file-name" style={{ color: '#64748b' }}>Upload deployment order</p>
-                    <p className="dep-file-hint">Image or PDF accepted</p>
+                    <p className="dep-file-hint">Required — Image or PDF accepted</p>
                   </>
                 )}
               </div>
@@ -184,7 +201,7 @@ export default function DeployEmployeeDialog({
             disabled={isDeploying || !deployForm.siteId}
           >
             {isDeploying ? <FaSpinner className="animate-spin" /> : <FaMapMarkerAlt />}
-            {isDeploying ? 'Deploying...' : 'Deploy Employee'}
+            {isDeploying ? (isTransfer ? 'Transferring...' : 'Deploying...') : (isTransfer ? 'Transfer Employee' : 'Deploy Employee')}
           </button>
         </div>
       </div>

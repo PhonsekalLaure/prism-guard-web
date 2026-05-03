@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   FaTimes, FaBuilding, FaMapMarkerAlt, FaFileInvoiceDollar, FaTicketAlt,
-  FaFileContract, FaUserPlus,
+  FaFileContract, FaUserPlus, FaUserMinus,
 } from 'react-icons/fa';
 import clientService from '@services/clientService';
 import employeeService from '@services/employeeService';
@@ -15,29 +15,49 @@ import SitesTab from './tabs/SitesTab';
 import BillingsTab from './tabs/BillingsTab';
 import TicketsTab from './tabs/TicketsTab';
 import GuardDeploymentSelector from './GuardDeploymentSelector';
+import DeactivateClientDialog from './DeactivateClientDialog';
+import RelieveAllClientGuardsDialog from './RelieveAllClientGuardsDialog';
+import ClientSiteEditorDialog from './ClientSiteEditorDialog';
+import RenewClientContractDialog from './RenewClientContractDialog';
+import DeactivateClientSiteDialog from './DeactivateClientSiteDialog';
 
 const TABS = [
-  { key: 'general',  label: 'General Info',     icon: FaBuilding },
-  { key: 'sites',    label: 'Sites',             icon: FaMapMarkerAlt },
-  { key: 'billings', label: 'Billings',          icon: FaFileInvoiceDollar },
-  { key: 'tickets',  label: 'Service Tickets',   icon: FaTicketAlt },
+  { key: 'general', label: 'General Info', icon: FaBuilding },
+  { key: 'sites', label: 'Sites', icon: FaMapMarkerAlt },
+  { key: 'billings', label: 'Billings', icon: FaFileInvoiceDollar },
+  { key: 'tickets', label: 'Service Tickets', icon: FaTicketAlt },
 ];
 
-/* Build an edit-form snapshot from the current client data */
 const buildEditForm = (client) => ({
-  firstName:        client.first_name        || '',
-  lastName:         client.last_name         || '',
-  middleName:       client.middle_name       || '',
-  suffix:           client.suffix            || '',
-  mobile:           (client.phone_number     || '').replace(/^\+63/, ''),
-  email:            client.contact_email     || '',
-  company:          client.company           || '',
-  billingAddress:   client.billing_address   || '',
-  ratePerGuard:     client.rate_per_guard    || '',
-  billingType:      client.billing_type      || 'semi_monthly',
-  contractStartDate: client.contract_start_date || '',
-  contractEndDate:   client.contract_end_date   || '',
+  firstName: client.first_name || '',
+  lastName: client.last_name || '',
+  middleName: client.middle_name || '',
+  suffix: client.suffix || '',
+  mobile: (client.phone_number || '').replace(/^\+63/, ''),
+  email: client.contact_email || '',
+  company: client.company || '',
+  billingAddress: client.billing_address || '',
 });
+
+const EMPTY_SITE_FORM = {
+  siteName: '',
+  siteAddress: '',
+  latitude: '',
+  longitude: '',
+  geofenceRadius: 50,
+};
+
+function buildSiteForm(site = null) {
+  if (!site) return { ...EMPTY_SITE_FORM };
+
+  return {
+    siteName: site.site_name || '',
+    siteAddress: site.site_address || '',
+    latitude: site.latitude ?? '',
+    longitude: site.longitude ?? '',
+    geofenceRadius: site.geofence_radius_meters ?? 50,
+  };
+}
 
 export default function ViewClientDetail({
   isOpen, client: previewClient, onClose, onUpdated, pageMode = false,
@@ -49,13 +69,25 @@ export default function ViewClientDetail({
   const [clientDetails, setClientDetails] = useState(null);
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState(false);
-
-  /* Edit state */
-  const [isEditing, setIsEditing]   = useState(false);
-  const [editForm,  setEditForm]    = useState({});
-  const [isSaving,  setIsSaving]    = useState(false);
-
-  /* Deploy modal state */
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({});
+  const [pendingFiles, setPendingFiles] = useState({});
+  const [isSaving, setIsSaving] = useState(false);
+  const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false);
+  const [showRelieveAllConfirm, setShowRelieveAllConfirm] = useState(false);
+  const [showRenewContractDialog, setShowRenewContractDialog] = useState(false);
+  const [showSiteDialog, setShowSiteDialog] = useState(false);
+  const [sitePendingDeactivation, setSitePendingDeactivation] = useState(null);
+  const [siteDialogMode, setSiteDialogMode] = useState('create');
+  const [editingSite, setEditingSite] = useState(null);
+  const [siteForm, setSiteForm] = useState(EMPTY_SITE_FORM);
+  const [contractForm, setContractForm] = useState({
+    contractStartDate: '',
+    contractEndDate: '',
+    ratePerGuard: '',
+    billingType: 'semi_monthly',
+    contractFile: null,
+  });
   const [showDeployModal, setShowDeployModal] = useState(false);
   const [deployableEmployees, setDeployableEmployees] = useState([]);
   const [loadingDeployable, setLoadingDeployable] = useState(false);
@@ -70,6 +102,7 @@ export default function ViewClientDetail({
     shiftStart: '',
     shiftEnd: '',
     baseSalary: '',
+    deploymentOrderFile: null,
   });
   const { notification, showNotification, closeNotification } = useNotification();
 
@@ -95,6 +128,21 @@ export default function ViewClientDetail({
       setFetchError(false);
       setActiveTab('general');
       setIsEditing(false);
+      setPendingFiles({});
+      setShowDeactivateConfirm(false);
+      setShowRelieveAllConfirm(false);
+      setShowRenewContractDialog(false);
+      setShowSiteDialog(false);
+      setSitePendingDeactivation(null);
+      setEditingSite(null);
+      setSiteForm(EMPTY_SITE_FORM);
+      setContractForm({
+        contractStartDate: '',
+        contractEndDate: '',
+        ratePerGuard: '',
+        billingType: 'semi_monthly',
+        contractFile: null,
+      });
       setShowDeployModal(false);
       setDeployableEmployees([]);
       setSelectedEmployee(null);
@@ -107,6 +155,7 @@ export default function ViewClientDetail({
         shiftStart: '',
         shiftEnd: '',
         baseSalary: '',
+        deploymentOrderFile: null,
       });
     }
   }, [isOpen, previewClient]);
@@ -160,28 +209,213 @@ export default function ViewClientDetail({
 
   if (!isOpen || !previewClient) return null;
 
-  /* ── Edit handlers ── */
-  const handleEdit   = () => { setEditForm(buildEditForm(data)); setIsEditing(true); };
-  const handleCancel = () => { setIsEditing(false); };
-  const handleField  = (key, value) => setEditForm((f) => ({ ...f, [key]: value }));
+  const handleEdit = () => {
+    setEditForm(buildEditForm(data));
+    setPendingFiles({});
+    setIsEditing(true);
+  };
 
-  /* Frontend-only save (no API call per spec) */
+  const handleCancel = () => {
+    setIsEditing(false);
+    setPendingFiles({});
+  };
+
+  const handleField = (key, value) => setEditForm((cur) => ({ ...cur, [key]: value }));
+  const handleFile = (key, file) => setPendingFiles((prev) => ({ ...prev, [key]: file }));
+  const handleSiteField = (key, value) => setSiteForm((cur) => ({ ...cur, [key]: value }));
+  const handleContractField = (key, value) => setContractForm((cur) => ({ ...cur, [key]: value }));
+
+  const openRenewContractDialog = () => {
+    const baseStartDate = data.contract_end_date
+      ? (() => {
+        const nextDay = new Date(data.contract_end_date);
+        nextDay.setDate(nextDay.getDate() + 1);
+        return nextDay.toISOString().split('T')[0];
+      })()
+      : new Date().toISOString().split('T')[0];
+
+    setContractForm({
+      contractStartDate: baseStartDate,
+      contractEndDate: '',
+      ratePerGuard: data.rate_per_guard || '',
+      billingType: data.billing_type || 'semi_monthly',
+      contractFile: null,
+    });
+    setShowRenewContractDialog(true);
+  };
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // TODO: wire up clientService.updateClient when backend is ready
-      await new Promise((r) => setTimeout(r, 600)); // simulate save
+      const formData = new FormData();
+      Object.entries(editForm).forEach(([key, value]) => {
+        formData.append(key, value ?? '');
+      });
+      Object.entries(pendingFiles).forEach(([key, file]) => {
+        if (file) formData.append(key, file);
+      });
+
+      await clientService.updateClient(previewClient.id, formData);
+      await loadClientDetails(previewClient.id);
       setIsEditing(false);
+      setPendingFiles({});
       showNotification('Client details updated successfully.', 'success');
       onUpdated?.();
     } catch (err) {
-      showNotification('Failed to save changes.', 'error');
+      showNotification(err.response?.data?.error || 'Failed to save changes.', 'error');
     } finally {
       setIsSaving(false);
     }
   };
 
-  /* ── Deploy handlers ── */
+  const openCreateSiteDialog = () => {
+    setSiteDialogMode('create');
+    setEditingSite(null);
+    setSiteForm({ ...EMPTY_SITE_FORM });
+    setShowSiteDialog(true);
+  };
+
+  const openEditSiteDialog = (site) => {
+    setSiteDialogMode('edit');
+    setEditingSite(site);
+    setSiteForm(buildSiteForm(site));
+    setShowSiteDialog(true);
+  };
+
+  const handleSaveSite = async () => {
+    setIsSaving(true);
+    try {
+      const payload = {
+        siteName: siteForm.siteName,
+        siteAddress: siteForm.siteAddress,
+        latitude: siteForm.latitude,
+        longitude: siteForm.longitude,
+        geofenceRadius: siteForm.geofenceRadius,
+      };
+
+      if (siteDialogMode === 'edit' && editingSite?.id) {
+        await clientService.updateClientSite(previewClient.id, editingSite.id, payload);
+        showNotification('Client site updated successfully.', 'success');
+      } else {
+        await clientService.createClientSite(previewClient.id, payload);
+        showNotification('Client site created successfully.', 'success');
+      }
+
+      setShowSiteDialog(false);
+      setEditingSite(null);
+      await loadClientDetails(previewClient.id);
+      onUpdated?.();
+    } catch (err) {
+      showNotification(err.response?.data?.error || 'Failed to save client site.', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const openDeactivateSiteDialog = (site) => {
+    if (!site?.is_active) return;
+    if ((site.active_guard_count || 0) > 0) {
+      showNotification('Relieve or transfer all active guards before deactivating this site.', 'error');
+      return;
+    }
+    setSitePendingDeactivation(site);
+  };
+
+  const handleDeactivateSite = async () => {
+    if (!sitePendingDeactivation?.id) return;
+
+    setIsSaving(true);
+    try {
+      await clientService.deactivateClientSite(previewClient.id, sitePendingDeactivation.id);
+      await loadClientDetails(previewClient.id);
+      onUpdated?.();
+      showNotification(`Site "${sitePendingDeactivation.site_name}" deactivated successfully.`, 'success');
+      setSitePendingDeactivation(null);
+    } catch (err) {
+      showNotification(err.response?.data?.error || 'Failed to deactivate site.', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleRenewContract = async () => {
+    if (!contractForm.contractStartDate || !contractForm.contractEndDate) {
+      showNotification('Please set both renewal contract dates.', 'error');
+      return;
+    }
+    if (new Date(contractForm.contractEndDate) <= new Date(contractForm.contractStartDate)) {
+      showNotification('Renewal contract end date must be after renewal contract start date.', 'error');
+      return;
+    }
+    if (!contractForm.contractFile) {
+      showNotification('Please upload the renewed client contract document.', 'error');
+      return;
+    }
+    if (!contractForm.ratePerGuard || Number(contractForm.ratePerGuard) <= 0) {
+      showNotification('Please set the contract rate per guard.', 'error');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const payload = new FormData();
+      payload.append('contractStartDate', contractForm.contractStartDate);
+      payload.append('contractEndDate', contractForm.contractEndDate);
+      payload.append('ratePerGuard', contractForm.ratePerGuard);
+      payload.append('billingType', contractForm.billingType);
+      payload.append('contractUrl', contractForm.contractFile);
+      await clientService.updateClient(previewClient.id, payload);
+      await loadClientDetails(previewClient.id);
+      setShowRenewContractDialog(false);
+      setContractForm({
+        contractStartDate: '',
+        contractEndDate: '',
+        ratePerGuard: '',
+        billingType: 'semi_monthly',
+        contractFile: null,
+      });
+      onUpdated?.();
+      showNotification('Client contract renewed successfully.', 'success');
+    } catch (err) {
+      showNotification(err.response?.data?.error || 'Failed to renew client contract.', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeactivate = async () => {
+    setIsSaving(true);
+    try {
+      await clientService.deactivateClient(previewClient.id);
+      showNotification('Client deactivated successfully.', 'success');
+      setShowDeactivateConfirm(false);
+      onUpdated?.();
+      onClose();
+    } catch (err) {
+      showNotification(err.response?.data?.error || 'Failed to deactivate client.', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleRelieveAllGuards = async () => {
+    setIsSaving(true);
+    try {
+      const response = await clientService.relieveAllClientGuards(previewClient.id);
+      await loadClientDetails(previewClient.id);
+      onUpdated?.();
+      setShowRelieveAllConfirm(false);
+      showNotification(
+        `Relieved ${response?.data?.relieved_guard_count || data.guard_count || 0} guard(s) from this client.`,
+        'success'
+      );
+    } catch (err) {
+      showNotification(err.response?.data?.error || 'Failed to relieve client guards.', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const openDeployModal = (siteId = '') => {
     setShowDeployModal(true);
     setSelectedEmployee(null);
@@ -194,6 +428,7 @@ export default function ViewClientDetail({
       shiftStart: '',
       shiftEnd: '',
       baseSalary: '',
+      deploymentOrderFile: null,
     });
   };
 
@@ -212,11 +447,12 @@ export default function ViewClientDetail({
   };
 
   const handleDeployGuard = async () => {
-    if (!deployForm.siteId)                    { showNotification('Please select an active site.', 'error'); return; }
-    if (!selectedEmployee?.id)                 { showNotification('Please select a guard.', 'error'); return; }
-    if (!deployForm.baseSalary)                { showNotification('Please set the guard base pay.', 'error'); return; }
-    if (deployForm.daysOfWeek.length === 0)    { showNotification('Please select at least one schedule day.', 'error'); return; }
+    if (!deployForm.siteId) { showNotification('Please select an active site.', 'error'); return; }
+    if (!selectedEmployee?.id) { showNotification('Please select a guard.', 'error'); return; }
+    if (!deployForm.baseSalary) { showNotification('Please set the guard base pay.', 'error'); return; }
+    if (deployForm.daysOfWeek.length === 0) { showNotification('Please select at least one schedule day.', 'error'); return; }
     if (!deployForm.shiftStart || !deployForm.shiftEnd) { showNotification('Please set both shift start and end time.', 'error'); return; }
+    if (!deployForm.deploymentOrderFile) { showNotification('Please upload the deployment order document.', 'error'); return; }
 
     setIsDeploying(true);
     try {
@@ -224,10 +460,11 @@ export default function ViewClientDetail({
       payload.append('siteId', deployForm.siteId);
       payload.append('baseSalary', deployForm.baseSalary);
       if (deployForm.contractStartDate) payload.append('contractStartDate', deployForm.contractStartDate);
-      if (deployForm.contractEndDate)   payload.append('contractEndDate',   deployForm.contractEndDate);
+      if (deployForm.contractEndDate) payload.append('contractEndDate', deployForm.contractEndDate);
       deployForm.daysOfWeek.forEach((day) => payload.append('daysOfWeek', String(day)));
       payload.append('shiftStart', deployForm.shiftStart);
-      payload.append('shiftEnd',   deployForm.shiftEnd);
+      payload.append('shiftEnd', deployForm.shiftEnd);
+      payload.append('document_deployment_order', deployForm.deploymentOrderFile);
       await employeeService.deployEmployee(selectedEmployee.id, payload);
       await loadClientDetails(previewClient.id);
       onUpdated?.();
@@ -240,7 +477,7 @@ export default function ViewClientDetail({
     }
   };
 
-  const outerClass   = pageMode ? 'ep-page-wrapper'    : 'vc-modal-overlay';
+  const outerClass = pageMode ? 'ep-page-wrapper' : 'vc-modal-overlay';
   const contentClass = pageMode ? 'ep-detail-container' : 'vc-modal-content';
 
   return (
@@ -255,7 +492,6 @@ export default function ViewClientDetail({
       )}
 
       <div className={contentClass} onClick={pageMode ? undefined : (e) => e.stopPropagation()}>
-        {/* ── Header (title only, no action buttons) ── */}
         <div className="vc-modal-header">
           <div>
             <h2>Client Details</h2>
@@ -266,7 +502,6 @@ export default function ViewClientDetail({
           )}
         </div>
 
-        {/* ── Tab bar ── */}
         <div className="vc-tabs-bar">
           {TABS.map((tab) => (
             <button
@@ -279,7 +514,6 @@ export default function ViewClientDetail({
           ))}
         </div>
 
-        {/* ── Body ── */}
         <div className="vc-modal-body">
           {loading && (
             <div className="detail-skeleton">
@@ -292,13 +526,13 @@ export default function ViewClientDetail({
                 </div>
               </div>
               <div className="dsk-grid cols-2">
-                {[1,2,3,4,5,6].map(i => <div key={i} className="dsk-info-cell"><div className="dsk-line sm" /><div className="dsk-line lg" /></div>)}
+                {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="dsk-info-cell"><div className="dsk-line sm" /><div className="dsk-line lg" /></div>)}
               </div>
               <div className="dsk-grid cols-2" style={{ marginTop: '1rem' }}>
-                {[1,2,3,4].map(i => <div key={i} className="dsk-info-cell"><div className="dsk-line sm" /><div className="dsk-line lg" /></div>)}
+                {[1, 2, 3, 4].map((i) => <div key={i} className="dsk-info-cell"><div className="dsk-line sm" /><div className="dsk-line lg" /></div>)}
               </div>
               <div className="dsk-actions">
-                {[1,2].map(i => <div key={i} className="dsk-btn" />)}
+                {[1, 2].map((i) => <div key={i} className="dsk-btn" />)}
               </div>
             </div>
           )}
@@ -306,59 +540,109 @@ export default function ViewClientDetail({
           {!loading && (
             <>
               {fetchError && (
-                <div style={{ background:'#fef3c7', border:'1px solid #fde68a', color:'#92400e', borderRadius:'8px', padding:'0.65rem 1rem', fontSize:'0.8rem', fontWeight:600, marginBottom:'1rem' }}>
+                <div style={{ background: '#fef3c7', border: '1px solid #fde68a', color: '#92400e', borderRadius: '8px', padding: '0.65rem 1rem', fontSize: '0.8rem', fontWeight: 600, marginBottom: '1rem' }}>
                   Could not load full client details. Showing limited information.
                 </div>
               )}
+              {data.contract_needs_renewal && (
+                <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', borderRadius: '8px', padding: '0.65rem 1rem', fontSize: '0.8rem', fontWeight: 700, marginBottom: '1rem' }}>
+                  {data.admin_action_message || 'Service contract needs admin review.'}
+                </div>
+              )}
+
               {activeTab === 'general' && (
                 <GeneralTab
                   client={data}
                   canEdit={canWriteClients && !fetchError && !!clientDetails}
                   isEditing={isEditing}
                   editForm={editForm}
+                  pendingFiles={pendingFiles}
                   onEdit={handleEdit}
                   onSave={handleSave}
                   onCancel={handleCancel}
                   onField={handleField}
+                  onFile={handleFile}
                   isSaving={isSaving}
                 />
               )}
-              {activeTab === 'sites'    && <SitesTab    client={data} onDeployGuard={canWriteEmployees ? openDeployModal : undefined} />}
-              {activeTab === 'billings' && <BillingsTab  client={data} />}
-              {activeTab === 'tickets'  && <TicketsTab   client={data} />}
+
+              {activeTab === 'sites' && (
+                <SitesTab
+                  client={data}
+                  onDeployGuard={canWriteEmployees && data.status === 'active' ? openDeployModal : undefined}
+                  canManageSites={canWriteClients && data.status === 'active'}
+                  onAddSite={openCreateSiteDialog}
+                  onEditSite={openEditSiteDialog}
+                  onDeactivateSite={openDeactivateSiteDialog}
+                />
+              )}
+
+              {activeTab === 'billings' && <BillingsTab client={data} />}
+              {activeTab === 'tickets' && <TicketsTab client={data} />}
             </>
           )}
 
-          {/* ── Action Buttons (mirrors Employee pattern) ── */}
           <div className="ve-action-buttons mt-6">
             <button
               className="ve-btn ve-btn-gold"
-              onClick={() => { const url = data.contract_url; if (url) window.open(url, '_blank'); else showNotification('No contract document found.', 'error'); }}
+              onClick={async () => {
+                const url = data.contract_url;
+                if (!url) {
+                  showNotification('No contract document found.', 'error');
+                  return;
+                }
+
+                try {
+                  await authService.openFileUrl(url);
+                } catch (err) {
+                  console.error(err);
+                  showNotification('Failed to open contract document.', 'error');
+                }
+              }}
             >
               <FaFileContract /> View Contract
             </button>
+
+            <button className="ve-btn ve-btn-blue" onClick={openRenewContractDialog} disabled={!canWriteClients || data.status !== 'active'}>
+              <FaFileContract /> Renew Contract
+            </button>
+
             {activeSites.length > 0 && (
-              <button className="ve-btn ve-btn-green" onClick={() => openDeployModal()} disabled={!canWriteEmployees}>
+              <button className="ve-btn ve-btn-green" onClick={() => openDeployModal()} disabled={!canWriteEmployees || data.status !== 'active'}>
                 <FaUserPlus /> Deploy Guard
               </button>
             )}
+
+            {data.guard_count > 0 && (
+              <button className="ve-btn ve-btn-blue" onClick={() => setShowRelieveAllConfirm(true)} disabled={!canWriteEmployees || data.status !== 'active'}>
+                <FaUserMinus /> Relieve All Guards
+              </button>
+            )}
+
+            <button className="ve-btn ve-btn-red" onClick={() => setShowDeactivateConfirm(true)} disabled={!canWriteClients || data.status !== 'active'}>
+              <FaUserMinus /> {data.status === 'inactive' ? 'Inactive' : 'Deactivate Client'}
+            </button>
           </div>
         </div>
       </div>
 
-      {/* ── Deploy Guard modal ── */}
       {showDeployModal && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 p-4" onClick={() => setShowDeployModal(false)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-gray-200">
-              <div>
-                <h3 className="text-xl font-bold text-slate-900">Deploy Guard</h3>
-                <p className="text-sm text-slate-600">Select an active site, then pick the best-fit guard for it.</p>
+        <div className="dlg-overlay" onClick={() => setShowDeployModal(false)}>
+          <div className="dlg-card dlg-card-wide" onClick={(e) => e.stopPropagation()}>
+            <div className="dep-header">
+              <div className="dep-header-icon">
+                <FaUserPlus />
               </div>
-              <button className="vc-close-btn" onClick={() => setShowDeployModal(false)}><FaTimes /></button>
+              <div className="dep-header-text">
+                <h3>Deploy Guard</h3>
+                <p>Select an active site, then pick the <strong>best-fit guard</strong>.</p>
+              </div>
+              <button className="dep-close-btn" onClick={() => setShowDeployModal(false)}>
+                <FaTimes />
+              </button>
             </div>
 
-            <div className="px-6 py-5 overflow-y-auto max-h-[calc(85vh-148px)]">
+            <div className="dep-body">
               <GuardDeploymentSelector
                 siteOptions={activeSites.map((site) => ({ value: site.id, label: site.site_name }))}
                 siteValue={deployForm.siteId}
@@ -373,14 +657,15 @@ export default function ViewClientDetail({
                     shiftStart: '',
                     shiftEnd: '',
                     baseSalary: '',
+                    deploymentOrderFile: null,
                   }));
                 }}
                 employees={deployableEmployees}
                 loadingEmployees={loadingDeployable}
                 filters={deployFilters}
                 onFilterChange={(field, value) => setDeployFilters((cur) => ({ ...cur, [field]: value }))}
-                selectedEmployeeId={selectedEmployee?.id || ''}
-                onSelectEmployee={handleEmployeeSelect}
+                selectedEmployeeIds={selectedEmployee?.id ? [selectedEmployee.id] : []}
+                onToggleEmployee={handleEmployeeSelect}
                 deploymentForm={deployForm}
                 onFieldChange={(field, value) => setDeployForm((cur) => ({ ...cur, [field]: value }))}
                 toggleScheduleDay={toggleScheduleDay}
@@ -388,17 +673,79 @@ export default function ViewClientDetail({
               />
             </div>
 
-            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-slate-50">
-              <button type="button" className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 font-semibold" onClick={() => setShowDeployModal(false)} disabled={isDeploying}>
+            <div className="dlg-footer">
+              <button type="button" className="dlg-btn dlg-btn-ghost" onClick={() => setShowDeployModal(false)} disabled={isDeploying}>
                 Cancel
               </button>
-              <button type="button" className="px-4 py-2 rounded-lg bg-brand-blue text-white font-semibold disabled:opacity-60" onClick={handleDeployGuard} disabled={isDeploying || loadingDeployable || deployableEmployees.length === 0}>
+              <button
+                type="button"
+                className="dlg-btn dlg-btn-deploy"
+                onClick={handleDeployGuard}
+                disabled={isDeploying || loadingDeployable || deployableEmployees.length === 0}
+              >
                 {isDeploying ? 'Deploying...' : 'Deploy Guard'}
               </button>
             </div>
           </div>
         </div>
       )}
+
+      <ClientSiteEditorDialog
+        isOpen={showSiteDialog}
+        mode={siteDialogMode}
+        form={siteForm}
+        isSaving={isSaving}
+        onFieldChange={handleSiteField}
+        onCancel={() => {
+          if (isSaving) return;
+          setShowSiteDialog(false);
+          setEditingSite(null);
+        }}
+        onSave={handleSaveSite}
+      />
+
+      <RenewClientContractDialog
+        isOpen={showRenewContractDialog}
+        clientName={data.company || 'Client'}
+        form={contractForm}
+        isSaving={isSaving}
+        onFieldChange={handleContractField}
+        onFileChange={(file) => setContractForm((cur) => ({ ...cur, contractFile: file }))}
+        onCancel={() => {
+          if (isSaving) return;
+          setShowRenewContractDialog(false);
+        }}
+        onSave={handleRenewContract}
+      />
+
+      <DeactivateClientSiteDialog
+        isOpen={!!sitePendingDeactivation}
+        siteName={sitePendingDeactivation?.site_name || 'Site'}
+        clientName={data.company || 'Client'}
+        isSaving={isSaving}
+        onCancel={() => {
+          if (isSaving) return;
+          setSitePendingDeactivation(null);
+        }}
+        onConfirm={handleDeactivateSite}
+      />
+
+      <DeactivateClientDialog
+        isOpen={showDeactivateConfirm}
+        clientName={data.company || 'Client'}
+        isSaving={isSaving}
+        onCancel={() => setShowDeactivateConfirm(false)}
+        onConfirm={handleDeactivate}
+      />
+
+      <RelieveAllClientGuardsDialog
+        isOpen={showRelieveAllConfirm}
+        clientName={data.company || 'Client'}
+        guardCount={data.guard_count || 0}
+        isSaving={isSaving}
+        onCancel={() => setShowRelieveAllConfirm(false)}
+        onConfirm={handleRelieveAllGuards}
+      />
     </div>
   );
 }
