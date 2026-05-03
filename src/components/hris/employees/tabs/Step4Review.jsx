@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FaCheck, FaTimes } from 'react-icons/fa';
+import { FaCheck, FaTimes, FaUser, FaPhone, FaBriefcase, FaIdCard } from 'react-icons/fa';
 
 const DOC_LABELS = {
   valid_id: 'Valid ID',
@@ -22,11 +22,11 @@ const toProperCase = (str) => {
   return str.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 };
 
-function ReviewSection({ title, icon, children }) {
+function ReviewSection({ title, icon: Icon, children }) {
   return (
     <div className="ae-review-section">
       <div className="ae-review-section-header">
-        <span className="ae-review-section-icon">{icon}</span>
+        <Icon className="ae-review-section-icon" />
         <span className="ae-review-section-title">{title}</span>
       </div>
       <div className="ae-review-section-body">{children}</div>
@@ -88,7 +88,7 @@ export default function Step4Review({ data }) {
       </div>
 
       <div className="ae-review-grid">
-        <ReviewSection title="Personal Identity" icon="Personal">
+        <ReviewSection title="Personal Identity" icon={FaUser}>
           <ReviewField label="Full Name" value={`${toProperCase(data.firstName)} ${toProperCase(data.middleName || '')} ${toProperCase(data.lastName)}`.trim()} />
           <ReviewField label="Date of Birth" value={data.dob} />
           <ReviewField label="Gender" value={data.gender} />
@@ -97,7 +97,7 @@ export default function Step4Review({ data }) {
           <ReviewField label="Education" value={data.educationalLevel} />
         </ReviewSection>
 
-        <ReviewSection title="Contact & Location" icon="Contact">
+        <ReviewSection title="Contact & Location" icon={FaPhone}>
           <ReviewField label="Mobile" value={data.mobile ? `+63 ${data.mobile}` : null} />
           <ReviewField label="Email" value={data.email} />
           <ReviewField label="Address" value={data.address} />
@@ -106,7 +106,7 @@ export default function Step4Review({ data }) {
           <ReviewField label="Relationship" value={data.emergencyRelationship} />
         </ReviewSection>
 
-        <ReviewSection title="Employment Details" icon="Employment">
+        <ReviewSection title="Employment Details" icon={FaBriefcase}>
           <ReviewField label="Position" value={data.position} />
           <ReviewField label="Type" value={data.employmentType === 'regular' ? 'Regular' : 'Reliever'} />
           <ReviewField label="Date Hired" value={data.hireDate} />
@@ -120,7 +120,7 @@ export default function Step4Review({ data }) {
           <ReviewField label="Pay Frequency" value="Semi-monthly" />
         </ReviewSection>
 
-        <ReviewSection title="Government IDs & Credentials" icon="IDs">
+        <ReviewSection title="Government IDs & Credentials" icon={FaIdCard}>
           <ReviewField label="TIN" value={data.tinNumber} />
           <ReviewField label="SSS Number" value={data.sssNumber} />
           <ReviewField label="Pag-IBIG" value={data.pagibigNumber} />

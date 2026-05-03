@@ -11,6 +11,24 @@ const toProperCase = (str) => {
   return str.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 };
 
+const formatDate = (value) => {
+  if (!value) return 'N/A';
+
+  const datePart = String(value).split('T')[0];
+  const [year, month, day] = datePart.split('-').map(Number);
+  const date = year && month && day
+    ? new Date(year, month - 1, day)
+    : new Date(value);
+
+  if (Number.isNaN(date.getTime())) return 'N/A';
+
+  return date.toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+};
+
 export default function EmploymentTab({ employee, isEditing, editForm, onField }) {
   let tenureStr = 'N/A';
   if (employee.hire_date) {
@@ -25,9 +43,11 @@ export default function EmploymentTab({ employee, isEditing, editForm, onField }
     }
   }
 
-  const hireDateStr = employee.hire_date
-    ? new Date(employee.hire_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-    : 'N/A';
+  const hireDateStr = formatDate(employee.hire_date);
+  const deployments = Array.isArray(employee.deployments)
+    ? employee.deployments
+    : (employee.deployments ? [employee.deployments] : []);
+  const activeDeployment = deployments.find((deployment) => deployment.status === 'active');
 
   return (
     <div className="ve-tab-content">
@@ -45,7 +65,11 @@ export default function EmploymentTab({ employee, isEditing, editForm, onField }
             value={(employee.employment_contract_status || 'unknown').replace(/_/g, ' ').toUpperCase()}
             valueColor={employee.employment_contract_valid === false ? '#dc2626' : '#16a34a'}
           />
+          <InfoCell label="Contract Start Date" value={formatDate(employee.current_contract_start_date)} />
+          <InfoCell label="Contract End Date"   value={formatDate(employee.current_contract_end_date)} />
           <InfoCell label="Assigned Company" value={`${employee.current_company} - ${employee.current_site}`}                span2 />
+          <InfoCell label="Deployment Start Date" value={formatDate(activeDeployment?.start_date)} />
+          <InfoCell label="Deployment End Date"   value={formatDate(activeDeployment?.end_date)} />
         </div>
 
         {/* Editable fields */}
