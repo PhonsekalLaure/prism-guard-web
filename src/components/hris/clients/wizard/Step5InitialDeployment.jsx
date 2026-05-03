@@ -1,4 +1,4 @@
-import { FaClock, FaMoneyCheckAlt, FaCalendarAlt, FaUserShield } from 'react-icons/fa';
+import { FaClock, FaMoneyCheckAlt, FaCalendarAlt, FaUserShield, FaFileUpload } from 'react-icons/fa';
 import GuardDeploymentSelector from '../GuardDeploymentSelector';
 
 const DAY_OPTIONS = [
@@ -12,9 +12,10 @@ const DAY_OPTIONS = [
 ];
 
 function AssignmentSectionLabel({ icon: Icon, children }) {
+  const RenderedIcon = Icon;
   return (
     <div className="dep-section-label" style={{ marginBottom: '0.5rem' }}>
-      <Icon />
+      <RenderedIcon />
       <span>{children}</span>
     </div>
   );
@@ -203,6 +204,38 @@ export default function Step5InitialDeployment({
                         />
                       </div>
                     </div>
+                  </div>
+
+                  <div>
+                    <AssignmentSectionLabel icon={FaFileUpload}>
+                      Deployment Order <span style={{ color: '#ef4444' }}>*</span>
+                    </AssignmentSectionLabel>
+                    <label className={`dep-file-zone${assignment.deploymentOrderFile ? ' has-file' : ' required-file'}`}>
+                      <FaFileUpload className="dep-file-icon" />
+                      <div className="dep-file-info">
+                        {assignment.deploymentOrderFile ? (
+                          <>
+                            <p className="dep-file-name">{assignment.deploymentOrderFile.name}</p>
+                            <p className="dep-file-hint">Click to replace file</p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="dep-file-name" style={{ color: '#64748b' }}>Upload deployment order</p>
+                            <p className="dep-file-hint">Required - Image or PDF accepted</p>
+                          </>
+                        )}
+                      </div>
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/*,application/pdf"
+                        onChange={(e) => onAssignmentField(
+                          assignment.employeeId,
+                          'deploymentOrderFile',
+                          e.target.files?.[0] || null
+                        )}
+                      />
+                    </label>
                   </div>
                 </div>
               </div>

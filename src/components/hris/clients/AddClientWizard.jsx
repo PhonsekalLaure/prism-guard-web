@@ -204,6 +204,7 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
               daysOfWeek: [],
               shiftStart: '',
               shiftEnd: '',
+              deploymentOrderFile: null,
             },
           ];
 
@@ -305,6 +306,9 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
           if (!assignment.shiftStart || !assignment.shiftEnd) {
             showNotification(`Please set both shift start and shift end for ${assignment.employeeName || 'each selected guard'}.`, 'error'); return false;
           }
+          if (!assignment.deploymentOrderFile) {
+            showNotification(`Please upload the deployment order for ${assignment.employeeName || 'each selected guard'}.`, 'error'); return false;
+          }
         }
         return true;
       default:
@@ -353,6 +357,12 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
         }
 
         requestData.append(key, value == null ? '' : String(value));
+      });
+
+      formData.initialDeployment.assignments.forEach((assignment) => {
+        if (assignment.deploymentOrderFile instanceof File) {
+          requestData.append(`deployment_order_${assignment.employeeId}`, assignment.deploymentOrderFile);
+        }
       });
 
       await clientService.createClient(requestData);

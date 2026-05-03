@@ -1,6 +1,6 @@
 import {
   FaBuilding, FaCheck, FaClock, FaFilter, FaMapMarkerAlt,
-  FaMoneyCheckAlt, FaRulerVertical, FaShieldAlt, FaUserTie,
+  FaFileUpload, FaMoneyCheckAlt, FaRulerVertical, FaShieldAlt, FaUserTie,
 } from 'react-icons/fa';
 
 const DAY_OPTIONS = [
@@ -278,6 +278,36 @@ export default function GuardDeploymentSelector({
                   />
                 </div>
               </div>
+            </div>
+          </div>
+
+          <div className="gds-panel">
+            <PanelHeader icon={FaFileUpload}>
+              Deployment Order <span style={{ color: '#ef4444' }}>*</span>
+            </PanelHeader>
+            <div className="gds-panel-body">
+              <label className={`dep-file-zone${deploymentForm.deploymentOrderFile ? ' has-file' : ' required-file'}`}>
+                <FaFileUpload className="dep-file-icon" />
+                <div className="dep-file-info">
+                  {deploymentForm.deploymentOrderFile ? (
+                    <>
+                      <p className="dep-file-name">{deploymentForm.deploymentOrderFile.name}</p>
+                      <p className="dep-file-hint">Click to replace file</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="dep-file-name" style={{ color: '#64748b' }}>Upload deployment order</p>
+                      <p className="dep-file-hint">Required - Image or PDF accepted</p>
+                    </>
+                  )}
+                </div>
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="image/*,application/pdf"
+                  onChange={(e) => onFieldChange('deploymentOrderFile', e.target.files?.[0] || null)}
+                />
+              </label>
             </div>
           </div>
         </>
