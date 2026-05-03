@@ -22,7 +22,7 @@ export default function ClientSiteEditorDialog({
         <div className="dep-header">
           <div className="dep-header-text">
             <h3>{title}</h3>
-            <p>Maintain the site address, coordinates, and geofence radius used by deployment flows.</p>
+            <p>Maintain the site address and geofence radius used by deployment flows.</p>
           </div>
         </div>
 
@@ -58,16 +58,6 @@ export default function ClientSiteEditorDialog({
                 }}
               />
               <p className="ae-hint">Pick a suggested address so saved coordinates stay aligned with distance ranking and geofencing.</p>
-            </div>
-
-            <div className="ae-form-group">
-              <label>Latitude</label>
-              <input type="text" className="ae-input" value={form.latitude} readOnly />
-            </div>
-
-            <div className="ae-form-group">
-              <label>Longitude</label>
-              <input type="text" className="ae-input" value={form.longitude} readOnly />
             </div>
 
             <div className="ae-form-group">
