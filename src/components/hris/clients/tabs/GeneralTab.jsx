@@ -157,7 +157,7 @@ export default function GeneralTab({
             <EditInput label="Middle Name" value={editForm.middleName} onChange={(v) => onField('middleName', v)} />
             <EditInput label="Suffix" value={editForm.suffix} onChange={(v) => onField('suffix', v)} placeholder="Jr., Sr., III" />
             <EditInput label="Mobile Number" value={editForm.mobile} onChange={(v) => onField('mobile', v)} placeholder="10-digit number" />
-            <EditInput label="Email Address" value={editForm.email} onChange={(v) => onField('email', v)} type="email" />
+            <EditInput label="Email Address" value={editForm.email} onChange={(v) => onField('email', v)} type="email" readOnly disabled />
             <EditInput label="Company Name" value={editForm.company} onChange={(v) => onField('company', v)} />
             <div className="vc-edit-field span-2">
               <label className="vc-edit-label">Billing Address</label>

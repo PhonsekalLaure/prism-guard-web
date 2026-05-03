@@ -7,6 +7,7 @@ export default function ContactPerson({ profile, onProfileUpdate, isEditing, onC
     firstName: '',
     lastName: '',
     middleName: '',
+    email: '',
     phone: '',
   });
   const [saving, setSaving] = useState(false);
@@ -20,6 +21,7 @@ export default function ContactPerson({ profile, onProfileUpdate, isEditing, onC
         firstName: profile.first_name || '',
         lastName: profile.last_name || '',
         middleName: profile.middle_name || '',
+        email: profile.pending_contact_email || profile.contact_email || '',
         phone: profile.phone_number || '',
       });
     }
@@ -53,6 +55,16 @@ export default function ContactPerson({ profile, onProfileUpdate, isEditing, onC
         phone: form.phone,
       });
 
+      const emailChanged = form.email
+        && form.email !== profile?.contact_email
+        && form.email !== profile?.pending_contact_email;
+      let emailChangeResult = null;
+      if (emailChanged) {
+        emailChangeResult = await profileService.requestEmailChange({
+          email: form.email,
+        });
+      }
+
       setSuccess(true);
 
       // Bubble updated fields up to parent so the card updates without a re-fetch
@@ -61,6 +73,7 @@ export default function ContactPerson({ profile, onProfileUpdate, isEditing, onC
           first_name: form.firstName,
           last_name: form.lastName,
           middle_name: form.middleName,
+          pending_contact_email: emailChangeResult?.pending_contact_email || profile?.pending_contact_email || null,
           phone_number: form.phone,
         });
       }
@@ -80,6 +93,7 @@ export default function ContactPerson({ profile, onProfileUpdate, isEditing, onC
     { name: 'firstName', label: 'First Name', type: 'text' },
     { name: 'lastName', label: 'Last Name', type: 'text' },
     { name: 'middleName', label: 'Middle Name', type: 'text' },
+    { name: 'email', label: 'Email Address', type: 'email' },
     { name: 'phone', label: 'Phone', type: 'tel' },
   ];
 
@@ -120,7 +134,11 @@ export default function ContactPerson({ profile, onProfileUpdate, isEditing, onC
             <p className="cms-profile-form__error">{error}</p>
           )}
           {success && (
-            <p className="cms-profile-form__success">Changes saved successfully.</p>
+            <p className="cms-profile-form__success">
+              {form.email && form.email !== profile?.contact_email
+                ? 'Changes saved. Check your email to confirm the new address.'
+                : 'Changes saved successfully.'}
+            </p>
           )}
 
           {isEditing && (

@@ -16,11 +16,15 @@ function formatClientSince(dateStr) {
 }
 
 export default function CompanyCard({ profile, onEditProfile, onChangePassword }) {
+  const emailValue = profile?.pending_contact_email
+    ? `${profile.contact_email || '—'} (pending: ${profile.pending_contact_email})`
+    : (profile?.contact_email || '—');
+
   const contactItems = [
     {
       icon: FaEnvelope,
       label: 'Email',
-      value: profile?.contact_email || '—',
+      value: emailValue,
     },
     {
       icon: FaPhone,
