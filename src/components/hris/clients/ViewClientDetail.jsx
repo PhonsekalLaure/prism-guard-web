@@ -18,6 +18,8 @@ import GuardDeploymentSelector from './GuardDeploymentSelector';
 import DeactivateClientDialog from './DeactivateClientDialog';
 import RelieveAllClientGuardsDialog from './RelieveAllClientGuardsDialog';
 import ClientSiteEditorDialog from './ClientSiteEditorDialog';
+import RenewClientContractDialog from './RenewClientContractDialog';
+import DeactivateClientSiteDialog from './DeactivateClientSiteDialog';
 
 const TABS = [
   { key: 'general', label: 'General Info', icon: FaBuilding },
@@ -35,10 +37,6 @@ const buildEditForm = (client) => ({
   email: client.contact_email || '',
   company: client.company || '',
   billingAddress: client.billing_address || '',
-  ratePerGuard: client.rate_per_guard || '',
-  billingType: client.billing_type || 'semi_monthly',
-  contractStartDate: client.contract_start_date || '',
-  contractEndDate: client.contract_end_date || '',
 });
 
 const EMPTY_SITE_FORM = {
@@ -77,10 +75,19 @@ export default function ViewClientDetail({
   const [isSaving, setIsSaving] = useState(false);
   const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false);
   const [showRelieveAllConfirm, setShowRelieveAllConfirm] = useState(false);
+  const [showRenewContractDialog, setShowRenewContractDialog] = useState(false);
   const [showSiteDialog, setShowSiteDialog] = useState(false);
+  const [sitePendingDeactivation, setSitePendingDeactivation] = useState(null);
   const [siteDialogMode, setSiteDialogMode] = useState('create');
   const [editingSite, setEditingSite] = useState(null);
   const [siteForm, setSiteForm] = useState(EMPTY_SITE_FORM);
+  const [contractForm, setContractForm] = useState({
+    contractStartDate: '',
+    contractEndDate: '',
+    ratePerGuard: '',
+    billingType: 'semi_monthly',
+    contractFile: null,
+  });
   const [showDeployModal, setShowDeployModal] = useState(false);
   const [deployableEmployees, setDeployableEmployees] = useState([]);
   const [loadingDeployable, setLoadingDeployable] = useState(false);
@@ -95,6 +102,7 @@ export default function ViewClientDetail({
     shiftStart: '',
     shiftEnd: '',
     baseSalary: '',
+    deploymentOrderFile: null,
   });
   const { notification, showNotification, closeNotification } = useNotification();
 
@@ -123,9 +131,18 @@ export default function ViewClientDetail({
       setPendingFiles({});
       setShowDeactivateConfirm(false);
       setShowRelieveAllConfirm(false);
+      setShowRenewContractDialog(false);
       setShowSiteDialog(false);
+      setSitePendingDeactivation(null);
       setEditingSite(null);
       setSiteForm(EMPTY_SITE_FORM);
+      setContractForm({
+        contractStartDate: '',
+        contractEndDate: '',
+        ratePerGuard: '',
+        billingType: 'semi_monthly',
+        contractFile: null,
+      });
       setShowDeployModal(false);
       setDeployableEmployees([]);
       setSelectedEmployee(null);
@@ -138,6 +155,7 @@ export default function ViewClientDetail({
         shiftStart: '',
         shiftEnd: '',
         baseSalary: '',
+        deploymentOrderFile: null,
       });
     }
   }, [isOpen, previewClient]);
@@ -205,6 +223,26 @@ export default function ViewClientDetail({
   const handleField = (key, value) => setEditForm((cur) => ({ ...cur, [key]: value }));
   const handleFile = (key, file) => setPendingFiles((prev) => ({ ...prev, [key]: file }));
   const handleSiteField = (key, value) => setSiteForm((cur) => ({ ...cur, [key]: value }));
+  const handleContractField = (key, value) => setContractForm((cur) => ({ ...cur, [key]: value }));
+
+  const openRenewContractDialog = () => {
+    const baseStartDate = data.contract_end_date
+      ? (() => {
+        const nextDay = new Date(data.contract_end_date);
+        nextDay.setDate(nextDay.getDate() + 1);
+        return nextDay.toISOString().split('T')[0];
+      })()
+      : new Date().toISOString().split('T')[0];
+
+    setContractForm({
+      contractStartDate: baseStartDate,
+      contractEndDate: '',
+      ratePerGuard: data.rate_per_guard || '',
+      billingType: data.billing_type || 'semi_monthly',
+      contractFile: null,
+    });
+    setShowRenewContractDialog(true);
+  };
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -274,15 +312,72 @@ export default function ViewClientDetail({
     }
   };
 
-  const handleDeactivateSite = async (site) => {
+  const openDeactivateSiteDialog = (site) => {
+    if (!site?.is_active) return;
+    if ((site.active_guard_count || 0) > 0) {
+      showNotification('Relieve or transfer all active guards before deactivating this site.', 'error');
+      return;
+    }
+    setSitePendingDeactivation(site);
+  };
+
+  const handleDeactivateSite = async () => {
+    if (!sitePendingDeactivation?.id) return;
+
     setIsSaving(true);
     try {
-      await clientService.deactivateClientSite(previewClient.id, site.id);
+      await clientService.deactivateClientSite(previewClient.id, sitePendingDeactivation.id);
       await loadClientDetails(previewClient.id);
       onUpdated?.();
-      showNotification(`Site "${site.site_name}" deactivated successfully.`, 'success');
+      showNotification(`Site "${sitePendingDeactivation.site_name}" deactivated successfully.`, 'success');
+      setSitePendingDeactivation(null);
     } catch (err) {
       showNotification(err.response?.data?.error || 'Failed to deactivate site.', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleRenewContract = async () => {
+    if (!contractForm.contractStartDate || !contractForm.contractEndDate) {
+      showNotification('Please set both renewal contract dates.', 'error');
+      return;
+    }
+    if (new Date(contractForm.contractEndDate) <= new Date(contractForm.contractStartDate)) {
+      showNotification('Renewal contract end date must be after renewal contract start date.', 'error');
+      return;
+    }
+    if (!contractForm.contractFile) {
+      showNotification('Please upload the renewed client contract document.', 'error');
+      return;
+    }
+    if (!contractForm.ratePerGuard || Number(contractForm.ratePerGuard) <= 0) {
+      showNotification('Please set the contract rate per guard.', 'error');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const payload = new FormData();
+      payload.append('contractStartDate', contractForm.contractStartDate);
+      payload.append('contractEndDate', contractForm.contractEndDate);
+      payload.append('ratePerGuard', contractForm.ratePerGuard);
+      payload.append('billingType', contractForm.billingType);
+      payload.append('contractUrl', contractForm.contractFile);
+      await clientService.updateClient(previewClient.id, payload);
+      await loadClientDetails(previewClient.id);
+      setShowRenewContractDialog(false);
+      setContractForm({
+        contractStartDate: '',
+        contractEndDate: '',
+        ratePerGuard: '',
+        billingType: 'semi_monthly',
+        contractFile: null,
+      });
+      onUpdated?.();
+      showNotification('Client contract renewed successfully.', 'success');
+    } catch (err) {
+      showNotification(err.response?.data?.error || 'Failed to renew client contract.', 'error');
     } finally {
       setIsSaving(false);
     }
@@ -333,6 +428,7 @@ export default function ViewClientDetail({
       shiftStart: '',
       shiftEnd: '',
       baseSalary: '',
+      deploymentOrderFile: null,
     });
   };
 
@@ -356,6 +452,7 @@ export default function ViewClientDetail({
     if (!deployForm.baseSalary) { showNotification('Please set the guard base pay.', 'error'); return; }
     if (deployForm.daysOfWeek.length === 0) { showNotification('Please select at least one schedule day.', 'error'); return; }
     if (!deployForm.shiftStart || !deployForm.shiftEnd) { showNotification('Please set both shift start and end time.', 'error'); return; }
+    if (!deployForm.deploymentOrderFile) { showNotification('Please upload the deployment order document.', 'error'); return; }
 
     setIsDeploying(true);
     try {
@@ -367,6 +464,7 @@ export default function ViewClientDetail({
       deployForm.daysOfWeek.forEach((day) => payload.append('daysOfWeek', String(day)));
       payload.append('shiftStart', deployForm.shiftStart);
       payload.append('shiftEnd', deployForm.shiftEnd);
+      payload.append('document_deployment_order', deployForm.deploymentOrderFile);
       await employeeService.deployEmployee(selectedEmployee.id, payload);
       await loadClientDetails(previewClient.id);
       onUpdated?.();
@@ -446,6 +544,11 @@ export default function ViewClientDetail({
                   Could not load full client details. Showing limited information.
                 </div>
               )}
+              {data.contract_needs_renewal && (
+                <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', borderRadius: '8px', padding: '0.65rem 1rem', fontSize: '0.8rem', fontWeight: 700, marginBottom: '1rem' }}>
+                  {data.admin_action_message || 'Service contract needs admin review.'}
+                </div>
+              )}
 
               {activeTab === 'general' && (
                 <GeneralTab
@@ -470,7 +573,7 @@ export default function ViewClientDetail({
                   canManageSites={canWriteClients && data.status === 'active'}
                   onAddSite={openCreateSiteDialog}
                   onEditSite={openEditSiteDialog}
-                  onDeactivateSite={handleDeactivateSite}
+                  onDeactivateSite={openDeactivateSiteDialog}
                 />
               )}
 
@@ -498,6 +601,10 @@ export default function ViewClientDetail({
               }}
             >
               <FaFileContract /> View Contract
+            </button>
+
+            <button className="ve-btn ve-btn-blue" onClick={openRenewContractDialog} disabled={!canWriteClients || data.status !== 'active'}>
+              <FaFileContract /> Renew Contract
             </button>
 
             {activeSites.length > 0 && (
@@ -550,6 +657,7 @@ export default function ViewClientDetail({
                     shiftStart: '',
                     shiftEnd: '',
                     baseSalary: '',
+                    deploymentOrderFile: null,
                   }));
                 }}
                 employees={deployableEmployees}
@@ -594,6 +702,32 @@ export default function ViewClientDetail({
           setEditingSite(null);
         }}
         onSave={handleSaveSite}
+      />
+
+      <RenewClientContractDialog
+        isOpen={showRenewContractDialog}
+        clientName={data.company || 'Client'}
+        form={contractForm}
+        isSaving={isSaving}
+        onFieldChange={handleContractField}
+        onFileChange={(file) => setContractForm((cur) => ({ ...cur, contractFile: file }))}
+        onCancel={() => {
+          if (isSaving) return;
+          setShowRenewContractDialog(false);
+        }}
+        onSave={handleRenewContract}
+      />
+
+      <DeactivateClientSiteDialog
+        isOpen={!!sitePendingDeactivation}
+        siteName={sitePendingDeactivation?.site_name || 'Site'}
+        clientName={data.company || 'Client'}
+        isSaving={isSaving}
+        onCancel={() => {
+          if (isSaving) return;
+          setSitePendingDeactivation(null);
+        }}
+        onConfirm={handleDeactivateSite}
       />
 
       <DeactivateClientDialog
