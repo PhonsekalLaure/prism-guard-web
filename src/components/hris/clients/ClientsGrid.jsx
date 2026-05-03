@@ -1,6 +1,6 @@
 import {
   FaMapMarkerAlt, FaUsers, FaEnvelope, FaEye, FaUser,
-  FaSearch
+  FaSearch, FaExclamationTriangle
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
 
@@ -69,7 +69,11 @@ export default function ClientsGrid({
               <div className="client-card-header">
                 {/* Avatar / Initials — matches employee-avatar style */}
                 <div className="client-avatar">
-                  {client.initials || '??'}
+                  {client.avatar_url ? (
+                    <img src={client.avatar_url} alt={client.initials || client.company} className="w-full h-full object-cover" />
+                  ) : (
+                    client.initials || '??'
+                  )}
                 </div>
 
                 <span className={`client-badge badge-${client.status}`}>
@@ -85,6 +89,12 @@ export default function ClientsGrid({
 
               {/* Body */}
               <div className="client-card-body">
+                {client.admin_action_required && (
+                  <div className="client-contract-alert">
+                    <FaExclamationTriangle />
+                    <span>{client.admin_action_message || 'Contract needs attention'}</span>
+                  </div>
+                )}
                 <div className="client-info-row">
                   <FaEnvelope />
                   <span>{client.contact_email || 'No email'}</span>

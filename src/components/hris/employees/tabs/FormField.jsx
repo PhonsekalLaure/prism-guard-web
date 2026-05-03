@@ -1,7 +1,7 @@
 /* Reusable form field used across all AddEmployee wizard steps */
 export default function FormField({
   label, type, options, placeholder, required, hint,
-  value, onChange, readOnly, disabled, span2, prefix,
+  value, onChange, readOnly, disabled, span2, prefix, min, max,
 }) {
   const wrapClass = `ae-form-group ${span2 ? 'span-2' : ''}`;
 
@@ -53,6 +53,8 @@ export default function FormField({
           onChange={onChange}
           readOnly={readOnly}
           disabled={disabled}
+          min={min}
+          max={max}
         />
       </div>
       {hint && <p className="ae-hint">{hint}</p>}

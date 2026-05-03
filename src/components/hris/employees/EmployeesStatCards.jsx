@@ -5,7 +5,6 @@ export default function EmployeesStatCards({ refreshKey = 0 }) {
   const [stats, setStats] = useState({
     totalEmployees: 0,
     inactive: 0,
-    terminated: 0,
     absentToday: 0,
     activeOnDuty: 0
   });
@@ -18,7 +17,6 @@ export default function EmployeesStatCards({ refreshKey = 0 }) {
         setStats(data || {
           totalEmployees: 0,
           inactive: 0,
-          terminated: 0,
           absentToday: 0,
           activeOnDuty: 0
         });

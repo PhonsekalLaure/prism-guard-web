@@ -3,6 +3,7 @@ import {
   FaCertificate, FaFileAlt, FaFilePdf, FaFileImage,
   FaEye, FaDownload, FaUpload,
 } from 'react-icons/fa';
+import authService from '@services/authService';
 import { InfoCell } from './EmployeeEditFields';
 
 const docLabels = {
@@ -23,11 +24,15 @@ const ALL_TYPES = Object.keys(docLabels);
 export default function ComplianceTab({ employee, isEditing, pendingFiles, onPreview, onClearanceFile }) {
   const fileInputRefs = useRef({});
 
-  const handleViewDoc = (url) => {
+  const handleViewDoc = async (url) => {
     if (!url) return;
     const isPdf = url.toLowerCase().includes('.pdf') || url.toLowerCase().includes('/pdf');
-    if (isPdf) window.open(url, '_blank');
-    else onPreview(url);
+    if (isPdf) {
+      await authService.openFileUrl(url);
+      return;
+    }
+
+    onPreview(await authService.getFileObjectUrl(url));
   };
 
   const getIsPdf = (url) => {
@@ -86,7 +91,13 @@ export default function ComplianceTab({ employee, isEditing, pendingFiles, onPre
 
                   {!isEditing && (
                     <button
-                      onClick={() => handleViewDoc(c?.document_url)}
+                      onClick={async () => {
+                        try {
+                          await handleViewDoc(c?.document_url);
+                        } catch (err) {
+                          console.error(err);
+                        }
+                      }}
                       disabled={!hasDoc}
                       className={`ve-doc-view-btn ${!hasDoc ? 'disabled' : isPdf ? 'pdf' : 'img'}`}
                       title={hasDoc ? (isPdf ? 'Open PDF' : 'Preview') : 'No document'}

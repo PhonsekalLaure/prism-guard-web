@@ -74,6 +74,11 @@ async function updateEmployee(id, formData) {
   return data;
 }
 
+async function deactivateEmployee(id) {
+  const { data } = await api.post(`/${id}/deactivate`);
+  return data;
+}
+
 async function deployEmployee(id, payload) {
   if (payload instanceof FormData) {
     const config = withMultipartFormData(payload);
@@ -108,6 +113,7 @@ export default {
   getDeployableEmployees,
   createEmployee,
   updateEmployee,
+  deactivateEmployee,
   deployEmployee,
   transferEmployeeAssignment,
   relieveEmployeeAssignment,

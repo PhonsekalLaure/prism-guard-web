@@ -2,7 +2,7 @@
    Shared reusable primitives used across all employee tabs
 ───────────────────────────────────────────────────────── */
 
-export function EditInput({ label, value, onChange, type = 'text', placeholder, readOnly = false, disabled = false }) {
+export function EditInput({ label, value, onChange, type = 'text', placeholder, readOnly = false, disabled = false, min, max }) {
   return (
     <div className="ve-edit-field">
       <label className="ve-edit-label">{label}</label>
@@ -14,6 +14,8 @@ export function EditInput({ label, value, onChange, type = 'text', placeholder, 
         placeholder={placeholder || label}
         readOnly={readOnly}
         disabled={disabled}
+        min={min}
+        max={max}
       />
     </div>
   );

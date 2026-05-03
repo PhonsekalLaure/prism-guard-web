@@ -74,6 +74,16 @@ async function updateClient(id, clientData) {
   return data;
 }
 
+async function deactivateClient(id) {
+  const { data } = await api.post(`/${id}/deactivate`);
+  return data;
+}
+
+async function relieveAllClientGuards(id, payload = {}) {
+  const { data } = await api.post(`/${id}/relieve-all`, payload);
+  return data;
+}
+
 async function getClientsList() {
   const { data } = await api.get('/list');
   return data || [];
@@ -84,6 +94,21 @@ async function getAllSitesList(params = {}) {
   return data || [];
 }
 
+async function createClientSite(id, siteData) {
+  const { data } = await api.post(`/${id}/sites`, siteData);
+  return data;
+}
+
+async function updateClientSite(id, siteId, siteData) {
+  const { data } = await api.patch(`/${id}/sites/${siteId}`, siteData);
+  return data;
+}
+
+async function deactivateClientSite(id, siteId) {
+  const { data } = await api.post(`/${id}/sites/${siteId}/deactivate`);
+  return data;
+}
+
 export default {
   getAllClients,
   getClientDetails,
@@ -91,5 +116,10 @@ export default {
   getClientsList,
   createClient,
   updateClient,
-  getAllSitesList
+  deactivateClient,
+  relieveAllClientGuards,
+  getAllSitesList,
+  createClientSite,
+  updateClientSite,
+  deactivateClientSite,
 };

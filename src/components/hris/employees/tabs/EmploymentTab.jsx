@@ -11,6 +11,24 @@ const toProperCase = (str) => {
   return str.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 };
 
+const formatDate = (value) => {
+  if (!value) return 'N/A';
+
+  const datePart = String(value).split('T')[0];
+  const [year, month, day] = datePart.split('-').map(Number);
+  const date = year && month && day
+    ? new Date(year, month - 1, day)
+    : new Date(value);
+
+  if (Number.isNaN(date.getTime())) return 'N/A';
+
+  return date.toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+};
+
 export default function EmploymentTab({ employee, isEditing, editForm, onField }) {
   let tenureStr = 'N/A';
   if (employee.hire_date) {
@@ -25,9 +43,11 @@ export default function EmploymentTab({ employee, isEditing, editForm, onField }
     }
   }
 
-  const hireDateStr = employee.hire_date
-    ? new Date(employee.hire_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-    : 'N/A';
+  const hireDateStr = formatDate(employee.hire_date);
+  const deployments = Array.isArray(employee.deployments)
+    ? employee.deployments
+    : (employee.deployments ? [employee.deployments] : []);
+  const activeDeployment = deployments.find((deployment) => deployment.status === 'active');
 
   return (
     <div className="ve-tab-content">
@@ -40,7 +60,16 @@ export default function EmploymentTab({ employee, isEditing, editForm, onField }
           <InfoCell label="Date Started"    value={hireDateStr}                                                               variant="blue" />
           <InfoCell label="Tenure"          value={tenureStr}                                                                 variant="blue" />
           <InfoCell label="Status"          value={employee.status?.toUpperCase()}                                            valueColor={employee.status === 'active' ? '#16a34a' : '#d97706'} />
+          <InfoCell
+            label="Employment Contract"
+            value={(employee.employment_contract_status || 'unknown').replace(/_/g, ' ').toUpperCase()}
+            valueColor={employee.employment_contract_valid === false ? '#dc2626' : '#16a34a'}
+          />
+          <InfoCell label="Contract Start Date" value={formatDate(employee.current_contract_start_date)} />
+          <InfoCell label="Contract End Date"   value={formatDate(employee.current_contract_end_date)} />
           <InfoCell label="Assigned Company" value={`${employee.current_company} - ${employee.current_site}`}                span2 />
+          <InfoCell label="Deployment Start Date" value={formatDate(activeDeployment?.start_date)} />
+          <InfoCell label="Deployment End Date"   value={formatDate(activeDeployment?.end_date)} />
         </div>
 
         {/* Editable fields */}
@@ -59,7 +88,13 @@ export default function EmploymentTab({ employee, isEditing, editForm, onField }
               options={[{ value: 'regular', label: 'Regular' }, { value: 'reliever', label: 'Reliever' }]} />
             <EditInput label="Badge Number"    value={editForm.badge_number}        onChange={v => onField('badge_number', v)} />
             <EditInput label="License Number"  value={editForm.license_number}      onChange={v => onField('license_number', v)} />
-            <EditInput label="License Expiry"  type="date" value={editForm.license_expiry_date} onChange={v => onField('license_expiry_date', v)} />
+            <EditInput
+              label="License Expiry"
+              type="date"
+              value={editForm.license_expiry_date}
+              onChange={v => onField('license_expiry_date', v)}
+              min={new Date().toISOString().split('T')[0]}
+            />
           </div>
         )}
       </div>
