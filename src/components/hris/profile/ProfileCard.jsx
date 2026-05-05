@@ -1,7 +1,13 @@
 import { FaUserShield, FaEnvelope, FaPhone, FaKey, FaEdit } from 'react-icons/fa';
 import { getAdminRoleLabel } from '@utils/adminPermissions';
+import {
+  getPhoneDisplayValue,
+  getProfileEmailLabel,
+  getProfileFullName,
+  getProfilePositionLabel,
+} from './profileViewModel';
 
-export default function ProfileCard({ profile, loading, onEdit, onChangePassword }) {
+export default function ProfileCard({ profile, loading, canEdit = false, onEdit, onChangePassword }) {
   if (loading) {
     return (
       <div className="pf-left-col detail-skeleton">
@@ -46,21 +52,10 @@ export default function ProfileCard({ profile, loading, onEdit, onChangePassword
     );
   }
 
-  const nameParts = [
-    profile?.first_name,
-    profile?.middle_name ? `${profile.middle_name.charAt(0)}.` : '',
-    profile?.last_name,
-    profile?.suffix
-  ].filter(Boolean);
-  
-  const fullName = nameParts.length > 0 ? nameParts.join(' ') : 'Not provided';
-  const position = profile?.role === 'admin'
-    ? getAdminRoleLabel(profile?.admin_role, profile?.role || 'Administrator')
-    : (profile?.position || profile?.role || 'Client');
-  const email = profile?.pending_contact_email
-    ? `${profile.contact_email || 'Not provided'} (pending: ${profile.pending_contact_email})`
-    : (profile?.contact_email || 'Not provided');
-  const phone = profile?.phone_number || 'Not provided';
+  const fullName = getProfileFullName(profile);
+  const position = getProfilePositionLabel(profile);
+  const email = getProfileEmailLabel(profile);
+  const phone = getPhoneDisplayValue(profile);
 
   return (
     <div className="pf-left-col">
@@ -103,9 +98,11 @@ export default function ProfileCard({ profile, loading, onEdit, onChangePassword
 
           {/* Actions */}
           <div className="pf-actions">
-            <button className="pf-btn pf-btn-outline" onClick={onEdit}>
-              <FaEdit /> Edit Profile
-            </button>
+            {canEdit && (
+              <button className="pf-btn pf-btn-outline" onClick={onEdit}>
+                <FaEdit /> Edit Profile
+              </button>
+            )}
             <button className="pf-btn pf-btn-gold" onClick={onChangePassword}>
               <FaKey /> Change Password
             </button>
