@@ -3,8 +3,8 @@ import {
   FaTimes, FaUser, FaBriefcase, FaShieldAlt, FaMoneyCheckAlt,
   FaFileContract, FaMapMarkerAlt, FaUserMinus,
 } from 'react-icons/fa';
-import employeeService from '@services/employeeService';
-import clientService from '@services/clientService';
+import employeeService from '@services/hris/employeeService';
+import clientService from '@services/hris/clientService';
 import authService from '@services/authService';
 import Notification from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';

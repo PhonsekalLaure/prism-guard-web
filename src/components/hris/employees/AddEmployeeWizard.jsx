@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { FaTimes, FaArrowRight, FaArrowLeft, FaCheck } from 'react-icons/fa';
 import { FaSpinner } from 'react-icons/fa';
-import employeeService from '@services/employeeService';
-import clientService   from '@services/clientService';
+import employeeService from '@services/hris/employeeService';
+import clientService   from '@services/hris/clientService';
 import Notification    from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
 
