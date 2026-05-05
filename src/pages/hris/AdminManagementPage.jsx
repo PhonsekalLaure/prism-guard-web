@@ -7,7 +7,7 @@ import ViewAdminModal from '@hris-components/admin-management/ViewAdminModal';
 import DeleteAdminDialog from '@hris-components/admin-management/DeleteAdminDialog';
 import Notification from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
-import adminService from '@services/adminService';
+import adminService from '@services/hris/adminService';
 import '../../styles/hris/AdminManagement.css';
 
 export default function AdminManagementPage() {

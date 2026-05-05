@@ -4,8 +4,8 @@ import EmployeesTopbar from '@hris-components/employees/EmployeesTopbar';
 import EmployeesStatCards from '@hris-components/employees/EmployeesStatCards';
 import EmployeesFilterBar from '@hris-components/employees/EmployeesFilterBar';
 import EmployeesGrid from '@hris-components/employees/EmployeesGrid';
-import employeeService from '@services/employeeService';
-import clientService from '@services/clientService';
+import employeeService from '@services/hris/employeeService';
+import clientService from '@services/hris/clientService';
 import authService from '@services/authService';
 import { hasPermission } from '@utils/adminPermissions';
 

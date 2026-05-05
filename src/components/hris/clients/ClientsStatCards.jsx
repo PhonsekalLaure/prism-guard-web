@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import clientService from '@services/clientService';
+import clientService from '@services/hris/clientService';
 
 export default function ClientsStatCards({ refreshKey = 0 }) {
   const [stats, setStats] = useState({

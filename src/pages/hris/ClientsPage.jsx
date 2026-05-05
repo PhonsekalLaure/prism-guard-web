@@ -5,7 +5,7 @@ import ClientsStatCards from '@hris-components/clients/ClientsStatCards';
 import ClientsFilterBar from '@hris-components/clients/ClientsFilterBar';
 import ClientsGrid from '@hris-components/clients/ClientsGrid';
 
-import clientService from '../../services/clientService';
+import clientService from '../../services/hris/clientService';
 import authService from '@services/authService';
 import { hasPermission } from '@utils/adminPermissions';
 
