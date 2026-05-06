@@ -12,7 +12,7 @@ import {
   getProfileFullName,
   getProfilePositionLabel,
   validatePhilippineMobile,
-} from './profileViewModel';
+} from '@utils/profileViewModel';
 
 export default function ProfileDetails({ profile, loading, isEditing, canEdit = false, onCancel, onProfileUpdate }) {
   const { notification, showNotification, closeNotification } = useNotification();

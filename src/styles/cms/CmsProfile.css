@@ -327,6 +327,18 @@
   font-size: 0.95rem;
 }
 
+.cms-profile-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.cms-profile-section__header .cms-profile-section__title {
+  margin-bottom: 0;
+}
+
 .cms-profile-section-divider {
   border: 0;
   height: 1px;
@@ -420,6 +432,24 @@
   box-shadow: 0 0 0 3px rgba(230, 178, 21, 0.12);
 }
 
+.cms-profile-form__input-wrap {
+  position: relative;
+}
+
+.cms-profile-form__input-prefix {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #64748b;
+  font-size: 0.9rem;
+  font-weight: 500;
+  pointer-events: none;
+}
+
 .cms-profile-form__input--readonly {
   background: #f8f9fa;
   cursor: default;
@@ -430,6 +460,12 @@
   display: flex;
   justify-content: flex-end;
   padding-top: 0.5rem;
+}
+
+.cms-profile-form__actions--inline {
+  padding-top: 0;
+  gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .cms-profile-form__save-btn {
@@ -450,6 +486,33 @@
 
 .cms-profile-form__save-btn:hover {
   background: #0a4080;
+}
+
+.cms-profile-form__cancel-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: #fff;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  padding: 0.6rem 1.1rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.cms-profile-form__cancel-btn:hover {
+  background: #f8f9fa;
+  border-color: #cbd5e1;
+}
+
+.cms-profile-form__hint {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin: -0.25rem 0 0;
 }
 
 /* =============================================
@@ -788,6 +851,38 @@
   padding-top: 0.5rem;
 }
 
+.cms-profile-password-rules {
+  background: #f8fafc;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.cms-profile-password-rules p {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+  margin: 0 0 0.5rem;
+}
+
+.cms-profile-password-rules__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.cms-profile-password-rule {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.cms-profile-password-rule.is-met {
+  color: #10b981;
+}
+
 .cms-profile-modal__submit-btn {
   display: inline-flex;
   align-items: center;
@@ -929,6 +1024,16 @@
   margin: 0;
 }
 
+.cms-profile-modal__success-text {
+  font-size: 0.82rem;
+  color: #15803d;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  padding: 0.55rem 0.9rem;
+  margin: 0;
+}
+
 /* =============================================
    SPINNER ANIMATION
    ============================================= */
@@ -943,6 +1048,7 @@
 
 /* Disabled state for save / submit buttons */
 .cms-profile-form__save-btn:disabled,
+.cms-profile-form__cancel-btn:disabled,
 .cms-profile-modal__submit-btn:disabled,
 .cms-profile-modal__cancel-btn:disabled {
   opacity: 0.65;

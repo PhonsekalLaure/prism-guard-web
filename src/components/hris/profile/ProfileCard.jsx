@@ -5,7 +5,7 @@ import {
   getProfileEmailLabel,
   getProfileFullName,
   getProfilePositionLabel,
-} from './profileViewModel';
+} from '@utils/profileViewModel';
 
 export default function ProfileCard({ profile, loading, canEdit = false, onEdit, onChangePassword }) {
   if (loading) {

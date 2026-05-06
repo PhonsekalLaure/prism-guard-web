@@ -5,7 +5,7 @@ import { hasPermission } from '@utils/adminPermissions';
 import ProfileTopbar from '@hris-components/profile/ProfileTopbar';
 import ProfileCard from '@hris-components/profile/ProfileCard';
 import ProfileDetails from '@hris-components/profile/ProfileDetails';
-import ChangePasswordModal from '@hris-components/profile/ChangePasswordModal';
+import ChangePasswordModal from '@components/profile/ChangePasswordModal';
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState(null);
@@ -61,7 +61,7 @@ export default function ProfilePage() {
       
       <ChangePasswordModal 
         isOpen={isChangePasswordOpen}
-        onCancel={() => setIsChangePasswordOpen(false)}
+        onClose={() => setIsChangePasswordOpen(false)}
       />
     </>
   );
