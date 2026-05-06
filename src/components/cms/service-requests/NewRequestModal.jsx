@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FaTimes, FaTag, FaMapMarkerAlt, FaFlag, FaCommentAlt, FaPaperPlane, FaSave } from 'react-icons/fa';
-import serviceRequestsService from '@services/serviceRequestsService';
+import serviceRequestsService from '@services/cms/serviceRequestsService';
 
 const TICKET_TYPES = [
   { value: 'additional_guard',   label: 'Additional Guard' },

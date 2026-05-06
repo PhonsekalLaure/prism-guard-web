@@ -5,7 +5,7 @@ import RecentIncidents from '@cms-components/dashboard/RecentIncidents';
 import RecentServiceRequests from '@cms-components/dashboard/RecentServiceRequests';
 import UpcomingBilling from '@cms-components/dashboard/UpcomingBilling';
 import ContractOverview from '@cms-components/dashboard/ContractOverview';
-import dashboardService from '@services/dashboardService';
+import dashboardService from '@services/cms/dashboardService';
 
 export default function CmsDashboardPage() {
   const [summary, setSummary] = useState(null);

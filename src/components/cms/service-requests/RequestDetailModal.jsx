@@ -3,7 +3,7 @@ import {
   FaTimes, FaHistory, FaPaperPlane, FaEye, FaCheck,
   FaDownload, FaBan,
 } from 'react-icons/fa';
-import serviceRequestsService from '@services/serviceRequestsService';
+import serviceRequestsService from '@services/cms/serviceRequestsService';
 
 // ─── Timeline builder ─────────────────────────────────────────────────────────
 

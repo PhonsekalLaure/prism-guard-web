@@ -7,7 +7,7 @@ import NewRequestModal from '@cms-components/service-requests/NewRequestModal';
 import RequestDetailModal from '@cms-components/service-requests/RequestDetailModal';
 import Notification from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
-import serviceRequestsService from '@services/serviceRequestsService';
+import serviceRequestsService from '@services/cms/serviceRequestsService';
 
 const DEFAULT_FILTERS = { status: 'all', type: 'all', urgency: 'all' };
 
