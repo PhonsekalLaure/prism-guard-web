@@ -1,4 +1,4 @@
-import { getAdminRoleLabel } from '@utils/adminPermissions';
+import { getAdminRoleLabel } from './adminPermissions';
 
 export function getProfileFullName(profile) {
   const nameParts = [
