@@ -1,16 +1,45 @@
 import { Link } from 'react-router-dom';
-import { FaHeadset, FaUserPlus, FaExchangeAlt, FaDotCircle, FaArrowRight } from 'react-icons/fa';
-
-const requests = [
-  { id: 'SR-2026-048', typeIcon: <FaUserPlus style={{ color: '#3b82f6' }} />, type: 'Additional Guard', status: 'In Progress', statusBg: '#fef9c3', statusColor: '#a16207' },
-  { id: 'SR-2026-047', typeIcon: <FaExchangeAlt style={{ color: '#e6b215' }} />, type: 'Guard Replacement', status: 'Open', statusBg: '#dbeafe', statusColor: '#1d4ed8' },
-  { id: 'SR-2026-045', typeIcon: <FaDotCircle style={{ color: '#10b981' }} />, type: 'Schedule Change', status: 'Resolved', statusBg: '#dcfce7', statusColor: '#15803d' },
-];
+import { FaHeadset, FaUserPlus, FaExchangeAlt, FaDotCircle, FaArrowRight, FaWrench } from 'react-icons/fa';
 
 const thStyle = { padding: '0.65rem 1rem', textAlign: 'left', fontSize: '0.68rem', fontWeight: 600, color: '#7f8c8d', textTransform: 'uppercase', letterSpacing: '0.5px' };
 const tdStyle = { padding: '0.85rem 1rem', fontSize: '0.85rem' };
 
-export default function RecentServiceRequests() {
+/** Map ticket_type string to a matching icon */
+function typeIcon(type = '') {
+  const t = type.toLowerCase();
+  if (t.includes('additional') || t.includes('add'))   return <FaUserPlus style={{ color: '#3b82f6' }} />;
+  if (t.includes('replacement') || t.includes('replace')) return <FaExchangeAlt style={{ color: '#e6b215' }} />;
+  if (t.includes('schedule'))                           return <FaDotCircle style={{ color: '#10b981' }} />;
+  return <FaWrench style={{ color: '#6b7280' }} />;
+}
+
+/** Map status to badge colours */
+function statusStyle(status = '') {
+  switch (status.toLowerCase()) {
+    case 'in_progress':
+    case 'in progress': return { bg: '#fef9c3', color: '#a16207' };
+    case 'open':        return { bg: '#dbeafe', color: '#1d4ed8' };
+    case 'resolved':
+    case 'closed':      return { bg: '#dcfce7', color: '#15803d' };
+    default:            return { bg: '#f3f4f6', color: '#374151' };
+  }
+}
+
+function SkeletonRow() {
+  return (
+    <tr style={{ borderBottom: '1px solid #f0f0f0' }}>
+      {[1, 2, 3].map((i) => (
+        <td key={i} style={tdStyle}>
+          <div style={{ height: '14px', background: '#f0f0f0', borderRadius: '4px', animation: 'pulse 1.5s ease-in-out infinite' }} />
+        </td>
+      ))}
+    </tr>
+  );
+}
+
+export default function RecentServiceRequests({ requests, loading }) {
+  const rows = requests || [];
+
   return (
     <div style={{ background: '#fff', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
       <div style={{ padding: '1rem 1.2rem', borderBottom: '1px solid #f0f0f0' }}>
@@ -29,19 +58,33 @@ export default function RecentServiceRequests() {
             </tr>
           </thead>
           <tbody>
-            {requests.map((r, i) => (
-              <tr key={i} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                <td style={{ ...tdStyle, fontFamily: 'monospace', fontWeight: 700, color: '#093269', fontSize: '0.8rem' }}>{r.id}</td>
-                <td style={{ ...tdStyle, display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: '#1a1a1a' }}>
-                  {r.typeIcon}{r.type}
-                </td>
-                <td style={tdStyle}>
-                  <span style={{ background: r.statusBg, color: r.statusColor, padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 600 }}>
-                    {r.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
+            {loading
+              ? Array.from({ length: 3 }).map((_, i) => <SkeletonRow key={i} />)
+              : rows.length === 0
+                ? (
+                  <tr>
+                    <td colSpan={3} style={{ ...tdStyle, textAlign: 'center', color: '#7f8c8d' }}>No recent service requests</td>
+                  </tr>
+                )
+                : rows.map((r, i) => {
+                  const badge = statusStyle(r.status);
+                  return (
+                    <tr key={r.id ?? i} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                      <td style={{ ...tdStyle, fontFamily: 'monospace', fontWeight: 700, color: '#093269', fontSize: '0.8rem' }}>
+                        #{String(r.id).substring(0, 8).toUpperCase()}
+                      </td>
+                      <td style={{ ...tdStyle, display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: '#1a1a1a' }}>
+                        {typeIcon(r.type)}{r.type}
+                      </td>
+                      <td style={tdStyle}>
+                        <span style={{ background: badge.bg, color: badge.color, padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 600, textTransform: 'capitalize' }}>
+                          {r.status}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
+            }
           </tbody>
         </table>
       </div>
