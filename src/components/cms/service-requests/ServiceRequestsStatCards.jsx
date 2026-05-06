@@ -1,39 +1,41 @@
-const stats = [
+const STAT_CONFIGS = [
   {
+    key: 'open',
     label: 'Open',
-    value: '5',
     sub: 'Awaiting response',
     valueColor: '#3b82f6',
     borderColor: '#3b82f6',
   },
   {
+    key: 'in_progress',
     label: 'In Progress',
-    value: '3',
     sub: 'Being processed',
     valueColor: '#e6b215',
     borderColor: '#e6b215',
   },
   {
+    key: 'resolved',
     label: 'Resolved',
-    value: '28',
     sub: 'This month',
     valueColor: '#16a34a',
     borderColor: '#16a34a',
   },
 ];
 
-export default function ServiceRequestsStatCards() {
+export default function ServiceRequestsStatCards({ stats, loading }) {
   return (
     <div className="stat-grid three-cols">
-      {stats.map((s) => (
+      {STAT_CONFIGS.map((s) => (
         <div
-          key={s.label}
+          key={s.key}
           className="stat-card"
-          style={{ borderLeftColor: s.borderColor }}
+          style={{ borderLeftColor: s.borderColor, opacity: loading ? 0.6 : 1, transition: 'opacity 0.3s' }}
         >
           <div>
             <p className="stat-label">{s.label}</p>
-            <h3 className="stat-value" style={{ color: s.valueColor }}>{s.value}</h3>
+            <h3 className="stat-value" style={{ color: s.valueColor }}>
+              {loading ? '…' : (stats?.[s.key] ?? 0)}
+            </h3>
             <p className="stat-sub">{s.sub}</p>
           </div>
         </div>

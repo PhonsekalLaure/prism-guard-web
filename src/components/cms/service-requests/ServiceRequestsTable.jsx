@@ -1,56 +1,53 @@
 import {
   FaListAlt, FaUserPlus, FaExchangeAlt, FaClock,
-  FaQuestionCircle, FaChevronLeft, FaChevronRight, FaEye,
+  FaQuestionCircle, FaChevronLeft, FaChevronRight, FaEye, FaWrench,
 } from 'react-icons/fa';
 
-const requests = [
-  {
-    id: 'SR-2026-048',
-    typeIcon: <FaUserPlus className="sr-type-icon sr-type-icon--blue" />,
-    type: 'Additional Guard',
-    site: 'Main Gate',
-    urgency: 'Emergency',
-    urgencyClass: 'sr-urgency-badge sr-urgency-badge--emergency',
-    date: 'Feb 16, 2026',
-    status: 'Open',
-    statusClass: 'sr-status-badge sr-status-badge--open',
-  },
-  {
-    id: 'SR-2026-047',
-    typeIcon: <FaExchangeAlt className="sr-type-icon sr-type-icon--gold" />,
-    type: 'Guard Replacement',
-    site: 'Parking Area',
-    urgency: 'Urgent',
-    urgencyClass: 'sr-urgency-badge sr-urgency-badge--urgent',
-    date: 'Feb 15, 2026',
-    status: 'In Progress',
-    statusClass: 'sr-status-badge sr-status-badge--in-progress',
-  },
-  {
-    id: 'SR-2026-045',
-    typeIcon: <FaClock className="sr-type-icon sr-type-icon--green" />,
-    type: 'Schedule Change',
-    site: 'Back Gate',
-    urgency: 'Normal',
-    urgencyClass: 'sr-urgency-badge sr-urgency-badge--normal',
-    date: 'Feb 14, 2026',
-    status: 'Resolved',
-    statusClass: 'sr-status-badge sr-status-badge--resolved',
-  },
-  {
-    id: 'SR-2026-042',
-    typeIcon: <FaQuestionCircle className="sr-type-icon sr-type-icon--purple" />,
-    type: 'General Inquiry',
-    site: 'All Sites',
-    urgency: 'Normal',
-    urgencyClass: 'sr-urgency-badge sr-urgency-badge--normal',
-    date: 'Feb 12, 2026',
-    status: 'Resolved',
-    statusClass: 'sr-status-badge sr-status-badge--resolved',
-  },
-];
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-export default function ServiceRequestsTable({ onViewRequest }) {
+function typeIcon(ticketType = '') {
+  const t = ticketType.toLowerCase();
+  if (t.includes('additional') || t.includes('guard')) return <FaUserPlus className="sr-type-icon sr-type-icon--blue" />;
+  if (t.includes('replacement'))                          return <FaExchangeAlt className="sr-type-icon sr-type-icon--gold" />;
+  if (t.includes('schedule'))                             return <FaClock className="sr-type-icon sr-type-icon--green" />;
+  if (t.includes('inquiry') || t.includes('general'))    return <FaQuestionCircle className="sr-type-icon sr-type-icon--purple" />;
+  return <FaWrench className="sr-type-icon sr-type-icon--blue" />;
+}
+
+function SkeletonRow() {
+  return (
+    <tr className="sr-table-row">
+      {Array.from({ length: 7 }).map((_, i) => (
+        <td key={i} style={{ padding: '1rem' }}>
+          <div style={{ height: '14px', background: '#f0f0f0', borderRadius: '4px', animation: 'pulse 1.5s ease-in-out infinite' }} />
+        </td>
+      ))}
+    </tr>
+  );
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export default function ServiceRequestsTable({
+  tickets = [],
+  metadata = { total: 0, page: 1, limit: 8, totalPages: 1 },
+  loading = false,
+  onViewRequest,
+  onPageChange,
+}) {
+  const { total, page, limit, totalPages } = metadata;
+  const start = total === 0 ? 0 : (page - 1) * limit + 1;
+  const end   = Math.min(page * limit, total);
+
+  const pages = Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+    // Sliding window around current page
+    const half = 2;
+    let first = Math.max(1, page - half);
+    const last = Math.min(totalPages, first + 4);
+    first = Math.max(1, last - 4);
+    return first + i;
+  }).filter((p) => p >= 1 && p <= totalPages);
+
   return (
     <div className="sr-table-panel">
       <div className="sr-table-header">
@@ -73,46 +70,82 @@ export default function ServiceRequestsTable({ onViewRequest }) {
             </tr>
           </thead>
           <tbody>
-            {requests.map((req) => (
-              <tr
-                key={req.id}
-                className="sr-table-row"
-                onClick={() => onViewRequest?.(req)}
-              >
-                <td className="sr-td-id">{req.id}</td>
-                <td className="sr-td-type">
-                  {req.typeIcon}
-                  {req.type}
-                </td>
-                <td className="sr-td-muted">{req.site}</td>
-                <td>
-                  <span className={req.urgencyClass}>{req.urgency}</span>
-                </td>
-                <td className="sr-td-muted">{req.date}</td>
-                <td>
-                  <span className={req.statusClass}>{req.status}</span>
-                </td>
-                <td onClick={(e) => e.stopPropagation()}>
-                  <button
-                    className="sr-view-btn"
+            {loading
+              ? Array.from({ length: 4 }).map((_, i) => <SkeletonRow key={i} />)
+              : tickets.length === 0
+                ? (
+                  <tr>
+                    <td colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: '#7f8c8d', fontSize: '0.85rem' }}>
+                      No service requests found
+                    </td>
+                  </tr>
+                )
+                : tickets.map((req) => (
+                  <tr
+                    key={req.id}
+                    className="sr-table-row"
                     onClick={() => onViewRequest?.(req)}
                   >
-                    <FaEye /> View
-                  </button>
-                </td>
-              </tr>
-            ))}
+                    <td className="sr-td-id">
+                      {String(req.id).substring(0, 8).toUpperCase()}
+                    </td>
+                    <td className="sr-td-type">
+                      {typeIcon(req.ticket_type || req.type)}
+                      {req.type}
+                    </td>
+                    <td className="sr-td-muted">{req.site}</td>
+                    <td>
+                      <span className={req.urgencyClass}>{req.urgency}</span>
+                    </td>
+                    <td className="sr-td-muted">{req.date}</td>
+                    <td>
+                      <span className={req.statusClass}>{req.statusLabel}</span>
+                    </td>
+                    <td onClick={(e) => e.stopPropagation()}>
+                      <button
+                        className="sr-view-btn"
+                        onClick={() => onViewRequest?.(req)}
+                      >
+                        <FaEye /> View
+                      </button>
+                    </td>
+                  </tr>
+                ))
+            }
           </tbody>
         </table>
       </div>
 
+      {/* Pagination */}
       <div className="sr-pagination">
-        <span className="sr-pagination-info">Showing 1-4 of 38 requests</span>
+        <span className="sr-pagination-info">
+          {total === 0 ? 'No requests' : `Showing ${start}–${end} of ${total} request${total === 1 ? '' : 's'}`}
+        </span>
         <div className="sr-page-btns">
-          <button className="page-btn"><FaChevronLeft /></button>
-          <button className="page-btn active">1</button>
-          <button className="page-btn">2</button>
-          <button className="page-btn"><FaChevronRight /></button>
+          <button
+            className="page-btn"
+            disabled={page <= 1 || loading}
+            onClick={() => onPageChange?.(page - 1)}
+          >
+            <FaChevronLeft />
+          </button>
+          {pages.map((p) => (
+            <button
+              key={p}
+              className={`page-btn${p === page ? ' active' : ''}`}
+              disabled={loading}
+              onClick={() => p !== page && onPageChange?.(p)}
+            >
+              {p}
+            </button>
+          ))}
+          <button
+            className="page-btn"
+            disabled={page >= totalPages || loading}
+            onClick={() => onPageChange?.(page + 1)}
+          >
+            <FaChevronRight />
+          </button>
         </div>
       </div>
     </div>
