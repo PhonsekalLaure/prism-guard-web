@@ -1,21 +1,59 @@
 import axios from 'axios';
+import { createClient } from '@supabase/supabase-js';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 const api = axios.create({
   baseURL: `${API_BASE}/api/web/auth`,
   headers: { 'Content-Type': 'application/json' },
 });
 
-// ─── Token helpers ───────────────────────────────────────────
+const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+    detectSessionInUrl: false,
+  },
+});
 
-function getToken() {
-  return localStorage.getItem('access_token');
+const AUTH_STORAGE_KEYS = ['access_token', 'refresh_token', 'user_profile'];
+
+// ─── Storage helpers ──────────────────────────────────────────
+// If the access_token is in localStorage the user checked "Remember Me".
+// Otherwise it lives in sessionStorage (cleared when the tab closes).
+
+function getActiveStorage() {
+  return localStorage.getItem('access_token') ? localStorage : sessionStorage;
 }
 
-function setTokens(session) {
-  localStorage.setItem('access_token', session.access_token);
-  localStorage.setItem('refresh_token', session.refresh_token);
+// ─── Token helpers ────────────────────────────────────────────
+
+function getToken() {
+  return localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+}
+
+function getRefreshToken() {
+  return localStorage.getItem('refresh_token') || sessionStorage.getItem('refresh_token');
+}
+
+function getRememberPreference() {
+  return Boolean(localStorage.getItem('access_token') || localStorage.getItem('refresh_token'));
+}
+
+function removeStoredAuthState() {
+  AUTH_STORAGE_KEYS.forEach((key) => {
+    localStorage.removeItem(key);
+    sessionStorage.removeItem(key);
+  });
+}
+
+function setTokens(session, rememberMe = false) {
+  const storage = rememberMe ? localStorage : sessionStorage;
+  removeStoredAuthState();
+  storage.setItem('access_token', session.access_token);
+  storage.setItem('refresh_token', session.refresh_token);
 }
 
 let inflightAuthPromise = null;
@@ -31,14 +69,12 @@ function resetAuthCache() {
 }
 
 function clearTokens() {
-  localStorage.removeItem('access_token');
-  localStorage.removeItem('refresh_token');
-  localStorage.removeItem('user_profile');
+  removeStoredAuthState();
   resetAuthCache();
 }
 
 function setProfile(profile) {
-  localStorage.setItem('user_profile', JSON.stringify(profile));
+  getActiveStorage().setItem('user_profile', JSON.stringify(profile));
 }
 
 function updateProfile(profileUpdates) {
@@ -60,7 +96,7 @@ function updateProfile(profileUpdates) {
 }
 
 function getProfile() {
-  const raw = localStorage.getItem('user_profile');
+  const raw = localStorage.getItem('user_profile') || sessionStorage.getItem('user_profile');
   return raw ? JSON.parse(raw) : null;
 }
 
@@ -136,16 +172,43 @@ async function getFileObjectUrl(url) {
  * @param {string} password
  * @returns {{ user, session, profile, redirect }}
  */
-async function login(email, password) {
+async function login(email, password, rememberMe = false) {
   const { data } = await api.post('/login', { email, password });
 
-  setTokens(data.session);
+  setTokens(data.session, rememberMe);
   setProfile(data.profile);
   cachedAuthData = data;
   cachedAuthToken = data.session.access_token;
   lastAuthFetchTime = Date.now();
 
   return data;
+}
+
+/**
+ * Send a password-reset email for the given address.
+ * Always resolves — the backend never reveals whether the email is registered.
+ *
+ * @param {string} email
+ */
+async function forgotPassword(email) {
+  await api.post('/forgot-password', { email });
+}
+
+async function refreshStoredSession() {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) return null;
+
+  const rememberMe = getRememberPreference();
+  const { data, error } = await supabase.auth.refreshSession({
+    refresh_token: refreshToken,
+  });
+
+  if (error || !data.session) {
+    return null;
+  }
+
+  setTokens(data.session, rememberMe);
+  return data.session.access_token;
 }
 
 /**
@@ -181,7 +244,26 @@ async function getMe(forceRefresh = false) {
       cachedAuthToken = token;
       lastAuthFetchTime = Date.now();
       return data;
-    } catch {
+    } catch (error) {
+      if (error.response?.status === 401) {
+        const refreshedToken = await refreshStoredSession();
+
+        if (refreshedToken) {
+          try {
+            const { data } = await api.get('/me', {
+              headers: { Authorization: `Bearer ${refreshedToken}` },
+            });
+            setProfile(data.profile);
+            cachedAuthData = data;
+            cachedAuthToken = refreshedToken;
+            lastAuthFetchTime = Date.now();
+            return data;
+          } catch {
+            // Fall through to clear stale state below.
+          }
+        }
+      }
+
       clearTokens();
       return null;
     } finally {
@@ -211,4 +293,4 @@ async function logout() {
   clearTokens();
 }
 
-export default { login, logout, getMe, getToken, getProfile, updateProfile, clearTokens, openFileUrl, getFileObjectUrl };
+export default { login, logout, forgotPassword, getMe, getToken, getProfile, updateProfile, clearTokens, openFileUrl, getFileObjectUrl };
