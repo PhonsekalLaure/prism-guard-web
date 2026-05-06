@@ -315,8 +315,13 @@
 }
 
 .login-card .forgot-link {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.8rem;
   color: #e6b215;
-  text-decoration: none;
   font-weight: 600;
   transition: color 0.3s;
 }
@@ -394,4 +399,102 @@
     padding: 2rem 1.6rem;
     border-radius: 14px;
   }
+}
+
+/* =============================================
+   FORGOT PASSWORD / EMAIL SENT VIEWS
+   (these views render inside .login-card)
+   ============================================= */
+
+/* Forgot / sent view body — no extra padding since .login-card already has it */
+.lf-forgot-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Back to login link */
+.lf-back-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 1rem;
+  margin-bottom: 0.25rem;
+  font-size: 0.78rem;
+  color: #64748b;
+  font-weight: 500;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: 'Poppins', sans-serif;
+  transition: color 0.2s;
+}
+
+.lf-back-link:hover { color: #093269; }
+
+/* Inline notification (forgot view) */
+.lf-notification {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  animation: lf-slide-down 0.2s ease;
+}
+
+.lf-notification.error   { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+.lf-notification.success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+.lf-notification.info    { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+
+@keyframes lf-slide-down {
+  from { opacity: 0; transform: translateY(-5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Email sent confirmation box */
+.lf-sent-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.lf-sent-icon {
+  width: 48px;
+  height: 48px;
+  background: rgba(9, 50, 105, 0.08);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.75rem;
+  font-size: 1.2rem;
+  color: #093269;
+}
+
+.lf-sent-email {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #093269;
+  margin: 0 0 0.6rem;
+  word-break: break-all;
+}
+
+.lf-sent-desc {
+  font-size: 0.78rem;
+  color: #4b5563;
+  line-height: 1.6;
+  margin: 0 0 0.5rem;
+}
+
+.lf-sent-hint {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  margin: 0;
 }
