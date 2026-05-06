@@ -1,11 +1,15 @@
 import {
   FaBuilding,
-  FaEnvelope,
-  FaPhone,
-  FaMapMarkerAlt,
-  FaKey,
   FaEdit,
+  FaEnvelope,
+  FaKey,
+  FaMapMarkerAlt,
+  FaPhone,
 } from 'react-icons/fa';
+import {
+  getPhoneDisplayValue,
+  getProfileEmailLabel,
+} from '@utils/profileViewModel';
 
 function formatClientSince(dateStr) {
   if (!dateStr) return null;
@@ -20,17 +24,17 @@ export default function CompanyCard({ profile, onEditProfile, onChangePassword }
     {
       icon: FaEnvelope,
       label: 'Email',
-      value: profile?.contact_email || '—',
+      value: getProfileEmailLabel(profile),
     },
     {
       icon: FaPhone,
       label: 'Phone',
-      value: profile?.phone_number || '—',
+      value: getPhoneDisplayValue(profile),
     },
     {
       icon: FaMapMarkerAlt,
       label: 'Address',
-      value: profile?.billing_address || '—',
+      value: profile?.billing_address || 'Not provided',
     },
   ];
 
@@ -39,13 +43,12 @@ export default function CompanyCard({ profile, onEditProfile, onChangePassword }
 
   return (
     <div className="cms-profile-company-card">
-      {/* Header */}
       <div className="cms-profile-company-card__header">
         <div className="cms-profile-company-card__logo">
           <FaBuilding />
         </div>
         <h3 className="cms-profile-company-card__name">
-          {profile?.company || '—'}
+          {profile?.company || 'Not provided'}
         </h3>
         {clientSince && (
           <p className="cms-profile-company-card__since">Client since {clientSince}</p>
@@ -59,23 +62,24 @@ export default function CompanyCard({ profile, onEditProfile, onChangePassword }
         )}
       </div>
 
-      {/* Contact Info */}
       <div className="cms-profile-company-card__body">
-        {contactItems.map(({ icon: Icon, label, value }) => (
-          <div key={label} className="cms-profile-company-card__contact-row">
-            <div className="cms-profile-company-card__contact-icon">
-              <Icon />
+        {contactItems.map(({ icon, label, value }) => {
+          const ContactIcon = icon;
+          return (
+            <div key={label} className="cms-profile-company-card__contact-row">
+              <div className="cms-profile-company-card__contact-icon">
+                <ContactIcon />
+              </div>
+              <div className="cms-profile-company-card__contact-text">
+                <p className="cms-profile-company-card__contact-label">{label}</p>
+                <p className="cms-profile-company-card__contact-value">{value}</p>
+              </div>
             </div>
-            <div className="cms-profile-company-card__contact-text">
-              <p className="cms-profile-company-card__contact-label">{label}</p>
-              <p className="cms-profile-company-card__contact-value">{value}</p>
-            </div>
-          </div>
-        ))}
+          );
+        })}
 
         <hr className="cms-profile-card__divider" />
 
-        {/* Actions */}
         <div className="cms-profile-card__actions">
           <button
             className="cms-profile-card__btn cms-profile-card__btn--outline"

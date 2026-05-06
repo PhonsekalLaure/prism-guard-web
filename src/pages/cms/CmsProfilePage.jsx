@@ -4,8 +4,9 @@ import CompanyCard from '@cms-components/profile/CompanyCard';
 import CompanyInformation from '@cms-components/profile/CompanyInformation';
 import ContactPerson from '@cms-components/profile/ContactPerson';
 import ContractSummary from '@cms-components/profile/ContractSummary';
-import ChangePasswordModal from '@cms-components/profile/ChangePasswordModal';
+import ChangePasswordModal from '@components/profile/ChangePasswordModal';
 import profileService from '@services/profileService';
+import authService from '@services/authService';
 import '@styles/cms/CmsProfile.css';
 
 export default function CmsProfilePage() {
@@ -23,7 +24,10 @@ export default function CmsProfilePage() {
         setLoading(true);
         setError(null);
         const data = await profileService.getProfile();
-        if (!cancelled) setProfile(data);
+        if (!cancelled) {
+          setProfile(data);
+          authService.updateProfile(data);
+        }
       } catch (err) {
         if (!cancelled) setError(err?.response?.data?.error || 'Failed to load profile.');
       } finally {
@@ -38,6 +42,7 @@ export default function CmsProfilePage() {
   // Called by ContactPerson after a successful save to keep local state in sync
   function handleProfileUpdate(updates) {
     setProfile((prev) => ({ ...prev, ...updates }));
+    authService.updateProfile(updates);
   }
 
   if (loading) {
@@ -94,6 +99,7 @@ export default function CmsProfilePage() {
       <ChangePasswordModal
         isOpen={isChangePasswordOpen}
         onClose={() => setIsChangePasswordOpen(false)}
+        variant="cms"
       />
     </>
   );

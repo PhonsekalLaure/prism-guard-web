@@ -41,6 +41,24 @@ function setProfile(profile) {
   localStorage.setItem('user_profile', JSON.stringify(profile));
 }
 
+function updateProfile(profileUpdates) {
+  const currentProfile = getProfile() || {};
+  const nextProfile = { ...currentProfile, ...profileUpdates };
+  setProfile(nextProfile);
+
+  if (cachedAuthData?.profile) {
+    cachedAuthData = {
+      ...cachedAuthData,
+      profile: {
+        ...cachedAuthData.profile,
+        ...profileUpdates,
+      },
+    };
+  }
+
+  return nextProfile;
+}
+
 function getProfile() {
   const raw = localStorage.getItem('user_profile');
   return raw ? JSON.parse(raw) : null;
@@ -193,4 +211,4 @@ async function logout() {
   clearTokens();
 }
 
-export default { login, logout, getMe, getToken, getProfile, clearTokens, openFileUrl, getFileObjectUrl };
+export default { login, logout, getMe, getToken, getProfile, updateProfile, clearTokens, openFileUrl, getFileObjectUrl };

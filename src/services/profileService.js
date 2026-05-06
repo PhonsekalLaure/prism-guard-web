@@ -37,6 +37,16 @@ async function updateContactPerson(updateData) {
 }
 
 /**
+ * Request a confirmed email change through Supabase Auth.
+ * @param {{ email: string }} updateData
+ * @returns {Promise<{ message: string, pending_contact_email?: string }>}
+ */
+async function requestEmailChange(updateData) {
+  const { data } = await api.post('/change-email', updateData);
+  return data;
+}
+
+/**
  * Change the authenticated user's password.
  * @param {{ currentPassword: string, newPassword: string, confirmPassword: string }} passwords
  * @returns {Promise<{ message: string }>}
@@ -46,4 +56,4 @@ async function changePassword(passwords) {
   return data;
 }
 
-export default { getProfile, updateContactPerson, changePassword };
+export default { getProfile, updateContactPerson, requestEmailChange, changePassword };

@@ -1,34 +1,13 @@
-import { useState, useEffect } from 'react';
 import { FaUserShield, FaEnvelope, FaPhone, FaKey, FaEdit } from 'react-icons/fa';
-import axios from 'axios';
-import authService from '@services/authService';
 import { getAdminRoleLabel } from '@utils/adminPermissions';
+import {
+  getPhoneDisplayValue,
+  getProfileEmailLabel,
+  getProfileFullName,
+  getProfilePositionLabel,
+} from '@utils/profileViewModel';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-
-export default function ProfileCard() {
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const token = authService.getToken();
-        const { data } = await axios.get(`${API_BASE}/api/web/profile/me`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setProfile(data);
-      } catch (error) {
-        console.error('Error fetching profile', error);
-        // Fallback to local
-        setProfile(authService.getProfile() || {});
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProfile();
-  }, []);
-
+export default function ProfileCard({ profile, loading, canEdit = false, onEdit, onChangePassword }) {
   if (loading) {
     return (
       <div className="pf-left-col detail-skeleton">
@@ -73,12 +52,10 @@ export default function ProfileCard() {
     );
   }
 
-  const fullName = profile?.first_name ? `${profile.first_name} ${profile.last_name}` : 'John Juan';
-  const position = profile?.role === 'admin'
-    ? getAdminRoleLabel(profile?.admin_role, profile?.role || 'Administrator')
-    : (profile?.position || profile?.role || 'Client');
-  const email = profile?.contact_email || 'president@prismguard.com';
-  const phone = profile?.phone_number || '+63 917 123 4567';
+  const fullName = getProfileFullName(profile);
+  const position = getProfilePositionLabel(profile);
+  const email = getProfileEmailLabel(profile);
+  const phone = getPhoneDisplayValue(profile);
 
   return (
     <div className="pf-left-col">
@@ -121,10 +98,12 @@ export default function ProfileCard() {
 
           {/* Actions */}
           <div className="pf-actions">
-            <button className="pf-btn pf-btn-outline">
-              <FaEdit /> Edit Profile
-            </button>
-            <button className="pf-btn pf-btn-gold">
+            {canEdit && (
+              <button className="pf-btn pf-btn-outline" onClick={onEdit}>
+                <FaEdit /> Edit Profile
+              </button>
+            )}
+            <button className="pf-btn pf-btn-gold" onClick={onChangePassword}>
               <FaKey /> Change Password
             </button>
           </div>

@@ -4,7 +4,7 @@ import DeployedGuardsStatCards from '@cms-components/deployed-guards/DeployedGua
 import DeployedGuardsFilterBar from '@cms-components/deployed-guards/DeployedGuardsFilterBar';
 import GuardRosterTable from '@cms-components/deployed-guards/GuardRosterTable';
 import GuardDetailModal from '@cms-components/deployed-guards/GuardDetailModal';
-import deployedGuardsService from '@services/deployedGuardsService';
+import deployedGuardsService from '@services/cms/deployedGuardsService';
 
 const LIMIT = 6;
 

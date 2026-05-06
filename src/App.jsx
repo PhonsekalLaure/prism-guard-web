@@ -30,12 +30,13 @@ import CmsBillingPage from '@cms-pages/CmsBillingPage';
 import ServiceReviewsPage from '@cms-pages/ServiceReviewsPage';
 import SetPasswordPage from './pages/SetPasswordPage';
 import CmsProfilePage from '@cms-pages/CmsProfilePage';
-
+import VerifyEmailPage from './pages/VerifyEmailPage';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/set-password" element={<SetPasswordPage />} />
 

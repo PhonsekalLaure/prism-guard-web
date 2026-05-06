@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import employeeService from '@services/employeeService';
+import employeeService from '@services/hris/employeeService';
 
 export default function EmployeesStatCards({ refreshKey = 0 }) {
   const [stats, setStats] = useState({

@@ -143,7 +143,7 @@ export default function PersonalTab({
             <h3 className="ve-section-title"><FaAddressBook className="ve-section-icon" /> Contact Information</h3>
             <div className="ve-edit-grid cols-2">
               <EditInput label="Mobile Number"         value={editForm.phone_number}             onChange={v => onField('phone_number', v)}             placeholder="10-digit number" />
-              <EditInput label="Email Address"  type="email" value={editForm.contact_email}      onChange={v => onField('contact_email', v)} />
+              <EditInput label="Email Address"  type="email" value={editForm.contact_email}      onChange={v => onField('contact_email', v)} readOnly disabled />
               <div className="ve-edit-field span-2">
                 <label className="ve-edit-label">Residential Address</label>
                 <GoogleAddressAutofill
