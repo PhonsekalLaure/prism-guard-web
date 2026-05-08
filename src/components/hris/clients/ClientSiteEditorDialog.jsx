@@ -1,5 +1,7 @@
 import GoogleAddressAutofill from '@hris-components/employees/GoogleAddressAutofill';
 
+const MAX_GEOFENCE_RADIUS_METERS = 500;
+
 export default function ClientSiteEditorDialog({
   isOpen,
   mode = 'create',
@@ -64,8 +66,10 @@ export default function ClientSiteEditorDialog({
                 className="ae-input"
                 value={form.geofenceRadius}
                 min="1"
+                max={MAX_GEOFENCE_RADIUS_METERS}
                 onChange={(e) => onFieldChange('geofenceRadius', e.target.value)}
               />
+              <p className="ae-hint">Maximum radius: {MAX_GEOFENCE_RADIUS_METERS}m.</p>
             </div>
           </div>
         </div>
