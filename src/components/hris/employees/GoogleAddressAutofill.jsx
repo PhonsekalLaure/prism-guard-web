@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import googlePlacesService from '@services/googlePlacesService';
-import { getAutocompleteLibrary } from '@utils/googleMaps';
 
 const DEBOUNCE_MS = 200;
 const MIN_QUERY_LENGTH = 3;
@@ -29,7 +28,6 @@ const itemStyle = {
 };
 
 export default function GoogleAddressAutofill({
-  apiKey,
   onPlaceSelected,
   value,
   onChange,
@@ -37,7 +35,6 @@ export default function GoogleAddressAutofill({
   placeholder,
 }) {
   const inputRef = useRef(null);
-  const autocompleteRef = useRef(null);
   const [predictions, setPredictions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isResolvingSelection, setIsResolvingSelection] = useState(false);
@@ -46,61 +43,8 @@ export default function GoogleAddressAutofill({
   const wrapperRef = useRef(null);
   const latestRequestIdRef = useRef(0);
   const suppressNextLookupRef = useRef(false);
-  const useBrowserAutocomplete = Boolean(apiKey);
 
   useEffect(() => {
-    if (!useBrowserAutocomplete) {
-      return undefined;
-    }
-
-    let isMounted = true;
-
-    async function initAutocomplete() {
-      try {
-        const { Autocomplete } = await getAutocompleteLibrary();
-        if (!isMounted || !inputRef.current) {
-          return;
-        }
-
-        autocompleteRef.current = new Autocomplete(inputRef.current, {
-          fields: ['address_components', 'geometry', 'formatted_address'],
-          types: ['address'],
-          componentRestrictions: { country: 'ph' },
-        });
-
-        autocompleteRef.current.addListener('place_changed', () => {
-          const place = autocompleteRef.current.getPlace();
-          if (!place.geometry?.location) {
-            return;
-          }
-
-          onPlaceSelected?.({
-            formattedAddress: place.formatted_address,
-            lat: place.geometry.location.lat(),
-            lng: place.geometry.location.lng(),
-            raw: place,
-          });
-        });
-      } catch (error) {
-        console.error('Google Maps browser autocomplete failed:', error);
-      }
-    }
-
-    initAutocomplete();
-
-    return () => {
-      isMounted = false;
-      if (autocompleteRef.current && window.google) {
-        window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
-      }
-    };
-  }, [onPlaceSelected, useBrowserAutocomplete]);
-
-  useEffect(() => {
-    if (useBrowserAutocomplete) {
-      return undefined;
-    }
-
     if (suppressNextLookupRef.current) {
       suppressNextLookupRef.current = false;
       return undefined;
@@ -147,7 +91,7 @@ export default function GoogleAddressAutofill({
       controller.abort();
       window.clearTimeout(timeoutId);
     };
-  }, [useBrowserAutocomplete, value]);
+  }, [value]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -227,19 +171,19 @@ export default function GoogleAddressAutofill({
         autoComplete="off"
       />
 
-      {!useBrowserAutocomplete && isLoading && (
+      {isLoading && (
         <p className="ae-hint" style={{ marginTop: '0.35rem' }}>
           Loading address suggestions...
         </p>
       )}
 
-      {!useBrowserAutocomplete && isResolvingSelection && (
+      {isResolvingSelection && (
         <p className="ae-hint" style={{ marginTop: '0.35rem' }}>
           Finalizing selected address...
         </p>
       )}
 
-      {!useBrowserAutocomplete && isOpen && predictions.length > 0 && (
+      {isOpen && predictions.length > 0 && (
         <div style={dropdownStyle}>
           {predictions.map((prediction, index) => (
             <button

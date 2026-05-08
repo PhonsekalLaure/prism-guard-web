@@ -1,7 +1,5 @@
 import GoogleAddressAutofill from '@hris-components/employees/GoogleAddressAutofill';
 
-const GOOGLE_MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-
 export default function ClientSiteEditorDialog({
   isOpen,
   mode = 'create',
@@ -42,7 +40,6 @@ export default function ClientSiteEditorDialog({
             <div className="ae-form-group span-2">
               <label>Site Address</label>
               <GoogleAddressAutofill
-                apiKey={GOOGLE_MAPS_KEY}
                 value={form.siteAddress}
                 onChange={(e) => {
                   onFieldChange('siteAddress', e.target.value);

@@ -2,8 +2,6 @@ import { FaMapMarkerAlt } from 'react-icons/fa';
 import FormField from './ClientFormField';
 import GoogleAddressAutofill from '@hris-components/employees/GoogleAddressAutofill';
 
-const GOOGLE_MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-
 export default function Step4Sites({ data, onAddSite, onUpdateSite, onRemoveSite }) {
   return (
     <div className="ae-step-content">
@@ -43,7 +41,6 @@ export default function Step4Sites({ data, onAddSite, onUpdateSite, onRemoveSite
                 customInput={(
                   <>
                     <GoogleAddressAutofill
-                      apiKey={GOOGLE_MAPS_KEY}
                       value={site.siteAddress}
                       onChange={(e) => {
                         onUpdateSite(index, 'siteAddress', e.target.value);
