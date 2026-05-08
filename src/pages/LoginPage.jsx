@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import BrandPanel from '@components/login/BrandPanel';
+import AuthLayout from '@/layouts/AuthLayout';
 import LoginForm from '@components/login/LoginForm';
 import Notification from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
 import authService from '@services/authService';
-import '@styles/Login.css';
+import '@styles/Auth.css';
 
 export default function LoginPage() {
   const { notification, showNotification, closeNotification } = useNotification();
@@ -38,15 +38,11 @@ export default function LoginPage() {
         />
       )}
 
-      <div className="login-page">
-        <BrandPanel />
-
-        <div className="login-form-panel">
-          <div className="login-card">
-            <LoginForm onNotify={showNotification} />
-          </div>
+      <AuthLayout>
+        <div className="auth-card">
+          <LoginForm onNotify={showNotification} />
         </div>
-      </div>
+      </AuthLayout>
     </>
   );
 }
