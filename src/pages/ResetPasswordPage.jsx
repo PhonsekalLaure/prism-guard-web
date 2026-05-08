@@ -3,12 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import {
   FaArrowRight, FaEye, FaEyeSlash, FaLock,
-  FaCheckCircle, FaCheck, FaTimes,
+  FaCheckCircle,
   FaExclamationCircle, FaInfoCircle,
 } from 'react-icons/fa';
 import { createClient } from '@supabase/supabase-js';
+import PasswordRequirements from '@components/auth/PasswordRequirements';
 import BrandPanel from '@components/login/BrandPanel';
 import authService from '@services/authService';
+import {
+  getPasswordPolicyError,
+  getPasswordStrength,
+  validatePassword,
+} from '@utils/passwordPolicy';
 import '@styles/ResetPassword.css';
 
 const supabase = createClient(
@@ -17,27 +23,6 @@ const supabase = createClient(
 );
 
 // ─── Password strength ─────────────────────────────────────────
-
-function getStrength(password) {
-  if (!password) return { score: 0, label: '', cls: '' };
-  let score = 0;
-  if (password.length >= 8)                     score++;
-  if (password.length >= 12)                    score++;
-  if (/[A-Z]/.test(password))                   score++;
-  if (/[0-9]/.test(password))                   score++;
-  if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score++;
-  if (score <= 1) return { score, label: 'Weak',   cls: 'weak'   };
-  if (score === 2) return { score, label: 'Fair',   cls: 'fair'   };
-  if (score === 3) return { score, label: 'Good',   cls: 'good'   };
-  return             { score, label: 'Strong', cls: 'strong' };
-}
-
-const REQUIREMENTS = [
-  { label: 'At least 8 characters',  test: (p) => p.length >= 8 },
-  { label: 'One uppercase letter',   test: (p) => /[A-Z]/.test(p) },
-  { label: 'One number',             test: (p) => /[0-9]/.test(p) },
-  { label: 'One special character',  test: (p) => /[!@#$%^&*(),.?":{}|<>]/.test(p) },
-];
 
 // ─── Inline notification ───────────────────────────────────────
 
@@ -65,10 +50,12 @@ export default function ResetPasswordPage() {
   const [notification, setNotification] = useState(null);
   const [password, setPassword]         = useState('');
 
-  const strength = getStrength(password);
+  const strength = getPasswordStrength(password);
+  const passwordPolicy = validatePassword(password);
 
-  const { register, handleSubmit, watch, formState: { errors } } = useForm({ mode: 'onChange' });
+  const { register, handleSubmit, watch, formState: { errors, isValid } } = useForm({ mode: 'onChange' });
   const watchedPassword = watch('newPassword', '');
+  const watchedConfirmPassword = watch('confirmPassword', '');
 
   useEffect(() => { setPassword(watchedPassword); }, [watchedPassword]);
 
@@ -123,7 +110,17 @@ export default function ResetPasswordPage() {
     };
   }, [navigate]);
 
-  const onSubmit = async ({ newPassword }) => {
+  const onSubmit = async ({ newPassword, confirmPassword }) => {
+    if (!validatePassword(newPassword).isValid) {
+      setNotification({ message: getPasswordPolicyError(newPassword), type: 'error' });
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setNotification({ message: 'Passwords do not match.', type: 'error' });
+      return;
+    }
+
     setIsSubmitting(true);
     setNotification({ message: 'Updating your password…', type: 'info' });
 
@@ -138,7 +135,7 @@ export default function ResetPasswordPage() {
       setTimeout(() => navigate('/login'), 3000);
     } catch (err) {
       setNotification({
-        message: err.message || 'Failed to update password. The link may have expired.',
+        message: err?.response?.data?.error || err.message || 'Failed to update password. The link may have expired.',
         type: 'error',
       });
     } finally {
@@ -194,15 +191,7 @@ export default function ResetPasswordPage() {
                       placeholder="Enter new password"
                       {...register('newPassword', {
                         required: 'Please enter a new password',
-                        minLength: { value: 8, message: 'Must be at least 8 characters' },
-                        validate: {
-                          uppercase: (value) => /[A-Z]/.test(value) || 'Must contain at least one uppercase letter',
-                          number: (value) => /[0-9]/.test(value) || 'Must contain at least one number',
-                        },
-                        pattern: {
-                          value: /^(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/,
-                          message: 'Must contain at least one special character',
-                        },
+                        validate: (value) => getPasswordPolicyError(value),
                       })}
                     />
                     <button type="button" className="reset-password-toggle"
@@ -227,18 +216,11 @@ export default function ResetPasswordPage() {
 
                 {/* Requirements checklist */}
                 {password && (
-                  <div className="reset-requirements">
-                    <p className="reset-req-title">Requirements</p>
-                    {REQUIREMENTS.map(({ label, test }) => {
-                      const met = test(password);
-                      return (
-                        <div key={label} className={`reset-req-item ${met ? 'met' : ''}`}>
-                          <span className="reset-req-icon">{met ? <FaCheck /> : <FaTimes />}</span>
-                          {label}
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <PasswordRequirements
+                    password={password}
+                    passwordsMatch={watchedConfirmPassword === watchedPassword}
+                    variant="reset"
+                  />
                 )}
 
                 {/* Confirm password */}
@@ -264,7 +246,11 @@ export default function ResetPasswordPage() {
                   {errors.confirmPassword && <span className="reset-field-error">{errors.confirmPassword.message}</span>}
                 </div>
 
-                <button type="submit" className="reset-btn" disabled={isSubmitting}>
+                <button
+                  type="submit"
+                  className="reset-btn"
+                  disabled={isSubmitting || !isValid || !passwordPolicy.isValid || watchedConfirmPassword !== watchedPassword}
+                >
                   <span>{isSubmitting ? 'Updating…' : 'Set New Password'}</span>
                   <FaArrowRight className="arrow" />
                 </button>

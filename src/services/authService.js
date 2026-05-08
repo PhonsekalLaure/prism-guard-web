@@ -194,6 +194,22 @@ async function forgotPassword(email) {
   await api.post('/forgot-password', { email });
 }
 
+async function updatePassword({ password, confirmPassword, clearMustChangePassword = false, accessToken }) {
+  const token = accessToken || getToken();
+
+  if (!token) {
+    throw new Error('Your password session is invalid or expired.');
+  }
+
+  const { data } = await api.post(
+    '/update-password',
+    { password, confirmPassword, clearMustChangePassword },
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+
+  return data;
+}
+
 async function refreshStoredSession() {
   const refreshToken = getRefreshToken();
   if (!refreshToken) return null;
@@ -293,4 +309,4 @@ async function logout() {
   clearTokens();
 }
 
-export default { login, logout, forgotPassword, getMe, getToken, getProfile, updateProfile, clearTokens, openFileUrl, getFileObjectUrl };
+export default { login, logout, forgotPassword, updatePassword, getMe, getToken, getProfile, updateProfile, clearTokens, openFileUrl, getFileObjectUrl };

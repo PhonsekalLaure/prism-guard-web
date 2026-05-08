@@ -2,18 +2,23 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createClient } from '@supabase/supabase-js';
 import { FaCheckCircle, FaEye, FaEyeSlash } from 'react-icons/fa';
+import PasswordRequirements from '@components/auth/PasswordRequirements';
 import BrandPanel from '@components/login/BrandPanel';
 import Notification from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
 import authService from '@services/authService';
+import {
+  getPasswordPolicyError,
+  validatePassword,
+} from '@utils/passwordPolicy';
 import '@styles/Login.css';
 import '@styles/SetPassword.css';
+import '@styles/components/ChangePasswordModal.css';
 
 // Direct Supabase client for auth operations
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
-const PASSWORD_POLICY_REGEX = /^(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
 
 export default function SetPasswordPage() {
   const [password, setPassword] = useState('');
@@ -24,6 +29,8 @@ export default function SetPasswordPage() {
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
   const { notification, showNotification, closeNotification } = useNotification();
+  const passwordPolicy = validatePassword(password);
+  const passwordsMatch = password.length > 0 && password === confirmPassword;
 
   useEffect(() => {
     // Supabase automatically handles the hash fragment and signs the user in
@@ -61,8 +68,8 @@ export default function SetPasswordPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!PASSWORD_POLICY_REGEX.test(password)) {
-      showNotification('Password must be at least 8 characters and include at least one special character.', 'error');
+    if (!passwordPolicy.isValid) {
+      showNotification(getPasswordPolicyError(password), 'error');
       return;
     }
 
@@ -73,11 +80,14 @@ export default function SetPasswordPage() {
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.auth.updateUser({
+      const { data: { session } } = await supabase.auth.getSession();
+
+      await authService.updatePassword({
         password,
-        data: { must_change_password: false },
+        confirmPassword,
+        clearMustChangePassword: true,
+        accessToken: session?.access_token,
       });
-      if (error) throw error;
 
       setSuccess(true);
       showNotification('Password set successfully! Redirecting to login...', 'success');
@@ -88,7 +98,7 @@ export default function SetPasswordPage() {
       setTimeout(() => navigate('/login'), 3000);
     } catch (err) {
       console.error(err);
-      showNotification(err.message || 'Failed to set password. Please try again.', 'error');
+      showNotification(err?.response?.data?.error || err.message || 'Failed to set password. Please try again.', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -150,9 +160,11 @@ export default function SetPasswordPage() {
                     </button>
                   </div>
                   <span className="field-error" style={{ color: '#94a3b8', fontSize: '0.72rem' }}>
-                    At least 8 characters with numbers and symbols recommended.
+                    All password requirements must be met before submission.
                   </span>
                 </div>
+
+                <PasswordRequirements password={password} passwordsMatch={passwordsMatch} />
 
                 <div className="form-group">
                   <label htmlFor="confirm-password">Confirm Password</label>
@@ -177,7 +189,7 @@ export default function SetPasswordPage() {
 
                 <button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !passwordPolicy.isValid || !passwordsMatch}
                   className="btn-login"
                 >
                   {isSubmitting ? (
