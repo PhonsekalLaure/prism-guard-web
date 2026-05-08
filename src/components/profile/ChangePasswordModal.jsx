@@ -1,15 +1,18 @@
 import { useState } from 'react';
 import {
-  FaCheckCircle,
   FaEye,
   FaEyeSlash,
   FaKey,
   FaLock,
-  FaRegCircle,
   FaSpinner,
   FaTimes,
 } from 'react-icons/fa';
+import PasswordRequirements from '@components/auth/PasswordRequirements';
 import profileService from '@services/profileService';
+import {
+  getPasswordPolicyError,
+  validatePassword,
+} from '@utils/passwordPolicy';
 import '@styles/components/ChangePasswordModal.css';
 
 const emptyForm = {
@@ -39,13 +42,8 @@ export default function ChangePasswordModal({ isOpen, onClose, variant = 'hris' 
 
   if (!isOpen) return null;
 
-  const hasUpper = /[A-Z]/.test(form.newPassword);
-  const hasLower = /[a-z]/.test(form.newPassword);
-  const hasNumber = /[0-9]/.test(form.newPassword);
-  const hasSymbol = /[^A-Za-z0-9]/.test(form.newPassword);
-  const hasLength = form.newPassword.length >= 8;
+  const passwordPolicy = validatePassword(form.newPassword);
   const passwordsMatch = form.newPassword.length > 0 && form.newPassword === form.confirmPassword;
-  const isPasswordValid = hasUpper && hasLower && hasNumber && hasSymbol && hasLength;
   const isCms = variant === 'cms';
 
   const resetState = () => {
@@ -81,8 +79,8 @@ export default function ChangePasswordModal({ isOpen, onClose, variant = 'hris' 
       return;
     }
 
-    if (!isPasswordValid) {
-      setError('New password does not meet complexity requirements.');
+    if (!passwordPolicy.isValid) {
+      setError(getPasswordPolicyError(form.newPassword));
       return;
     }
 
@@ -137,7 +135,9 @@ export default function ChangePasswordModal({ isOpen, onClose, variant = 'hris' 
               onChange={handleChange}
               onClose={handleClose}
               onSubmit={handleSubmit}
-              requirements={{ hasLength, hasUpper, hasLower, hasNumber, hasSymbol, passwordsMatch }}
+              password={form.newPassword}
+              passwordsMatch={passwordsMatch}
+              canSubmit={Boolean(form.currentPassword) && passwordPolicy.isValid && passwordsMatch}
               saving={saving}
               show={show}
               success={success}
@@ -168,7 +168,9 @@ export default function ChangePasswordModal({ isOpen, onClose, variant = 'hris' 
           onChange={handleChange}
           onClose={handleClose}
           onSubmit={handleSubmit}
-          requirements={{ hasLength, hasUpper, hasLower, hasNumber, hasSymbol, passwordsMatch }}
+          password={form.newPassword}
+          passwordsMatch={passwordsMatch}
+          canSubmit={Boolean(form.currentPassword) && passwordPolicy.isValid && passwordsMatch}
           saving={saving}
           show={show}
           success={success}
@@ -186,7 +188,9 @@ function PasswordForm({
   onChange,
   onClose,
   onSubmit,
-  requirements,
+  canSubmit,
+  password,
+  passwordsMatch,
   saving,
   show,
   success,
@@ -236,7 +240,11 @@ function PasswordForm({
         </div>
       ))}
 
-      <PasswordRequirements isCms={isCms} requirements={requirements} />
+      <PasswordRequirements
+        password={password}
+        passwordsMatch={passwordsMatch}
+        variant={isCms ? 'cms' : 'shared'}
+      />
 
       {error && <p className={errorClassName}>{error}</p>}
       {success && <p className={successClassName}>Password updated successfully.</p>}
@@ -245,41 +253,11 @@ function PasswordForm({
         <button type="button" className={cancelClassName} onClick={onClose} disabled={saving}>
           Cancel
         </button>
-        <button type="submit" className={submitClassName} disabled={saving}>
+        <button type="submit" className={submitClassName} disabled={saving || !canSubmit}>
           {saving ? <FaSpinner className="shared-password-spinner" /> : <FaKey />}
           {saving ? 'Updating...' : 'Update Password'}
         </button>
       </div>
     </form>
-  );
-}
-
-function PasswordRequirements({ isCms, requirements }) {
-  const items = [
-    [requirements.hasLength, 'At least 8 chars'],
-    [requirements.hasUpper, '1 Uppercase'],
-    [requirements.hasLower, '1 Lowercase'],
-    [requirements.hasNumber, '1 Number'],
-    [requirements.hasSymbol, '1 Symbol'],
-    [requirements.passwordsMatch, 'Passwords match'],
-  ];
-
-  return (
-    <div className={isCms ? 'cms-profile-password-rules' : 'shared-password-rules'}>
-      <p>Password Requirements:</p>
-      <div className={isCms ? 'cms-profile-password-rules__grid' : 'shared-password-rules__grid'}>
-        {items.map(([isMet, text]) => (
-          <div
-            key={text}
-            className={isCms
-              ? `cms-profile-password-rule${isMet ? ' is-met' : ''}`
-              : `shared-password-rule${isMet ? ' is-met' : ''}`}
-          >
-            {isMet ? <FaCheckCircle /> : <FaRegCircle />}
-            <span>{text}</span>
-          </div>
-        ))}
-      </div>
-    </div>
   );
 }
