@@ -6,11 +6,12 @@ import {
   getEditableEmail,
   getPhoneInputValue,
   validatePhilippineMobile,
+  getProfileEmailLabel,
   getProfileFullName,
   getPhoneDisplayValue,
 } from '@utils/profileViewModel';
 
-export default function ContactPerson({ profile, onProfileUpdate, isEditing, onCancelEdit }) {
+export default function ContactPerson({ profile, onProfileUpdate, isEditing, onCancelEdit, onNotify }) {
   const [form, setForm] = useState({
     firstName: '',
     lastName: '',
@@ -20,8 +21,6 @@ export default function ContactPerson({ profile, onProfileUpdate, isEditing, onC
     phone: '',
   });
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -36,32 +35,21 @@ export default function ContactPerson({ profile, onProfileUpdate, isEditing, onC
     }
   }, [profile, isEditing]);
 
-  useEffect(() => {
-    if (!isEditing) {
-      setError(null);
-      setSuccess(false);
-    }
-  }, [isEditing]);
-
   const handleChange = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
-    setError(null);
-    setSuccess(false);
   };
 
   const handleSave = async (e) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(false);
 
     if (!form.firstName.trim() || !form.lastName.trim()) {
-      setError('First name and last name are required.');
+      onNotify?.('First name and last name are required.', 'error');
       return;
     }
 
     const phoneError = validatePhilippineMobile(form.phone);
     if (phoneError) {
-      setError(phoneError);
+      onNotify?.(phoneError, 'error');
       return;
     }
 
@@ -86,7 +74,7 @@ export default function ContactPerson({ profile, onProfileUpdate, isEditing, onC
 
       onProfileUpdate?.(contactUpdates);
     } catch (err) {
-      setError(err?.response?.data?.error || 'Failed to save personal details.');
+      onNotify?.(err?.response?.data?.error || 'Failed to save personal details.', 'error');
       setSaving(false);
       return;
     }
@@ -107,12 +95,22 @@ export default function ContactPerson({ profile, onProfileUpdate, isEditing, onC
         });
       }
 
-      setSuccess(true);
+      onNotify?.(
+        shouldRequestEmailChange
+          ? 'Changes saved. Check your email to confirm the new address.'
+          : 'Personal details updated successfully.',
+        'success'
+      );
+
       setTimeout(() => {
         onCancelEdit?.();
       }, 1500);
     } catch (err) {
-      setError(`Personal details were saved, but email change failed: ${err?.response?.data?.error || 'Please try again.'}`);
+      onNotify?.(
+        `Personal details were saved, but email change failed: ${err?.response?.data?.error || 'Please try again.'}`,
+        'error',
+        6000
+      );
     } finally {
       setSaving(false);
     }
@@ -169,13 +167,13 @@ export default function ContactPerson({ profile, onProfileUpdate, isEditing, onC
                 isEditing={false}
                 label="Email Address"
                 name="email"
-                value={profile?.contact_email || form.email}
+                value={getProfileEmailLabel(profile)}
               />
               <ProfileField
                 isEditing={false}
                 label="Phone Number"
                 name="phone"
-                value={getPhoneDisplayValue(profile?.phone_number)}
+                value={getPhoneDisplayValue(profile)}
               />
             </>
           ) : (
@@ -212,16 +210,6 @@ export default function ContactPerson({ profile, onProfileUpdate, isEditing, onC
             <p className="cms-profile-form__hint">Enter 10 digits without +63.</p>
           )}
 
-          {error && (
-            <p className="cms-profile-form__error">{error}</p>
-          )}
-          {success && (
-            <p className="cms-profile-form__success">
-              {form.email && form.email !== profile?.contact_email
-                ? 'Changes saved. Check your email to confirm the new address.'
-                : 'Personal details updated successfully.'}
-            </p>
-          )}
       </form>
     </div>
   );
