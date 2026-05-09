@@ -67,21 +67,19 @@ export default function CompanyInformation({ profile }) {
   ];
 
   return (
-    <div className="cms-profile-details-card">
-      <div className="cms-profile-section">
-        <h3 className="cms-profile-section__title">
-          <FaBuilding className="cms-profile-section__icon" /> Company Information
-        </h3>
-        <div className="cms-profile-field-grid">
-          {fields.map(({ id, label, value, colSpan }) => (
-            <div
-              key={id}
-              className={colSpan === 'full' ? 'cms-profile-field-grid__full' : ''}
-            >
-              <ReadonlyField label={label} value={value} />
-            </div>
-          ))}
-        </div>
+    <div className="cms-profile-section">
+      <h3 className="cms-profile-section__title">
+        <FaBuilding className="cms-profile-section__icon" /> Company Information
+      </h3>
+      <div className="cms-profile-field-grid">
+        {fields.map(({ id, label, value, colSpan }) => (
+          <div
+            key={id}
+            className={colSpan === 'full' ? 'cms-profile-field-grid__full' : ''}
+          >
+            <ReadonlyField label={label} value={value} />
+          </div>
+        ))}
       </div>
     </div>
   );

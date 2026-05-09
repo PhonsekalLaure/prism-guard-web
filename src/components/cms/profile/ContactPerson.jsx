@@ -6,6 +6,8 @@ import {
   getEditableEmail,
   getPhoneInputValue,
   validatePhilippineMobile,
+  getProfileFullName,
+  getPhoneDisplayValue,
 } from '@utils/profileViewModel';
 
 export default function ContactPerson({ profile, onProfileUpdate, isEditing, onCancelEdit }) {
@@ -125,62 +127,86 @@ export default function ContactPerson({ profile, onProfileUpdate, isEditing, onC
   ];
 
   return (
-    <div className="cms-profile-details-card">
-      <div className="cms-profile-section">
-        <div className="cms-profile-section__header">
-          <h3 className="cms-profile-section__title">
-            <FaUserTie className="cms-profile-section__icon" /> Contact Person / Representative
-          </h3>
-          {isEditing && (
-            <div className="cms-profile-form__actions cms-profile-form__actions--inline">
-              <button
-                type="button"
-                className="cms-profile-form__cancel-btn"
-                onClick={onCancelEdit}
-                disabled={saving}
-              >
-                <FaTimes /> Cancel
-              </button>
-              <button
-                type="submit"
-                form="cms-profile-contact-form"
-                className="cms-profile-form__save-btn"
-                disabled={saving}
-              >
-                {saving ? <FaSpinner className="cms-profile-form__spinner" /> : <FaSave />}
-                {saving ? 'Saving...' : 'Save'}
-              </button>
-            </div>
+    <div className="cms-profile-section">
+      <div className="cms-profile-section__header">
+        <h3 className="cms-profile-section__title">
+          <FaUserTie className="cms-profile-section__icon" /> Contact Person / Representative
+        </h3>
+        {isEditing && (
+          <div className="cms-profile-form__actions cms-profile-form__actions--inline">
+            <button
+              type="button"
+              className="cms-profile-form__cancel-btn"
+              onClick={onCancelEdit}
+              disabled={saving}
+            >
+              <FaTimes /> Cancel
+            </button>
+            <button
+              type="submit"
+              form="cms-profile-contact-form"
+              className="cms-profile-form__save-btn"
+              disabled={saving}
+            >
+              {saving ? <FaSpinner className="cms-profile-form__spinner" /> : <FaSave />}
+              {saving ? 'Saving...' : 'Save'}
+            </button>
+          </div>
+        )}
+      </div>
+
+      <form id="cms-profile-contact-form" onSubmit={handleSave} className="cms-profile-form__stack">
+        <div className="cms-profile-field-grid">
+          {!isEditing ? (
+            <>
+              <ProfileField
+                isEditing={false}
+                label="Full Name"
+                name="fullName"
+                value={getProfileFullName(profile)}
+              />
+              <ProfileField
+                isEditing={false}
+                label="Email Address"
+                name="email"
+                value={profile?.contact_email || form.email}
+              />
+              <ProfileField
+                isEditing={false}
+                label="Phone Number"
+                name="phone"
+                value={getPhoneDisplayValue(profile?.phone_number)}
+              />
+            </>
+          ) : (
+            <>
+              {fields.map(({ name, label, type, placeholder }) => (
+                <ProfileField
+                  key={name}
+                  isEditing={isEditing}
+                  label={label}
+                  name={name}
+                  onChange={(value) => handleChange(name, value)}
+                  placeholder={placeholder}
+                  saving={saving}
+                  type={type}
+                  value={form[name]}
+                />
+              ))}
+
+              <ProfileField
+                isEditing={isEditing}
+                label="Phone Number"
+                name="phone"
+                onChange={(value) => handleChange('phone', value)}
+                prefix={<><FaMobileAlt /> +63</>}
+                saving={saving}
+                type="tel"
+                value={form.phone}
+              />
+            </>
           )}
         </div>
-
-        <form id="cms-profile-contact-form" onSubmit={handleSave} className="cms-profile-form__stack">
-          <div className="cms-profile-field-grid">
-            {fields.map(({ name, label, type, placeholder }) => (
-              <ProfileField
-                key={name}
-                isEditing={isEditing}
-                label={label}
-                name={name}
-                onChange={(value) => handleChange(name, value)}
-                placeholder={placeholder}
-                saving={saving}
-                type={type}
-                value={form[name]}
-              />
-            ))}
-
-            <ProfileField
-              isEditing={isEditing}
-              label="Phone Number"
-              name="phone"
-              onChange={(value) => handleChange('phone', value)}
-              prefix={<><FaMobileAlt /> +63</>}
-              saving={saving}
-              type="tel"
-              value={form.phone}
-            />
-          </div>
 
           {isEditing && (
             <p className="cms-profile-form__hint">Enter 10 digits without +63.</p>
@@ -196,8 +222,7 @@ export default function ContactPerson({ profile, onProfileUpdate, isEditing, onC
                 : 'Personal details updated successfully.'}
             </p>
           )}
-        </form>
-      </div>
+      </form>
     </div>
   );
 }
