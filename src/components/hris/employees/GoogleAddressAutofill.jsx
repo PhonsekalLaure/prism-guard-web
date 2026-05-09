@@ -27,6 +27,10 @@ const itemStyle = {
   cursor: 'pointer',
 };
 
+function getLookupErrorMessage(error, fallback) {
+  return error?.response?.data?.error || error?.message || fallback;
+}
+
 export default function GoogleAddressAutofill({
   onPlaceSelected,
   value,
@@ -40,6 +44,7 @@ export default function GoogleAddressAutofill({
   const [isResolvingSelection, setIsResolvingSelection] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [lookupError, setLookupError] = useState('');
   const wrapperRef = useRef(null);
   const latestRequestIdRef = useRef(0);
   const suppressNextLookupRef = useRef(false);
@@ -55,6 +60,7 @@ export default function GoogleAddressAutofill({
       setPredictions([]);
       setIsOpen(false);
       setActiveIndex(-1);
+      setLookupError('');
       return undefined;
     }
 
@@ -72,6 +78,7 @@ export default function GoogleAddressAutofill({
         setPredictions(nextPredictions);
         setIsOpen(nextPredictions.length > 0);
         setActiveIndex(-1);
+        setLookupError('');
       } catch (error) {
         if (error.name !== 'CanceledError' && error.name !== 'AbortError') {
           console.error('Google address autocomplete failed:', error);
@@ -79,6 +86,12 @@ export default function GoogleAddressAutofill({
         if (latestRequestIdRef.current === requestId) {
           setPredictions([]);
           setIsOpen(false);
+          if (error.name !== 'CanceledError' && error.name !== 'AbortError') {
+            setLookupError(getLookupErrorMessage(
+              error,
+              'Address lookup is temporarily unavailable. Please try again later.'
+            ));
+          }
         }
       } finally {
         if (latestRequestIdRef.current === requestId) {
@@ -115,6 +128,7 @@ export default function GoogleAddressAutofill({
     setPredictions([]);
     setIsOpen(false);
     setActiveIndex(-1);
+    setLookupError('');
 
     try {
       setIsResolvingSelection(true);
@@ -128,6 +142,10 @@ export default function GoogleAddressAutofill({
       });
     } catch (error) {
       console.error('Google place details failed:', error);
+      setLookupError(getLookupErrorMessage(
+        error,
+        'Address details are temporarily unavailable. Please try again later.'
+      ));
     } finally {
       setIsResolvingSelection(false);
     }
@@ -160,7 +178,10 @@ export default function GoogleAddressAutofill({
         className={className}
         placeholder={placeholder}
         value={value}
-        onChange={onChange}
+        onChange={(event) => {
+          setLookupError('');
+          onChange?.(event);
+        }}
         onFocus={() => {
           if (predictions.length > 0) {
             setIsOpen(true);
@@ -180,6 +201,12 @@ export default function GoogleAddressAutofill({
       {isResolvingSelection && (
         <p className="ae-hint" style={{ marginTop: '0.35rem' }}>
           Finalizing selected address...
+        </p>
+      )}
+
+      {lookupError && (
+        <p className="ae-field-error" role="alert" style={{ marginTop: '0.35rem' }}>
+          {lookupError}
         </p>
       )}
 

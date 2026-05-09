@@ -68,7 +68,12 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
     if (!formData.employeeId) {
       employeeService.getNextEmployeeId()
         .then(id  => setFormData(prev => ({ ...prev, employeeId: id })))
-        .catch(()  => setFormData(prev => ({ ...prev, employeeId: 'PG-00001' })));
+        .catch((err) => {
+          showNotification(
+            err.response?.data?.error || 'Failed to generate the next employee ID. Please try again.',
+            'error'
+          );
+        });
     }
     clientService.getAllSitesList({
       latitude: formData.latitude,
@@ -76,7 +81,7 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
     })
       .then(data => setSites(data || []))
       .catch(()  => setSites([]));
-  }, [isOpen, formData.employeeId, formData.latitude, formData.longitude]);
+  }, [isOpen, formData.employeeId, formData.latitude, formData.longitude, showNotification]);
 
   if (!isOpen) return null;
 
