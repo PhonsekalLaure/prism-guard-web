@@ -1,6 +1,7 @@
 import { FaMapMarkerAlt } from 'react-icons/fa';
 import FormField from './ClientFormField';
 import GoogleAddressAutofill from '@hris-components/employees/GoogleAddressAutofill';
+import SiteMap from '../SiteMap';
 
 const MAX_GEOFENCE_RADIUS_METERS = 500;
 
@@ -69,6 +70,14 @@ export default function Step4Sites({ data, onAddSite, onUpdateSite, onRemoveSite
                 max={MAX_GEOFENCE_RADIUS_METERS}
                 hint={`Maximum radius: ${MAX_GEOFENCE_RADIUS_METERS}m.`}
                 onChange={(e) => onUpdateSite(index, 'geofenceRadius', e.target.value)}
+              />
+            </div>
+            
+            <div style={{ marginTop: '1rem' }}>
+              <SiteMap 
+                latitude={site.latitude} 
+                longitude={site.longitude} 
+                radiusMeters={site.geofenceRadius} 
               />
             </div>
           </div>
