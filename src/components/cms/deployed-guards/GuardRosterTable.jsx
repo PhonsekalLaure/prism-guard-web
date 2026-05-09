@@ -2,9 +2,10 @@ import { FaUsers, FaEye, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 const statusConfig = {
   'active': { label: 'Active', className: 'dg-status-badge dg-status-badge--active' },
-  'on-leave': { label: 'On Leave', className: 'dg-status-badge dg-status-badge--leave' },
-  'suspended': { label: 'Suspended', className: 'dg-status-badge dg-status-badge--suspended' },
-  'replaced': { label: 'Temp Replaced', className: 'dg-status-badge dg-status-badge--replaced' },
+  'inactive': { label: 'Inactive', className: 'dg-status-badge dg-status-badge--inactive' },
+  'terminated': { label: 'Terminated', className: 'dg-status-badge dg-status-badge--terminated' },
+  'archived': { label: 'Archived', className: 'dg-status-badge dg-status-badge--archived' },
+  'unknown': { label: 'Unknown', className: 'dg-status-badge dg-status-badge--unknown' },
 };
 
 export default function GuardRosterTable({
@@ -56,7 +57,7 @@ export default function GuardRosterTable({
               </tr>
             ) : (
               guards.map((guard) => {
-                const badge = statusConfig[guard.status] || statusConfig['active'];
+                const badge = statusConfig[guard.status] || statusConfig['unknown'];
                 return (
                   <tr
                     key={guard.id}
