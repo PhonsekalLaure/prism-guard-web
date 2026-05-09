@@ -1242,6 +1242,12 @@ textarea.ve-edit-input { resize: vertical; min-height: 64px; }
   margin: 0;
 }
 
+.ae-field-error {
+  font-size: 0.76rem;
+  color: #b91c1c;
+  margin: 0;
+}
+
 .ae-input-prefix-wrap {
   position: relative;
 }

@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import FormField from './FormField';
 import GoogleAddressAutofill from '../GoogleAddressAutofill';
 
-const GOOGLE_MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-
 export default function Step1Personal({ data, onChange }) {
   const [preview, setPreview] = useState(null);
 
@@ -75,7 +73,6 @@ export default function Step1Personal({ data, onChange }) {
         <div className="ae-form-group span-2">
           <label>Residential Address *</label>
           <GoogleAddressAutofill
-            apiKey={GOOGLE_MAPS_KEY}
             value={data.address}
             onChange={(e) => { onChange('address', e.target.value); onChange('latitude', null); onChange('longitude', null); }}
             className="ae-input"

@@ -57,7 +57,7 @@ export default function ContractSummary({ profile }) {
   const contractFields = [
     {
       label: 'Contract ID',
-      value: profile?.id ? `CTR-${profile.id.slice(-8).toUpperCase()}` : '—',
+      value: profile?.contract_id ? `CTR-${profile.contract_id.slice(-8).toUpperCase()}` : '—',
       valueClass: 'cms-profile-contract__id',
     },
     {

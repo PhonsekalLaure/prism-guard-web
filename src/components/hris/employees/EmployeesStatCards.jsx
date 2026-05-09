@@ -5,8 +5,8 @@ export default function EmployeesStatCards({ refreshKey = 0 }) {
   const [stats, setStats] = useState({
     totalEmployees: 0,
     inactive: 0,
-    absentToday: 0,
-    activeOnDuty: 0
+    activeOnDuty: 0,
+    expiringContracts: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -17,8 +17,8 @@ export default function EmployeesStatCards({ refreshKey = 0 }) {
         setStats(data || {
           totalEmployees: 0,
           inactive: 0,
-          absentToday: 0,
-          activeOnDuty: 0
+          activeOnDuty: 0,
+          expiringContracts: 0
         });
 
       } catch (err) {
@@ -44,16 +44,16 @@ export default function EmployeesStatCards({ refreshKey = 0 }) {
       borderColor: '#e6b215',
     },
     {
-      label: 'Absent Today',
-      value: stats.absentToday,
-      valueColor: '#ef4444',
-      borderColor: '#ef4444',
-    },
-    {
       label: 'Active On Duty',
       value: stats.activeOnDuty,
       valueColor: '#16a34a',
       borderColor: '#16a34a',
+    },
+    {
+      label: 'Expiring Contracts',
+      value: stats.expiringContracts,
+      valueColor: '#f97316',
+      borderColor: '#f97316',
     },
   ];
 

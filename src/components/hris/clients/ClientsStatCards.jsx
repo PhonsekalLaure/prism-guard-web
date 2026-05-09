@@ -4,7 +4,8 @@ import clientService from '@services/hris/clientService';
 export default function ClientsStatCards({ refreshKey = 0 }) {
   const [stats, setStats] = useState({
     totalClients: 0,
-    activeContracts: 0
+    activeContracts: 0,
+    expiringContracts: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -35,10 +36,16 @@ export default function ClientsStatCards({ refreshKey = 0 }) {
       valueColor: '#e6b215',
       borderColor: '#e6b215',
     },
+    {
+      label: 'Expiring Contracts',
+      value: stats.expiringContracts,
+      valueColor: '#f97316',
+      borderColor: '#f97316',
+    },
   ];
 
   return (
-    <div className="stat-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
+    <div className="stat-grid three-cols">
       {statConfig.map((s) => (
         <div
           key={s.label}

@@ -1,7 +1,7 @@
 /* Shared FormField primitive for AddClient wizard steps */
 export default function FormField({
   label, type, options, placeholder, required,
-  hint, value, onChange, readOnly, span2, prefix, customInput,
+  hint, value, onChange, readOnly, span2, prefix, customInput, min, max,
 }) {
   const wrapClass = `ae-form-group ${span2 ? 'span-2' : ''}`;
 
@@ -61,6 +61,8 @@ export default function FormField({
           value={value}
           onChange={onChange}
           readOnly={readOnly}
+          min={min}
+          max={max}
         />
       </div>
       {hint && <p className="ae-hint">{hint}</p>}

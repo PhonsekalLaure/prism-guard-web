@@ -17,12 +17,6 @@ function formatDate(dateStr) {
   });
 }
 
-function formatClientId(id) {
-  if (!id) return '—';
-  // Show last 8 characters of UUID prefixed with "CLI-"
-  return `CLI-${id.slice(-8).toUpperCase()}`;
-}
-
 function ReadonlyField({ label, value }) {
   return (
     <div className="cms-profile-field">
@@ -55,33 +49,25 @@ export default function CompanyInformation({ profile }) {
     {
       id: 'clientSince',
       label: 'Client Since',
-      value: formatDate(profile?.contract_start_date),
-      colSpan: 'half',
-    },
-    {
-      id: 'clientId',
-      label: 'Client ID',
-      value: formatClientId(profile?.id),
+      value: formatDate(profile?.client_since),
       colSpan: 'half',
     },
   ];
 
   return (
-    <div className="cms-profile-details-card">
-      <div className="cms-profile-section">
-        <h3 className="cms-profile-section__title">
-          <FaBuilding className="cms-profile-section__icon" /> Company Information
-        </h3>
-        <div className="cms-profile-field-grid">
-          {fields.map(({ id, label, value, colSpan }) => (
-            <div
-              key={id}
-              className={colSpan === 'full' ? 'cms-profile-field-grid__full' : ''}
-            >
-              <ReadonlyField label={label} value={value} />
-            </div>
-          ))}
-        </div>
+    <div className="cms-profile-section">
+      <h3 className="cms-profile-section__title">
+        <FaBuilding className="cms-profile-section__icon" /> Company Information
+      </h3>
+      <div className="cms-profile-field-grid">
+        {fields.map(({ id, label, value, colSpan }) => (
+          <div
+            key={id}
+            className={colSpan === 'full' ? 'cms-profile-field-grid__full' : ''}
+          >
+            <ReadonlyField label={label} value={value} />
+          </div>
+        ))}
       </div>
     </div>
   );

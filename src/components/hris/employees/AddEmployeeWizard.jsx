@@ -56,6 +56,10 @@ function isPastDate(dateValue) {
   return parsedDate < today;
 }
 
+function isAfterDate(dateValue, maxDateValue) {
+  return Boolean(dateValue && maxDateValue && String(dateValue) > String(maxDateValue));
+}
+
 export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode = false }) {
   const [currentStep,  setCurrentStep]  = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -68,7 +72,12 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
     if (!formData.employeeId) {
       employeeService.getNextEmployeeId()
         .then(id  => setFormData(prev => ({ ...prev, employeeId: id })))
-        .catch(()  => setFormData(prev => ({ ...prev, employeeId: 'PG-00001' })));
+        .catch((err) => {
+          showNotification(
+            err.response?.data?.error || 'Failed to generate the next employee ID. Please try again.',
+            'error'
+          );
+        });
     }
     clientService.getAllSitesList({
       latitude: formData.latitude,
@@ -76,7 +85,7 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
     })
       .then(data => setSites(data || []))
       .catch(()  => setSites([]));
-  }, [isOpen, formData.employeeId, formData.latitude, formData.longitude]);
+  }, [isOpen, formData.employeeId, formData.latitude, formData.longitude, showNotification]);
 
   if (!isOpen) return null;
 
@@ -107,11 +116,15 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
     }
     const site  = sites.find(s => s.id === siteId);
     const label = site ? `${site.site_name} - ${site.clients?.company || 'Unknown Client'}` : '';
+    const clientContractEndDate = site?.client_contract_end_date || null;
     setFormData(prev => ({
       ...prev,
       initialSiteId: siteId,
       initialSiteLabel: label,
       deploymentStartDate: prev.deploymentStartDate || prev.hireDate || '',
+      deploymentEndDate: clientContractEndDate && (!prev.deploymentEndDate || prev.deploymentEndDate > clientContractEndDate)
+        ? clientContractEndDate
+        : prev.deploymentEndDate,
     }));
   };
 
@@ -144,11 +157,16 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
         showNotification('Please fill in all required employment fields', 'error'); return false;
       }
       if (formData.initialSiteId) {
+        const selectedSite = sites.find((site) => site.id === formData.initialSiteId);
+        const clientContractEndDate = selectedSite?.client_contract_end_date || null;
         if (!formData.deploymentStartDate || !formData.deploymentEndDate) {
           showNotification('Please set the initial deployment start and end date.', 'error'); return false;
         }
         if (isEarlierDate(formData.deploymentStartDate, formData.deploymentEndDate)) {
           showNotification('Deployment end date cannot be earlier than deployment start date.', 'error'); return false;
+        }
+        if (isAfterDate(formData.deploymentEndDate, clientContractEndDate)) {
+          showNotification(`Deployment end date cannot be later than the client contract end date (${clientContractEndDate}).`, 'error'); return false;
         }
         if (formData.daysOfWeek.length === 0) {
           showNotification('Please select at least one schedule day for the initial deployment.', 'error'); return false;
@@ -196,6 +214,15 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
         showNotification('Deployment end date cannot be earlier than deployment start date.', 'error');
         setIsSubmitting(false);
         return;
+      }
+      if (formData.initialSiteId) {
+        const selectedSite = sites.find((site) => site.id === formData.initialSiteId);
+        const clientContractEndDate = selectedSite?.client_contract_end_date || null;
+        if (isAfterDate(formData.deploymentEndDate, clientContractEndDate)) {
+          showNotification(`Deployment end date cannot be later than the client contract end date (${clientContractEndDate}).`, 'error');
+          setIsSubmitting(false);
+          return;
+        }
       }
       if (isPastDate(formData.licenseExpiryDate)) {
         showNotification('License expiry date cannot be earlier than today.', 'error');

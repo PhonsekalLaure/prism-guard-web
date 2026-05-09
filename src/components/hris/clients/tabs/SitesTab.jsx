@@ -1,4 +1,5 @@
 import { FaMapMarkerAlt, FaPencilAlt, FaPlus, FaShieldAlt, FaUsers, FaUserShield } from 'react-icons/fa';
+import SiteMap from '../SiteMap';
 
 function formatDate(dateStr) {
   if (!dateStr) return 'N/A';
@@ -9,6 +10,7 @@ function getGuardInitials(name) {
   if (!name || name === 'Unknown') return '??';
   return name.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase();
 }
+
 
 export default function SitesTab({ client, onDeployGuard, onAddSite, onEditSite, onDeactivateSite, canManageSites = false }) {
   const sites = client.sites || [];
@@ -69,6 +71,13 @@ export default function SitesTab({ client, onDeployGuard, onAddSite, onEditSite,
                     <span><FaMapMarkerAlt /> Geofence: {site.geofence_radius_meters}m radius</span>
                     <span><FaUsers /> Active Guards: {activeGuardCount}</span>
                   </div>
+
+                  {/* Render Map */}
+                  <SiteMap 
+                    latitude={site.latitude} 
+                    longitude={site.longitude} 
+                    radiusMeters={site.geofence_radius_meters} 
+                  />
 
                   {/* Deployed Guard Details */}
                   <div className="site-guards-section">

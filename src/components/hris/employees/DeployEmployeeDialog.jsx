@@ -23,6 +23,7 @@ function SectionLabel({ icon: Icon, children }) {
 export default function DeployEmployeeDialog({
   isOpen, employeeName, sitesList, deployForm, setDeployForm,
   isDeploying, onCancel, onDeploy, toggleScheduleDay, isTransfer = false,
+  clientContractEndDate = null,
 }) {
   if (!isOpen) return null;
 
@@ -53,7 +54,18 @@ export default function DeployEmployeeDialog({
             <select
               className="dep-input"
               value={deployForm.siteId}
-              onChange={(e) => setDeployForm((f) => ({ ...f, siteId: e.target.value }))}
+              onChange={(e) => {
+                const siteId = e.target.value;
+                const selectedSite = sitesList.find((site) => site.id === siteId);
+                const maxEndDate = selectedSite?.client_contract_end_date || null;
+                setDeployForm((f) => ({
+                  ...f,
+                  siteId,
+                  contractEndDate: maxEndDate && (!f.contractEndDate || f.contractEndDate > maxEndDate)
+                    ? maxEndDate
+                    : f.contractEndDate,
+                }));
+              }}
             >
               <option value="">- Select a site -</option>
               {sitesList.map((site) => (
@@ -98,7 +110,11 @@ export default function DeployEmployeeDialog({
                   value={deployForm.contractEndDate}
                   onChange={(e) => setDeployForm((f) => ({ ...f, contractEndDate: e.target.value }))}
                   min={deployForm.contractStartDate || undefined}
+                  max={clientContractEndDate || undefined}
                 />
+                {clientContractEndDate && (
+                  <p className="ae-hint">Must be on or before client contract end date: {clientContractEndDate}</p>
+                )}
               </div>
             </div>
           </div>

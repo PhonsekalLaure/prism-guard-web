@@ -38,7 +38,7 @@ export default function Step3Contract({ data, onChange }) {
         />
         
         <FormField
-          label="Contract Document"
+          label="Contract Document *"
           span2
           customInput={
             <label className={`dep-file-zone${data.contractUrl ? ' has-file' : ''}`}>

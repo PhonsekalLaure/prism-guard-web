@@ -31,6 +31,7 @@ import ServiceReviewsPage from '@cms-pages/ServiceReviewsPage';
 import SetPasswordPage from './pages/SetPasswordPage';
 import CmsProfilePage from '@cms-pages/CmsProfilePage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/set-password" element={<SetPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
         {/* HRIS routes — admin only */}
         <Route element={
