@@ -2,6 +2,17 @@ import {
   FaTimes, FaIdCard, FaBriefcase, FaCertificate,
   FaMapMarkedAlt, FaDownload, FaCommentAlt, FaArrowLeft, FaCheckCircle,
 } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+
+const STATUS_CONFIG = {
+  active: { label: 'Active', className: 'dg-badge dg-badge--active' },
+  inactive: { label: 'Inactive', className: 'dg-badge dg-badge--inactive' },
+  terminated: { label: 'Terminated', className: 'dg-badge dg-badge--terminated' },
+  archived: { label: 'Archived', className: 'dg-badge dg-badge--archived' },
+  unknown: { label: 'Unknown', className: 'dg-badge dg-badge--unknown' },
+};
+
+const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 function formatDate(dateStr) {
   if (!dateStr) return 'N/A';
@@ -10,8 +21,104 @@ function formatDate(dateStr) {
   });
 }
 
+function formatTime(time = '') {
+  return time.slice(0, 5) || 'N/A';
+}
+
+function formatSchedule(schedule) {
+  const days = Array.isArray(schedule.days_of_week)
+    ? schedule.days_of_week.map((day) => DAY_LABELS[day] || day).join(', ')
+    : 'N/A';
+
+  return `${days} | ${formatTime(schedule.shift_start)}-${formatTime(schedule.shift_end)}`;
+}
+
+function formatHeight(height) {
+  return height ? `${height} cm` : 'N/A';
+}
+
+function formatStatus(status) {
+  return STATUS_CONFIG[status] || STATUS_CONFIG.unknown;
+}
+
+function buildProfileText(guard) {
+  const lines = [
+    'PRISM Guard Profile',
+    '',
+    `Name: ${guard.full_name || guard.name || 'N/A'}`,
+    `Employee ID: ${guard.employee_id_number || 'N/A'}`,
+    `Status: ${formatStatus(guard.status).label}`,
+    `Position: ${guard.position || 'N/A'}`,
+    `Employment Type: ${guard.employment_type || 'N/A'}`,
+    `Date Hired: ${formatDate(guard.hire_date)}`,
+    '',
+    'Contact',
+    `Phone: ${guard.phone_number || 'N/A'}`,
+    `Email: ${guard.contact_email || 'N/A'}`,
+    `Residential Address: ${guard.residential_address || 'N/A'}`,
+    `Emergency Contact: ${guard.emergency_contact_name || 'N/A'} (${guard.emergency_contact_number || 'N/A'})`,
+    '',
+    'Personal',
+    `Date of Birth: ${formatDate(guard.date_of_birth)}`,
+    `Age: ${guard.age ?? 'N/A'}`,
+    `Gender: ${guard.gender || 'N/A'}`,
+    `Civil Status: ${guard.civil_status || 'N/A'}`,
+    `Citizenship: ${guard.citizenship || 'N/A'}`,
+    `Height: ${formatHeight(guard.height_cm)}`,
+    `Education: ${guard.educational_level || 'N/A'}`,
+    '',
+    'Deployment',
+    `Company: ${guard.company || 'N/A'}`,
+    `Site: ${guard.site_name || 'N/A'}`,
+    `Site Address: ${guard.site_address || 'N/A'}`,
+    `Shift: ${guard.shift || 'N/A'}`,
+    `Deployment Type: ${guard.deployment_type || 'N/A'}`,
+    `Deployment Start: ${formatDate(guard.start_date)}`,
+    `Deployment End: ${formatDate(guard.end_date)}`,
+  ];
+
+  if (Array.isArray(guard.schedules) && guard.schedules.length > 0) {
+    lines.push('', 'Schedules');
+    guard.schedules.forEach((schedule) => lines.push(formatSchedule(schedule)));
+  }
+
+  if (Array.isArray(guard.clearances) && guard.clearances.length > 0) {
+    lines.push('', 'Clearances');
+    guard.clearances.forEach((cert) => {
+      lines.push(`${cert.clearance_type || 'Document'}: ${cert.status || 'N/A'} | expires ${formatDate(cert.expiry_date)}`);
+    });
+  }
+
+  return lines.join('\n');
+}
+
+function downloadProfile(guard) {
+  const fileName = `${guard.employee_id_number || 'guard'}-profile.txt`;
+  const blob = new Blob([buildProfileText(guard)], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function GuardDetailModal({ isOpen, onClose, guard, loading }) {
+  const navigate = useNavigate();
+
   if (!isOpen) return null;
+
+  const status = guard ? formatStatus(guard.status) : STATUS_CONFIG.unknown;
+
+  const handleFeedback = () => {
+    navigate('/cms/reviews', {
+      state: {
+        guardId: guard?.employee_id,
+        deploymentId: guard?.deployment_id,
+        guardName: guard?.full_name || guard?.name,
+      },
+    });
+  };
 
   return (
     <div className="dg-modal-overlay" onClick={onClose}>
@@ -55,9 +162,9 @@ export default function GuardDetailModal({ isOpen, onClose, guard, loading }) {
                   <h3>{guard.full_name || guard.name}</h3>
                   <p>{guard.position || 'Security Officer'}</p>
                   <div className="dg-guard-badges">
-                    <span className="dg-badge dg-badge--active">{guard.status || 'Active'}</span>
+                    <span className={status.className}>{status.label}</span>
                     {guard.deployment_type === 'reliever' && (
-                      <span className="dg-badge dg-badge--armed">Reliever</span>
+                      <span className="dg-badge dg-badge--armed">Temporary Reliever</span>
                     )}
                   </div>
                 </div>
@@ -83,6 +190,46 @@ export default function GuardDetailModal({ isOpen, onClose, guard, loading }) {
                 </div>
               </div>
 
+              {/* Personal & Contact Details */}
+              <div className="dg-modal-section">
+                <h4 className="dg-section-heading">
+                  <FaIdCard /> Personal &amp; Contact Details
+                </h4>
+                <div className="dg-info-grid">
+                  <div className="dg-info-cell">
+                    <p className="dg-info-label">Email</p>
+                    <p className="dg-info-value dg-info-value--blue">{guard.contact_email || 'N/A'}</p>
+                  </div>
+                  <div className="dg-info-cell">
+                    <p className="dg-info-label">Date of Birth</p>
+                    <p className="dg-info-value">{formatDate(guard.date_of_birth)}</p>
+                  </div>
+                  <div className="dg-info-cell">
+                    <p className="dg-info-label">Citizenship</p>
+                    <p className="dg-info-value">{guard.citizenship || 'N/A'}</p>
+                  </div>
+                  <div className="dg-info-cell">
+                    <p className="dg-info-label">Height</p>
+                    <p className="dg-info-value">{formatHeight(guard.height_cm)}</p>
+                  </div>
+                  <div className="dg-info-cell">
+                    <p className="dg-info-label">Education</p>
+                    <p className="dg-info-value">{guard.educational_level || 'N/A'}</p>
+                  </div>
+                  <div className="dg-info-cell">
+                    <p className="dg-info-label">Emergency Contact</p>
+                    <p className="dg-info-value">
+                      {guard.emergency_contact_name || 'N/A'}
+                      {guard.emergency_contact_number ? ` (${guard.emergency_contact_number})` : ''}
+                    </p>
+                  </div>
+                </div>
+                <div className="dg-duties-box">
+                  <p className="dg-duties-label">Residential Address</p>
+                  <p className="dg-duties-text">{guard.residential_address || 'N/A'}</p>
+                </div>
+              </div>
+
               {/* Employment Info */}
               <div className="dg-modal-section">
                 <h4 className="dg-section-heading">
@@ -92,6 +239,10 @@ export default function GuardDetailModal({ isOpen, onClose, guard, loading }) {
                   <div className="dg-info-cell">
                     <p className="dg-info-label">Date Hired</p>
                     <p className="dg-info-value">{formatDate(guard.hire_date)}</p>
+                  </div>
+                  <div className="dg-info-cell">
+                    <p className="dg-info-label">Employee ID</p>
+                    <p className="dg-info-value">{guard.employee_id_number || 'N/A'}</p>
                   </div>
                   <div className="dg-info-cell">
                     <p className="dg-info-label">Employment Type</p>
@@ -148,12 +299,22 @@ export default function GuardDetailModal({ isOpen, onClose, guard, loading }) {
                 </h4>
                 <div className="dg-info-grid">
                   <div className="dg-info-cell">
+                    <p className="dg-info-label">Company</p>
+                    <p className="dg-info-value">{guard.company || 'N/A'}</p>
+                  </div>
+                  <div className="dg-info-cell">
                     <p className="dg-info-label">Assigned Site</p>
                     <p className="dg-info-value">{guard.site_name || 'N/A'}</p>
                   </div>
                   <div className="dg-info-cell">
                     <p className="dg-info-label">Shift Schedule</p>
                     <p className="dg-info-value">{guard.shift || 'N/A'}</p>
+                  </div>
+                  <div className="dg-info-cell">
+                    <p className="dg-info-label">Deployment Type</p>
+                    <p className="dg-info-value" style={{ textTransform: 'capitalize' }}>
+                      {guard.deployment_type || 'N/A'}
+                    </p>
                   </div>
                   <div className="dg-info-cell">
                     <p className="dg-info-label">Deployment Start</p>
@@ -163,11 +324,36 @@ export default function GuardDetailModal({ isOpen, onClose, guard, loading }) {
                     <p className="dg-info-label">Contract End</p>
                     <p className="dg-info-value">{formatDate(guard.end_date)}</p>
                   </div>
+                  <div className="dg-info-cell">
+                    <p className="dg-info-label">Deployment Order</p>
+                    {guard.deployment_order_url ? (
+                      <a
+                        href={guard.deployment_order_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="dg-info-value dg-info-value--blue"
+                      >
+                        View Document
+                      </a>
+                    ) : (
+                      <p className="dg-info-value">N/A</p>
+                    )}
+                  </div>
                 </div>
                 {guard.site_address && (
                   <div className="dg-duties-box">
                     <p className="dg-duties-label">Site Address</p>
                     <p className="dg-duties-text">{guard.site_address}</p>
+                  </div>
+                )}
+                {guard.schedules?.length > 0 && (
+                  <div className="dg-duties-box">
+                    <p className="dg-duties-label">Active Schedules</p>
+                    {guard.schedules.map((schedule) => (
+                      <p key={schedule.id} className="dg-duties-text">
+                        {formatSchedule(schedule)}
+                      </p>
+                    ))}
                   </div>
                 )}
               </div>
@@ -176,10 +362,18 @@ export default function GuardDetailModal({ isOpen, onClose, guard, loading }) {
 
           {/* Action Buttons */}
           <div className="dg-modal-actions">
-            <button className="dg-modal-btn dg-modal-btn--primary" disabled={loading || !guard}>
+            <button
+              className="dg-modal-btn dg-modal-btn--primary"
+              disabled={loading || !guard}
+              onClick={() => downloadProfile(guard)}
+            >
               <FaDownload /> Download Profile
             </button>
-            <button className="dg-modal-btn dg-modal-btn--gold" disabled={loading || !guard}>
+            <button
+              className="dg-modal-btn dg-modal-btn--gold"
+              disabled={loading || !guard}
+              onClick={handleFeedback}
+            >
               <FaCommentAlt /> Submit Feedback
             </button>
             <button className="dg-modal-btn dg-modal-btn--secondary" onClick={onClose}>

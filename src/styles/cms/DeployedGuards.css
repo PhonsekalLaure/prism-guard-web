@@ -217,17 +217,18 @@
   color: #15803d;
 }
 
-.dg-status-badge--leave {
+.dg-status-badge--inactive {
   background: #fef9c3;
   color: #a16207;
 }
 
-.dg-status-badge--suspended {
+.dg-status-badge--terminated {
   background: #fee2e2;
   color: #dc2626;
 }
 
-.dg-status-badge--replaced {
+.dg-status-badge--archived,
+.dg-status-badge--unknown {
   background: #f1f5f9;
   color: #64748b;
 }
@@ -408,6 +409,22 @@
 .dg-badge--active {
   background: #dcfce7;
   color: #15803d;
+}
+
+.dg-badge--inactive {
+  background: #fef9c3;
+  color: #a16207;
+}
+
+.dg-badge--terminated {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.dg-badge--archived,
+.dg-badge--unknown {
+  background: #f1f5f9;
+  color: #64748b;
 }
 
 .dg-badge--armed {
