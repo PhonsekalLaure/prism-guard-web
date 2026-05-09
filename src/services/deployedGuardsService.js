@@ -38,7 +38,7 @@ async function getAllDeployedGuards(page = 1, limit = 6, filters = {}) {
 
 /**
  * Fetch stats for the Deployed Guards dashboard.
- * @returns {{ totalDeployed, onDuty, onLeave, tempReplaced }}
+ * @returns {{ totalDeployed, onDuty, offDuty, tempReplaced }}
  */
 async function getDeployedGuardsStats() {
   const { data } = await api.get('/stats');
