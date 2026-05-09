@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   FaCheckCircle,
   FaExclamationCircle,
@@ -11,6 +12,7 @@ import {
 } from 'react-icons/fa';
 import PasswordRequirements from '@components/auth/PasswordRequirements';
 import profileService from '@services/profileService';
+import authService from '@services/authService';
 import {
   getPasswordPolicyError,
   getPasswordStrength,
@@ -32,11 +34,11 @@ const hiddenFields = {
 };
 
 export default function ChangePasswordModal({ isOpen, onClose, variant = 'hris' }) {
+  const navigate = useNavigate();
   const [form, setForm] = useState(emptyForm);
   const [show, setShow] = useState(hiddenFields);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
 
   if (!isOpen) return null;
 
@@ -49,7 +51,6 @@ export default function ChangePasswordModal({ isOpen, onClose, variant = 'hris' 
     setForm(emptyForm);
     setShow(hiddenFields);
     setError(null);
-    setSuccess(false);
   };
 
   const handleClose = () => {
@@ -61,7 +62,6 @@ export default function ChangePasswordModal({ isOpen, onClose, variant = 'hris' 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     setError(null);
-    setSuccess(false);
   };
 
   const toggleShow = (field) => {
@@ -71,7 +71,6 @@ export default function ChangePasswordModal({ isOpen, onClose, variant = 'hris' 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    setSuccess(false);
 
     if (!form.currentPassword || !form.newPassword || !form.confirmPassword) {
       setError('All fields are required.');
@@ -96,11 +95,12 @@ export default function ChangePasswordModal({ isOpen, onClose, variant = 'hris' 
         confirmPassword: form.confirmPassword,
       });
 
-      setSuccess(true);
-      window.setTimeout(() => {
-        resetState();
-        onClose();
-      }, 1500);
+      authService.clearTokens();
+      resetState();
+      onClose();
+      navigate('/login', {
+        state: { message: 'Password changed successfully. Please log in again.', type: 'success' }
+      });
     } catch (err) {
       setError(err?.response?.data?.error || 'Failed to change password.');
     } finally {
@@ -140,7 +140,6 @@ export default function ChangePasswordModal({ isOpen, onClose, variant = 'hris' 
               canSubmit={Boolean(form.currentPassword) && passwordPolicy.isValid && passwordsMatch}
               saving={saving}
               show={show}
-              success={success}
               toggleShow={toggleShow}
             />
           </div>
@@ -159,14 +158,14 @@ export default function ChangePasswordModal({ isOpen, onClose, variant = 'hris' 
           <div className="chpw-modal__header-bg" aria-hidden="true" />
           <div className="chpw-modal__header-dots" aria-hidden="true" />
 
-          <div className={`chpw-modal__icon ${success ? 'success' : ''}`}>
-            {success ? <FaCheckCircle /> : <FaKey />}
+          <div className="chpw-modal__icon">
+            <FaKey />
           </div>
           <h2 className="chpw-modal__title">
-            {success ? 'Password Updated!' : 'Change Password'}
+            Change Password
           </h2>
           <p className="chpw-modal__subtitle">
-            {success ? 'Your credentials have been secured' : 'Secure your account credentials'}
+            Secure your account credentials
           </p>
 
           <button
@@ -193,7 +192,6 @@ export default function ChangePasswordModal({ isOpen, onClose, variant = 'hris' 
             canSubmit={Boolean(form.currentPassword) && passwordPolicy.isValid && passwordsMatch}
             saving={saving}
             show={show}
-            success={success}
             toggleShow={toggleShow}
           />
         </div>
@@ -216,7 +214,6 @@ function PasswordForm({
   strength,
   saving,
   show,
-  success,
   toggleShow,
 }) {
   if (isCms) {
@@ -271,11 +268,6 @@ function PasswordForm({
         {error && (
           <div className="chpw-notification error">
             <FaExclamationCircle /><span>{error}</span>
-          </div>
-        )}
-        {success && (
-          <div className="chpw-notification success">
-            <FaCheckCircle /><span>Password updated successfully.</span>
           </div>
         )}
 
@@ -396,11 +388,6 @@ function PasswordForm({
       {error && (
         <div className="chpw-notification error">
           <FaExclamationCircle /><span>{error}</span>
-        </div>
-      )}
-      {success && (
-        <div className="chpw-notification success">
-          <FaCheckCircle /><span>Password updated successfully.</span>
         </div>
       )}
 
