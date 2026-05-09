@@ -15,9 +15,9 @@ const statConfig = [
     borderColor: '#16a34a',
   },
   {
-    key: 'onLeave',
-    label: 'On Leave',
-    sub: 'Returning soon',
+    key: 'offDuty',
+    label: 'Off Duty',
+    sub: 'No active clock-in',
     valueColor: '#ca8a04',
     borderColor: '#ca8a04',
   },
