@@ -5,7 +5,6 @@ export default function EmployeesStatCards({ refreshKey = 0 }) {
   const [stats, setStats] = useState({
     totalEmployees: 0,
     inactive: 0,
-    absentToday: 0,
     activeOnDuty: 0,
     expiringContracts: 0
   });
@@ -18,7 +17,6 @@ export default function EmployeesStatCards({ refreshKey = 0 }) {
         setStats(data || {
           totalEmployees: 0,
           inactive: 0,
-          absentToday: 0,
           activeOnDuty: 0,
           expiringContracts: 0
         });
@@ -44,12 +42,6 @@ export default function EmployeesStatCards({ refreshKey = 0 }) {
       value: stats.inactive,
       valueColor: '#e6b215',
       borderColor: '#e6b215',
-    },
-    {
-      label: 'Absent Today',
-      value: stats.absentToday,
-      valueColor: '#ef4444',
-      borderColor: '#ef4444',
     },
     {
       label: 'Active On Duty',
