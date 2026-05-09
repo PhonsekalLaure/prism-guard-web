@@ -4,35 +4,18 @@ import { useForm } from 'react-hook-form';
 import {
   FaArrowRight, FaEye, FaEyeSlash, FaLock,
   FaCheckCircle,
-  FaExclamationCircle, FaInfoCircle,
 } from 'react-icons/fa';
-import { createClient } from '@supabase/supabase-js';
 import PasswordRequirements from '@components/auth/PasswordRequirements';
+import AuthInlineNotification from '@components/auth/AuthInlineNotification';
 import AuthLayout from '@/layouts/AuthLayout';
 import authService from '@services/authService';
+import supabase from '@services/supabaseBrowserClient';
 import {
   getPasswordPolicyError,
   getPasswordStrength,
   validatePassword,
 } from '@utils/passwordPolicy';
 import '@styles/Auth.css';
-
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY,
-);
-
-function Notification({ message, type }) {
-  if (!message) return null;
-  const Icon = type === 'error'   ? FaExclamationCircle
-             : type === 'success' ? FaCheckCircle
-             : FaInfoCircle;
-  return (
-    <div className={`auth-notification ${type}`}>
-      <Icon /><span>{message}</span>
-    </div>
-  );
-}
 
 export default function ResetPasswordPage() {
   const navigate = useNavigate();
@@ -153,7 +136,7 @@ export default function ResetPasswordPage() {
           </div>
         ) : (
           <div className="auth-card-body">
-            <Notification {...(notification || {})} />
+            <AuthInlineNotification {...(notification || {})} />
             <form onSubmit={handleSubmit(onSubmit)} noValidate>
               <div className="auth-form-group">
                 <label htmlFor="auth-new-password">New Password</label>

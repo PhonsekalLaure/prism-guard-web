@@ -2,23 +2,10 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import {
   FaEye, FaEyeSlash, FaArrowRight, FaArrowLeft,
-  FaEnvelope, FaCheckCircle, FaExclamationCircle, FaInfoCircle, FaLock,
+  FaEnvelope, FaLock,
 } from 'react-icons/fa';
+import AuthInlineNotification from '@components/auth/AuthInlineNotification';
 import authService from '@services/authService';
-
-// ── Inline notification (used in forgot/sent views) ──────────
-function InlineNotification({ message, type }) {
-  if (!message) return null;
-  const Icon = type === 'error' ? FaExclamationCircle
-             : type === 'success' ? FaCheckCircle
-             : FaInfoCircle;
-  return (
-    <div className={`auth-notification ${type}`}>
-      <Icon />
-      <span>{message}</span>
-    </div>
-  );
-}
 
 // ── View 1: Login ────────────────────────────────────────────
 function LoginView({ onNotify, onForgot }) {
@@ -41,6 +28,8 @@ function LoginView({ onNotify, onForgot }) {
         onNotify?.(message || 'Invalid email or password', 'error');
       } else if (status === 403) {
         onNotify?.(message || 'You do not have access to this portal', 'error');
+      } else if (status === 429) {
+        onNotify?.(message || 'Too many login attempts. Please try again later.', 'error');
       } else {
         onNotify?.('Something went wrong. Please try again.', 'error');
       }
@@ -157,7 +146,7 @@ function ForgotView({ onBack, onSuccess }) {
       </div>
 
       <div className="auth-card-body">
-        <InlineNotification {...(notification || {})} />
+        <AuthInlineNotification {...(notification || {})} />
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <div className="auth-form-group">

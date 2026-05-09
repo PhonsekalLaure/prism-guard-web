@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createClient } from '@supabase/supabase-js';
 import {
   FaArrowRight, FaCheckCircle, FaEye, FaEyeSlash, FaLock,
-  FaExclamationCircle, FaInfoCircle,
 } from 'react-icons/fa';
 import PasswordRequirements from '@components/auth/PasswordRequirements';
+import AuthInlineNotification from '@components/auth/AuthInlineNotification';
 import AuthLayout from '@/layouts/AuthLayout';
 import authService from '@services/authService';
+import supabase from '@services/supabaseBrowserClient';
 import {
   getPasswordPolicyError,
   getPasswordStrength,
@@ -15,23 +15,10 @@ import {
 } from '@utils/passwordPolicy';
 import '@styles/Auth.css';
 
-// Direct Supabase client for auth operations
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY,
-);
-
-// ─── Inline notification ───────────────────────────────────────
-function Notification({ message, type }) {
-  if (!message) return null;
-  const Icon = type === 'error'   ? FaExclamationCircle
-             : type === 'success' ? FaCheckCircle
-             : FaInfoCircle;
-  return (
-    <div className={`auth-notification ${type}`}>
-      <Icon /><span>{message}</span>
-    </div>
-  );
+function getStoredSessionTokens() {
+  const accessToken = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+  const refreshToken = localStorage.getItem('refresh_token') || sessionStorage.getItem('refresh_token');
+  return { accessToken, refreshToken };
 }
 
 export default function SetPasswordPage() {
@@ -55,8 +42,7 @@ export default function SetPasswordPage() {
       let { data: { session } } = await supabase.auth.getSession();
 
       if (!session) {
-        const accessToken  = localStorage.getItem('access_token');
-        const refreshToken = localStorage.getItem('refresh_token');
+        const { accessToken, refreshToken } = getStoredSessionTokens();
 
         if (accessToken && refreshToken) {
           const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
@@ -149,7 +135,7 @@ export default function SetPasswordPage() {
           </div>
         ) : (
           <div className="auth-card-body">
-            <Notification {...(notification || {})} />
+            <AuthInlineNotification {...(notification || {})} />
 
             <form onSubmit={handleSubmit} noValidate>
 
