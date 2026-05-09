@@ -4,17 +4,20 @@ import CompanyCard from '@cms-components/profile/CompanyCard';
 import CompanyInformation from '@cms-components/profile/CompanyInformation';
 import ContactPerson from '@cms-components/profile/ContactPerson';
 import ContractSummary from '@cms-components/profile/ContractSummary';
+import SiteLocations, { SiteLocationsSkeleton } from '@cms-components/profile/SiteLocations';
 import ChangePasswordModal from '@components/profile/ChangePasswordModal';
+import Notification from '@components/ui/Notification';
 import profileService from '@services/profileService';
 import authService from '@services/authService';
+import useNotification from '@hooks/useNotification';
 import '@styles/cms/CmsProfile.css';
 import '@styles/components/Loading.css';
 
 export default function CmsProfilePage() {
+  const { notification, showNotification, closeNotification } = useNotification();
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
@@ -23,14 +26,16 @@ export default function CmsProfilePage() {
     async function fetchProfile() {
       try {
         setLoading(true);
-        setError(null);
         const data = await profileService.getProfile();
         if (!cancelled) {
           setProfile(data);
           authService.updateProfile(data);
         }
       } catch (err) {
-        if (!cancelled) setError(err?.response?.data?.error || 'Failed to load profile.');
+        if (!cancelled) {
+          showNotification(err?.response?.data?.error || 'Failed to load profile.', 'error');
+          setProfile(authService.getProfile() || {});
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -38,7 +43,7 @@ export default function CmsProfilePage() {
 
     fetchProfile();
     return () => { cancelled = true; };
-  }, []);
+  }, [showNotification]);
 
   // Called by ContactPerson after a successful save to keep local state in sync
   function handleProfileUpdate(updates) {
@@ -50,6 +55,14 @@ export default function CmsProfilePage() {
     return (
       <>
         <CmsProfileTopbar />
+        {notification && (
+          <Notification
+            message={notification.message}
+            type={notification.type}
+            duration={notification.duration}
+            onClose={closeNotification}
+          />
+        )}
         <div className="cms-content">
           <div className="cms-profile-layout">
             {/* Left Column Skeleton */}
@@ -77,6 +90,7 @@ export default function CmsProfilePage() {
                   </div>
                 </div>
               </div>
+              <SiteLocationsSkeleton />
             </div>
 
             {/* Right Column Skeleton */}
@@ -125,20 +139,17 @@ export default function CmsProfilePage() {
     );
   }
 
-  if (error) {
-    return (
-      <>
-        <CmsProfileTopbar />
-        <div className="cms-content">
-          <div className="cms-profile-error">{error}</div>
-        </div>
-      </>
-    );
-  }
-
   return (
     <>
       <CmsProfileTopbar />
+      {notification && (
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          duration={notification.duration}
+          onClose={closeNotification}
+        />
+      )}
 
       <div className="cms-content">
         <div className="cms-profile-layout">
@@ -149,6 +160,7 @@ export default function CmsProfilePage() {
               onEditProfile={() => setIsEditing(true)}
               onChangePassword={() => setIsChangePasswordOpen(true)}
             />
+            <SiteLocations sites={profile?.sites} />
           </div>
 
           {/* Right Column */}
@@ -161,6 +173,7 @@ export default function CmsProfilePage() {
                 onProfileUpdate={handleProfileUpdate}
                 isEditing={isEditing}
                 onCancelEdit={() => setIsEditing(false)}
+                onNotify={showNotification}
               />
             </div>
             <ContractSummary profile={profile} />
