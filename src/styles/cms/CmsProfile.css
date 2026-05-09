@@ -122,6 +122,8 @@
   grid-template-columns: 1fr 2fr;
   gap: 1.5rem;
   align-items: start;
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
 .cms-profile-left-col {
@@ -472,7 +474,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  background: #093269;
+  background: #e6b215;
   color: #fff;
   border: none;
   padding: 0.6rem 1.3rem;
@@ -481,11 +483,13 @@
   font-weight: 600;
   font-family: 'Poppins', sans-serif;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 12px rgba(230, 178, 21, 0.3);
 }
 
 .cms-profile-form__save-btn:hover {
-  background: #0a4080;
+  background: #d4a012;
+  box-shadow: 0 6px 18px rgba(230, 178, 21, 0.4);
 }
 
 .cms-profile-form__cancel-btn {
