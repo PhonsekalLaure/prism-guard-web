@@ -9,6 +9,8 @@ import '@styles/cms/ServiceReviews.css';
 
 export default function ServiceReviewsPage() {
   const [showSuccess, setShowSuccess] = useState(false);
+  // Increment this to trigger a re-fetch in PastReviews after a new submission
+  const [reviewsRefreshKey, setReviewsRefreshKey] = useState(0);
   const { notification, showNotification, closeNotification } = useNotification();
 
   const handleSubmitSuccess = () => {
@@ -17,6 +19,8 @@ export default function ServiceReviewsPage() {
 
   const handleCloseSuccess = () => {
     setShowSuccess(false);
+    // Trigger PastReviews to reload so the new pending review appears
+    setReviewsRefreshKey((k) => k + 1);
     showNotification(
       'Review submitted! It will be published after moderation.',
       'success',
@@ -38,7 +42,7 @@ export default function ServiceReviewsPage() {
 
       <div className="cms-content">
         <SubmitReviewForm onSubmitSuccess={handleSubmitSuccess} />
-        <PastReviews />
+        <PastReviews refreshKey={reviewsRefreshKey} />
       </div>
 
       <ReviewSuccessModal
