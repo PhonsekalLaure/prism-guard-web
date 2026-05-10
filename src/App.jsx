@@ -14,6 +14,7 @@ import ProfilePage from '@hris-pages/ProfilePage';
 import AdminManagementPage from '@hris-pages/AdminManagementPage';
 import ApplicantsPage from '@hris-pages/ApplicantsPage';
 import HrisServiceRequestsPage from '@hris-pages/HrisServiceRequestsPage';
+import ServiceRequestDetailPage from '@hris-pages/ServiceRequestDetailPage';
 import HrisServiceReviewsPage from '@hris-pages/HrisServiceReviewsPage';
 import HrisLeaveRequestsPage from '@hris-pages/HrisLeaveRequestsPage';
 import HrisAttendancePage from '@hris-pages/HrisAttendancePage';
@@ -60,6 +61,7 @@ function App() {
           <Route path="/admin-management" element={<ProtectedRoute requiredPermissions={['admins.manage']}><AdminManagementPage /></ProtectedRoute>} />
           <Route path="/applicants" element={<ApplicantsPage />} />
           <Route path="/service-request" element={<HrisServiceRequestsPage />} />
+          <Route path="/service-requests/:id" element={<ServiceRequestDetailPage />} />
           <Route path="/service-reviews" element={<HrisServiceReviewsPage />} />
           <Route path="/leaves" element={<HrisLeaveRequestsPage />} />
           <Route path="/attendance" element={<HrisAttendancePage />} />
