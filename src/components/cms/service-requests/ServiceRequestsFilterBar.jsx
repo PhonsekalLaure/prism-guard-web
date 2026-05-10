@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { FaTag, FaList, FaFlag } from 'react-icons/fa';
+import { SERVICE_REQUEST_TYPES } from '@/constants/serviceRequests';
 
 export default function ServiceRequestsFilterBar({ onFilterChange }) {
   const [status, setStatus]   = useState('all');
@@ -15,15 +16,15 @@ export default function ServiceRequestsFilterBar({ onFilterChange }) {
   };
 
   return (
-    <div className="filter-bar three-cols">
-      <div className="filter-group">
-        <label className="filter-label">
-          <FaTag className="filter-icon" /> Status
+    <div className="sr-filter-bar">
+      <div className="sr-filter-group">
+        <label className="sr-filter-label">
+          <FaTag className="sr-filter-icon" /> Status
         </label>
         <select
           value={status}
           onChange={(e) => emit({ status: e.target.value })}
-          className="filter-select"
+          className="sr-filter-select"
         >
           <option value="all">All Statuses</option>
           <option value="open">Open</option>
@@ -33,35 +34,30 @@ export default function ServiceRequestsFilterBar({ onFilterChange }) {
         </select>
       </div>
 
-      <div className="filter-group">
-        <label className="filter-label">
-          <FaList className="filter-icon" /> Type
+      <div className="sr-filter-group">
+        <label className="sr-filter-label">
+          <FaList className="sr-filter-icon" /> Type
         </label>
         <select
           value={type}
           onChange={(e) => emit({ type: e.target.value })}
-          className="filter-select"
+          className="sr-filter-select"
         >
           <option value="all">All Types</option>
-          <option value="general_inquiry">General Inquiry</option>
-          <option value="guard_replacement">Guard Replacement</option>
-          <option value="additional_guard">Additional Guard</option>
-          <option value="schedule_change">Schedule Change</option>
-          <option value="operations">Operations</option>
-          <option value="billing">Billing</option>
-          <option value="incident_followup">Incident Followup</option>
-          <option value="client_request">Client Request</option>
+          {SERVICE_REQUEST_TYPES.map((requestType) => (
+            <option key={requestType.value} value={requestType.value}>{requestType.label}</option>
+          ))}
         </select>
       </div>
 
-      <div className="filter-group">
-        <label className="filter-label">
-          <FaFlag className="filter-icon" /> Urgency
+      <div className="sr-filter-group">
+        <label className="sr-filter-label">
+          <FaFlag className="sr-filter-icon" /> Urgency
         </label>
         <select
           value={urgency}
           onChange={(e) => emit({ urgency: e.target.value })}
-          className="filter-select"
+          className="sr-filter-select"
         >
           <option value="all">All</option>
           <option value="normal">Normal</option>

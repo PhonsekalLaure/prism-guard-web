@@ -7,8 +7,8 @@ import {
 
 function typeIcon(ticketType = '') {
   const t = ticketType.toLowerCase();
-  if (t.includes('additional') || t.includes('guard')) return <FaUserPlus className="sr-type-icon sr-type-icon--blue" />;
   if (t.includes('replacement'))                          return <FaExchangeAlt className="sr-type-icon sr-type-icon--gold" />;
+  if (t.includes('additional') || t.includes('guard')) return <FaUserPlus className="sr-type-icon sr-type-icon--blue" />;
   if (t.includes('schedule'))                             return <FaClock className="sr-type-icon sr-type-icon--green" />;
   if (t.includes('inquiry') || t.includes('general'))    return <FaQuestionCircle className="sr-type-icon sr-type-icon--purple" />;
   return <FaWrench className="sr-type-icon sr-type-icon--blue" />;
@@ -49,14 +49,14 @@ export default function ServiceRequestsTable({
   }).filter((p) => p >= 1 && p <= totalPages);
 
   return (
-    <div className="sr-table-panel">
+    <div className="sr-table-card">
       <div className="sr-table-header">
         <h3 className="sr-table-title">
           <FaListAlt /> All Requests
         </h3>
       </div>
 
-      <div className="sr-table-wrapper">
+      <div className="sr-table-wrap">
         <table className="sr-table">
           <thead>
             <tr>
@@ -117,13 +117,13 @@ export default function ServiceRequestsTable({
       </div>
 
       {/* Pagination */}
-      <div className="sr-pagination">
-        <span className="sr-pagination-info">
+      <div className="sr-table-footer">
+        <p className="sr-showing-text">
           {total === 0 ? 'No requests' : `Showing ${start}–${end} of ${total} request${total === 1 ? '' : 's'}`}
-        </span>
+        </p>
         <div className="sr-page-btns">
           <button
-            className="page-btn"
+            className="sr-page-btn"
             disabled={page <= 1 || loading}
             onClick={() => onPageChange?.(page - 1)}
           >
@@ -132,7 +132,7 @@ export default function ServiceRequestsTable({
           {pages.map((p) => (
             <button
               key={p}
-              className={`page-btn${p === page ? ' active' : ''}`}
+              className={`sr-page-btn${p === page ? ' active' : ''}`}
               disabled={loading}
               onClick={() => p !== page && onPageChange?.(p)}
             >
@@ -140,7 +140,7 @@ export default function ServiceRequestsTable({
             </button>
           ))}
           <button
-            className="page-btn"
+            className="sr-page-btn"
             disabled={page >= totalPages || loading}
             onClick={() => onPageChange?.(page + 1)}
           >

@@ -91,6 +91,24 @@ export default function ServiceRequestsPage() {
     fetchStats();
   }, [metadata.page, filters]);
 
+  const handleViewRequest = useCallback(async (request) => {
+    setSelectedRequest(request);
+    try {
+      const detail = await serviceRequestsService.getServiceRequestById(request.id);
+      setSelectedRequest(detail);
+    } catch {
+      setSelectedRequest(request);
+    }
+  }, []);
+
+  const refreshSelectedRequest = useCallback(async () => {
+    if (!selectedRequest?.id) return;
+    const detail = await serviceRequestsService.getServiceRequestById(selectedRequest.id);
+    setSelectedRequest(detail);
+    fetchTickets(metadata.page, filters);
+    fetchStats();
+  }, [selectedRequest?.id, metadata.page, filters]);
+
   return (
     <>
       {notification && (
@@ -111,7 +129,7 @@ export default function ServiceRequestsPage() {
           tickets={tickets}
           metadata={metadata}
           loading={loadingTickets}
-          onViewRequest={setSelectedRequest}
+          onViewRequest={handleViewRequest}
           onPageChange={handlePageChange}
         />
       </div>
@@ -127,6 +145,7 @@ export default function ServiceRequestsPage() {
         request={selectedRequest}
         onClose={() => setSelectedRequest(null)}
         onCancelSuccess={handleCancelSuccess}
+        onMessageSent={refreshSelectedRequest}
       />
     </>
   );
