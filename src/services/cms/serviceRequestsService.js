@@ -59,6 +59,11 @@ async function getServiceRequestById(id) {
   return data;
 }
 
+async function sendMessage(id, message) {
+  const { data } = await api.post(`/${id}/messages`, { message });
+  return data;
+}
+
 /**
  * Submit a new service request.
  *
@@ -86,6 +91,7 @@ export default {
   getStats,
   getSites,
   getServiceRequestById,
+  sendMessage,
   createServiceRequest,
   cancelServiceRequest,
 };

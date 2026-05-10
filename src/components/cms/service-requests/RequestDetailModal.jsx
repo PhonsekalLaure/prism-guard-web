@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
-  FaTimes, FaHistory, FaPaperPlane, FaEye, FaCheck,
-  FaDownload, FaBan,
+  FaTimes, FaHistory, FaPaperPlane, FaEye, FaCheck, FaBan, FaComments,
 } from 'react-icons/fa';
 import serviceRequestsService from '@services/cms/serviceRequestsService';
 
@@ -64,14 +63,38 @@ function buildTimeline(request) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function RequestDetailModal({ isOpen, request, onClose, onCancelSuccess }) {
+function ThreadMessage({ message }) {
+  const roleClass = message.sender_role === 'admin' ? 'admin' : 'client';
+
+  return (
+    <div className={`sr-thread-msg ${roleClass}`}>
+      <div className="sr-thread-msg-header">
+        <div className="sr-thread-msg-avatar">{message.sender_initials}</div>
+        <div>
+          <p className="sr-thread-msg-name">
+            {message.sender_name} <span className="sr-thread-msg-role">{message.sender_label}</span>
+          </p>
+          <p className="sr-thread-msg-time">{message.date}</p>
+        </div>
+      </div>
+      <p className="sr-thread-msg-text">{message.message}</p>
+    </div>
+  );
+}
+
+export default function RequestDetailModal({ isOpen, request, onClose, onCancelSuccess, onMessageSent }) {
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState(null);
+  const [messageText, setMessageText] = useState('');
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [messageError, setMessageError] = useState(null);
 
   if (!isOpen || !request) return null;
 
   const timeline = buildTimeline(request);
   const canCancel = ['open', 'in_progress'].includes(request.status);
+  const canMessage = canCancel;
+  const messages = request.messages || [];
 
   const handleCancel = async () => {
     if (!window.confirm('Are you sure you want to cancel this request?')) return;
@@ -84,6 +107,25 @@ export default function RequestDetailModal({ isOpen, request, onClose, onCancelS
       setCancelError(err?.response?.data?.error || 'Failed to cancel request.');
     } finally {
       setCancelling(false);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!messageText.trim()) {
+      setMessageError('Message is required.');
+      return;
+    }
+
+    try {
+      setSendingMessage(true);
+      setMessageError(null);
+      await serviceRequestsService.sendMessage(request.id, messageText.trim());
+      setMessageText('');
+      await onMessageSent?.();
+    } catch (err) {
+      setMessageError(err?.response?.data?.error || 'Failed to send message.');
+    } finally {
+      setSendingMessage(false);
     }
   };
 
@@ -172,11 +214,46 @@ export default function RequestDetailModal({ isOpen, request, onClose, onCancelS
             </div>
           )}
 
+          <div className="sr-detail-section">
+            <h4 className="sr-detail-section-title">
+              <FaComments /> Conversation
+            </h4>
+            {messages.length > 0 ? (
+              <div className="sr-thread">
+                {messages.map((message) => <ThreadMessage key={message.id} message={message} />)}
+              </div>
+            ) : (
+              <p className="sr-empty-thread">No messages yet.</p>
+            )}
+            {canMessage && (
+              <div className="sr-reply-box">
+                <label className="sr-reply-label">Reply</label>
+                <textarea
+                  className="sr-reply-textarea"
+                  rows={3}
+                  value={messageText}
+                  onChange={(event) => setMessageText(event.target.value)}
+                  disabled={sendingMessage}
+                  placeholder="Write a message to HRIS..."
+                />
+                {messageError && <p className="sr-field-error">{messageError}</p>}
+                <div className="sr-reply-actions">
+                  <span />
+                  <button
+                    type="button"
+                    className="sr-reply-send-btn"
+                    onClick={handleSendMessage}
+                    disabled={sendingMessage}
+                  >
+                    <FaPaperPlane /> {sendingMessage ? 'Sending...' : 'Send Message'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Actions */}
           <div className="sr-modal-actions sr-detail-actions">
-            <button className="sr-btn-download" disabled>
-              <FaDownload /> Download
-            </button>
             {canCancel && (
               <button
                 className="sr-btn-cancel-req"

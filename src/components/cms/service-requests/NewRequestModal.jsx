@@ -1,29 +1,22 @@
 import { useState, useEffect } from 'react';
-import { FaTimes, FaTag, FaMapMarkerAlt, FaFlag, FaCommentAlt, FaPaperPlane, FaSave } from 'react-icons/fa';
+import { FaTimes, FaTag, FaMapMarkerAlt, FaFlag, FaCommentAlt, FaPaperPlane, FaHashtag, FaExchangeAlt } from 'react-icons/fa';
 import serviceRequestsService from '@services/cms/serviceRequestsService';
-
-const TICKET_TYPES = [
-  { value: 'additional_guard',   label: 'Additional Guard' },
-  { value: 'guard_replacement',  label: 'Guard Replacement' },
-  { value: 'schedule_change',    label: 'Schedule Change' },
-  { value: 'general_inquiry',    label: 'General Inquiry' },
-  { value: 'operations',         label: 'Operations' },
-  { value: 'billing',            label: 'Billing' },
-  { value: 'incident_followup',  label: 'Incident Followup' },
-  { value: 'contract_closeout',  label: 'Contract Closeout' },
-  { value: 'client_request',     label: 'Client Request' },
-];
+import deployedGuardsService from '@services/cms/deployedGuardsService';
+import { CLIENT_CREATABLE_SERVICE_REQUEST_TYPES } from '@/constants/serviceRequests';
 
 const DEFAULT_FORM = {
   ticketType: '',
   siteId: '',
   priority: 'normal',
+  additionalGuardCount: 1,
+  replacementDeploymentId: '',
   description: '',
 };
 
 export default function NewRequestModal({ isOpen, onClose, onSuccess }) {
   const [form, setForm] = useState(DEFAULT_FORM);
   const [sites, setSites] = useState([]);
+  const [deployedGuards, setDeployedGuards] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
@@ -35,6 +28,9 @@ export default function NewRequestModal({ isOpen, onClose, onSuccess }) {
     serviceRequestsService.getSites()
       .then(setSites)
       .catch(() => setSites([]));
+    deployedGuardsService.getAllDeployedGuards(1, 100)
+      .then((result) => setDeployedGuards(result?.data || []))
+      .catch(() => setDeployedGuards([]));
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -43,9 +39,27 @@ export default function NewRequestModal({ isOpen, onClose, onSuccess }) {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
+  const handleTypeChange = (e) => {
+    const ticketType = e.target.value;
+    setForm((prev) => ({
+      ...prev,
+      ticketType,
+      additionalGuardCount: ticketType === 'additional_guard' ? prev.additionalGuardCount || 1 : 1,
+      replacementDeploymentId: ticketType === 'guard_replacement' ? prev.replacementDeploymentId : '',
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.ticketType) { setError('Please select a request type.'); return; }
+    if (form.ticketType === 'additional_guard') {
+      const count = Number(form.additionalGuardCount);
+      if (!Number.isInteger(count) || count < 1) { setError('Please enter the number of guards needed.'); return; }
+    }
+    if (form.ticketType === 'guard_replacement' && !form.replacementDeploymentId) {
+      setError('Please select the guard to replace.');
+      return;
+    }
     if (!form.description.trim()) { setError('Please provide request details.'); return; }
 
     try {
@@ -55,6 +69,8 @@ export default function NewRequestModal({ isOpen, onClose, onSuccess }) {
         ticketType:  form.ticketType,
         siteId:      form.siteId || null,
         priority:    form.priority,
+        additionalGuardCount: Number(form.additionalGuardCount),
+        replacementDeploymentId: form.replacementDeploymentId || null,
         description: form.description.trim(),
       });
       onSuccess?.();
@@ -63,11 +79,6 @@ export default function NewRequestModal({ isOpen, onClose, onSuccess }) {
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const handleSaveDraft = async () => {
-    // Draft = submit with status hint; for now same as submit — UI affordance only
-    await handleSubmit({ preventDefault: () => {} });
   };
 
   return (
@@ -102,11 +113,11 @@ export default function NewRequestModal({ isOpen, onClose, onSuccess }) {
               <select
                 className="sr-input"
                 value={form.ticketType}
-                onChange={handleChange('ticketType')}
+                onChange={handleTypeChange}
                 disabled={submitting}
               >
                 <option value="">Select request type...</option>
-                {TICKET_TYPES.map((t) => (
+                {CLIENT_CREATABLE_SERVICE_REQUEST_TYPES.map((t) => (
                   <option key={t.value} value={t.value}>{t.label}</option>
                 ))}
               </select>
@@ -150,6 +161,49 @@ export default function NewRequestModal({ isOpen, onClose, onSuccess }) {
               </div>
             </div>
 
+            {form.ticketType === 'additional_guard' && (
+              <div className="sr-form-group">
+                <label className="sr-form-label">
+                  <FaHashtag className="sr-form-icon" />
+                  Guard Amount <span style={{ color: '#dc2626' }}>*</span>
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
+                  className="sr-input"
+                  value={form.additionalGuardCount}
+                  onChange={handleChange('additionalGuardCount')}
+                  disabled={submitting}
+                />
+              </div>
+            )}
+
+            {form.ticketType === 'guard_replacement' && (
+              <div className="sr-form-group">
+                <label className="sr-form-label">
+                  <FaExchangeAlt className="sr-form-icon" />
+                  Guard to Replace <span style={{ color: '#dc2626' }}>*</span>
+                </label>
+                <select
+                  className="sr-input"
+                  value={form.replacementDeploymentId}
+                  onChange={handleChange('replacementDeploymentId')}
+                  disabled={submitting}
+                >
+                  <option value="">Select deployed guard...</option>
+                  {deployedGuards.map((guard) => (
+                    <option key={guard.id} value={guard.id}>
+                      {guard.name} - {guard.employee_id_number} - {guard.site_name}
+                    </option>
+                  ))}
+                </select>
+                {deployedGuards.length === 0 && (
+                  <p className="sr-form-help">No active deployed guards are available for replacement.</p>
+                )}
+              </div>
+            )}
+
             {/* Request Details */}
             <div className="sr-form-group">
               <label className="sr-form-label">
@@ -174,14 +228,6 @@ export default function NewRequestModal({ isOpen, onClose, onSuccess }) {
                 disabled={submitting}
               >
                 <FaPaperPlane /> {submitting ? 'Submitting…' : 'Submit Request'}
-              </button>
-              <button
-                type="button"
-                className="sr-btn-draft"
-                disabled={submitting}
-                onClick={handleSaveDraft}
-              >
-                <FaSave /> Save as Draft
               </button>
               <button
                 type="button"
