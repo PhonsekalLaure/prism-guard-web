@@ -24,6 +24,9 @@ export default function DeployEmployeeDialog({
   isOpen, employeeName, sitesList, deployForm, setDeployForm,
   isDeploying, onCancel, onDeploy, toggleScheduleDay, isTransfer = false,
   clientContractEndDate = null,
+  title,
+  submittingLabel,
+  submitLabel,
 }) {
   if (!isOpen) return null;
 
@@ -42,7 +45,7 @@ export default function DeployEmployeeDialog({
             <FaMapMarkerAlt />
           </div>
           <div className="dep-header-text">
-            <h3>{isTransfer ? 'Transfer Assignment' : 'Assign to Client Site'}</h3>
+            <h3>{title || (isTransfer ? 'Transfer Assignment' : 'Assign to Client Site')}</h3>
             <p>Deploying <strong>{employeeName}</strong></p>
           </div>
         </div>
@@ -217,7 +220,9 @@ export default function DeployEmployeeDialog({
             disabled={isDeploying || !deployForm.siteId}
           >
             {isDeploying ? <FaSpinner className="animate-spin" /> : <FaMapMarkerAlt />}
-            {isDeploying ? (isTransfer ? 'Transferring...' : 'Deploying...') : (isTransfer ? 'Transfer Employee' : 'Deploy Employee')}
+            {isDeploying
+              ? (submittingLabel || (isTransfer ? 'Transferring...' : 'Deploying...'))
+              : (submitLabel || (isTransfer ? 'Transfer Employee' : 'Deploy Employee'))}
           </button>
         </div>
       </div>
