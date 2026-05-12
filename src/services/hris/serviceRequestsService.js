@@ -72,6 +72,17 @@ async function deployAdditionalGuard(id, payload) {
   return data;
 }
 
+async function fulfillGuardReplacement(id, payload) {
+  if (payload instanceof FormData) {
+    const config = withMultipartFormData(payload);
+    const { data } = await api.post(`/${id}/guard-replacement/fulfill`, config.data, config);
+    return data;
+  }
+
+  const { data } = await api.post(`/${id}/guard-replacement/fulfill`, payload);
+  return data;
+}
+
 export default {
   getServiceRequests,
   getStats,
@@ -80,4 +91,5 @@ export default {
   updateStatus,
   sendMessage,
   deployAdditionalGuard,
+  fulfillGuardReplacement,
 };

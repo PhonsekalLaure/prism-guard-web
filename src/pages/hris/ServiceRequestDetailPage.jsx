@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
-import { FaArrowLeft, FaBars, FaUserPlus, FaPaperPlane, FaEye, FaCheck, FaComments, FaTimes } from 'react-icons/fa';
+import { FaArrowLeft, FaBars, FaUserPlus, FaPaperPlane, FaEye, FaCheck, FaComments, FaTimes, FaExchangeAlt } from 'react-icons/fa';
 import DeployEmployeeDialog from '@hris-components/employees/DeployEmployeeDialog';
 import serviceRequestsService from '@services/hris/serviceRequestsService';
 import employeeService from '@services/hris/employeeService';
@@ -24,6 +24,14 @@ function isEarlierDate(start, end) {
 
 function isAfterDate(date, maxDate) {
   return date && maxDate && new Date(date) > new Date(maxDate);
+}
+
+function getSiteCoordinatesParams(site) {
+  if (!site || site.latitude == null || site.longitude == null) return {};
+  return {
+    siteLatitude: site.latitude,
+    siteLongitude: site.longitude,
+  };
 }
 
 function timelineIcon(dotClass) {
@@ -55,6 +63,9 @@ function AdditionalGuardEmployeePicker({
   employees,
   selectedEmployeeId,
   loading,
+  title = 'Select Additional Guard',
+  subtitle = 'Choose the guard to deploy for this request',
+  label = 'Available Guard',
   onSelect,
   onCancel,
   onContinue,
@@ -65,13 +76,13 @@ function AdditionalGuardEmployeePicker({
       <div className="sr-modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="sr-modal-header">
           <div>
-            <h2>Select Additional Guard</h2>
-            <p>Choose the guard to deploy for this request</p>
+            <h2>{title}</h2>
+            <p>{subtitle}</p>
           </div>
         </div>
         <div className="sr-modal-body">
           <div className="sr-description-box">
-            <p className="sr-detail-label" style={{ marginBottom: '0.4rem' }}>Available Guard</p>
+            <p className="sr-detail-label" style={{ marginBottom: '0.4rem' }}>{label}</p>
             <select
               className="sr-filter-select"
               value={selectedEmployeeId}
@@ -81,7 +92,7 @@ function AdditionalGuardEmployeePicker({
               <option value="">Select deployable guard...</option>
               {employees.map((emp) => (
                 <option key={emp.id} value={emp.id}>
-                  {emp.name} - {emp.employee_id_number}
+                  {emp.name} - {emp.employee_id_number}{emp.distance_km != null ? ` - ${emp.distance_km} km` : ''}
                 </option>
               ))}
             </select>
@@ -124,6 +135,7 @@ export default function ServiceRequestDetailPage() {
 
   // ── Additional guard fulfillment state ───────────────────────────────────
   const [showGuardPicker,    setShowGuardPicker]    = useState(false);
+  const [fulfillmentMode,    setFulfillmentMode]    = useState(null);
   const [deployableEmployees, setDeployableEmployees] = useState([]);
   const [selectedEmployeeId,  setSelectedEmployeeId]  = useState('');
   const [sitesList,          setSitesList]          = useState([]);
@@ -199,17 +211,44 @@ export default function ServiceRequestDetailPage() {
       setError(null);
       setSelectedEmployeeId('');
       setDeployForm(DEFAULT_DEPLOY_FORM);
-      const [employees, sites] = await Promise.all([
-        employeeService.getDeployableEmployees(),
-        clientService.getAllSitesList(),
-      ]);
-      setDeployableEmployees(employees || []);
-      setSitesList((sites || []).filter((site) => (
+      setFulfillmentMode('additional_guard');
+      const sites = await clientService.getAllSitesList();
+      const availableSites = (sites || []).filter((site) => (
         request?.site_id ? site.id === request.site_id : site.client_id === request?.client_id
-      )));
+      ));
+      const targetSite = request?.site_id
+        ? availableSites.find((site) => site.id === request.site_id)
+        : null;
+      const employees = await employeeService.getDeployableEmployees(getSiteCoordinatesParams(targetSite));
+      setDeployableEmployees(employees || []);
+      setSitesList(availableSites);
       setShowGuardPicker(true);
     } catch (err) {
       setError(err?.response?.data?.error || 'Failed to prepare additional guard deployment.');
+    } finally {
+      setActionLoading(false);
+    }
+  }, [request]);
+
+  const handleOpenReplacementFulfillment = useCallback(async () => {
+    try {
+      setActionLoading(true);
+      setError(null);
+      setSelectedEmployeeId('');
+      setDeployForm(DEFAULT_DEPLOY_FORM);
+      setFulfillmentMode('guard_replacement');
+
+      const replacementSiteId = request?.replacement_details?.site_id || request?.site_id;
+      const sites = await clientService.getAllSitesList();
+      const replacementSite = (sites || []).find((site) => site.id === replacementSiteId);
+      const employees = await employeeService.getDeployableEmployees(getSiteCoordinatesParams(replacementSite));
+      setDeployableEmployees((employees || []).filter((emp) => (
+        emp.id !== request?.replacement_details?.original_employee_id
+      )));
+      setSitesList(replacementSite ? [replacementSite] : []);
+      setShowGuardPicker(true);
+    } catch (err) {
+      setError(err?.response?.data?.error || 'Failed to prepare guard replacement.');
     } finally {
       setActionLoading(false);
     }
@@ -221,14 +260,18 @@ export default function ServiceRequestDetailPage() {
 
   const handleContinueAdditionalGuardDeploy = useCallback(() => {
     if (!selectedEmployee) return;
+    const lockedSiteId = fulfillmentMode === 'guard_replacement'
+      ? request?.replacement_details?.site_id || request?.site_id || ''
+      : request?.site_id || '';
+
     setDeployForm({
       ...DEFAULT_DEPLOY_FORM,
-      siteId: request?.site_id || '',
+      siteId: lockedSiteId,
       baseSalary: selectedEmployee.base_salary || '',
     });
     setShowGuardPicker(false);
     setShowDeployModal(true);
-  }, [selectedEmployee, request]);
+  }, [selectedEmployee, request, fulfillmentMode]);
 
   const toggleScheduleDay = useCallback((dayValue) => {
     setDeployForm((cur) => ({
@@ -263,22 +306,38 @@ export default function ServiceRequestDetailPage() {
       payload.append('shiftEnd',   deployForm.shiftEnd);
       payload.append('document_deployment_order', deployForm.deploymentOrderFile);
 
-      await serviceRequestsService.deployAdditionalGuard(request.id, payload);
+      if (fulfillmentMode === 'guard_replacement') {
+        await serviceRequestsService.fulfillGuardReplacement(request.id, payload);
+      } else {
+        await serviceRequestsService.deployAdditionalGuard(request.id, payload);
+      }
       await fetchRequest();
       setShowDeployModal(false);
       setSelectedEmployeeId('');
+      setFulfillmentMode(null);
       setDeployForm(DEFAULT_DEPLOY_FORM);
     } catch (err) {
-      setError(err?.response?.data?.error || 'Failed to deploy additional guard.');
+      setError(err?.response?.data?.error || (
+        fulfillmentMode === 'guard_replacement'
+          ? 'Failed to fulfill guard replacement.'
+          : 'Failed to deploy additional guard.'
+      ));
     } finally {
       setIsDeploying(false);
     }
-  }, [request, selectedEmployee, deployForm, selectedClientContractEndDate, fetchRequest]);
+  }, [request, selectedEmployee, deployForm, selectedClientContractEndDate, fetchRequest, fulfillmentMode]);
 
   // ── Derived values ───────────────────────────────────────────────────────
   const canMessage             = ['open', 'in_progress'].includes(request?.status);
   const messages               = request?.messages || [];
-  const canFulfillAdditionalGuard = request?.ticket_type === 'additional_guard' && canMessage;
+  const canFulfill             = request?.status === 'in_progress';
+  const canFulfillAdditionalGuard = request?.ticket_type === 'additional_guard'
+    && canFulfill
+    && !request?.additional_guard_details?.is_fulfilled;
+  const canFulfillGuardReplacement = request?.ticket_type === 'guard_replacement'
+    && canFulfill
+    && request?.replacement_details?.original_deployment_id
+    && !request?.replacement_details?.replacement_deployment_id;
 
   // ── Render ───────────────────────────────────────────────────────────────
   return (
@@ -358,6 +417,43 @@ export default function ServiceRequestDetailPage() {
                 <p className="sr-detail-label" style={{ marginBottom: '0.4rem' }}>Request Description</p>
                 <p className="sr-description-text">{request.description || 'No description provided.'}</p>
               </div>
+
+              {request.additional_guard_details && (
+                <div className="sr-description-box">
+                  <p className="sr-detail-label" style={{ marginBottom: '0.4rem' }}>Additional Guard Progress</p>
+                  <p className="sr-description-text">
+                    {request.additional_guard_details.fulfilled_guard_count} of {request.additional_guard_details.requested_guard_count} guards deployed
+                  </p>
+                  {request.fulfillments?.length > 0 && (
+                    <div style={{ marginTop: '0.6rem' }}>
+                      {request.fulfillments
+                        .filter((fulfillment) => fulfillment.fulfillment_type === 'additional_guard')
+                        .map((fulfillment) => (
+                          <p key={fulfillment.id} className="sr-description-text">
+                            {fulfillment.employee_name} ({fulfillment.employee_number}) deployed {fulfillment.fulfilled_at || ''}
+                          </p>
+                        ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {request.replacement_details && (
+                <div className="sr-description-box">
+                  <p className="sr-detail-label" style={{ marginBottom: '0.4rem' }}>Replacement Details</p>
+                  <p className="sr-description-text">
+                    Replace: {request.replacement_details.original_guard_name} ({request.replacement_details.original_employee_number})
+                  </p>
+                  <p className="sr-description-text">
+                    Site: {request.replacement_details.site_name || request.site}
+                  </p>
+                  {request.replacement_details.replacement_deployment_id && (
+                    <p className="sr-description-text">
+                      Replacement: {request.replacement_details.replacement_guard_name} ({request.replacement_details.replacement_employee_number})
+                    </p>
+                  )}
+                </div>
+              )}
 
               {/* Existing resolution notes (read-only once resolved) */}
               {request.status === 'resolved' && request.resolution_notes && (
@@ -492,6 +588,15 @@ export default function ServiceRequestDetailPage() {
                     <FaUserPlus /> Deploy Additional Guard
                   </button>
                 )}
+                {canFulfillGuardReplacement && (
+                  <button
+                    className="sr-modal-btn blue"
+                    disabled={actionLoading}
+                    onClick={handleOpenReplacementFulfillment}
+                  >
+                    <FaExchangeAlt /> Fulfill Replacement
+                  </button>
+                )}
                 {request.modalActions?.includes('resolve') && (
                   <button
                     className="sr-modal-btn green"
@@ -541,8 +646,14 @@ export default function ServiceRequestDetailPage() {
         employees={deployableEmployees}
         selectedEmployeeId={selectedEmployeeId}
         loading={actionLoading}
+        title={fulfillmentMode === 'guard_replacement' ? 'Select Replacement Guard' : 'Select Additional Guard'}
+        subtitle={fulfillmentMode === 'guard_replacement' ? 'Choose the guard who will replace the current assignment' : 'Choose the guard to deploy for this request'}
+        label={fulfillmentMode === 'guard_replacement' ? 'Replacement Guard' : 'Available Guard'}
         onSelect={setSelectedEmployeeId}
-        onCancel={() => setShowGuardPicker(false)}
+        onCancel={() => {
+          setShowGuardPicker(false);
+          setFulfillmentMode(null);
+        }}
         onContinue={handleContinueAdditionalGuardDeploy}
       />
 
@@ -558,6 +669,9 @@ export default function ServiceRequestDetailPage() {
         onDeploy={handleDeployAdditionalGuard}
         toggleScheduleDay={toggleScheduleDay}
         clientContractEndDate={selectedClientContractEndDate}
+        title={fulfillmentMode === 'guard_replacement' ? 'Fulfill Guard Replacement' : undefined}
+        submitLabel={fulfillmentMode === 'guard_replacement' ? 'Replace Guard' : undefined}
+        submittingLabel={fulfillmentMode === 'guard_replacement' ? 'Replacing...' : undefined}
       />
     </>
   );
