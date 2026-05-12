@@ -76,7 +76,7 @@ async function createServiceRequest(payload) {
 }
 
 /**
- * Cancel an open/in-progress service request.
+ * Cancel an open service request.
  *
  * @param {string} id
  * @returns {Promise<{ message: string }>}

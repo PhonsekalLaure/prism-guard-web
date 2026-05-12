@@ -92,8 +92,8 @@ export default function RequestDetailModal({ isOpen, request, onClose, onCancelS
   if (!isOpen || !request) return null;
 
   const timeline = buildTimeline(request);
-  const canCancel = ['open', 'in_progress'].includes(request.status);
-  const canMessage = canCancel;
+  const canCancel = request.status === 'open' && !request.has_fulfillments;
+  const canMessage = ['open', 'in_progress'].includes(request.status);
   const messages = request.messages || [];
 
   const handleCancel = async () => {
@@ -203,6 +203,37 @@ export default function RequestDetailModal({ isOpen, request, onClose, onCancelS
               {request.description || 'No description provided.'}
             </p>
           </div>
+
+          {request.additional_guard_details && (
+            <div className="sr-detail-desc-box">
+              <p className="sr-detail-info-label">Additional Guard Progress</p>
+              <p className="sr-detail-desc-text">
+                {request.additional_guard_details.fulfilled_guard_count} of {request.additional_guard_details.requested_guard_count} guards deployed
+              </p>
+              {request.has_fulfillments && (
+                <p className="sr-detail-desc-text">
+                  Cancellation is locked because fulfillment has started.
+                </p>
+              )}
+            </div>
+          )}
+
+          {request.replacement_details && (
+            <div className="sr-detail-desc-box">
+              <p className="sr-detail-info-label">Replacement Details</p>
+              <p className="sr-detail-desc-text">
+                Replace: {request.replacement_details.original_guard_name} ({request.replacement_details.original_employee_number})
+              </p>
+              <p className="sr-detail-desc-text">
+                Site: {request.replacement_details.site_name || request.site}
+              </p>
+              {request.replacement_details.replacement_deployment_id && (
+                <p className="sr-detail-desc-text">
+                  Replacement: {request.replacement_details.replacement_guard_name} ({request.replacement_details.replacement_employee_number})
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Resolution notes (if resolved) */}
           {request.resolution_notes && (

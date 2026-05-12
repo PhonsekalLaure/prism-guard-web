@@ -17,6 +17,7 @@ export default function NewRequestModal({ isOpen, onClose, onSuccess }) {
   const [form, setForm] = useState(DEFAULT_FORM);
   const [sites, setSites] = useState([]);
   const [deployedGuards, setDeployedGuards] = useState([]);
+  const [loadingDeployedGuards, setLoadingDeployedGuards] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
@@ -28,15 +29,52 @@ export default function NewRequestModal({ isOpen, onClose, onSuccess }) {
     serviceRequestsService.getSites()
       .then(setSites)
       .catch(() => setSites([]));
-    deployedGuardsService.getAllDeployedGuards(1, 100)
-      .then((result) => setDeployedGuards(result?.data || []))
-      .catch(() => setDeployedGuards([]));
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || form.ticketType !== 'guard_replacement') {
+      setDeployedGuards([]);
+      return;
+    }
+
+    let cancelled = false;
+    setLoadingDeployedGuards(true);
+    deployedGuardsService.getAllDeployedGuards(
+      1,
+      500,
+      form.siteId ? { siteId: form.siteId } : {},
+    )
+      .then((result) => {
+        if (!cancelled) setDeployedGuards(result?.data || []);
+      })
+      .catch(() => {
+        if (!cancelled) setDeployedGuards([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingDeployedGuards(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, form.ticketType, form.siteId]);
 
   if (!isOpen) return null;
 
   const handleChange = (field) => (e) => {
-    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+    const value = e.target.value;
+    setForm((prev) => {
+      const next = {
+        ...prev,
+        [field]: value,
+      };
+
+      if (field === 'siteId') {
+        next.replacementDeploymentId = '';
+      }
+
+      return next;
+    });
   };
 
   const handleTypeChange = (e) => {
@@ -80,6 +118,8 @@ export default function NewRequestModal({ isOpen, onClose, onSuccess }) {
       setSubmitting(false);
     }
   };
+
+  const replacementGuardOptions = deployedGuards;
 
   return (
     <div className="sr-modal-overlay" onClick={onClose}>
@@ -189,16 +229,16 @@ export default function NewRequestModal({ isOpen, onClose, onSuccess }) {
                   className="sr-input"
                   value={form.replacementDeploymentId}
                   onChange={handleChange('replacementDeploymentId')}
-                  disabled={submitting}
+                  disabled={submitting || loadingDeployedGuards}
                 >
-                  <option value="">Select deployed guard...</option>
-                  {deployedGuards.map((guard) => (
+                  <option value="">{loadingDeployedGuards ? 'Loading deployed guards...' : 'Select deployed guard...'}</option>
+                  {replacementGuardOptions.map((guard) => (
                     <option key={guard.id} value={guard.id}>
                       {guard.name} - {guard.employee_id_number} - {guard.site_name}
                     </option>
                   ))}
                 </select>
-                {deployedGuards.length === 0 && (
+                {!loadingDeployedGuards && replacementGuardOptions.length === 0 && (
                   <p className="sr-form-help">No active deployed guards are available for replacement.</p>
                 )}
               </div>
