@@ -2,37 +2,18 @@ import { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
 import { FaArrowLeft, FaBars, FaUserPlus, FaPaperPlane, FaEye, FaCheck, FaComments, FaTimes, FaExchangeAlt } from 'react-icons/fa';
 import DeployEmployeeDialog from '@hris-components/employees/DeployEmployeeDialog';
+import GuardFulfillmentPicker from '@hris-components/service-requests/GuardFulfillmentPicker';
+import ServiceRequestThread from '@components/service-requests/ServiceRequestThread';
 import serviceRequestsService from '@services/hris/serviceRequestsService';
 import employeeService from '@services/hris/employeeService';
 import clientService from '@services/hris/clientService';
+import {
+  DEFAULT_DEPLOY_FORM,
+  getSiteCoordinatesParams,
+  isAfterDate,
+  isEarlierDate,
+} from '@utils/serviceRequestFulfillment';
 import '../../styles/hris/HrisServiceRequests.css';
-
-const DEFAULT_DEPLOY_FORM = {
-  siteId: '',
-  baseSalary: '',
-  contractStartDate: '',
-  contractEndDate: '',
-  daysOfWeek: [],
-  shiftStart: '',
-  shiftEnd: '',
-  deploymentOrderFile: null,
-};
-
-function isEarlierDate(start, end) {
-  return start && end && new Date(end) < new Date(start);
-}
-
-function isAfterDate(date, maxDate) {
-  return date && maxDate && new Date(date) > new Date(maxDate);
-}
-
-function getSiteCoordinatesParams(site) {
-  if (!site || site.latitude == null || site.longitude == null) return {};
-  return {
-    siteLatitude: site.latitude,
-    siteLongitude: site.longitude,
-  };
-}
 
 function timelineIcon(dotClass) {
   if (dotClass === 'blue') return <FaPaperPlane />;
@@ -40,100 +21,23 @@ function timelineIcon(dotClass) {
   return <FaCheck />;
 }
 
-function ThreadMessage({ message }) {
-  const roleClass = message.sender_role === 'admin' ? 'admin' : 'client';
-  return (
-    <div className={`sr-thread-msg ${roleClass}`}>
-      <div className="sr-thread-msg-header">
-        <div className="sr-thread-msg-avatar">{message.sender_initials}</div>
-        <div>
-          <p className="sr-thread-msg-name">
-            {message.sender_name} <span className="sr-thread-msg-role">{message.sender_label}</span>
-          </p>
-          <p className="sr-thread-msg-time">{message.date}</p>
-        </div>
-      </div>
-      <p className="sr-thread-msg-text">{message.message}</p>
-    </div>
-  );
-}
-
-function AdditionalGuardEmployeePicker({
-  isOpen,
-  employees,
-  selectedEmployeeId,
-  loading,
-  title = 'Select Additional Guard',
-  subtitle = 'Choose the guard to deploy for this request',
-  label = 'Available Guard',
-  onSelect,
-  onCancel,
-  onContinue,
-}) {
-  if (!isOpen) return null;
-  return (
-    <div className="sr-modal-overlay" onClick={onCancel}>
-      <div className="sr-modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="sr-modal-header">
-          <div>
-            <h2>{title}</h2>
-            <p>{subtitle}</p>
-          </div>
-        </div>
-        <div className="sr-modal-body">
-          <div className="sr-description-box">
-            <p className="sr-detail-label" style={{ marginBottom: '0.4rem' }}>{label}</p>
-            <select
-              className="sr-filter-select"
-              value={selectedEmployeeId}
-              onChange={(e) => onSelect(e.target.value)}
-              disabled={loading}
-            >
-              <option value="">Select deployable guard...</option>
-              {employees.map((emp) => (
-                <option key={emp.id} value={emp.id}>
-                  {emp.name} - {emp.employee_id_number}{emp.distance_km != null ? ` - ${emp.distance_km} km` : ''}
-                </option>
-              ))}
-            </select>
-            {!loading && employees.length === 0 && (
-              <p className="sr-description-text" style={{ marginTop: '0.75rem' }}>
-                No deployable guards are currently available.
-              </p>
-            )}
-          </div>
-          <div className="sr-modal-actions">
-            <button className="sr-modal-btn gray" onClick={onCancel} disabled={loading}>Cancel</button>
-            <button className="sr-modal-btn blue" onClick={onContinue} disabled={loading || !selectedEmployeeId}>
-              Continue
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function ServiceRequestDetailPage() {
   const { id }            = useParams();
   const navigate          = useNavigate();
   const { toggleSidebar } = useOutletContext();
 
-  // ── Request state ────────────────────────────────────────────────────────
   const [request,       setRequest]       = useState(null);
   const [loading,       setLoading]       = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [messageLoading, setMessageLoading] = useState(false);
   const [error,         setError]         = useState(null);
 
-  // ── Resolution notes local state ─────────────────────────────────────────
   const [resolutionNotes, setResolutionNotes] = useState('');
   const [resolutionError, setResolutionError] = useState(null);
   const [showResolvePanel, setShowResolvePanel] = useState(false);
   const [messageText,     setMessageText]     = useState('');
   const [messageError,    setMessageError]    = useState(null);
 
-  // ── Additional guard fulfillment state ───────────────────────────────────
   const [showGuardPicker,    setShowGuardPicker]    = useState(false);
   const [fulfillmentMode,    setFulfillmentMode]    = useState(null);
   const [deployableEmployees, setDeployableEmployees] = useState([]);
@@ -143,7 +47,6 @@ export default function ServiceRequestDetailPage() {
   const [showDeployModal,    setShowDeployModal]    = useState(false);
   const [isDeploying,        setIsDeploying]        = useState(false);
 
-  // ── Fetch the request ────────────────────────────────────────────────────
   const fetchRequest = useCallback(async () => {
     try {
       setLoading(true);
@@ -161,7 +64,6 @@ export default function ServiceRequestDetailPage() {
 
   useEffect(() => { fetchRequest(); }, [fetchRequest]);
 
-  // ── Status change ────────────────────────────────────────────────────────
   const handleStatusChange = useCallback(async (status) => {
     if (status === 'resolved' && !resolutionNotes.trim()) {
       setResolutionError('Resolution notes are required before resolving this request.');
@@ -185,7 +87,6 @@ export default function ServiceRequestDetailPage() {
     }
   }, [id, resolutionNotes]);
 
-  // ── Send message ─────────────────────────────────────────────────────────
   const handleSendMessage = useCallback(async () => {
     if (!messageText.trim()) {
       setMessageError('Message is required.');
@@ -204,7 +105,6 @@ export default function ServiceRequestDetailPage() {
     }
   }, [id, messageText, fetchRequest]);
 
-  // ── Additional guard fulfillment ─────────────────────────────────────────
   const handleOpenAdditionalGuardFulfillment = useCallback(async () => {
     try {
       setActionLoading(true);
@@ -327,7 +227,6 @@ export default function ServiceRequestDetailPage() {
     }
   }, [request, selectedEmployee, deployForm, selectedClientContractEndDate, fetchRequest, fulfillmentMode]);
 
-  // ── Derived values ───────────────────────────────────────────────────────
   const canMessage             = ['open', 'in_progress'].includes(request?.status);
   const messages               = request?.messages || [];
   const canFulfill             = request?.status === 'in_progress';
@@ -339,7 +238,6 @@ export default function ServiceRequestDetailPage() {
     && request?.replacement_details?.original_deployment_id
     && !request?.replacement_details?.replacement_deployment_id;
 
-  // ── Render ───────────────────────────────────────────────────────────────
   return (
     <>
       {/* Topbar */}
@@ -376,7 +274,7 @@ export default function ServiceRequestDetailPage() {
             <div className="sr-modal-header">
               <div>
                 <h2>Service Request Details</h2>
-                <p>{request.request_id} — {request.client}</p>
+                <p>{request.request_id} - {request.client}</p>
               </div>
             </div>
 
@@ -488,13 +386,7 @@ export default function ServiceRequestDetailPage() {
                 <p className="sr-thread-title">
                   <FaComments /> Conversation
                 </p>
-                {messages.length > 0 ? (
-                  <div className="sr-thread">
-                    {messages.map((msg) => <ThreadMessage key={msg.id} message={msg} />)}
-                  </div>
-                ) : (
-                  <p className="sr-description-text">No messages yet.</p>
-                )}
+                <ServiceRequestThread messages={messages} />
                 {canMessage && (
                   <div className="sr-reply-box">
                     <label className="sr-reply-label">Reply to client</label>
@@ -640,8 +532,8 @@ export default function ServiceRequestDetailPage() {
         )}
       </div>
 
-      {/* Additional guard — employee picker overlay */}
-      <AdditionalGuardEmployeePicker
+      {/* Additional guard employee picker overlay */}
+      <GuardFulfillmentPicker
         isOpen={showGuardPicker}
         employees={deployableEmployees}
         selectedEmployeeId={selectedEmployeeId}
@@ -657,7 +549,7 @@ export default function ServiceRequestDetailPage() {
         onContinue={handleContinueAdditionalGuardDeploy}
       />
 
-      {/* Additional guard — deploy dialog */}
+      {/* Additional guard deploy dialog */}
       <DeployEmployeeDialog
         isOpen={showDeployModal}
         employeeName={selectedEmployee?.name || 'Selected guard'}
