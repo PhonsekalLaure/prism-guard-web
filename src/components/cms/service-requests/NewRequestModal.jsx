@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
-import { FaTimes, FaTag, FaMapMarkerAlt, FaFlag, FaCommentAlt, FaPaperPlane, FaHashtag, FaExchangeAlt } from 'react-icons/fa';
+import {
+  FaTimes, FaTag, FaMapMarkerAlt, FaFlag, FaCommentAlt, FaPaperPlane,
+  FaHashtag, FaExchangeAlt, FaClipboardList, FaShieldAlt,
+} from 'react-icons/fa';
 import serviceRequestsService from '@services/cms/serviceRequestsService';
 import deployedGuardsService from '@services/cms/deployedGuardsService';
 import { CLIENT_CREATABLE_SERVICE_REQUEST_TYPES } from '@/constants/serviceRequests';
@@ -70,15 +73,8 @@ export default function NewRequestModal({ isOpen, onClose, onSuccess }) {
   const handleChange = (field) => (e) => {
     const value = e.target.value;
     setForm((prev) => {
-      const next = {
-        ...prev,
-        [field]: value,
-      };
-
-      if (field === 'siteId') {
-        next.replacementDeploymentId = '';
-      }
-
+      const next = { ...prev, [field]: value };
+      if (field === 'siteId') next.replacementDeploymentId = '';
       return next;
     });
   };
@@ -126,17 +122,30 @@ export default function NewRequestModal({ isOpen, onClose, onSuccess }) {
   };
 
   const replacementGuardOptions = deployedGuards;
+  const hasTypeSpecificFields = form.ticketType === 'additional_guard' || form.ticketType === 'guard_replacement';
 
   return (
     <div className="sr-modal-overlay" onClick={onClose}>
       <div className="sr-modal-content" onClick={(e) => e.stopPropagation()}>
+
         {/* Header */}
         <div className="sr-modal-header">
-          <div>
-            <h2>Submit New Service Request</h2>
-            <p>Fill in request details below</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 10,
+              background: 'rgba(255,255,255,0.15)',
+              border: '1.5px solid rgba(255,255,255,0.25)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '1.1rem', flexShrink: 0,
+            }}>
+              <FaShieldAlt />
+            </div>
+            <div>
+              <h2>Submit New Service Request</h2>
+              <p>Fill in the details below to submit your request</p>
+            </div>
           </div>
-          <button className="sr-modal-close" onClick={onClose} disabled={submitting}>
+          <button className="sr-modal-close" onClick={onClose} disabled={submitting} aria-label="Close">
             <FaTimes />
           </button>
         </div>
@@ -150,7 +159,7 @@ export default function NewRequestModal({ isOpen, onClose, onSuccess }) {
           )}
 
           <form onSubmit={handleSubmit}>
-            {/* Request Type */}
+            {/* ── Request type ── */}
             <div className="sr-form-group">
               <label className="sr-form-label">
                 <FaTag className="sr-form-icon" />
@@ -169,7 +178,7 @@ export default function NewRequestModal({ isOpen, onClose, onSuccess }) {
               </select>
             </div>
 
-            {/* Site & Urgency */}
+            {/* ── Site & Urgency ── */}
             <div className="sr-form-grid">
               <div className="sr-form-group">
                 <label className="sr-form-label">
@@ -207,50 +216,62 @@ export default function NewRequestModal({ isOpen, onClose, onSuccess }) {
               </div>
             </div>
 
-            {form.ticketType === 'additional_guard' && (
-              <div className="sr-form-group">
-                <label className="sr-form-label">
-                  <FaHashtag className="sr-form-icon" />
-                  Guard Amount <span style={{ color: '#dc2626' }}>*</span>
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  step="1"
-                  className="sr-input"
-                  value={form.additionalGuardCount}
-                  onChange={handleChange('additionalGuardCount')}
-                  disabled={submitting}
-                />
-              </div>
-            )}
+            {/* ── Type-specific fields ── */}
+            {hasTypeSpecificFields && (
+              <div className="sr-type-fields-box">
+                <p className="sr-type-fields-label">
+                  <FaClipboardList />
+                  {form.ticketType === 'additional_guard' ? 'Guard Request Details' : 'Replacement Details'}
+                </p>
 
-            {form.ticketType === 'guard_replacement' && (
-              <div className="sr-form-group">
-                <label className="sr-form-label">
-                  <FaExchangeAlt className="sr-form-icon" />
-                  Guard to Replace <span style={{ color: '#dc2626' }}>*</span>
-                </label>
-                <select
-                  className="sr-input"
-                  value={form.replacementDeploymentId}
-                  onChange={handleChange('replacementDeploymentId')}
-                  disabled={submitting || loadingDeployedGuards}
-                >
-                  <option value="">{loadingDeployedGuards ? 'Loading deployed guards...' : 'Select deployed guard...'}</option>
-                  {replacementGuardOptions.map((guard) => (
-                    <option key={guard.id} value={guard.id}>
-                      {guard.name} - {guard.employee_id_number} - {guard.site_name}
-                    </option>
-                  ))}
-                </select>
-                {!loadingDeployedGuards && replacementGuardOptions.length === 0 && (
-                  <p className="sr-form-help">No active deployed guards are available for replacement.</p>
+                {form.ticketType === 'additional_guard' && (
+                  <div className="sr-form-group">
+                    <label className="sr-form-label">
+                      <FaHashtag className="sr-form-icon" />
+                      Number of Guards Needed <span style={{ color: '#dc2626' }}>*</span>
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      step="1"
+                      className="sr-input"
+                      value={form.additionalGuardCount}
+                      onChange={handleChange('additionalGuardCount')}
+                      disabled={submitting}
+                    />
+                  </div>
+                )}
+
+                {form.ticketType === 'guard_replacement' && (
+                  <div className="sr-form-group">
+                    <label className="sr-form-label">
+                      <FaExchangeAlt className="sr-form-icon" />
+                      Guard to Replace <span style={{ color: '#dc2626' }}>*</span>
+                    </label>
+                    <select
+                      className="sr-input"
+                      value={form.replacementDeploymentId}
+                      onChange={handleChange('replacementDeploymentId')}
+                      disabled={submitting || loadingDeployedGuards}
+                    >
+                      <option value="">
+                        {loadingDeployedGuards ? 'Loading deployed guards...' : 'Select deployed guard...'}
+                      </option>
+                      {replacementGuardOptions.map((guard) => (
+                        <option key={guard.id} value={guard.id}>
+                          {guard.name} - {guard.employee_id_number} - {guard.site_name}
+                        </option>
+                      ))}
+                    </select>
+                    {!loadingDeployedGuards && replacementGuardOptions.length === 0 && (
+                      <p className="sr-form-help">No active deployed guards are available for replacement.</p>
+                    )}
+                  </div>
                 )}
               </div>
             )}
 
-            {/* Request Details */}
+            {/* ── Description ── */}
             <div className="sr-form-group">
               <label className="sr-form-label">
                 <FaCommentAlt className="sr-form-icon" />
@@ -258,7 +279,7 @@ export default function NewRequestModal({ isOpen, onClose, onSuccess }) {
               </label>
               <textarea
                 rows="4"
-                placeholder="Describe your request in detail..."
+                placeholder="Describe your request in detail — include any relevant information that will help us process it quickly."
                 className="sr-input sr-textarea"
                 value={form.description}
                 onChange={handleChange('description')}
@@ -266,7 +287,7 @@ export default function NewRequestModal({ isOpen, onClose, onSuccess }) {
               />
             </div>
 
-            {/* Actions */}
+            {/* ── Actions ── */}
             <div className="sr-modal-actions">
               <button
                 type="submit"

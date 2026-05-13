@@ -14,11 +14,12 @@ export default function HrisServiceRequestsPage() {
 
   const [requests, setRequests] = useState([]);
   const [metadata, setMetadata] = useState({ total: 0, page: 1, limit: 8, totalPages: 1 });
-  const [stats,    setStats]    = useState(null);
-  const [clients,  setClients]  = useState([]);
-  const [filters,  setFilters]  = useState(DEFAULT_FILTERS);
-  const [loading,  setLoading]  = useState(true);
-  const [error,    setError]    = useState(null);
+  const [stats,        setStats]        = useState(null);
+  const [loadingStats, setLoadingStats] = useState(true);
+  const [clients,      setClients]      = useState([]);
+  const [filters,      setFilters]      = useState(DEFAULT_FILTERS);
+  const [loading,      setLoading]      = useState(true);
+  const [error,        setError]        = useState(null);
 
   const fetchRequests = useCallback(async (page = 1, currentFilters = DEFAULT_FILTERS) => {
     try {
@@ -41,10 +42,13 @@ export default function HrisServiceRequestsPage() {
 
   const fetchStats = useCallback(async () => {
     try {
+      setLoadingStats(true);
       const result = await serviceRequestsService.getStats();
       setStats(result);
     } catch {
       setStats(null);
+    } finally {
+      setLoadingStats(false);
     }
   }, []);
 
@@ -77,7 +81,7 @@ export default function HrisServiceRequestsPage() {
       <HrisSRTopbar />
 
       <div className="dashboard-content">
-        <HrisSRStatCards stats={stats} />
+        <HrisSRStatCards stats={stats} loading={loadingStats} />
         <HrisSRFilterBar
           clients={clients}
           filters={filters}

@@ -1,9 +1,22 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
-import { FaArrowLeft, FaBars, FaUserPlus, FaPaperPlane, FaEye, FaCheck, FaComments, FaTimes, FaExchangeAlt } from 'react-icons/fa';
+import {
+  FaArrowLeft,
+  FaBars,
+  FaUserPlus,
+  FaPaperPlane,
+  FaEye,
+  FaCheck,
+  FaComments,
+  FaTimes,
+  FaExchangeAlt,
+  FaExclamationTriangle,
+} from 'react-icons/fa';
 import DeployEmployeeDialog from '@hris-components/employees/DeployEmployeeDialog';
 import GuardFulfillmentPicker from '@hris-components/service-requests/GuardFulfillmentPicker';
+import ServiceRequestReplyBox from '@components/service-requests/ServiceRequestReplyBox';
 import ServiceRequestThread from '@components/service-requests/ServiceRequestThread';
+import ServiceRequestTypeDetails from '@components/service-requests/ServiceRequestTypeDetails';
 import serviceRequestsService from '@services/hris/serviceRequestsService';
 import employeeService from '@services/hris/employeeService';
 import clientService from '@services/hris/clientService';
@@ -35,6 +48,7 @@ export default function ServiceRequestDetailPage() {
   const [resolutionNotes, setResolutionNotes] = useState('');
   const [resolutionError, setResolutionError] = useState(null);
   const [showResolvePanel, setShowResolvePanel] = useState(false);
+  const [confirmingCancel, setConfirmingCancel] = useState(false);
   const [messageText,     setMessageText]     = useState('');
   const [messageError,    setMessageError]    = useState(null);
 
@@ -55,6 +69,7 @@ export default function ServiceRequestDetailPage() {
       setRequest(detail);
       setResolutionNotes(detail?.resolution_notes || '');
       setShowResolvePanel(false);
+      setConfirmingCancel(false);
     } catch (err) {
       setError(err?.response?.data?.error || 'Failed to load service request.');
     } finally {
@@ -80,6 +95,7 @@ export default function ServiceRequestDetailPage() {
       setRequest(updated);
       setResolutionNotes(updated?.resolution_notes || '');
       setShowResolvePanel(false);
+      setConfirmingCancel(false);
     } catch (err) {
       setError(err?.response?.data?.error || 'Failed to update service request.');
     } finally {
@@ -257,11 +273,77 @@ export default function ServiceRequestDetailPage() {
         {error && <div className="sr-error-banner">{error}</div>}
 
         {loading ? (
-          <div className="sr-table-card sr-detail-page-card">
-            <div className="sr-modal-body">
-              <p className="sr-description-text">Loading service request...</p>
+          <div className="sr-table-card sr-detail-page-card sr-detail-skeleton">
+            {/* Shimmer gradient header */}
+            <div className="sr-detail-skeleton__header">
+              <div className="dsk-line" style={{ height: 16, width: '42%' }} />
+              <div className="dsk-line" style={{ height: 11, width: '28%', marginTop: 6 }} />
+            </div>
+            <div className="sr-detail-skeleton__body">
+              {/* Badges */}
+              <div className="sr-detail-skeleton__badges">
+                {[72, 72, 108].map((w, i) => (
+                  <div key={i} className="dsk-btn" style={{ width: w, height: 24, borderRadius: 20 }} />
+                ))}
+              </div>
+              {/* Client box */}
+              <div className="sr-detail-skeleton__client">
+                <div className="dsk-avatar" style={{ width: 46, height: 46 }} />
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                  <div className="dsk-line lg" />
+                  <div className="dsk-line md" />
+                </div>
+              </div>
+              {/* Info grid */}
+              <div className="dsk-grid cols-2">
+                <div className="dsk-info-cell">
+                  <div className="dsk-line sm" />
+                  <div className="dsk-line md" />
+                </div>
+                <div className="dsk-info-cell">
+                  <div className="dsk-line sm" />
+                  <div className="dsk-line md" />
+                </div>
+              </div>
+              {/* Description */}
+              <div className="dsk-info-cell" style={{ minHeight: 80 }}>
+                <div className="dsk-line sm" />
+                <div className="dsk-line lg" />
+                <div className="dsk-line md" />
+              </div>
+              {/* Timeline */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="sr-detail-skeleton__timeline-item">
+                    <div className="dsk-btn" style={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0 }} />
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                      <div className="dsk-line md" />
+                      <div className="dsk-line sm" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* Conversation */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <div className="dsk-line" style={{ height: 14, width: '35%' }} />
+                <div className="dsk-info-cell" style={{ minHeight: 60 }}>
+                  <div className="dsk-line md" />
+                  <div className="dsk-line lg" />
+                </div>
+                <div className="dsk-info-cell" style={{ minHeight: 60 }}>
+                  <div className="dsk-line sm" />
+                  <div className="dsk-line md" />
+                </div>
+              </div>
+              {/* Action buttons */}
+              <div className="sr-detail-skeleton__actions">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="dsk-btn" style={{ flex: 1, height: 40, borderRadius: 8 }} />
+                ))}
+              </div>
             </div>
           </div>
+
         ) : !request ? (
           <div className="sr-table-card sr-detail-page-card">
             <div className="sr-modal-body">
@@ -316,42 +398,7 @@ export default function ServiceRequestDetailPage() {
                 <p className="sr-description-text">{request.description || 'No description provided.'}</p>
               </div>
 
-              {request.additional_guard_details && (
-                <div className="sr-description-box">
-                  <p className="sr-detail-label" style={{ marginBottom: '0.4rem' }}>Additional Guard Progress</p>
-                  <p className="sr-description-text">
-                    {request.additional_guard_details.fulfilled_guard_count} of {request.additional_guard_details.requested_guard_count} guards deployed
-                  </p>
-                  {request.fulfillments?.length > 0 && (
-                    <div style={{ marginTop: '0.6rem' }}>
-                      {request.fulfillments
-                        .filter((fulfillment) => fulfillment.fulfillment_type === 'additional_guard')
-                        .map((fulfillment) => (
-                          <p key={fulfillment.id} className="sr-description-text">
-                            {fulfillment.employee_name} ({fulfillment.employee_number}) deployed {fulfillment.fulfilled_at || ''}
-                          </p>
-                        ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {request.replacement_details && (
-                <div className="sr-description-box">
-                  <p className="sr-detail-label" style={{ marginBottom: '0.4rem' }}>Replacement Details</p>
-                  <p className="sr-description-text">
-                    Replace: {request.replacement_details.original_guard_name} ({request.replacement_details.original_employee_number})
-                  </p>
-                  <p className="sr-description-text">
-                    Site: {request.replacement_details.site_name || request.site}
-                  </p>
-                  {request.replacement_details.replacement_deployment_id && (
-                    <p className="sr-description-text">
-                      Replacement: {request.replacement_details.replacement_guard_name} ({request.replacement_details.replacement_employee_number})
-                    </p>
-                  )}
-                </div>
-              )}
+              <ServiceRequestTypeDetails request={request} includeFulfillmentRows />
 
               {/* Existing resolution notes (read-only once resolved) */}
               {request.status === 'resolved' && request.resolution_notes && (
@@ -388,29 +435,15 @@ export default function ServiceRequestDetailPage() {
                 </p>
                 <ServiceRequestThread messages={messages} />
                 {canMessage && (
-                  <div className="sr-reply-box">
-                    <label className="sr-reply-label">Reply to client</label>
-                    <textarea
-                      className="sr-reply-textarea"
-                      rows={3}
-                      value={messageText}
-                      onChange={(e) => setMessageText(e.target.value)}
-                      disabled={messageLoading}
-                      placeholder="Write a message to the client..."
-                    />
-                    {messageError && <p className="sr-field-error">{messageError}</p>}
-                    <div className="sr-reply-actions">
-                      <span />
-                      <button
-                        type="button"
-                        className="sr-modal-btn blue"
-                        disabled={messageLoading}
-                        onClick={handleSendMessage}
-                      >
-                        <FaPaperPlane /> {messageLoading ? 'Sending...' : 'Send Message'}
-                      </button>
-                    </div>
-                  </div>
+                  <ServiceRequestReplyBox
+                    label="Reply to client"
+                    value={messageText}
+                    onChange={setMessageText}
+                    onSend={handleSendMessage}
+                    loading={messageLoading}
+                    error={messageError}
+                    placeholder="Write a message to the client..."
+                  />
                 )}
               </div>
 
@@ -510,11 +543,35 @@ export default function ServiceRequestDetailPage() {
                     Set In Progress
                   </button>
                 )}
-                {request.modalActions?.includes('cancel') && (
+                {confirmingCancel ? (
+                  <div className="sr-cancel-confirm sr-cancel-confirm--actions">
+                    <p>
+                      <FaExclamationTriangle /> Are you sure you want to cancel this request?
+                    </p>
+                    <div>
+                      <button
+                        type="button"
+                        className="sr-modal-btn gray"
+                        disabled={actionLoading}
+                        onClick={() => setConfirmingCancel(false)}
+                      >
+                        Keep Request
+                      </button>
+                      <button
+                        type="button"
+                        className="sr-modal-btn red"
+                        disabled={actionLoading}
+                        onClick={() => handleStatusChange('cancelled')}
+                      >
+                        {actionLoading ? 'Cancelling...' : 'Cancel Request'}
+                      </button>
+                    </div>
+                  </div>
+                ) : request.modalActions?.includes('cancel') && (
                   <button
                     className="sr-modal-btn red"
                     disabled={actionLoading}
-                    onClick={() => handleStatusChange('cancelled')}
+                    onClick={() => setConfirmingCancel(true)}
                   >
                     Cancel Request
                   </button>
@@ -562,8 +619,9 @@ export default function ServiceRequestDetailPage() {
         toggleScheduleDay={toggleScheduleDay}
         clientContractEndDate={selectedClientContractEndDate}
         title={fulfillmentMode === 'guard_replacement' ? 'Fulfill Guard Replacement' : undefined}
-        submitLabel={fulfillmentMode === 'guard_replacement' ? 'Replace Guard' : undefined}
+        submitLabel={fulfillmentMode === 'guard_replacement' ? 'Replace Guard' : 'Deploy Guard'}
         submittingLabel={fulfillmentMode === 'guard_replacement' ? 'Replacing...' : undefined}
+        deployDisabled={!deployForm.deploymentOrderFile}
       />
     </>
   );

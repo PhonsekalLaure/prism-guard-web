@@ -25,6 +25,9 @@ export default function ServiceRequestsPage() {
   const [stats, setStats] = useState(null);
   const [loadingStats, setLoadingStats] = useState(true);
 
+  // ── Detail loading state ──────────────────────────────────────────────────
+  const [loadingDetail, setLoadingDetail] = useState(false);
+
   const { notification, showNotification, closeNotification } = useNotification();
 
   // ── Fetch tickets ─────────────────────────────────────────────────────────
@@ -98,8 +101,10 @@ export default function ServiceRequestsPage() {
     fetchStats();
   }, [fetchTickets, fetchStats, metadata.page, filters, showNotification]);
 
+  // ── View / open a request (fetch full detail, show skeleton while loading) ─
   const handleViewRequest = useCallback(async (request) => {
     setSelectedRequest(request);
+    setLoadingDetail(true);
     try {
       const detail = await serviceRequestsService.getServiceRequestById(request.id);
       setSelectedRequest(detail);
@@ -109,6 +114,8 @@ export default function ServiceRequestsPage() {
         'error'
       );
       setSelectedRequest(request);
+    } finally {
+      setLoadingDetail(false);
     }
   }, [showNotification]);
 
@@ -154,6 +161,7 @@ export default function ServiceRequestsPage() {
       <RequestDetailModal
         isOpen={!!selectedRequest}
         request={selectedRequest}
+        loadingDetail={loadingDetail}
         onClose={() => setSelectedRequest(null)}
         onCancelSuccess={handleCancelSuccess}
         onMessageSent={refreshSelectedRequest}

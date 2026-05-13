@@ -27,6 +27,7 @@ export default function DeployEmployeeDialog({
   title,
   submittingLabel,
   submitLabel,
+  deployDisabled = false,
 }) {
   if (!isOpen) return null;
 
@@ -217,7 +218,7 @@ export default function DeployEmployeeDialog({
           <button
             className="dlg-btn dlg-btn-deploy"
             onClick={onDeploy}
-            disabled={isDeploying || !deployForm.siteId}
+            disabled={isDeploying || !deployForm.siteId || deployDisabled}
           >
             {isDeploying ? <FaSpinner className="animate-spin" /> : <FaMapMarkerAlt />}
             {isDeploying
