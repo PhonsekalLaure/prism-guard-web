@@ -28,7 +28,10 @@ export default function NewRequestModal({ isOpen, onClose, onSuccess }) {
     setError(null);
     serviceRequestsService.getSites()
       .then(setSites)
-      .catch(() => setSites([]));
+      .catch((err) => {
+        setSites([]);
+        setError(err?.response?.data?.error || 'Failed to load active sites.');
+      });
   }, [isOpen]);
 
   useEffect(() => {
@@ -47,8 +50,11 @@ export default function NewRequestModal({ isOpen, onClose, onSuccess }) {
       .then((result) => {
         if (!cancelled) setDeployedGuards(result?.data || []);
       })
-      .catch(() => {
+      .catch((err) => {
         if (!cancelled) setDeployedGuards([]);
+        if (!cancelled) {
+          setError(err?.response?.data?.error || 'Failed to load deployed guards for replacement.');
+        }
       })
       .finally(() => {
         if (!cancelled) setLoadingDeployedGuards(false);
@@ -138,7 +144,7 @@ export default function NewRequestModal({ isOpen, onClose, onSuccess }) {
         {/* Body */}
         <div className="sr-modal-body">
           {error && (
-            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '0.7rem 1rem', color: '#dc2626', fontSize: '0.82rem', fontWeight: 500 }}>
+            <div className="sr-inline-error">
               {error}
             </div>
           )}
@@ -267,7 +273,7 @@ export default function NewRequestModal({ isOpen, onClose, onSuccess }) {
                 className="sr-btn-submit"
                 disabled={submitting}
               >
-                <FaPaperPlane /> {submitting ? 'Submitting…' : 'Submit Request'}
+                <FaPaperPlane /> {submitting ? 'Submitting...' : 'Submit Request'}
               </button>
               <button
                 type="button"

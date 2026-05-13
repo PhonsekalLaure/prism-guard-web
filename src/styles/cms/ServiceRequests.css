@@ -430,6 +430,45 @@
   line-height: 1.35;
 }
 
+.sr-inline-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 0.7rem 1rem;
+  color: #dc2626;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.sr-resolution-note-box {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.sr-resolution-note-box .sr-detail-info-label,
+.sr-resolution-note-box .sr-detail-desc-text {
+  color: #15803d;
+}
+
+.sr-cancel-confirm {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+}
+
+.sr-cancel-confirm p {
+  margin: 0 0 0.75rem;
+  color: #9a3412;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.sr-cancel-confirm div {
+  display: flex;
+  gap: 0.75rem;
+}
+
 .sr-form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

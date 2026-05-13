@@ -119,7 +119,7 @@ export default function ServiceRequestsTable({
       {/* Pagination */}
       <div className="sr-table-footer">
         <p className="sr-showing-text">
-          {total === 0 ? 'No requests' : `Showing ${start}–${end} of ${total} request${total === 1 ? '' : 's'}`}
+          {total === 0 ? 'No requests' : `Showing ${start}-${end} of ${total} request${total === 1 ? '' : 's'}`}
         </p>
         <div className="sr-page-btns">
           <button

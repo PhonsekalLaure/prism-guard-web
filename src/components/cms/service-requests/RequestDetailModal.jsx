@@ -2,9 +2,9 @@ import { useState } from 'react';
 import {
   FaTimes, FaHistory, FaPaperPlane, FaEye, FaCheck, FaBan, FaComments,
 } from 'react-icons/fa';
+import ServiceRequestThread from '@components/service-requests/ServiceRequestThread';
 import serviceRequestsService from '@services/cms/serviceRequestsService';
 
-// ─── Timeline builder ─────────────────────────────────────────────────────────
 
 function buildTimeline(request) {
   if (!request) return [];
@@ -20,8 +20,8 @@ function buildTimeline(request) {
     faded: false,
   });
 
-  // 2. Under review (if status is not just open)
-  if (['in_progress', 'resolved', 'cancelled'].includes(request.status)) {
+  // 2. Under review
+  if (['in_progress', 'resolved'].includes(request.status)) {
     events.push({
       icon: <FaEye />,
       bg: '#e6b215',
@@ -52,7 +52,7 @@ function buildTimeline(request) {
     events.push({
       icon: <FaCheck />,
       bg: '#9ca3af',
-      title: 'Awaiting Resolution…',
+      title: 'Awaiting Resolution...',
       time: null,
       faded: true,
     });
@@ -61,30 +61,11 @@ function buildTimeline(request) {
   return events;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
-function ThreadMessage({ message }) {
-  const roleClass = message.sender_role === 'admin' ? 'admin' : 'client';
-
-  return (
-    <div className={`sr-thread-msg ${roleClass}`}>
-      <div className="sr-thread-msg-header">
-        <div className="sr-thread-msg-avatar">{message.sender_initials}</div>
-        <div>
-          <p className="sr-thread-msg-name">
-            {message.sender_name} <span className="sr-thread-msg-role">{message.sender_label}</span>
-          </p>
-          <p className="sr-thread-msg-time">{message.date}</p>
-        </div>
-      </div>
-      <p className="sr-thread-msg-text">{message.message}</p>
-    </div>
-  );
-}
 
 export default function RequestDetailModal({ isOpen, request, onClose, onCancelSuccess, onMessageSent }) {
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState(null);
+  const [confirmingCancel, setConfirmingCancel] = useState(false);
   const [messageText, setMessageText] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
   const [messageError, setMessageError] = useState(null);
@@ -97,7 +78,6 @@ export default function RequestDetailModal({ isOpen, request, onClose, onCancelS
   const messages = request.messages || [];
 
   const handleCancel = async () => {
-    if (!window.confirm('Are you sure you want to cancel this request?')) return;
     try {
       setCancelling(true);
       setCancelError(null);
@@ -156,8 +136,32 @@ export default function RequestDetailModal({ isOpen, request, onClose, onCancelS
           </div>
 
           {cancelError && (
-            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '0.7rem 1rem', color: '#dc2626', fontSize: '0.82rem', fontWeight: 500 }}>
+            <div className="sr-inline-error">
               {cancelError}
+            </div>
+          )}
+
+          {confirmingCancel && (
+            <div className="sr-cancel-confirm">
+              <p>Cancel this service request?</p>
+              <div>
+                <button
+                  type="button"
+                  className="sr-btn-back"
+                  onClick={() => setConfirmingCancel(false)}
+                  disabled={cancelling}
+                >
+                  Keep Request
+                </button>
+                <button
+                  type="button"
+                  className="sr-btn-cancel-req"
+                  onClick={handleCancel}
+                  disabled={cancelling}
+                >
+                  <FaTimes /> {cancelling ? 'Cancelling...' : 'Cancel Request'}
+                </button>
+              </div>
             </div>
           )}
 
@@ -237,9 +241,9 @@ export default function RequestDetailModal({ isOpen, request, onClose, onCancelS
 
           {/* Resolution notes (if resolved) */}
           {request.resolution_notes && (
-            <div className="sr-detail-desc-box" style={{ background: '#f0fdf4', borderColor: '#bbf7d0' }}>
-              <p className="sr-detail-info-label" style={{ color: '#15803d' }}>Resolution Notes</p>
-              <p className="sr-detail-desc-text" style={{ color: '#15803d' }}>
+            <div className="sr-detail-desc-box sr-resolution-note-box">
+              <p className="sr-detail-info-label">Resolution Notes</p>
+              <p className="sr-detail-desc-text">
                 {request.resolution_notes}
               </p>
             </div>
@@ -249,13 +253,7 @@ export default function RequestDetailModal({ isOpen, request, onClose, onCancelS
             <h4 className="sr-detail-section-title">
               <FaComments /> Conversation
             </h4>
-            {messages.length > 0 ? (
-              <div className="sr-thread">
-                {messages.map((message) => <ThreadMessage key={message.id} message={message} />)}
-              </div>
-            ) : (
-              <p className="sr-empty-thread">No messages yet.</p>
-            )}
+            <ServiceRequestThread messages={messages} emptyClassName="sr-empty-thread" />
             {canMessage && (
               <div className="sr-reply-box">
                 <label className="sr-reply-label">Reply</label>
@@ -288,10 +286,10 @@ export default function RequestDetailModal({ isOpen, request, onClose, onCancelS
             {canCancel && (
               <button
                 className="sr-btn-cancel-req"
-                onClick={handleCancel}
+                onClick={() => setConfirmingCancel(true)}
                 disabled={cancelling}
               >
-                <FaTimes /> {cancelling ? 'Cancelling…' : 'Cancel Request'}
+                <FaTimes /> {cancelling ? 'Cancelling...' : 'Cancel Request'}
               </button>
             )}
             <button className="sr-btn-back" onClick={onClose}>

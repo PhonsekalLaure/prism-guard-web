@@ -16,7 +16,7 @@ const STAT_CONFIGS = [
   {
     key: 'resolved',
     label: 'Resolved',
-    sub: 'This month',
+    sub: 'Completed requests',
     valueColor: '#16a34a',
     borderColor: '#16a34a',
   },
@@ -34,7 +34,7 @@ export default function ServiceRequestsStatCards({ stats, loading }) {
           <div>
             <p className="stat-label">{s.label}</p>
             <h3 className="stat-value" style={{ color: s.valueColor }}>
-              {loading ? '…' : (stats?.[s.key] ?? 0)}
+              {loading ? '...' : (stats?.[s.key] ?? 0)}
             </h3>
             <p className="stat-sub">{s.sub}</p>
           </div>
