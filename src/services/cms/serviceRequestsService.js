@@ -59,6 +59,11 @@ async function getServiceRequestById(id) {
   return data;
 }
 
+async function sendMessage(id, message) {
+  const { data } = await api.post(`/${id}/messages`, { message });
+  return data;
+}
+
 /**
  * Submit a new service request.
  *
@@ -71,7 +76,7 @@ async function createServiceRequest(payload) {
 }
 
 /**
- * Cancel an open/in-progress service request.
+ * Cancel an open service request.
  *
  * @param {string} id
  * @returns {Promise<{ message: string }>}
@@ -86,6 +91,7 @@ export default {
   getStats,
   getSites,
   getServiceRequestById,
+  sendMessage,
   createServiceRequest,
   cancelServiceRequest,
 };

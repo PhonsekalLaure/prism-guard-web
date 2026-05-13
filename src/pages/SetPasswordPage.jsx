@@ -28,12 +28,14 @@ export default function SetPasswordPage() {
   const [showConfirm, setShowConfirm]   = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess]           = useState(false);
+  const [setupRole, setSetupRole]       = useState(null);
   const [notification, setNotification] = useState(null);
   const navigate = useNavigate();
 
   const strength       = getPasswordStrength(password);
   const passwordPolicy = validatePassword(password);
   const passwordsMatch = password.length > 0 && password === confirmPassword;
+  const isEmployeeSetup = setupRole === 'employee';
 
   useEffect(() => {
     // Supabase automatically handles the hash fragment and signs the user in
@@ -82,18 +84,21 @@ export default function SetPasswordPage() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
 
-      await authService.updatePassword({
+      const result = await authService.updatePassword({
         password,
         confirmPassword,
         clearMustChangePassword: true,
         accessToken: session?.access_token,
       });
 
+      setSetupRole(result?.role || null);
       setSuccess(true);
       // Auto-logout after setting password to force a clean login
       await supabase.auth.signOut();
       authService.clearTokens();
-      setTimeout(() => navigate('/login'), 3000);
+      if (result?.role !== 'employee') {
+        setTimeout(() => navigate('/login'), 3000);
+      }
     } catch (err) {
       console.error(err);
       setNotification({
@@ -123,15 +128,21 @@ export default function SetPasswordPage() {
           <div className="auth-success-body">
             <p className="auth-success-title">Password Set!</p>
             <p className="auth-success-sub">
-              Your account is now ready. You'll be redirected to the login page shortly.
+              {isEmployeeSetup
+                ? 'Your account is now ready. You can now sign in from the PrismGuard mobile app.'
+                : "Your account is now ready. You'll be redirected to the login page shortly."}
             </p>
-            <div className="auth-progress-bar">
-              <div className="auth-progress-fill" />
-            </div>
-            <button className="auth-btn" style={{ marginTop: '1.25rem' }} onClick={() => navigate('/login')}>
-              <span>Go to Login</span>
-              <FaArrowRight className="arrow" />
-            </button>
+            {!isEmployeeSetup && (
+              <>
+                <div className="auth-progress-bar">
+                  <div className="auth-progress-fill" />
+                </div>
+                <button className="auth-btn" style={{ marginTop: '1.25rem' }} onClick={() => navigate('/login')}>
+                  <span>Go to Login</span>
+                  <FaArrowRight className="arrow" />
+                </button>
+              </>
+            )}
           </div>
         ) : (
           <div className="auth-card-body">
