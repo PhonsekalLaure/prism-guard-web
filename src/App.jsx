@@ -64,7 +64,7 @@ function App() {
           <Route path="/service-requests/:id" element={<ServiceRequestDetailPage />} />
           <Route path="/service-reviews" element={<HrisServiceReviewsPage />} />
           <Route path="/leaves" element={<HrisLeaveRequestsPage />} />
-          <Route path="/attendance" element={<HrisAttendancePage />} />
+          <Route path="/attendance" element={<ProtectedRoute requiredPermissions={['employees.read']}><HrisAttendancePage /></ProtectedRoute>} />
           <Route path="/cash-advance" element={<HrisCashAdvancePage />} />
           <Route path="/payroll" element={<HrisPayrollPage />} />
           <Route path="/incidents" element={<HrisIncidentsPage />} />
