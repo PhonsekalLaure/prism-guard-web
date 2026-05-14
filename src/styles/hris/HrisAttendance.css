@@ -48,6 +48,7 @@
   font-weight: 600;
 }
 
+.ha-refresh-btn,
 .ha-export-btn {
   background: #093269;
   color: #fff;
@@ -64,8 +65,81 @@
   font-family: 'Poppins', sans-serif;
 }
 
+.ha-refresh-btn {
+  background: #fff;
+  color: #093269;
+  border: 1px solid #d1d5db;
+}
+
+.ha-refresh-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.ha-refresh-btn:hover:not(:disabled) {
+  background: #f9fafb;
+}
+
 .ha-export-btn:hover {
   background: #0a4080;
+}
+
+.ha-refresh-btn .spinning {
+  animation: haSpin 0.8s linear infinite;
+}
+
+/* =============================================
+   STAT CARDS
+   ============================================= */
+.ha-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+
+.ha-stat-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.3rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-left: 4px solid #e5e7eb;
+  transition: transform 0.3s, box-shadow 0.3s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  animation: haFadeInUp 0.4s ease forwards;
+  opacity: 0;
+  flex-direction: row-reverse;
+}
+
+.ha-stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.ha-stat-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.ha-stat-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.ha-stat-label {
+  font-size: 0.78rem;
+  color: #7f8c8d;
+  font-weight: 500;
+  margin-bottom: 0.2rem;
 }
 
 /* =============================================
@@ -370,10 +444,31 @@
   background: #f9fafb;
 }
 
+.ha-page-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .ha-page-btn.active {
   background: #093269;
   color: #fff;
   border-color: #093269;
+}
+
+.ha-empty-cell {
+  text-align: center;
+  color: #6b7280;
+  padding: 1.5rem !important;
+}
+
+.ha-error-banner {
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
 }
 
 /* Animations */
@@ -387,8 +482,14 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes haSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
+  .ha-stat-grid,
   .ha-filter-bar {
     grid-template-columns: 1fr;
   }
