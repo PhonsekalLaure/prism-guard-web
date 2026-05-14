@@ -1,6 +1,13 @@
-import { FaSearch, FaBuilding, FaFilter } from 'react-icons/fa';
+import { FaSearch, FaBuilding, FaFilter, FaCalendarAlt } from 'react-icons/fa';
 
-export default function HrisAttendanceFilterBar({ clients = [], filters, onFilterChange }) {
+export default function HrisAttendanceFilterBar({
+  clients = [],
+  filters,
+  selectedDate,
+  maxDate,
+  onDateChange,
+  onFilterChange,
+}) {
   const currentFilters = filters || { search: '', clientId: 'all', status: 'all' };
 
   const updateFilter = (field, value) => {
@@ -22,6 +29,19 @@ export default function HrisAttendanceFilterBar({ clients = [], filters, onFilte
           className="ha-filter-input"
           value={currentFilters.search}
           onChange={(event) => updateFilter('search', event.target.value)}
+        />
+      </div>
+
+      <div className="ha-filter-group">
+        <label className="ha-filter-label">
+          <FaCalendarAlt /> Attendance Date
+        </label>
+        <input
+          type="date"
+          className="ha-filter-input"
+          value={selectedDate}
+          max={maxDate}
+          onChange={(event) => onDateChange?.(event.target.value)}
         />
       </div>
 

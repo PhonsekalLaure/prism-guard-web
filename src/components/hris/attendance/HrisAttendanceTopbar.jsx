@@ -11,7 +11,13 @@ function formatDisplayDate(date) {
   });
 }
 
-export default function HrisAttendanceTopbar({ date, loading = false, onRefresh }) {
+export default function HrisAttendanceTopbar({
+  date,
+  loading = false,
+  exporting = false,
+  onRefresh,
+  onExport,
+}) {
   return (
     <header className="ha-topbar">
       <div className="ha-title-group">
@@ -26,8 +32,8 @@ export default function HrisAttendanceTopbar({ date, loading = false, onRefresh 
         <button className="ha-refresh-btn" disabled={loading} onClick={onRefresh}>
           <FaSyncAlt className={loading ? 'spinning' : ''} /> Refresh
         </button>
-        <button className="ha-export-btn">
-          <FaDownload /> Export Report
+        <button className="ha-export-btn" disabled={exporting} onClick={onExport}>
+          <FaDownload /> {exporting ? 'Exporting...' : 'Export Report'}
         </button>
       </div>
     </header>

@@ -16,18 +16,35 @@ function getTodayDateString() {
   return `${year}-${month}-${day}`;
 }
 
+function downloadBlob(blob, filename) {
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+}
+
 export default function HrisAttendancePage() {
+  const today = getTodayDateString();
   const [records, setRecords] = useState([]);
   const [metadata, setMetadata] = useState({ total: 0, page: 1, limit: 8, totalPages: 1 });
   const [stats, setStats] = useState(null);
   const [clients, setClients] = useState([]);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
+  const [selectedDate, setSelectedDate] = useState(today);
   const [loading, setLoading] = useState(true);
   const [loadingStats, setLoadingStats] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState(null);
-  const date = getTodayDateString();
 
-  const fetchRecords = useCallback(async (page = 1, currentFilters = DEFAULT_FILTERS) => {
+  const fetchRecords = useCallback(async (
+    page = 1,
+    currentFilters = DEFAULT_FILTERS,
+    date = selectedDate
+  ) => {
     try {
       setLoading(true);
       setError(null);
@@ -45,14 +62,14 @@ export default function HrisAttendancePage() {
     } finally {
       setLoading(false);
     }
-  }, [date]);
+  }, [selectedDate]);
 
-  const fetchStats = useCallback(async (currentFilters = DEFAULT_FILTERS) => {
+  const fetchStats = useCallback(async (currentFilters = DEFAULT_FILTERS, date = selectedDate) => {
     try {
       setLoadingStats(true);
       const result = await attendanceService.getStats({
         date,
-        clientId: currentFilters.clientId,
+        ...currentFilters,
       });
       setStats(result);
     } catch {
@@ -60,7 +77,7 @@ export default function HrisAttendancePage() {
     } finally {
       setLoadingStats(false);
     }
-  }, [date]);
+  }, [selectedDate]);
 
   const fetchClients = useCallback(async () => {
     try {
@@ -93,6 +110,13 @@ export default function HrisAttendancePage() {
     fetchStats(nextFilters);
   }, [fetchRecords, fetchStats]);
 
+  const handleDateChange = useCallback((nextDate) => {
+    const safeDate = nextDate > today ? today : nextDate;
+    setSelectedDate(safeDate);
+    fetchRecords(1, filters, safeDate);
+    fetchStats(filters, safeDate);
+  }, [fetchRecords, fetchStats, filters, today]);
+
   const handlePageChange = useCallback((page) => {
     fetchRecords(page, filters);
   }, [fetchRecords, filters]);
@@ -103,12 +127,30 @@ export default function HrisAttendancePage() {
     fetchClients();
   }, [fetchRecords, fetchStats, fetchClients, filters, metadata.page]);
 
+  const handleExport = useCallback(async () => {
+    try {
+      setExporting(true);
+      setError(null);
+      const result = await attendanceService.exportReport({
+        date: selectedDate,
+        ...filters,
+      });
+      downloadBlob(result.blob, result.filename || `attendance-${selectedDate}.csv`);
+    } catch {
+      setError('Failed to export attendance report.');
+    } finally {
+      setExporting(false);
+    }
+  }, [selectedDate, filters]);
+
   return (
     <>
       <HrisAttendanceTopbar
-        date={date}
+        date={selectedDate}
         loading={loading || loadingStats}
+        exporting={exporting}
         onRefresh={handleRefresh}
+        onExport={handleExport}
       />
 
       <div className="dashboard-content">
@@ -116,6 +158,9 @@ export default function HrisAttendancePage() {
         <HrisAttendanceFilterBar
           clients={clients}
           filters={filters}
+          selectedDate={selectedDate}
+          maxDate={today}
+          onDateChange={handleDateChange}
           onFilterChange={handleFilterChange}
         />
         {error && (
@@ -125,6 +170,7 @@ export default function HrisAttendancePage() {
           records={records}
           metadata={metadata}
           loading={loading}
+          selectedDate={selectedDate}
           onPageChange={handlePageChange}
         />
       </div>
