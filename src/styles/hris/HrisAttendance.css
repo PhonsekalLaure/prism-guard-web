@@ -626,6 +626,11 @@
   padding: 1rem 1.25rem;
 }
 
+.ha-modal-emp-box .ha-status-badge {
+  margin-left: auto;
+  align-self: flex-start;
+}
+
 .ha-modal-avatar {
   width: 52px !important;
   height: 52px !important;
@@ -779,24 +784,6 @@
   font-size: 0.78rem;
 }
 
-/* GPS & ID row */
-.ha-modal-info-row {
-  display: flex;
-  gap: 0.75rem;
-}
-
-.ha-modal-gps-box,
-.ha-modal-id-box {
-  flex: 1;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 0.85rem 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
 .ha-modal-section-label {
   font-size: 0.72rem;
   font-weight: 600;
@@ -805,17 +792,6 @@
   letter-spacing: 0.04em;
   display: flex;
   align-items: center;
-}
-
-.ha-modal-gps-value {
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-.ha-modal-id-value {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #093269;
 }
 
 /* Notes box */

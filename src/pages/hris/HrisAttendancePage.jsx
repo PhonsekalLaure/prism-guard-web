@@ -7,6 +7,7 @@ import attendanceService from '@services/hris/attendanceService';
 import '../../styles/hris/HrisAttendance.css';
 
 const DEFAULT_FILTERS = { search: '', clientId: 'all', status: 'all' };
+const DEFAULT_METADATA = { total: 0, page: 1, limit: 8, totalPages: 1 };
 
 function getTodayDateString() {
   const today = new Date();
@@ -30,7 +31,7 @@ function downloadBlob(blob, filename) {
 export default function HrisAttendancePage() {
   const today = getTodayDateString();
   const [records, setRecords] = useState([]);
-  const [metadata, setMetadata] = useState({ total: 0, page: 1, limit: 8, totalPages: 1 });
+  const [metadata, setMetadata] = useState(DEFAULT_METADATA);
   const [stats, setStats] = useState(null);
   const [clients, setClients] = useState([]);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
@@ -59,6 +60,7 @@ export default function HrisAttendancePage() {
     } catch (err) {
       setError(err?.response?.data?.error || 'Failed to load attendance records.');
       setRecords([]);
+      setMetadata({ ...DEFAULT_METADATA, page });
     } finally {
       setLoading(false);
     }
@@ -111,7 +113,7 @@ export default function HrisAttendancePage() {
   }, [fetchRecords, fetchStats]);
 
   const handleDateChange = useCallback((nextDate) => {
-    const safeDate = nextDate > today ? today : nextDate;
+    const safeDate = nextDate && nextDate <= today ? nextDate : today;
     setSelectedDate(safeDate);
     fetchRecords(1, filters, safeDate);
     fetchStats(filters, safeDate);
