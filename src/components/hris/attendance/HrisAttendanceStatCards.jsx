@@ -1,10 +1,9 @@
 import { FaClock, FaUserTimes, FaHourglassEnd, FaSignOutAlt } from 'react-icons/fa';
-import '@styles/hris/HrisServiceReviews.css';
 
 const stats = [
   {
     label: 'Late Clock-ins',
-    value: '12',
+    key: 'lateClockIns',
     icon: FaClock,
     iconBg: '#fef9c3',
     iconColor: '#ca8a04',
@@ -14,7 +13,7 @@ const stats = [
   },
   {
     label: 'Total Absences',
-    value: '5',
+    key: 'totalAbsences',
     icon: FaUserTimes,
     iconBg: '#fee2e2',
     iconColor: '#dc2626',
@@ -24,7 +23,7 @@ const stats = [
   },
   {
     label: 'Overtime Count',
-    value: '28',
+    key: 'overtimeCount',
     icon: FaHourglassEnd,
     iconBg: '#fef3c7',
     iconColor: '#d97706',
@@ -34,7 +33,7 @@ const stats = [
   },
   {
     label: 'No Clock-out',
-    value: '3',
+    key: 'noClockOut',
     icon: FaSignOutAlt,
     iconBg: '#f3e8ff',
     iconColor: '#9333ea',
@@ -44,26 +43,27 @@ const stats = [
   },
 ];
 
-export default function HrisAttendanceStatCards() {
+export default function HrisAttendanceStatCards({ stats: attendanceStats, loading = false }) {
   return (
-    <div className="sr-review-stat-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+    <div className="ha-stat-grid">
       {stats.map((s, i) => {
         const Icon = s.icon;
+        const value = loading ? '...' : (attendanceStats?.[s.key] ?? 0);
         return (
           <div
             key={i}
-            className="sr-review-stat-card"
+            className="ha-stat-card"
             style={{ animationDelay: s.delay, borderLeftColor: s.borderColor }}
           >
             <div
-              className="sr-review-stat-icon-wrapper"
+              className="ha-stat-icon-wrapper"
               style={{ backgroundColor: s.iconBg, color: s.iconColor }}
             >
               <Icon />
             </div>
             <div>
-              <p className="sr-review-stat-value" style={{ color: s.valueColor, fontSize: '1.4rem' }}>{s.value}</p>
-              <p className="sr-review-stat-label">{s.label}</p>
+              <p className="ha-stat-value" style={{ color: s.valueColor }}>{value}</p>
+              <p className="ha-stat-label">{s.label}</p>
             </div>
           </div>
         );
