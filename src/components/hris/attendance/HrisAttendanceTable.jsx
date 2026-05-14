@@ -2,8 +2,9 @@ import { useState } from 'react';
 import {
   FaListUl, FaCheckCircle, FaTimesCircle, FaMinusCircle,
   FaCircle, FaEye, FaChevronLeft, FaChevronRight, FaTimes,
-  FaMapMarkerAlt, FaClock, FaUserShield, FaIdBadge
+  FaMapMarkerAlt, FaClock, FaUserShield
 } from 'react-icons/fa';
+import attendanceService from '@services/hris/attendanceService';
 
 const STATUS_META = {
   active: { label: 'ACTIVE', className: 'active', icon: FaCircle, rowClass: '' },
@@ -66,25 +67,85 @@ function renderPages(metadata, onPageChange) {
   return pages;
 }
 
+function formatCoordinate(coordinate) {
+  if (!coordinate) return 'N/A';
+  return `${Number(coordinate.latitude).toFixed(6)}, ${Number(coordinate.longitude).toFixed(6)}`;
+}
+
+function formatBoolean(value) {
+  if (value === true) return 'Inside geofence';
+  if (value === false) return 'Outside geofence';
+  return 'N/A';
+}
+
+function formatRawStatus(value) {
+  return value ? value.replace(/_/g, ' ') : 'N/A';
+}
+
+function EmployeeAvatar({ row, className = '' }) {
+  return (
+    <div className={`ha-avatar ${className}`}>
+      {row.avatarUrl && (
+        <img
+          src={row.avatarUrl}
+          alt={`${row.name} avatar`}
+          onError={(event) => {
+            event.currentTarget.remove();
+          }}
+        />
+      )}
+      <span>{row.initials}</span>
+    </div>
+  );
+}
+
 export default function HrisAttendanceTable({
   records = [],
   metadata = { total: 0, page: 1, limit: 8, totalPages: 1 },
   loading = false,
+  selectedDate = null,
   onPageChange,
 }) {
   const [selectedRow, setSelectedRow] = useState(null);
+  const [selectedDetail, setSelectedDetail] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState(null);
   const currentPage = metadata.page || 1;
   const totalPages = Math.max(metadata.totalPages || 1, 1);
   const from = metadata.total === 0 ? 0 : ((currentPage - 1) * (metadata.limit || 8)) + 1;
   const to = Math.min(currentPage * (metadata.limit || 8), metadata.total || 0);
 
-  const openModal = (row) => setSelectedRow(row);
-  const closeModal = () => setSelectedRow(null);
+  const openModal = async (row) => {
+    setSelectedRow(row);
+    setSelectedDetail(null);
+    setDetailError(null);
+
+    if (!row.attendanceLogId) {
+      return;
+    }
+
+    try {
+      setDetailLoading(true);
+      const detail = await attendanceService.getAttendanceLogDetails(row.attendanceLogId);
+      setSelectedDetail(detail);
+    } catch (err) {
+      setDetailError(err?.response?.data?.error || 'Failed to load attendance log details.');
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  const closeModal = () => {
+    setSelectedRow(null);
+    setSelectedDetail(null);
+    setDetailError(null);
+    setDetailLoading(false);
+  };
 
   return (
     <div className="ha-table-container">
       <div className="ha-table-header">
-        <h3><FaListUl /> Today's Attendance Records</h3>
+        <h3><FaListUl /> {selectedDate ? `Attendance Records for ${selectedDate}` : 'Attendance Records'}</h3>
       </div>
 
       <div className="ha-table-wrap">
@@ -120,7 +181,7 @@ export default function HrisAttendanceTable({
                 <tr key={row.id} className={statusMeta.rowClass}>
                   <td>
                     <div className="ha-emp-cell">
-                      <div className="ha-avatar">{row.initials}</div>
+                      <EmployeeAvatar row={row} />
                       <div>
                         <p className="ha-emp-name">{row.name}</p>
                         <p className="ha-emp-id">{row.empId}</p>
@@ -189,10 +250,17 @@ export default function HrisAttendanceTable({
       {selectedRow && (
         <div className="ha-modal-overlay" onClick={(e) => e.target === e.currentTarget && closeModal()}>
           <div className="ha-modal-content">
+            {(() => {
+              const displayRow = selectedDetail?.summary || selectedRow;
+              const detail = selectedDetail;
+              const statusMeta = STATUS_META[displayRow.status] || STATUS_META.absent;
+
+              return (
+                <>
             <div className="ha-modal-header">
               <div>
-                <h2>Attendance Record</h2>
-                <p>{selectedRow.empId}</p>
+                <h2>Attendance Log Details</h2>
+                <p>{displayRow.attendanceLogId || 'No attendance log for this date'}</p>
               </div>
               <button className="ha-modal-close-btn" onClick={closeModal}>
                 <FaTimes />
@@ -201,64 +269,115 @@ export default function HrisAttendanceTable({
 
             <div className="ha-modal-body">
               <div className="ha-modal-emp-box">
-                <div className="ha-avatar ha-modal-avatar">{selectedRow.initials}</div>
+                <EmployeeAvatar row={displayRow} className="ha-modal-avatar" />
                 <div className="ha-modal-emp-info">
-                  <h3>{selectedRow.name}</h3>
-                  <p><FaUserShield style={{ marginRight: '4px' }} />{selectedRow.role}</p>
+                  <h3>{displayRow.name}</h3>
+                  <p><FaUserShield style={{ marginRight: '4px' }} />{displayRow.role}</p>
                   <span className="ha-modal-location">
-                    <FaMapMarkerAlt /> {selectedRow.location} - {selectedRow.area}
+                    <FaMapMarkerAlt /> {displayRow.location} - {displayRow.area}
                   </span>
                 </div>
                 <span
-                  className={`ha-status-badge ${(STATUS_META[selectedRow.status] || STATUS_META.absent).className}`}
+                  className={`ha-status-badge ${statusMeta.className}`}
                   style={{ marginLeft: 'auto', alignSelf: 'flex-start' }}
                 >
-                  {(STATUS_META[selectedRow.status] || STATUS_META.absent).label}
+                  {statusMeta.label}
                 </span>
               </div>
+
+              {detailLoading && (
+                <div className="ha-modal-notes-box">Loading complete log details...</div>
+              )}
+
+              {detailError && (
+                <div className="ha-modal-alert">{detailError}</div>
+              )}
+
+              {!detailLoading && !displayRow.attendanceLogId && (
+                <div className="ha-modal-alert neutral">
+                  No attendance log exists for this expected attendance row. This record is derived from the active deployment and schedule for the selected date.
+                </div>
+              )}
 
               <div className="ha-modal-grid">
                 <div className="ha-modal-cell">
                   <label><FaClock style={{ marginRight: '4px' }} />Clock In</label>
-                  <p className={selectedRow.status === 'late' ? 'ha-modal-late' : ''}>{selectedRow.clockIn || '-'}</p>
-                  <span className={`ha-time-sub ${getClockInNoteClass(selectedRow)}`}>{selectedRow.clockInNote}</span>
+                  <p className={displayRow.status === 'late' ? 'ha-modal-late' : ''}>{detail?.log?.clockIn || displayRow.clockIn || '-'}</p>
+                  <span className={`ha-time-sub ${getClockInNoteClass(displayRow)}`}>{displayRow.clockInNote}</span>
                 </div>
                 <div className="ha-modal-cell">
                   <label><FaClock style={{ marginRight: '4px' }} />Clock Out</label>
-                  <p>{selectedRow.clockOut || '-'}</p>
-                  <span className={`ha-time-sub ${getClockOutNoteClass(selectedRow)}`}>{selectedRow.clockOutNote}</span>
+                  <p>{detail?.log?.clockOut || displayRow.clockOut || '-'}</p>
+                  <span className={`ha-time-sub ${getClockOutNoteClass(displayRow)}`}>{displayRow.clockOutNote}</span>
                 </div>
                 <div className="ha-modal-cell">
                   <label>Work Hours</label>
-                  <p className={selectedRow.hoursNote === 'Completed' ? 'ha-modal-full' : ''}>{selectedRow.hours}</p>
-                  <span className={`ha-time-sub ${getHoursNoteClass(selectedRow)}`}>{selectedRow.hoursNote}</span>
+                  <p className={displayRow.hoursNote === 'Completed' ? 'ha-modal-full' : ''}>{displayRow.hours}</p>
+                  <span className={`ha-time-sub ${getHoursNoteClass(displayRow)}`}>{displayRow.hoursNote}</span>
                 </div>
                 <div className="ha-modal-cell">
                   <label>Scheduled Shift</label>
-                  <p>{selectedRow.shift}</p>
+                  <p>{detail?.schedule?.shift || displayRow.shift}</p>
                 </div>
               </div>
 
-              <div className="ha-modal-info-row">
-                <div className="ha-modal-gps-box">
-                  <span className="ha-modal-section-label">GPS Verification</span>
-                  <span className={`ha-gps ha-modal-gps-value ${selectedRow.gpsClass}`}>
-                    {(() => {
-                      const GpsIcon = GPS_ICONS[selectedRow.gpsClass] || FaMinusCircle;
-                      return <GpsIcon />;
-                    })()} {selectedRow.gps}
-                  </span>
-                </div>
-                <div className="ha-modal-id-box">
-                  <span className="ha-modal-section-label"><FaIdBadge style={{ marginRight: '4px' }} />Employee ID</span>
-                  <span className="ha-modal-id-value">{selectedRow.empId}</span>
+              <div className="ha-modal-section">
+                <span className="ha-modal-section-label">Raw Log Evidence</span>
+                <div className="ha-detail-grid">
+                  <div><span>Attendance Log ID</span><strong>{detail?.log?.id || displayRow.attendanceLogId || 'N/A'}</strong></div>
+                  <div><span>Deployment ID</span><strong>{detail?.assignment?.deploymentId || displayRow.deploymentId || 'N/A'}</strong></div>
+                  <div><span>Employee ID</span><strong>{detail?.employee?.employeeIdNumber || displayRow.empId}</strong></div>
+                  <div><span>Log Date</span><strong>{detail?.log?.logDate || 'N/A'}</strong></div>
+                  <div><span>Derived Status</span><strong>{statusMeta.label}</strong></div>
+                  <div><span>Raw DB Status</span><strong>{formatRawStatus(detail?.log?.rawStatus || displayRow.rawStatus)}</strong></div>
+                  <div><span>Schedule ID</span><strong>{detail?.schedule?.id || 'N/A'}</strong></div>
+                  <div><span>Site ID</span><strong>{detail?.assignment?.siteId || displayRow.siteId || 'N/A'}</strong></div>
                 </div>
               </div>
 
-              <div>
+              <div className="ha-modal-section">
+                <span className="ha-modal-section-label">GPS Evidence</span>
+                <div className="ha-detail-grid">
+                  <div>
+                    <span>GPS Status</span>
+                    <strong className={`ha-gps ${detail?.gps?.statusClass || displayRow.gpsClass}`}>
+                      {(() => {
+                        const GpsIcon = GPS_ICONS[detail?.gps?.statusClass || displayRow.gpsClass] || FaMinusCircle;
+                        return <GpsIcon />;
+                      })()} {detail?.gps?.status || displayRow.gps}
+                    </strong>
+                  </div>
+                  <div><span>Clock-in Coordinates</span><strong>{formatCoordinate(detail?.log?.clockInCoordinates)}</strong></div>
+                  <div><span>Clock-out Coordinates</span><strong>{formatCoordinate(detail?.log?.clockOutCoordinates)}</strong></div>
+                  <div><span>Site Coordinates</span><strong>{formatCoordinate(detail?.assignment?.siteCoordinates)}</strong></div>
+                  <div><span>Geofence Radius</span><strong>{detail?.assignment?.geofenceRadiusMeters ? `${detail.assignment.geofenceRadiusMeters}m` : 'N/A'}</strong></div>
+                  <div><span>Latest Ping Time</span><strong>{detail?.gps?.latestPing?.pingTime || 'N/A'}</strong></div>
+                  <div><span>Latest Ping Coordinates</span><strong>{formatCoordinate(detail?.gps?.latestPing)}</strong></div>
+                  <div><span>Latest Ping Result</span><strong>{formatBoolean(detail?.gps?.latestPing?.isWithinGeofence)}</strong></div>
+                </div>
+              </div>
+
+              {detail?.gps?.pings?.length > 0 && (
+                <div className="ha-modal-section">
+                  <span className="ha-modal-section-label">Location Ping History</span>
+                  <div className="ha-ping-list">
+                    {detail.gps.pings.map((ping) => (
+                      <div key={ping.id} className={`ha-ping-row ${ping.isWithinGeofence === false ? 'outside' : ''}`}>
+                        <div>
+                          <strong>{ping.pingTime}</strong>
+                          <span>{formatCoordinate(ping)}</span>
+                        </div>
+                        <span>{formatBoolean(ping.isWithinGeofence)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="ha-modal-section">
                 <span className="ha-modal-section-label">Notes</span>
                 <div className="ha-modal-notes-box">
-                  {selectedRow.notes}
+                  {displayRow.notes}
                 </div>
               </div>
             </div>
@@ -266,6 +385,9 @@ export default function HrisAttendanceTable({
             <div className="ha-modal-footer">
               <button className="ha-modal-btn secondary" onClick={closeModal}>Close</button>
             </div>
+                </>
+              );
+            })()}
           </div>
         </div>
       )}
