@@ -1,0 +1,584 @@
+/* =============================================
+   CMS ANNOUNCEMENTS PAGE — Custom styles
+   ============================================= */
+
+/* ─── Topbar Left (icon + title) ─── */
+.ann-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.ann-topbar-icon {
+  width: 44px;
+  height: 44px;
+  background: rgba(230, 178, 21, 0.12);
+  color: #e6b215;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+/* ─── Info Banner ─── */
+.ann-info-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 0;
+}
+
+.ann-info-banner__icon {
+  width: 36px;
+  height: 36px;
+  background: #e6b215;
+  color: #fff;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.ann-info-banner__title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #92400e;
+  margin: 0 0 0.25rem;
+}
+
+.ann-info-banner__body {
+  font-size: 0.75rem;
+  color: #78350f;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* ─── Filter Bar: 4-column override ─── */
+.ann-filter-bar {
+  grid-template-columns: 2fr 1fr 1fr 1fr !important;
+}
+
+/* ─── Table Panel ─── */
+.ann-table-panel {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.ann-table-header {
+  padding: 1rem 1.4rem;
+  border-bottom: 1px solid #ecf0f1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ann-table-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #093269;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ann-table-count {
+  font-size: 0.75rem;
+  color: #7f8c8d;
+  background: #f1f5f9;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+}
+
+.ann-table-wrapper {
+  overflow-x: auto;
+}
+
+.ann-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ann-table thead {
+  background: #f8f9fa;
+}
+
+.ann-table thead th {
+  padding: 0.7rem 1rem;
+  text-align: left;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #7f8c8d;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+
+.ann-table-row {
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.2s;
+}
+
+.ann-table-row:hover {
+  background: #fffdf4;
+}
+
+.ann-table tbody td {
+  padding: 1rem;
+  font-size: 0.82rem;
+}
+
+.ann-td-id {
+  font-family: monospace;
+  font-weight: 700;
+  color: #093269;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.ann-td-muted {
+  color: #4b5563;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.ann-td-subject {
+  max-width: 300px;
+}
+
+.ann-subject-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #1a1a2e;
+  font-size: 0.83rem;
+  line-height: 1.4;
+}
+
+/* ─── Priority icons inside table ─── */
+.ann-priority-icon {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  font-size: 0.85rem;
+}
+
+.ann-priority-icon--urgent {
+  color: #dc2626;
+}
+
+.ann-priority-icon--important {
+  color: #d97706;
+}
+
+.ann-priority-icon--normal {
+  color: #3b82f6;
+}
+
+/* ─── Priority Badges ─── */
+.ann-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.ann-badge--urgent {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.ann-badge--important {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.ann-badge--normal {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+/* ─── Audience Badges ─── */
+.ann-aud {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.ann-aud--all {
+  background: #f3e8ff;
+  color: #7c3aed;
+}
+
+.ann-aud--clients {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.ann-aud--guards {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+/* ─── Status Badges ─── */
+.ann-status {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.ann-status--active {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.ann-status--archived {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+/* ─── View Button ─── */
+.ann-view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #093269;
+  color: #fff;
+  border: none;
+  padding: 0.4rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+  white-space: nowrap;
+}
+
+.ann-view-btn:hover {
+  background: #0a4080;
+  transform: scale(1.03);
+}
+
+/* ─── Empty State ─── */
+.ann-table-empty {
+  text-align: center;
+  padding: 3rem 1rem !important;
+}
+
+.ann-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: #9ca3af;
+}
+
+.ann-empty-icon {
+  font-size: 2.5rem;
+  color: #d1d5db;
+}
+
+.ann-empty-state p {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #6b7280;
+  margin: 0;
+}
+
+.ann-empty-state span {
+  font-size: 0.78rem;
+  color: #9ca3af;
+}
+
+/* =============================================
+   ANNOUNCEMENT DETAIL MODAL
+   ============================================= */
+.ann-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: annFadeIn 0.25s ease;
+}
+
+.ann-modal-content {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  width: 100%;
+  max-width: 580px;
+  animation: annSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+}
+
+/* Modal Header variants */
+.ann-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.ann-modal-header--urgent {
+  background: linear-gradient(135deg, #991b1b 0%, #b91c1c 100%);
+  color: #fff;
+}
+
+.ann-modal-header--important {
+  background: linear-gradient(135deg, #92400e 0%, #b45309 100%);
+  color: #fff;
+}
+
+.ann-modal-header--normal {
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+  color: #fff;
+}
+
+.ann-modal-header-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.ann-modal-icon {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.ann-modal-id {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0 0 0.3rem;
+  font-family: monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.ann-modal-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.ann-modal-close {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: rgba(255, 255, 255, 0.9);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.ann-modal-close:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Modal Body */
+.ann-modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.ann-modal-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+}
+
+.ann-modal-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+}
+
+.ann-modal-meta-icon {
+  color: #6b7280;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.ann-modal-meta-label {
+  color: #9ca3af;
+  font-weight: 600;
+}
+
+.ann-modal-meta-value {
+  font-weight: 700;
+  color: #1a202c;
+}
+
+.ann-modal-meta-badge {
+  /* inherits ann-aud badge styles */
+}
+
+.ann-modal-badges {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.ann-modal-divider {
+  border: 0;
+  height: 1px;
+  background: #f0f0f0;
+  margin: 0 0 1.25rem;
+}
+
+.ann-modal-message-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ann-modal-message-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #093269;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.ann-modal-message {
+  font-size: 0.88rem;
+  color: #374151;
+  line-height: 1.75;
+  margin: 0;
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  border-left: 3px solid #e6b215;
+}
+
+/* Modal Footer */
+.ann-modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ann-modal-close-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  padding: 0.65rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.ann-modal-close-btn:hover {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+}
+
+/* ─── Animations ─── */
+@keyframes annFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes annSlideUp {
+  from { opacity: 0; transform: translateY(30px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 1280px) {
+  .ann-filter-bar {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .ann-filter-bar {
+    grid-template-columns: 1fr !important;
+  }
+
+  .ann-modal-meta {
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .ann-modal-header-left {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}
