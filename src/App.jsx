@@ -31,6 +31,7 @@ import CmsBillingPage from '@cms-pages/CmsBillingPage';
 import ServiceReviewsPage from '@cms-pages/ServiceReviewsPage';
 import SetPasswordPage from './pages/SetPasswordPage';
 import CmsProfilePage from '@cms-pages/CmsProfilePage';
+import CmsAnnouncementsPage from '@cms-pages/CmsAnnouncementsPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 
@@ -84,6 +85,7 @@ function App() {
           <Route path="/cms/billing" element={<CmsBillingPage />} />
           <Route path="/cms/reviews" element={<ServiceReviewsPage />} />
           <Route path="/cms/profile" element={<CmsProfilePage />} />
+          <Route path="/cms/announcements" element={<CmsAnnouncementsPage />} />
         </Route>
 
         {/* Default route → login */}
