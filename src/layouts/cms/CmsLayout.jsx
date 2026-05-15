@@ -13,6 +13,7 @@ import '@styles/cms/DeployedGuards.css';
 import '@styles/cms/ServiceRequests.css';
 import '@styles/cms/IncidentReports.css';
 import '@styles/cms/CmsBilling.css';
+import '@styles/cms/CmsAnnouncements.css';
 
 export default function CmsLayout() {
   const [showLogout, setShowLogout] = useState(false);
