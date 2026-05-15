@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom';
 import {
   FaTachometerAlt, FaUsers, FaHeadset, FaExclamationTriangle,
   FaCreditCard, FaStar, FaBuilding, FaSignOutAlt,
-  FaUserShield, FaFileInvoiceDollar, FaBars,
+  FaUserShield, FaFileInvoiceDollar, FaBars, FaBullhorn,
 } from 'react-icons/fa';
 import logo from '@assets/logo.png';
 
@@ -33,6 +33,7 @@ const navGroups = [
     labelIcon: FaBars,
     items: [
       { to: '/cms/incident-reports', icon: FaExclamationTriangle, label: 'Incidents' },
+      { to: '/cms/announcements',    icon: FaBullhorn,             label: 'Announcements' },
     ],
   },
   {
