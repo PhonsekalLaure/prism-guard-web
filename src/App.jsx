@@ -69,7 +69,7 @@ function App() {
           <Route path="/cash-advance" element={<HrisCashAdvancePage />} />
           <Route path="/payroll" element={<HrisPayrollPage />} />
           <Route path="/incidents" element={<HrisIncidentsPage />} />
-          <Route path="/announcements" element={<HrisAnnouncementsPage />} />
+          <Route path="/announcements" element={<ProtectedRoute requiredPermissions={['clients.read']}><HrisAnnouncementsPage /></ProtectedRoute>} />
         </Route>
 
         {/* CMS routes — client only */}
