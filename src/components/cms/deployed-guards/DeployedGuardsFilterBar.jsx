@@ -58,9 +58,9 @@ export default function DeployedGuardsFilterBar({ onFilterChange }) {
         <select value={status} onChange={handleStatus} className="filter-select">
           <option value="all">All Statuses</option>
           <option value="active">Active</option>
-          <option value="on-leave">On Leave</option>
-          <option value="suspended">Suspended</option>
-          <option value="replaced">Temporarily Replaced</option>
+          <option value="inactive">Inactive</option>
+          <option value="terminated">Terminated</option>
+          <option value="archived">Archived</option>
         </select>
       </div>
     </div>

@@ -1,0 +1,292 @@
+@import '../service-requests/ServiceRequestsShared.css';
+
+/* =============================================
+   HRIS SERVICE REQUESTS – SPECIFIC OVERRIDES
+   ============================================= */
+
+/* ── Filter bar ─────────────────────────────── */
+.sr-filter-bar {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 0.75rem;
+  align-items: end;
+  padding: 1rem 1.25rem;
+}
+
+.sr-filter-select {
+  min-width: 0;
+  padding: 0.55rem 0.6rem;
+  font-size: 0.82rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.sr-filter-select:focus,
+.sr-reply-textarea:focus {
+  border-color: #e6b215;
+  box-shadow: 0 0 0 3px rgba(230, 178, 21, 0.12);
+}
+
+/* ── Inputs on the detail page ─────────────── */
+.sr-input:focus {
+  border-color: #e6b215;
+  box-shadow: 0 0 0 3px rgba(230, 178, 21, 0.12);
+}
+
+/* ── Modal sizing ───────────────────────────── */
+.sr-modal-content {
+  max-width: 780px;
+}
+
+/* ── Detail page card ───────────────────────── */
+.sr-detail-page-card {
+  max-width: 820px;
+  margin: 0 auto;
+}
+
+/* ── Modal body ─────────────────────────────── */
+.sr-modal-body {
+  padding: 1.5rem 2rem;
+  flex: 1;
+}
+
+/* ── Badges ─────────────────────────────────── */
+.sr-modal-badges {
+  align-items: flex-start;
+}
+
+/* ── Detail cells ───────────────────────────── */
+.sr-detail-cell {
+  padding: 0.85rem 1rem;
+}
+
+.sr-detail-value {
+  font-size: 0.85rem;
+}
+
+.sr-description-text {
+  font-size: 0.83rem;
+}
+
+/* ── Thread messages ────────────────────────── */
+.sr-thread-msg {
+  padding: 1rem 1.25rem;
+}
+
+.sr-thread-msg-header {
+  margin-bottom: 0.6rem;
+}
+
+.sr-thread-msg-name {
+  font-size: 0.83rem;
+}
+
+/* ── Reply box ──────────────────────────────── */
+.sr-reply-box {
+  padding: 1rem 1.25rem;
+  margin-top: 0.75rem;
+}
+
+.sr-reply-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.sr-reply-actions {
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.sr-reply-actions .sr-modal-btn {
+  flex: none;
+  padding: 0.6rem 1.5rem;
+}
+
+/* ── Attach button ──────────────────────────── */
+.sr-attach-btn {
+  background: none;
+  border: none;
+  font-size: 0.8rem;
+  color: #9ca3af;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: color 0.2s;
+  font-family: 'Poppins', sans-serif;
+}
+
+.sr-attach-btn:hover {
+  color: #093269;
+}
+
+/* ── Send button ────────────────────────────── */
+.sr-send-btn {
+  background: #093269;
+  color: #fff;
+  font-size: 0.82rem;
+  padding: 0.55rem 1.2rem;
+  border-radius: 8px;
+  border: none;
+  box-shadow: 0 4px 12px rgba(9, 50, 105, 0.2);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.sr-send-btn:hover {
+  background: #0a4080;
+  box-shadow: 0 6px 16px rgba(9, 50, 105, 0.3);
+}
+
+/* ── Action buttons with premium shadows ────── */
+.sr-modal-btn.green {
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);
+}
+
+.sr-modal-btn.green:hover {
+  box-shadow: 0 6px 18px rgba(22, 163, 74, 0.35);
+}
+
+.sr-modal-btn.blue {
+  box-shadow: 0 4px 12px rgba(9, 50, 105, 0.2);
+}
+
+.sr-modal-btn.blue:hover {
+  box-shadow: 0 6px 18px rgba(9, 50, 105, 0.3);
+}
+
+.sr-modal-btn.yellow {
+  box-shadow: 0 4px 12px rgba(230, 178, 21, 0.25);
+}
+
+.sr-modal-btn.yellow:hover {
+  box-shadow: 0 6px 18px rgba(230, 178, 21, 0.35);
+}
+
+.sr-modal-btn.red {
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.sr-modal-btn.red:hover {
+  box-shadow: 0 4px 12px rgba(185, 28, 28, 0.15);
+}
+
+/* ── Resolve panel ──────────────────────────── */
+.sr-resolve-panel {
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+  border: 1px solid #86efac;
+  border-radius: 12px;
+  padding: 1.1rem 1.25rem;
+  animation: srFadeInUp 0.3s ease both;
+}
+
+.sr-resolve-panel-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.85rem;
+  align-items: flex-start;
+}
+
+.sr-resolve-panel-title {
+  color: #15803d;
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin: 0 0 0.2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.sr-resolve-panel-subtitle {
+  color: #166534;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.sr-resolve-panel-close {
+  align-items: center;
+  background: rgba(21, 128, 61, 0.1);
+  border: none;
+  border-radius: 6px;
+  color: #15803d;
+  cursor: pointer;
+  display: flex;
+  height: 30px;
+  justify-content: center;
+  padding: 0;
+  width: 30px;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.sr-resolve-panel-close:hover {
+  background: rgba(21, 128, 61, 0.2);
+}
+
+.sr-resolve-panel-close:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.sr-resolve-panel-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 0.85rem;
+}
+
+.sr-resolve-panel-actions .sr-modal-btn {
+  flex: 0 1 170px;
+}
+
+/* ── Error banner (HRIS accent) ─────────────── */
+.sr-error-banner {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-left: 4px solid #ef4444;
+}
+
+/* ── Back button ────────────────────────────── */
+.ep-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  color: #093269;
+  font-size: 0.88rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.ep-back-btn:hover {
+  background: rgba(9, 50, 105, 0.07);
+  color: #0a4080;
+}
+
+/* ── Client box accent ──────────────────────── */
+.sr-client-box {
+  background: linear-gradient(135deg, #eff6ff, #f0f9ff);
+  border: 1px solid #bfdbfe;
+  animation: srFadeInUp 0.4s ease both;
+}
+
+/* ── Section headers in detail page ─────────── */
+.sr-timeline-title,
+.sr-thread-title {
+  font-size: 0.88rem;
+  color: #093269;
+  border-bottom: 2px solid rgba(9, 50, 105, 0.08);
+  padding-bottom: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  .sr-filter-bar { grid-template-columns: repeat(2, 1fr); }
+  .sr-detail-page-card { max-width: 100%; }
+  .sr-modal-body { padding: 1.25rem 1rem; }
+}

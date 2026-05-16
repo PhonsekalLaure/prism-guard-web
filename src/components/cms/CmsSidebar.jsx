@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom';
 import {
   FaTachometerAlt, FaUsers, FaHeadset, FaExclamationTriangle,
   FaCreditCard, FaStar, FaBuilding, FaSignOutAlt,
-  FaUserShield, FaFileInvoiceDollar, FaBars,
+  FaUserShield, FaFileInvoiceDollar, FaBars, FaBullhorn,
 } from 'react-icons/fa';
 import logo from '@assets/logo.png';
 
@@ -33,6 +33,7 @@ const navGroups = [
     labelIcon: FaBars,
     items: [
       { to: '/cms/incident-reports', icon: FaExclamationTriangle, label: 'Incidents' },
+      { to: '/cms/announcements',    icon: FaBullhorn,             label: 'Announcements' },
     ],
   },
   {
@@ -48,7 +49,36 @@ const bottomItems = [
   { to: '/cms/reviews', icon: FaStar, label: 'Service Reviews' },
 ];
 
-export default function CmsSidebar({ onLogoutClick }) {
+function SidebarAvatar({ profile }) {
+  if (profile?.avatar_url) {
+    return (
+      <img
+        src={profile.avatar_url}
+        alt={profile.first_name}
+        className="cms-sidebar-avatar cms-sidebar-avatar--img"
+      />
+    );
+  }
+
+  // Show first letter of the company name, or first letter of the user's name as fallback
+  const initial = profile?.company
+    ? profile.company.charAt(0).toUpperCase()
+    : profile?.first_name?.charAt(0).toUpperCase() || <FaBuilding />;
+
+  return (
+    <div className="cms-sidebar-avatar">
+      {initial}
+    </div>
+  );
+}
+
+export default function CmsSidebar({ profile, onLogoutClick }) {
+  const displayName = profile
+    ? `${profile.first_name ?? ''} ${profile.last_name ?? ''}`.trim()
+    : '—';
+
+  const displayCompany = profile?.company || '—';
+
   return (
     <aside className="cms-sidebar">
 
@@ -112,12 +142,10 @@ export default function CmsSidebar({ onLogoutClick }) {
       {/* ── User Footer ── */}
       <div className="cms-sidebar-footer">
         <NavLink to="/cms/profile" className="cms-sidebar-user">
-          <div className="cms-sidebar-avatar">
-            <FaBuilding />
-          </div>
+          <SidebarAvatar profile={profile} />
           <div className="cms-sidebar-user-info">
-            <p className="cms-sidebar-user-name">John Juan</p>
-            <p className="cms-sidebar-user-role">President</p>
+            <p className="cms-sidebar-user-name">{displayName}</p>
+            <p className="cms-sidebar-user-role">{displayCompany}</p>
           </div>
         </NavLink>
 
