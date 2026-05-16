@@ -1,42 +1,48 @@
-const stats = [
-  {
-    label: 'Total',
-    value: '24',
-    sub: 'All announcements',
-    valueColor: '#093269',
-    borderColor: '#093269',
-    delay: '0s',
-  },
-  {
-    label: 'Active',
-    value: '6',
-    sub: 'Currently visible',
-    valueColor: '#16a34a',
-    borderColor: '#22c55e',
-    delay: '0.05s',
-  },
-  {
-    label: 'Sent to Clients',
-    value: '10',
-    sub: 'Client-facing',
-    valueColor: '#2563eb',
-    borderColor: '#3b82f6',
-    delay: '0.1s',
-  },
-  {
-    label: 'Sent to Guards',
-    value: '14',
-    sub: 'Guard-facing',
-    valueColor: '#e6b215',
-    borderColor: '#e6b215',
-    delay: '0.15s',
-  },
-];
+function buildStats(stats) {
+  const safeStats = stats || {};
 
-export default function HrisAnnouncementsStatCards() {
+  return [
+    {
+      label: 'Total',
+      value: safeStats.total ?? 0,
+      sub: 'All announcements',
+      valueColor: '#093269',
+      borderColor: '#093269',
+      delay: '0s',
+    },
+    {
+      label: 'Active',
+      value: safeStats.active ?? 0,
+      sub: 'Currently visible',
+      valueColor: '#16a34a',
+      borderColor: '#22c55e',
+      delay: '0.05s',
+    },
+    {
+      label: 'Sent to Clients',
+      value: safeStats.clients ?? 0,
+      sub: 'Client-facing',
+      valueColor: '#2563eb',
+      borderColor: '#3b82f6',
+      delay: '0.1s',
+    },
+    {
+      label: 'Sent to Guards',
+      value: safeStats.employees ?? 0,
+      sub: 'Guard-facing',
+      valueColor: '#e6b215',
+      borderColor: '#e6b215',
+      delay: '0.15s',
+    },
+  ];
+}
+
+export default function HrisAnnouncementsStatCards({ stats }) {
+  const cards = buildStats(stats);
+
   return (
     <div className="an-stat-grid">
-      {stats.map((s, i) => (
+      {cards.map((s, i) => (
         <div
           key={i}
           className="an-stat-card"
