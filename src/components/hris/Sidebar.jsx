@@ -39,7 +39,7 @@ const navGroups = [
     label: 'Operations',
     items: [
       { to: '/incidents', icon: FaExclamationTriangle, label: 'Incidents' },
-      { to: '/announcements', icon: FaBullhorn, label: 'Announcements' },
+      { to: '/announcements', icon: FaBullhorn, label: 'Announcements', permissions: ['clients.read'] },
     ],
   },
 ];
