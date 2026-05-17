@@ -12,7 +12,7 @@ import {
 const ITEMS_PER_PAGE = 10;
 
 function PriorityIcon({ priority }) {
-  if (priority === 'Urgent') return <FaExclamationCircle className="ann-priority-icon ann-priority-icon--urgent" />;
+  if (priority === 'Urgent')    return <FaExclamationCircle className="ann-priority-icon ann-priority-icon--urgent" />;
   if (priority === 'Important') return <FaExclamationTriangle className="ann-priority-icon ann-priority-icon--important" />;
   return <FaInfoCircle className="ann-priority-icon ann-priority-icon--normal" />;
 }
@@ -29,28 +29,36 @@ function buildPageNumbers(page, totalPages) {
   }
 
   const pages = new Set([1, totalPages, page, page - 1, page + 1]);
-  if (page <= 3) {
-    pages.add(2);
-    pages.add(3);
-    pages.add(4);
-  }
-  if (page >= totalPages - 2) {
-    pages.add(totalPages - 1);
-    pages.add(totalPages - 2);
-    pages.add(totalPages - 3);
-  }
+  if (page <= 3) { pages.add(2); pages.add(3); pages.add(4); }
+  if (page >= totalPages - 2) { pages.add(totalPages - 1); pages.add(totalPages - 2); pages.add(totalPages - 3); }
 
-  const sorted = [...pages]
-    .filter((item) => item >= 1 && item <= totalPages)
-    .sort((a, b) => a - b);
-
+  const sorted = [...pages].filter((item) => item >= 1 && item <= totalPages).sort((a, b) => a - b);
   return sorted.reduce((result, item, index) => {
-    if (index > 0 && item - sorted[index - 1] > 1) {
-      result.push(`gap-${sorted[index - 1]}-${item}`);
-    }
+    if (index > 0 && item - sorted[index - 1] > 1) result.push(`gap-${sorted[index - 1]}-${item}`);
     result.push(item);
     return result;
   }, []);
+}
+
+function SkeletonRow() {
+  return (
+    <tr className="ann-skel-row">
+      <td><span className="ann-skel ann-skel-text" /></td>
+      <td><span className="ann-skel ann-skel-id" /></td>
+      <td>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+          <span className="ann-skel ann-skel-icon-sm" style={{ marginTop: 2 }} />
+          <div>
+            <span className="ann-skel ann-skel-text-lg" />
+            <span className="ann-skel ann-skel-text-sm" style={{ marginTop: 4 }} />
+          </div>
+        </div>
+      </td>
+      <td><span className="ann-skel ann-skel-badge" /></td>
+      <td><span className="ann-skel ann-skel-badge" /></td>
+      <td><span className="ann-skel ann-skel-btn" /></td>
+    </tr>
+  );
 }
 
 export default function AnnouncementsTable({
@@ -93,27 +101,20 @@ export default function AnnouncementsTable({
             </tr>
           </thead>
           <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={6} className="ann-table-empty">
-                  <div className="ann-empty-state">
-                    <FaBullhorn className="ann-empty-icon" />
-                    <p>Loading announcements...</p>
-                  </div>
-                </td>
-              </tr>
-            ) : paginated.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="ann-table-empty">
-                  <div className="ann-empty-state">
-                    <FaBullhorn className="ann-empty-icon" />
-                    <p>No announcements found</p>
-                    <span>Try adjusting your search or filters</span>
-                  </div>
-                </td>
-              </tr>
-            ) : (
-              paginated.map((ann) => (
+            {loading
+              ? Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={`skel-${i}`} />)
+              : paginated.length === 0
+              ? (
+                <tr>
+                  <td colSpan={6} className="ann-table-empty">
+                    <div className="ann-empty-state">
+                      <FaBullhorn className="ann-empty-icon" />
+                      <p>No announcements found</p>
+                      <span>Try adjusting your search or filters</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : paginated.map((ann) => (
                 <tr key={ann.id} className="ann-table-row">
                   <td className="ann-td-muted">{ann.date}</td>
                   <td className="ann-td-id">{ann.id}</td>
@@ -126,57 +127,49 @@ export default function AnnouncementsTable({
                       </div>
                     </div>
                   </td>
+                  <td><span className={ann.priorityClass}>{ann.priority}</span></td>
+                  <td><span className={ann.audienceClass}>{ann.audience}</span></td>
                   <td>
-                    <span className={ann.priorityClass}>{ann.priority}</span>
-                  </td>
-                  <td>
-                    <span className={ann.audienceClass}>{ann.audience}</span>
-                  </td>
-                  <td>
-                    <button
-                      className="ann-view-btn"
-                      onClick={() => onViewDetail?.(ann)}
-                    >
-                      <FaEye />
-                      View
+                    <button className="ann-view-btn" onClick={() => onViewDetail?.(ann)}>
+                      <FaEye /> View
                     </button>
                   </td>
                 </tr>
               ))
-            )}
+            }
           </tbody>
         </table>
       </div>
 
       {!loading && total > 0 && (
-        <div className="ir-pagination">
-          <span className="ir-pagination-info">
-            Showing {Math.min((page - 1) * limit + 1, total)}-
+        <div className="ann-pagination">
+          <span className="ann-pagination-info">
+            Showing {Math.min((page - 1) * limit + 1, total)}–
             {Math.min(page * limit, total)} of {total} announcement{total !== 1 ? 's' : ''}
           </span>
-          <div className="ir-page-btns">
+          <div className="ann-pagination-btns">
             <button
-              className="page-btn"
+              className="ann-page-btn"
               onClick={() => handlePageChange(page - 1)}
               disabled={page === 1}
             >
               <FaChevronLeft />
             </button>
-            {pageNumbers.map((p) => (
+            {pageNumbers.map((p) =>
               typeof p === 'number' ? (
                 <button
                   key={p}
-                  className={`page-btn${p === page ? ' active' : ''}`}
+                  className={`ann-page-btn${p === page ? ' active' : ''}`}
                   onClick={() => handlePageChange(p)}
                 >
                   {p}
                 </button>
               ) : (
-                <span key={p} className="ann-page-gap">...</span>
+                <span key={p} className="ann-page-gap">…</span>
               )
-            ))}
+            )}
             <button
-              className="page-btn"
+              className="ann-page-btn"
               onClick={() => handlePageChange(page + 1)}
               disabled={page === totalPages}
             >
