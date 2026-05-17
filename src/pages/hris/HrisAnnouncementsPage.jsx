@@ -62,7 +62,7 @@ function formatRow(item) {
 
 export default function HrisAnnouncementsPage() {
   const profile = authService.getProfile() || {};
-  const canWriteAnnouncements = hasPermission(profile, 'announcements.write') || hasPermission(profile, 'clients.write');
+  const canWriteAnnouncements = hasPermission(profile, 'announcements.write');
   const latestRequestId = useRef(0);
   const [rows, setRows] = useState([]);
   const [stats, setStats] = useState(null);

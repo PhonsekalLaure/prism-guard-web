@@ -67,10 +67,10 @@ function ViewModal({ item, onClose }) {
       className="an-modal-overlay"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="an-modal">
+      <div className="an-modal" role="dialog" aria-modal="true" aria-labelledby="hris-announcement-details-title">
         <div className="an-modal-header">
           <div>
-            <h2>Announcement Details</h2>
+            <h2 id="hris-announcement-details-title">Announcement Details</h2>
             <p>{item.id}</p>
           </div>
           <button className="an-modal-close" onClick={onClose}><FaTimes /></button>
@@ -120,12 +120,13 @@ function ViewModal({ item, onClose }) {
 }
 
 function EditModal({ item, saving, canWrite, onClose, onSave }) {
+  const initialExpiresAt = toDatetimeLocalValue(item?.expiresAt);
   const [form, setForm] = useState(() => ({
     title: item?.subject || '',
     message: item?.message || '',
     targetAudience: item?.targetAudience || 'both',
     priority: item?.priorityValue || 'normal',
-    expiresAt: toDatetimeLocalValue(item?.expiresAt),
+    expiresAt: initialExpiresAt,
   }));
   const [error, setError] = useState('');
 
@@ -143,18 +144,26 @@ function EditModal({ item, saving, canWrite, onClose, onSave }) {
       return;
     }
 
+    const expirationChanged = form.expiresAt !== initialExpiresAt;
     const normalizedExpiresAt = toIsoOrNull(form.expiresAt);
-    if (form.expiresAt && (!normalizedExpiresAt || new Date(normalizedExpiresAt) <= new Date())) {
+    if (expirationChanged && form.expiresAt && (!normalizedExpiresAt || new Date(normalizedExpiresAt) <= new Date())) {
       setError('Expiration must be a future date and time.');
       return;
     }
 
-    await onSave(item.id, {
+    const payload = {
       ...form,
       title: form.title.trim(),
       message: form.message.trim(),
-      expiresAt: normalizedExpiresAt,
-    });
+    };
+
+    if (expirationChanged) {
+      payload.expiresAt = normalizedExpiresAt;
+    } else {
+      delete payload.expiresAt;
+    }
+
+    await onSave(item.id, payload);
   };
 
   return (
@@ -162,10 +171,10 @@ function EditModal({ item, saving, canWrite, onClose, onSave }) {
       className="an-modal-overlay"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <form className="an-modal an-edit-modal" onSubmit={handleSubmit}>
+      <form className="an-modal an-edit-modal" role="dialog" aria-modal="true" aria-labelledby="hris-announcement-edit-title" onSubmit={handleSubmit}>
         <div className="an-modal-header">
           <div>
-            <h2>Edit Announcement</h2>
+            <h2 id="hris-announcement-edit-title">Edit Announcement</h2>
             <p>{item.id}</p>
           </div>
           <button type="button" className="an-modal-close" onClick={onClose}><FaTimes /></button>
@@ -261,12 +270,12 @@ function ConfirmModal({ action, saving, onCancel, onConfirm }) {
       className="an-modal-overlay"
       onClick={(e) => e.target === e.currentTarget && !saving && onCancel()}
     >
-      <div className="an-confirm-modal">
+      <div className="an-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="hris-announcement-confirm-title">
         <div className={`an-confirm-icon ${isDelete ? 'danger' : ''}`}>
           <FaExclamationTriangle />
         </div>
         <div>
-          <h2>{isDelete ? 'Delete announcement?' : 'Archive announcement?'}</h2>
+          <h2 id="hris-announcement-confirm-title">{isDelete ? 'Delete announcement?' : 'Archive announcement?'}</h2>
           <p>
             {isDelete
               ? 'This permanently removes the announcement from history.'

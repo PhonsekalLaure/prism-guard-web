@@ -513,37 +513,37 @@
 .an-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(3px);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 1rem;
   z-index: 1000;
-  animation: anFadeIn 0.2s ease;
+  animation: anFadeIn 0.25s ease;
 }
 
 .an-modal {
   background: #fff;
-  border-radius: 16px;
+  border-radius: 12px;
   width: 100%;
   max-width: 560px;
   max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-  animation: anSlideUp 0.25s ease;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  animation: anSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
 }
 
 .an-modal-header {
   background: linear-gradient(90deg, #093269 0%, #0a4080 100%);
-  padding: 1.5rem;
+  padding: 1.25rem 1.5rem;
   color: #fff;
-  border-radius: 16px 16px 0 0;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  gap: 1rem;
 }
 
 .an-modal-header h2 {
@@ -577,6 +577,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.15rem;
+  overflow-y: auto;
 }
 
 .an-modal-badges {
@@ -591,9 +592,9 @@
 }
 
 .an-modal-cell {
-  background: #f9fafb;
+  background: #f8f9fa;
   border: 1px solid #e5e7eb;
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 0.85rem 1rem;
 }
 
@@ -621,9 +622,10 @@
 }
 
 .an-modal-message {
-  background: #f9fafb;
+  background: #f8f9fa;
   border: 1px solid #e5e7eb;
-  border-radius: 10px;
+  border-left: 3px solid #e6b215;
+  border-radius: 8px;
   padding: 1rem 1.15rem;
 }
 
@@ -662,9 +664,9 @@
 .an-back-btn {
   width: 100%;
   padding: 0.7rem;
-  background: #e5e7eb;
-  color: #374151;
-  border: none;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
   font-size: 0.85rem;
   font-weight: 600;
@@ -677,12 +679,12 @@
   font-family: 'Poppins', sans-serif;
 }
 
-.an-back-btn:hover { background: #d1d5db; }
+.an-back-btn:hover { background: #e2e8f0; }
 
 .an-save-btn {
   width: 100%;
   padding: 0.7rem;
-  background: #093269;
+  background: #e6b215;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -697,7 +699,7 @@
   font-family: 'Poppins', sans-serif;
 }
 
-.an-save-btn:hover:not(:disabled) { background: #0a4080; }
+.an-save-btn:hover:not(:disabled) { background: #d4a012; }
 
 .an-save-btn:disabled,
 .an-back-btn:disabled {
@@ -707,11 +709,11 @@
 
 .an-confirm-modal {
   background: #fff;
-  border-radius: 14px;
+  border-radius: 12px;
   width: min(420px, calc(100vw - 2rem));
   padding: 1.5rem;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
-  animation: anSlideUp 0.25s ease;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  animation: anSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .an-confirm-icon {
@@ -761,7 +763,7 @@
 .an-confirm-btn {
   width: 100%;
   padding: 0.7rem;
-  background: #093269;
+  background: #e6b215;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -772,7 +774,7 @@
 }
 
 .an-confirm-btn:hover:not(:disabled) {
-  background: #0a4080;
+  background: #d4a012;
 }
 
 .an-confirm-btn.danger {

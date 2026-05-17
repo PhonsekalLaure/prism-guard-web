@@ -1,3 +1,4 @@
+import { createElement } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   FaTachometerAlt, FaBuilding, FaFileInvoiceDollar, FaHeadset, FaStar,
@@ -39,14 +40,14 @@ const navGroups = [
     label: 'Operations',
     items: [
       { to: '/incidents', icon: FaExclamationTriangle, label: 'Incidents' },
-      { to: '/announcements', icon: FaBullhorn, label: 'Announcements', permissions: ['clients.read'] },
+      { to: '/announcements', icon: FaBullhorn, label: 'Announcements', permissions: ['announcements.read'] },
     ],
   },
 ];
 
 // ─── Header Navigation Support ─────────────────────────────────
 
-export default function Sidebar({ onLogoutClick, isOpen, onClose }) {
+export default function Sidebar({ onLogoutClick, isOpen }) {
   const profile = authService.getProfile() || {};
   const fullName = profile.first_name ? `${profile.first_name} ${profile.last_name}` : 'John Juan';
   const roleLabel = profile.role === 'admin'
@@ -72,14 +73,14 @@ export default function Sidebar({ onLogoutClick, isOpen, onClose }) {
             {group.label && <div className="nav-group-header">{group.label}</div>}
             {group.items
               .filter(({ permissions }) => !permissions || hasAllPermissions(profile, permissions))
-              .map(({ to, icon: Icon, label }) => (
+              .map((item) => (
               <NavLink
-                key={to}
-                to={to}
+                key={item.to}
+                to={item.to}
                 className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
               >
-                <Icon />
-                <span>{label}</span>
+                {createElement(item.icon)}
+                <span>{item.label}</span>
               </NavLink>
             ))}
           </div>
