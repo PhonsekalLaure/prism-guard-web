@@ -1,0 +1,101 @@
+/* =============================================
+   NOTIFICATION TOAST — Shared component styles
+   ============================================= */
+
+.notif {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 9999;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  min-width: 280px;
+  max-width: 420px;
+  padding: 0.9rem 1rem;
+  background: #ffffff;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.10), 0 2px 8px rgba(0, 0, 0, 0.06);
+  font-family: 'Poppins', sans-serif;
+}
+
+/* ── Slide animations ── */
+.notif.notif-enter {
+  animation: notif-in 0.3s ease forwards;
+}
+
+.notif.notif-exit {
+  animation: notif-out 0.3s ease forwards;
+}
+
+@keyframes notif-in {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes notif-out {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(24px); }
+}
+
+/* ── Type variants ── */
+.notif-success {
+  border-color: rgba(22, 163, 74, 0.25);
+  border-left: 4px solid #16a34a;
+}
+.notif-success .notif-icon { color: #16a34a; }
+.notif-success .notif-message { color: #14532d; }
+
+.notif-error {
+  border-color: rgba(220, 38, 38, 0.25);
+  border-left: 4px solid #dc2626;
+}
+.notif-error .notif-icon { color: #dc2626; }
+.notif-error .notif-message { color: #7f1d1d; }
+
+.notif-warning {
+  border-color: rgba(217, 119, 6, 0.25);
+  border-left: 4px solid #d97706;
+}
+.notif-warning .notif-icon { color: #d97706; }
+.notif-warning .notif-message { color: #78350f; }
+
+.notif-info {
+  border-color: rgba(37, 99, 235, 0.25);
+  border-left: 4px solid #2563eb;
+}
+.notif-info .notif-icon { color: #2563eb; }
+.notif-info .notif-message { color: #1e3a8a; }
+
+/* ── Inner elements ── */
+.notif-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  margin-top: 0.05rem;
+}
+
+.notif-message {
+  flex: 1;
+  font-size: 0.84rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.notif-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #94a3b8;
+  padding: 0.1rem;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  transition: color 0.2s;
+}
+
+.notif-success .notif-close:hover { color: #16a34a; }
+.notif-error   .notif-close:hover { color: #dc2626; }
+.notif-warning .notif-close:hover { color: #d97706; }
+.notif-info    .notif-close:hover { color: #2563eb; }

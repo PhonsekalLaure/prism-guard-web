@@ -1,3 +1,4 @@
+import { createElement } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   FaTachometerAlt, FaBuilding, FaFileInvoiceDollar, FaHeadset, FaStar,
@@ -6,6 +7,7 @@ import {
 } from 'react-icons/fa';
 import logo from '@assets/logo.png';
 import authService from '@services/authService';
+import { getAdminRoleLabel, hasAllPermissions } from '@utils/adminPermissions';
 
 const navGroups = [
   {
@@ -17,7 +19,7 @@ const navGroups = [
   {
     label: 'Client Management',
     items: [
-      { to: '/clients', icon: FaBuilding, label: 'Clients' },
+      { to: '/clients', icon: FaBuilding, label: 'Clients', permissions: ['clients.read'] },
       { to: '/billing', icon: FaFileInvoiceDollar, label: 'Billing & Payments' },
       { to: '/service-request', icon: FaHeadset, label: 'Service Request' },
       { to: '/service-reviews', icon: FaStar, label: 'Service Reviews' },
@@ -26,7 +28,7 @@ const navGroups = [
   {
     label: 'Workforce',
     items: [
-      { to: '/employees', icon: FaUsers, label: 'Employees' },
+      { to: '/employees', icon: FaUsers, label: 'Employees', permissions: ['employees.read'] },
       { to: '/attendance', icon: FaFingerprint, label: 'Attendance' },
       { to: '/leaves', icon: FaCalendarAlt, label: 'Leave Requests' },
       { to: '/cash-advance', icon: FaHandHoldingUsd, label: 'Cash Advance' },
@@ -38,17 +40,19 @@ const navGroups = [
     label: 'Operations',
     items: [
       { to: '/incidents', icon: FaExclamationTriangle, label: 'Incidents' },
-      { to: '/announcements', icon: FaBullhorn, label: 'Announcements' },
+      { to: '/announcements', icon: FaBullhorn, label: 'Announcements', permissions: ['announcements.read'] },
     ],
   },
 ];
 
 // ─── Header Navigation Support ─────────────────────────────────
 
-export default function Sidebar({ onLogoutClick, isOpen, onClose }) {
+export default function Sidebar({ onLogoutClick, isOpen }) {
   const profile = authService.getProfile() || {};
   const fullName = profile.first_name ? `${profile.first_name} ${profile.last_name}` : 'John Juan';
-  const position = profile.position || profile.role || 'President';
+  const roleLabel = profile.role === 'admin'
+    ? getAdminRoleLabel(profile.admin_role, profile.role || 'Administrator')
+    : (profile.position || profile.role || 'Client');
 
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
@@ -67,14 +71,16 @@ export default function Sidebar({ onLogoutClick, isOpen, onClose }) {
           <div key={group.label || 'main'}>
             {gi > 0 && <div className="nav-divider" />}
             {group.label && <div className="nav-group-header">{group.label}</div>}
-            {group.items.map(({ to, icon: Icon, label }) => (
+            {group.items
+              .filter(({ permissions }) => !permissions || hasAllPermissions(profile, permissions))
+              .map((item) => (
               <NavLink
-                key={to}
-                to={to}
+                key={item.to}
+                to={item.to}
                 className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
               >
-                <Icon />
-                <span>{label}</span>
+                {createElement(item.icon)}
+                <span>{item.label}</span>
               </NavLink>
             ))}
           </div>
@@ -84,10 +90,12 @@ export default function Sidebar({ onLogoutClick, isOpen, onClose }) {
       {/* Footer */}
       <div className="sidebar-footer">
         <div className="nav-divider" />
-        <NavLink to="/admin-management" className="nav-item">
-          <FaUserShield />
-          <span>Admin Management</span>
-        </NavLink>
+        {hasAllPermissions(profile, ['admins.manage']) && (
+          <NavLink to="/admin-management" className="nav-item">
+            <FaUserShield />
+            <span>Admin Management</span>
+          </NavLink>
+        )}
 
         {/* User profile */}
         <div className="sidebar-user">
@@ -97,7 +105,7 @@ export default function Sidebar({ onLogoutClick, isOpen, onClose }) {
           </div>
           <div className="user-info">
             <span className="user-name">{fullName}</span>
-            <span className="user-role">{position}</span>
+            <span className="user-role">{roleLabel}</span>
           </div>
           </NavLink>
         </div>

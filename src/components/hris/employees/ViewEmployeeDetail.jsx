@@ -1,0 +1,538 @@
+import { useState, useEffect } from 'react';
+import {
+  FaTimes, FaUser, FaBriefcase, FaShieldAlt, FaMoneyCheckAlt,
+  FaFileContract, FaMapMarkerAlt, FaUserMinus,
+} from 'react-icons/fa';
+import employeeService from '@services/hris/employeeService';
+import clientService from '@services/hris/clientService';
+import authService from '@services/authService';
+import Notification from '@components/ui/Notification';
+import useNotification from '@hooks/useNotification';
+import { hasPermission } from '@utils/adminPermissions';
+
+// Tab fragments
+import PersonalTab    from './tabs/PersonalTab';
+import EmploymentTab  from './tabs/EmploymentTab';
+import ComplianceTab  from './tabs/ComplianceTab';
+import PayrollTab     from './tabs/PayrollTab';
+
+// Dialogs
+import DeployEmployeeDialog    from './DeployEmployeeDialog';
+import RelieveEmployeeDialog   from './RelieveEmployeeDialog';
+import DeactivateEmployeeDialog from './DeactivateEmployeeDialog';
+import RenewEmployeeContractDialog from './RenewEmployeeContractDialog';
+
+const TABS = [
+  { key: 'personal',   label: 'Personal Info', icon: FaUser },
+  { key: 'employment', label: 'Employment',     icon: FaBriefcase },
+  { key: 'compliance', label: 'Compliance',     icon: FaShieldAlt },
+  { key: 'payroll',    label: 'Payroll',        icon: FaMoneyCheckAlt },
+];
+
+const buildForm = (emp) => ({
+  date_of_birth:                    emp.date_of_birth                    || '',
+  gender:                           emp.gender                           || '',
+  civil_status:                     emp.civil_status                     || '',
+  height_cm:                        emp.height_cm                        || '',
+  educational_level:                emp.educational_level                || '',
+  blood_type:                       emp.blood_type                       || '',
+  place_of_birth:                   emp.place_of_birth                   || '',
+  phone_number:                     (emp.phone_number                    || '').replace(/^\+63/, ''),
+  contact_email:                    emp.contact_email                    || '',
+  residential_address:              emp.residential_address              || '',
+  provincial_address:               emp.provincial_address               || '',
+  latitude:                         emp.latitude                         || null,
+  longitude:                        emp.longitude                        || null,
+  citizenship:                      emp.citizenship                      || 'Filipino',
+  emergency_contact_name:           emp.emergency_contact_name           || '',
+  emergency_contact_number:         (emp.emergency_contact_number        || '').replace(/^\+63/, ''),
+  emergency_contact_relationship:   emp.emergency_contact_relationship   || '',
+  position:                         emp.position                         || '',
+  employment_type:                  emp.employment_type                  || '',
+  badge_number:                     emp.badge_number                     || '',
+  license_number:                   emp.license_number                   || '',
+  license_expiry_date:              emp.license_expiry_date              || '',
+});
+
+function isEarlierDate(startDate, endDate) {
+  return Boolean(startDate && endDate && new Date(endDate) < new Date(startDate));
+}
+
+function isPastDate(dateValue) {
+  if (!dateValue) return false;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const parsedDate = new Date(dateValue);
+  parsedDate.setHours(0, 0, 0, 0);
+
+  return parsedDate < today;
+}
+
+function isAfterDate(dateValue, maxDateValue) {
+  return Boolean(dateValue && maxDateValue && String(dateValue) > String(maxDateValue));
+}
+
+export default function ViewEmployeeDetail({
+  isOpen, employee: previewEmployee, onClose, onUpdated, pageMode = false,
+}) {
+  const profile = authService.getProfile() || {};
+  const canWriteEmployees = hasPermission(profile, 'employees.write');
+  const [activeTab,        setActiveTab]        = useState('personal');
+  const [employeeDetails,  setEmployeeDetails]  = useState(null);
+  const [loading,          setLoading]          = useState(false);
+  const [fetchError,       setFetchError]       = useState(false);
+  const [previewUrl,       setPreviewUrl]       = useState(null);
+  const [isEditing,        setIsEditing]        = useState(false);
+  const [editForm,         setEditForm]         = useState({});
+  const [pendingFiles,     setPendingFiles]     = useState({});
+  const [isSaving,         setIsSaving]         = useState(false);
+  const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false);
+  const [showRelieveConfirm, setShowRelieveConfirm] = useState(false);
+  const [showRenewContractDialog, setShowRenewContractDialog] = useState(false);
+  const [showDeployModal,  setShowDeployModal]  = useState(false);
+  const [sitesList,        setSitesList]        = useState([]);
+  const [renewalForm, setRenewalForm] = useState({
+    contractStartDate: '',
+    contractEndDate: '',
+    contractFile: null,
+  });
+  const [deployForm,       setDeployForm]       = useState({
+    siteId: '', baseSalary: '', contractStartDate: '', contractEndDate: '',
+    daysOfWeek: [], shiftStart: '', shiftEnd: '', deploymentOrderFile: null,
+  });
+  const [isDeploying, setIsDeploying] = useState(false);
+  const { notification, showNotification, closeNotification } = useNotification();
+
+  useEffect(() => {
+    if (isOpen && previewEmployee?.id) {
+      setLoading(true);
+      setFetchError(false);
+      employeeService.getEmployeeDetails(previewEmployee.id)
+        .then(data => { setEmployeeDetails(data); setLoading(false); })
+        .catch(err  => { console.error(err); setFetchError(true); setLoading(false); });
+    } else {
+      setEmployeeDetails(null);
+      setActiveTab('personal');
+      setIsEditing(false);
+      setPendingFiles({});
+      setFetchError(false);
+      setShowDeactivateConfirm(false);
+      setShowRelieveConfirm(false);
+      setShowRenewContractDialog(false);
+      setRenewalForm({ contractStartDate: '', contractEndDate: '', contractFile: null });
+    }
+  }, [isOpen, previewEmployee]);
+
+  if (!isOpen || !previewEmployee) return null;
+  const data = employeeDetails || previewEmployee;
+  const hasActiveDeployment = Array.isArray(data.deployments) && data.deployments.some((deployment) => deployment.status === 'active');
+  const contractNeedsRenewal = Boolean(data.employment_contract_needs_renewal);
+  const hasValidEmploymentContract = data.employment_contract_valid !== false;
+  const contractActionMessage = data.admin_action_message || 'Employment contract needs admin review.';
+  const selectedDeploymentSite = sitesList.find((site) => site.id === deployForm.siteId);
+  const selectedClientContractEndDate = selectedDeploymentSite?.client_contract_end_date || null;
+
+  const handleEdit   = () => { setEditForm(buildForm(data)); setPendingFiles({}); setIsEditing(true); };
+  const handleCancel = () => { setIsEditing(false); setPendingFiles({}); };
+  const handleField  = (key, value) => setEditForm(f => ({ ...f, [key]: value }));
+  const handleClearanceFile = (type, file) => setPendingFiles(prev => ({ ...prev, [type]: file }));
+
+  const handleSave = async () => {
+    if (isPastDate(editForm.license_expiry_date)) {
+      showNotification('License expiry date cannot be earlier than today.', 'error');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const formData = new FormData();
+      Object.entries(editForm).forEach(([k, v]) => formData.append(k, v));
+      Object.entries(pendingFiles).forEach(([type, file]) => formData.append(`document_${type}`, file));
+      await employeeService.updateEmployee(previewEmployee.id, formData);
+      const refreshed = await employeeService.getEmployeeDetails(previewEmployee.id);
+      setEmployeeDetails(refreshed);
+      setIsEditing(false);
+      setPendingFiles({});
+      onUpdated?.();
+      showNotification('Employee details updated successfully.', 'success');
+    } catch (err) {
+      console.error(err);
+      showNotification(err.response?.data?.error || 'Failed to save changes.', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeactivate = async () => {
+    try {
+      setIsSaving(true);
+      await employeeService.deactivateEmployee(previewEmployee.id);
+      showNotification('Employee deactivated successfully.', 'success');
+      setShowDeactivateConfirm(false);
+      onUpdated?.();
+      onClose();
+    } catch (err) {
+      console.error(err);
+      showNotification(err.response?.data?.error || 'Failed to deactivate employee.', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleRelieve = async () => {
+    try {
+      setIsSaving(true);
+      await employeeService.relieveEmployeeAssignment(previewEmployee.id);
+      const refreshed = await employeeService.getEmployeeDetails(previewEmployee.id);
+      setEmployeeDetails(refreshed);
+      setShowRelieveConfirm(false);
+      onUpdated?.();
+      showNotification('Employee relieved from current assignment.', 'success');
+    } catch (err) {
+      console.error(err);
+      showNotification(err.response?.data?.error || 'Failed to relieve employee from current assignment.', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const openRenewContractDialog = () => {
+    const baseStartDate = data.current_contract_end_date
+      ? (() => {
+        const nextDay = new Date(data.current_contract_end_date);
+        nextDay.setDate(nextDay.getDate() + 1);
+        return nextDay.toISOString().split('T')[0];
+      })()
+      : new Date().toISOString().split('T')[0];
+
+    setRenewalForm({
+      contractStartDate: baseStartDate,
+      contractEndDate: '',
+      contractFile: null,
+    });
+    setShowRenewContractDialog(true);
+  };
+
+  const handleRenewContract = async () => {
+    if (!renewalForm.contractStartDate || !renewalForm.contractEndDate) {
+      showNotification('Please set both renewal contract dates.', 'error');
+      return;
+    }
+    if (isEarlierDate(renewalForm.contractStartDate, renewalForm.contractEndDate)) {
+      showNotification('Renewal contract end date cannot be earlier than renewal contract start date.', 'error');
+      return;
+    }
+    if (!renewalForm.contractFile) {
+      showNotification('Please upload the renewed employment contract document.', 'error');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const payload = new FormData();
+      payload.append('contract_start_date', renewalForm.contractStartDate);
+      payload.append('contract_end_date', renewalForm.contractEndDate);
+      payload.append('document_contract', renewalForm.contractFile);
+      await employeeService.updateEmployee(previewEmployee.id, payload);
+      const refreshed = await employeeService.getEmployeeDetails(previewEmployee.id);
+      setEmployeeDetails(refreshed);
+      setShowRenewContractDialog(false);
+      setRenewalForm({ contractStartDate: '', contractEndDate: '', contractFile: null });
+      onUpdated?.();
+      showNotification('Employment contract renewed successfully.', 'success');
+    } catch (err) {
+      console.error(err);
+      showNotification(err.response?.data?.error || 'Failed to renew employment contract.', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const openDeployModal = async () => {
+    if (!hasValidEmploymentContract) {
+      showNotification(contractActionMessage, 'error');
+      return;
+    }
+
+    setShowDeployModal(true);
+    setDeployForm({
+      siteId: '',
+      baseSalary: data.base_salary || '',
+      contractStartDate: '',
+      contractEndDate: '',
+      daysOfWeek: [],
+      shiftStart: '',
+      shiftEnd: '',
+      deploymentOrderFile: null,
+    });
+    try {
+      const sites = await clientService.getAllSitesList({
+        latitude: data.latitude,
+        longitude: data.longitude,
+      });
+      setSitesList(sites);
+    } catch (err) {
+      console.error(err);
+      showNotification('Failed to load client sites.', 'error');
+    }
+  };
+
+  const handleDeploy = async () => {
+    if (!deployForm.siteId)                    { showNotification('Please select a client site.', 'error'); return; }
+    if (!deployForm.baseSalary || Number(deployForm.baseSalary) <= 0) {
+      showNotification('Please set the guard monthly base pay.', 'error');
+      return;
+    }
+    if (isEarlierDate(deployForm.contractStartDate, deployForm.contractEndDate)) {
+      showNotification('Deployment contract end date cannot be earlier than deployment contract start date.', 'error');
+      return;
+    }
+    if (isAfterDate(deployForm.contractEndDate, selectedClientContractEndDate)) {
+      showNotification(`Deployment contract end date cannot be later than the client contract end date (${selectedClientContractEndDate}).`, 'error');
+      return;
+    }
+    if (deployForm.daysOfWeek.length === 0)    { showNotification('Please select at least one schedule day.', 'error'); return; }
+    if (!deployForm.shiftStart || !deployForm.shiftEnd) { showNotification('Please set both shift start and shift end time.', 'error'); return; }
+    if (!hasActiveDeployment && !deployForm.deploymentOrderFile) { showNotification('Please upload the deployment order document.', 'error'); return; }
+    setIsDeploying(true);
+    try {
+      const payload = new FormData();
+      payload.append('siteId', deployForm.siteId);
+      payload.append('baseSalary', deployForm.baseSalary);
+      if (deployForm.contractStartDate) payload.append('contractStartDate', deployForm.contractStartDate);
+      if (deployForm.contractEndDate)   payload.append('contractEndDate',   deployForm.contractEndDate);
+      deployForm.daysOfWeek.forEach(day => payload.append('daysOfWeek', String(day)));
+      payload.append('shiftStart', deployForm.shiftStart);
+      payload.append('shiftEnd',   deployForm.shiftEnd);
+      if (deployForm.deploymentOrderFile) payload.append('document_deployment_order', deployForm.deploymentOrderFile);
+      if (hasActiveDeployment) {
+        await employeeService.transferEmployeeAssignment(data.id, payload);
+      } else {
+        await employeeService.deployEmployee(data.id, payload);
+      }
+      const refreshed = await employeeService.getEmployeeDetails(previewEmployee.id);
+      setEmployeeDetails(refreshed);
+      showNotification(hasActiveDeployment ? 'Employee transferred successfully!' : 'Employee deployed successfully!', 'success');
+      setShowDeployModal(false);
+      onUpdated?.();
+    } catch (err) {
+      console.error(err);
+      showNotification(err.response?.data?.error || (hasActiveDeployment ? 'Failed to transfer employee.' : 'Failed to deploy employee.'), 'error');
+    } finally {
+      setIsDeploying(false);
+    }
+  };
+
+  const toggleScheduleDay = (dayValue) => {
+    setDeployForm(cur => ({
+      ...cur,
+      daysOfWeek: cur.daysOfWeek.includes(dayValue)
+        ? cur.daysOfWeek.filter(d => d !== dayValue)
+        : [...cur.daysOfWeek, dayValue].sort((a, b) => a - b),
+    }));
+  };
+
+  /* ── Render ── */
+  const outerClass   = pageMode ? 'ep-page-wrapper'    : 've-modal-overlay';
+  const contentClass = pageMode ? 'ep-detail-container' : 've-modal-content';
+
+  return (
+    <div className={outerClass} onClick={pageMode ? undefined : onClose}>
+      {notification && (
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          duration={notification.duration}
+          onClose={closeNotification}
+        />
+      )}
+
+      <div className={contentClass} onClick={pageMode ? undefined : (e) => e.stopPropagation()}>
+
+        {/* Header */}
+        <div className="ve-modal-header">
+          <div>
+            <h2>Employee Details</h2>
+            <p>{data.employee_id_number} • {data.full_name || data.name}</p>
+          </div>
+          {!pageMode && (
+            <button className="ve-close-btn" onClick={onClose}><FaTimes /></button>
+          )}
+        </div>
+
+        {/* Tabs */}
+        <div className="ve-tabs-bar">
+          {TABS.map(tab => (
+            <button
+              key={tab.key}
+              className={`ve-tab ${activeTab === tab.key ? 'active' : ''}`}
+              onClick={() => setActiveTab(tab.key)}
+            >
+              <tab.icon />{tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Body */}
+        <div className="ve-modal-body">
+          {loading && (
+            <div className="detail-skeleton">
+              <div className="dsk-profile-card">
+                <div className="dsk-avatar" />
+                <div className="dsk-profile-lines">
+                  <div className="dsk-line xl" />
+                  <div className="dsk-line md" />
+                  <div className="dsk-line sm" />
+                </div>
+              </div>
+              <div className="dsk-grid cols-2">
+                {[1,2,3,4,5,6].map(i => <div key={i} className="dsk-info-cell"><div className="dsk-line sm" /><div className="dsk-line lg" /></div>)}
+              </div>
+              <div className="dsk-grid cols-2" style={{ marginTop: '1rem' }}>
+                {[1,2,3,4].map(i => <div key={i} className="dsk-info-cell"><div className="dsk-line sm" /><div className="dsk-line lg" /></div>)}
+              </div>
+              <div className="dsk-actions">
+                {[1,2,3].map(i => <div key={i} className="dsk-btn" />)}
+              </div>
+            </div>
+          )}
+
+          {!loading && (
+            <>
+              {fetchError && (
+                <div style={{ background:'#fef3c7', border:'1px solid #fde68a', color:'#92400e', borderRadius:'8px', padding:'0.65rem 1rem', fontSize:'0.8rem', fontWeight:600, marginBottom:'1rem' }}>
+                  Could not load full employee details. Showing limited information.
+                </div>
+              )}
+              {contractNeedsRenewal && (
+                <div style={{ background:'#fef2f2', border:'1px solid #fecaca', color:'#991b1b', borderRadius:'8px', padding:'0.65rem 1rem', fontSize:'0.8rem', fontWeight:700, marginBottom:'1rem' }}>
+                  {contractActionMessage}
+                </div>
+              )}
+
+              {activeTab === 'personal'   && (
+                <PersonalTab
+                  employee={data}
+                  canEdit={canWriteEmployees && !fetchError && !!employeeDetails}
+                  isEditing={isEditing}
+                  editForm={editForm}
+                  pendingFiles={pendingFiles}
+                  onFile={handleClearanceFile}
+                  onField={handleField}
+                  onEdit={handleEdit}
+                  onSave={handleSave}
+                  onCancel={handleCancel}
+                  isSaving={isSaving}
+                />
+              )}
+              {activeTab === 'employment' && (
+                <EmploymentTab employee={data} isEditing={isEditing} editForm={editForm} onField={handleField} />
+              )}
+              {activeTab === 'compliance' && (
+                <ComplianceTab
+                  employee={data}
+                  isEditing={isEditing}
+                  pendingFiles={pendingFiles}
+                  onPreview={setPreviewUrl}
+                  onClearanceFile={handleClearanceFile}
+                />
+              )}
+              {activeTab === 'payroll' && <PayrollTab employee={data} />}
+            </>
+          )}
+
+          {/* Image Preview Overlay */}
+          {previewUrl && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4" onClick={() => setPreviewUrl(null)}>
+              <button className="absolute top-6 right-6 text-white text-3xl hover:text-gray-300 transition-colors"><FaTimes /></button>
+              <img src={previewUrl} alt="Document Preview" className="max-w-full max-h-full object-contain shadow-2xl rounded-sm" onClick={e => e.stopPropagation()} />
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="ve-action-buttons mt-6">
+            <button
+              className="ve-btn ve-btn-gold"
+              onClick={async () => {
+                const url = data.document_url;
+                if (!url) {
+                  showNotification('No contract document found.', 'error');
+                  return;
+                }
+
+                try {
+                  await authService.openFileUrl(url);
+                } catch (err) {
+                  console.error(err);
+                  showNotification('Failed to open contract document.', 'error');
+                }
+              }}
+            >
+              <FaFileContract /> View Contract
+            </button>
+            <button className="ve-btn ve-btn-blue" onClick={openRenewContractDialog} disabled={!canWriteEmployees || data.status !== 'active'}>
+              <FaFileContract /> Renew Contract
+            </button>
+            <button className="ve-btn ve-btn-green" onClick={openDeployModal} disabled={!canWriteEmployees || data.status !== 'active' || !hasValidEmploymentContract}>
+              <FaMapMarkerAlt /> {hasActiveDeployment ? 'Transfer Assignment' : 'Assign Client'}
+            </button>
+            {hasActiveDeployment && (
+              <button className="ve-btn ve-btn-blue" onClick={() => setShowRelieveConfirm(true)} disabled={!canWriteEmployees || data.status !== 'active'}>
+                <FaUserMinus /> Relieve From Post
+              </button>
+            )}
+            <button className="ve-btn ve-btn-red" onClick={() => setShowDeactivateConfirm(true)} disabled={!canWriteEmployees || data.status !== 'active'}>
+              <FaUserMinus /> {data.status === 'inactive' ? 'Inactive' : 'Deactivate Employee'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <DeactivateEmployeeDialog
+        isOpen={showDeactivateConfirm}
+        employeeName={data.full_name || data.name}
+        isSaving={isSaving}
+        onCancel={() => setShowDeactivateConfirm(false)}
+        onConfirm={handleDeactivate}
+      />
+
+      <RelieveEmployeeDialog
+        isOpen={showRelieveConfirm}
+        employeeName={data.full_name || data.name}
+        isSaving={isSaving}
+        onCancel={() => setShowRelieveConfirm(false)}
+        onConfirm={handleRelieve}
+      />
+
+      <DeployEmployeeDialog
+        isOpen={showDeployModal}
+        employeeName={data.full_name || data.name}
+        sitesList={sitesList}
+        deployForm={deployForm}
+        setDeployForm={setDeployForm}
+        isDeploying={isDeploying}
+        onCancel={() => setShowDeployModal(false)}
+        onDeploy={handleDeploy}
+        toggleScheduleDay={toggleScheduleDay}
+        isTransfer={hasActiveDeployment}
+        clientContractEndDate={selectedClientContractEndDate}
+      />
+
+      <RenewEmployeeContractDialog
+        isOpen={showRenewContractDialog}
+        employeeName={data.full_name || data.name}
+        form={renewalForm}
+        isSaving={isSaving}
+        onFieldChange={(field, value) => setRenewalForm((cur) => ({ ...cur, [field]: value }))}
+        onFileChange={(file) => setRenewalForm((cur) => ({ ...cur, contractFile: file }))}
+        onCancel={() => {
+          if (isSaving) return;
+          setShowRenewContractDialog(false);
+        }}
+        onSave={handleRenewContract}
+      />
+    </div>
+  );
+}
