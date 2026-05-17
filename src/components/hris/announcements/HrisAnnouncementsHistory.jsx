@@ -67,28 +67,31 @@ function ViewModal({ item, onClose }) {
       className="an-modal-overlay"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="an-modal" role="dialog" aria-modal="true" aria-labelledby="hris-announcement-details-title">
+      <div className="an-modal an-view-modal" role="dialog" aria-modal="true" aria-labelledby="hris-announcement-details-title">
         <div className="an-modal-header">
           <div>
             <h2 id="hris-announcement-details-title">Announcement Details</h2>
-            <p>{item.id}</p>
+            <p className="an-modal-id">{item.id}</p>
           </div>
           <button className="an-modal-close" onClick={onClose}><FaTimes /></button>
         </div>
 
         <div className="an-modal-body">
+          {/* Badges */}
           <div className="an-modal-badges">
             <span className={`an-badge ${item.audienceClass}`}>{item.audience}</span>
             <span className={`an-badge ${item.priorityClass}`}>{item.priority}</span>
             <span className={`an-badge ${item.statusClass}`}>{item.status}</span>
           </div>
 
-          <div className="an-modal-cell">
+          {/* Subject */}
+          <div className="an-modal-cell an-modal-subject-cell">
             <label>Subject</label>
             <p>{item.subject}</p>
           </div>
 
-          <div className="an-modal-grid">
+          {/* Meta grid */}
+          <div className="an-modal-grid an-modal-grid-3">
             <div className="an-modal-cell">
               <label>Published By</label>
               <p>{item.publishedBy}</p>
@@ -103,6 +106,7 @@ function ViewModal({ item, onClose }) {
             </div>
           </div>
 
+          {/* Message */}
           <div className="an-modal-message">
             <label>Message</label>
             <p>{item.message}</p>
@@ -110,7 +114,7 @@ function ViewModal({ item, onClose }) {
 
           <div className="an-modal-actions">
             <button className="an-back-btn" onClick={onClose}>
-              <FaArrowLeft /> Back
+              <FaArrowLeft /> Close
             </button>
           </div>
         </div>
@@ -454,11 +458,29 @@ export default function HrisAnnouncementsHistory({
             </tr>
           </thead>
           <tbody>
-            {loading && (
-              <tr>
-                <td colSpan="7" className="an-empty-cell">Loading announcements...</td>
+            {loading && Array.from({ length: 5 }).map((_, i) => (
+              <tr key={`skel-${i}`} className="an-skel-row">
+                <td><div className="an-skel an-skel-id" /></td>
+                <td>
+                  <div className="an-subject-cell">
+                    <div className="an-skel an-skel-icon-sm" />
+                    <div className="an-skel an-skel-text-lg" />
+                  </div>
+                </td>
+                <td><div className="an-skel an-skel-badge" /></td>
+                <td><div className="an-skel an-skel-badge" /></td>
+                <td><div className="an-skel an-skel-text" /></td>
+                <td><div className="an-skel an-skel-badge" /></td>
+                <td>
+                  <div className="an-row-actions">
+                    <div className="an-skel an-skel-btn" />
+                    <div className="an-skel an-skel-btn" />
+                    <div className="an-skel an-skel-btn" />
+                    <div className="an-skel an-skel-btn" />
+                  </div>
+                </td>
               </tr>
-            )}
+            ))}
 
             {!loading && rows.length === 0 && (
               <tr>
