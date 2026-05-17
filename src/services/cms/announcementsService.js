@@ -18,7 +18,26 @@ api.interceptors.request.use((config) => {
 
 async function getAnnouncements(params = {}) {
   const { data } = await api.get('/', { params });
-  return Array.isArray(data) ? data : [];
+  if (Array.isArray(data)) {
+    return {
+      data,
+      metadata: {
+        total: data.length,
+        page: 1,
+        limit: data.length,
+        totalPages: data.length ? 1 : 0,
+      },
+    };
+  }
+  return {
+    data: Array.isArray(data?.data) ? data.data : [],
+    metadata: data?.metadata || {
+      total: 0,
+      page: 1,
+      limit: params.limit || 10,
+      totalPages: 0,
+    },
+  };
 }
 
 export default {

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import AnnouncementsTopbar from '@cms-components/announcements/AnnouncementsTopbar';
-import AnnouncementsInfoBanner from '@cms-components/announcements/AnnouncementsInfoBanner';
 import AnnouncementsFilterBar from '@cms-components/announcements/AnnouncementsFilterBar';
 import AnnouncementsTable from '@cms-components/announcements/AnnouncementsTable';
 import AnnouncementDetailModal from '@cms-components/announcements/AnnouncementDetailModal';
@@ -37,6 +36,19 @@ function formatPublisher(publisher) {
   return 'Prism Guard Admin';
 }
 
+function getLocalDayRange(value) {
+  if (!value) return {};
+  const [year, month, day] = value.split('-').map(Number);
+  if (!year || !month || !day) return {};
+
+  const start = new Date(year, month - 1, day, 0, 0, 0, 0);
+  const end = new Date(year, month - 1, day, 23, 59, 59, 999);
+  return {
+    publishedFrom: start.toISOString(),
+    publishedTo: end.toISOString(),
+  };
+}
+
 function formatAnnouncement(item) {
   const priorityMap = {
     urgent: { label: 'Urgent', className: 'ann-badge ann-badge--urgent' },
@@ -50,9 +62,6 @@ function formatAnnouncement(item) {
   };
   const priority = priorityMap[item.priority] || priorityMap.normal;
   const audience = audienceMap[item.target_audience] || audienceMap.both;
-  const expiresAt = item.expires_at ? new Date(item.expires_at) : null;
-  const isExpired = expiresAt && expiresAt <= new Date();
-  const status = item.status === 'archived' ? 'Archived' : (isExpired ? 'Expired' : 'Active');
 
   return {
     id: item.id,
@@ -67,9 +76,6 @@ function formatAnnouncement(item) {
     audienceClass: audience.className,
     date: formatDate(item.published_at),
     dateValue: item.published_at || '',
-    status,
-    statusValue: item.status || 'published',
-    statusClass: `ann-status ann-status--${status.toLowerCase()}`,
     publishedBy: formatPublisher(item.publisher),
     expiresAt: item.expires_at || null,
     expiresAtDisplay: formatDateTime(item.expires_at),
@@ -79,6 +85,7 @@ function formatAnnouncement(item) {
 export default function CmsAnnouncementsPage() {
   const [filters, setFilters] = useState({ search: '', priority: 'all', sort: 'newest', date: '' });
   const [announcements, setAnnouncements] = useState([]);
+  const [metadata, setMetadata] = useState({ total: 0, page: 1, limit: 10, totalPages: 0 });
   const [loading, setLoading] = useState(true);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
   const { notification, showNotification, closeNotification } = useNotification();
@@ -90,9 +97,19 @@ export default function CmsAnnouncementsPage() {
     async function loadAnnouncements() {
       setLoading(true);
       try {
-        const data = await announcementsService.getAnnouncements({ limit: 100 });
+        const dateRange = getLocalDayRange(filters.date);
+        const result = await announcementsService.getAnnouncements({
+          page: metadata.page,
+          limit: metadata.limit,
+          search: filters.search || undefined,
+          priority: filters.priority !== 'all' ? filters.priority : undefined,
+          sort: filters.sort,
+          ...dateRange,
+        });
+
         if (!cancelled) {
-          setAnnouncements(data);
+          setAnnouncements(result.data);
+          setMetadata(result.metadata);
         }
       } catch (err) {
         if (!cancelled) {
@@ -110,7 +127,16 @@ export default function CmsAnnouncementsPage() {
     return () => {
       cancelled = true;
     };
-  }, [showNotification]);
+  }, [filters, metadata.limit, metadata.page, showNotification]);
+
+  const handleFilterChange = (nextFilters) => {
+    setFilters(nextFilters);
+    setMetadata((prev) => ({ ...prev, page: 1 }));
+  };
+
+  const handlePageChange = (page) => {
+    setMetadata((prev) => ({ ...prev, page }));
+  };
 
   return (
     <>
@@ -126,12 +152,12 @@ export default function CmsAnnouncementsPage() {
       <AnnouncementsTopbar />
 
       <div className="cms-content">
-        <AnnouncementsInfoBanner />
-        <AnnouncementsFilterBar onFilterChange={setFilters} />
+        <AnnouncementsFilterBar onFilterChange={handleFilterChange} />
         <AnnouncementsTable
           announcements={rows}
-          filters={filters}
+          metadata={metadata}
           loading={loading}
+          onPageChange={handlePageChange}
           onViewDetail={(ann) => setSelectedAnnouncement(ann)}
         />
       </div>

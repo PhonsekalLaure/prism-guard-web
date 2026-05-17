@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import {
   FaBullhorn,
   FaExclamationCircle,
@@ -9,18 +9,12 @@ import {
   FaEye,
 } from 'react-icons/fa';
 
-const ITEMS_PER_PAGE = 5;
-const PRIORITY_ORDER = { Urgent: 0, Important: 1, Normal: 2 };
+const ITEMS_PER_PAGE = 10;
 
 function PriorityIcon({ priority }) {
   if (priority === 'Urgent') return <FaExclamationCircle className="ann-priority-icon ann-priority-icon--urgent" />;
   if (priority === 'Important') return <FaExclamationTriangle className="ann-priority-icon ann-priority-icon--important" />;
   return <FaInfoCircle className="ann-priority-icon ann-priority-icon--normal" />;
-}
-
-function toDate(value) {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? new Date(0) : date;
 }
 
 function buildPreview(message) {
@@ -29,64 +23,52 @@ function buildPreview(message) {
   return `${normalized.slice(0, 117)}...`;
 }
 
+function buildPageNumbers(page, totalPages) {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  const pages = new Set([1, totalPages, page, page - 1, page + 1]);
+  if (page <= 3) {
+    pages.add(2);
+    pages.add(3);
+    pages.add(4);
+  }
+  if (page >= totalPages - 2) {
+    pages.add(totalPages - 1);
+    pages.add(totalPages - 2);
+    pages.add(totalPages - 3);
+  }
+
+  const sorted = [...pages]
+    .filter((item) => item >= 1 && item <= totalPages)
+    .sort((a, b) => a - b);
+
+  return sorted.reduce((result, item, index) => {
+    if (index > 0 && item - sorted[index - 1] > 1) {
+      result.push(`gap-${sorted[index - 1]}-${item}`);
+    }
+    result.push(item);
+    return result;
+  }, []);
+}
+
 export default function AnnouncementsTable({
   announcements = [],
-  filters,
+  metadata,
   loading = false,
+  onPageChange,
   onViewDetail,
 }) {
-  const [page, setPage] = useState(1);
-
-  const filtered = useMemo(() => {
-    let list = [...announcements];
-
-    if (filters?.search) {
-      const q = filters.search.toLowerCase();
-      list = list.filter((a) => (
-        a.subject.toLowerCase().includes(q) ||
-        a.message.toLowerCase().includes(q) ||
-        a.id.toLowerCase().includes(q) ||
-        a.publishedBy.toLowerCase().includes(q)
-      ));
-    }
-
-    if (filters?.priority && filters.priority !== 'all') {
-      const p = filters.priority.charAt(0).toUpperCase() + filters.priority.slice(1);
-      list = list.filter((a) => a.priority === p);
-    }
-
-    if (filters?.date) {
-      list = list.filter((a) => {
-        const rowDate = toDate(a.dateValue);
-        const filterDate = new Date(filters.date);
-        return (
-          rowDate.getFullYear() === filterDate.getFullYear() &&
-          rowDate.getMonth() === filterDate.getMonth() &&
-          rowDate.getDate() === filterDate.getDate()
-        );
-      });
-    }
-
-    if (filters?.sort === 'oldest') {
-      list.sort((a, b) => toDate(a.dateValue) - toDate(b.dateValue));
-    } else if (filters?.sort === 'priority') {
-      list.sort((a, b) => (PRIORITY_ORDER[a.priority] ?? 3) - (PRIORITY_ORDER[b.priority] ?? 3));
-    } else {
-      list.sort((a, b) => toDate(b.dateValue) - toDate(a.dateValue));
-    }
-
-    return list;
-  }, [announcements, filters]);
-
-  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
-  const paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
-
-  useEffect(() => {
-    setPage(1);
-  }, [announcements, filters]);
+  const page = metadata?.page || 1;
+  const total = metadata?.total || 0;
+  const limit = metadata?.limit || ITEMS_PER_PAGE;
+  const totalPages = metadata?.totalPages || 0;
+  const paginated = useMemo(() => announcements, [announcements]);
+  const pageNumbers = useMemo(() => buildPageNumbers(page, totalPages), [page, totalPages]);
 
   const handlePageChange = (p) => {
-    if (p >= 1 && p <= totalPages) setPage(p);
+    if (p >= 1 && p <= totalPages) onPageChange?.(p);
   };
 
   return (
@@ -95,7 +77,7 @@ export default function AnnouncementsTable({
         <h3 className="ann-table-title">
           <FaBullhorn /> Announcement Records
         </h3>
-        <span className="ann-table-count">{filtered.length} announcement{filtered.length !== 1 ? 's' : ''}</span>
+        <span className="ann-table-count">{total} announcement{total !== 1 ? 's' : ''}</span>
       </div>
 
       <div className="ann-table-wrapper">
@@ -107,14 +89,13 @@ export default function AnnouncementsTable({
               <th>Subject</th>
               <th>Priority</th>
               <th>Audience</th>
-              <th>Status</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={7} className="ann-table-empty">
+                <td colSpan={6} className="ann-table-empty">
                   <div className="ann-empty-state">
                     <FaBullhorn className="ann-empty-icon" />
                     <p>Loading announcements...</p>
@@ -123,7 +104,7 @@ export default function AnnouncementsTable({
               </tr>
             ) : paginated.length === 0 ? (
               <tr>
-                <td colSpan={7} className="ann-table-empty">
+                <td colSpan={6} className="ann-table-empty">
                   <div className="ann-empty-state">
                     <FaBullhorn className="ann-empty-icon" />
                     <p>No announcements found</p>
@@ -152,9 +133,6 @@ export default function AnnouncementsTable({
                     <span className={ann.audienceClass}>{ann.audience}</span>
                   </td>
                   <td>
-                    <span className={ann.statusClass}>{ann.status}</span>
-                  </td>
-                  <td>
                     <button
                       className="ann-view-btn"
                       onClick={() => onViewDetail?.(ann)}
@@ -170,11 +148,11 @@ export default function AnnouncementsTable({
         </table>
       </div>
 
-      {!loading && filtered.length > 0 && (
+      {!loading && total > 0 && (
         <div className="ir-pagination">
           <span className="ir-pagination-info">
-            Showing {Math.min((page - 1) * ITEMS_PER_PAGE + 1, filtered.length)}-
-            {Math.min(page * ITEMS_PER_PAGE, filtered.length)} of {filtered.length} announcement{filtered.length !== 1 ? 's' : ''}
+            Showing {Math.min((page - 1) * limit + 1, total)}-
+            {Math.min(page * limit, total)} of {total} announcement{total !== 1 ? 's' : ''}
           </span>
           <div className="ir-page-btns">
             <button
@@ -184,14 +162,18 @@ export default function AnnouncementsTable({
             >
               <FaChevronLeft />
             </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-              <button
-                key={p}
-                className={`page-btn${p === page ? ' active' : ''}`}
-                onClick={() => handlePageChange(p)}
-              >
-                {p}
-              </button>
+            {pageNumbers.map((p) => (
+              typeof p === 'number' ? (
+                <button
+                  key={p}
+                  className={`page-btn${p === page ? ' active' : ''}`}
+                  onClick={() => handlePageChange(p)}
+                >
+                  {p}
+                </button>
+              ) : (
+                <span key={p} className="ann-page-gap">...</span>
+              )
             ))}
             <button
               className="page-btn"
