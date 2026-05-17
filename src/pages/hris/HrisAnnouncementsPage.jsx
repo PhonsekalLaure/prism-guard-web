@@ -208,7 +208,7 @@ export default function HrisAnnouncementsPage() {
       <HrisAnnouncementsTopbar />
 
       <div className="dashboard-content">
-        <HrisAnnouncementsStatCards stats={stats} />
+        <HrisAnnouncementsStatCards stats={stats} loading={loading} />
         <HrisAnnouncementsCompose
           onPublish={handlePublish}
           publishing={publishing}
