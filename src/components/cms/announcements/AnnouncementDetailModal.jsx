@@ -61,6 +61,11 @@ export default function AnnouncementDetailModal({ isOpen, announcement, onClose 
                 {announcement.audience}
               </span>
             </div>
+            <div className="ann-modal-meta-item">
+              <FaCalendarAlt className="ann-modal-meta-icon" />
+              <span className="ann-modal-meta-label">Expires</span>
+              <span className="ann-modal-meta-value">{announcement.expiresAtDisplay}</span>
+            </div>
           </div>
 
           {/* Badges */}

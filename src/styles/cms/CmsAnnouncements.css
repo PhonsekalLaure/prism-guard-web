@@ -155,7 +155,8 @@
 }
 
 .ann-td-subject {
-  max-width: 300px;
+  min-width: 320px;
+  max-width: 460px;
 }
 
 .ann-subject-wrap {
@@ -166,6 +167,27 @@
   color: #1a1a2e;
   font-size: 0.83rem;
   line-height: 1.4;
+}
+
+.ann-subject-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.ann-subject-title {
+  color: #1a1a2e;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.ann-subject-preview {
+  color: #6b7280;
+  font-size: 0.74rem;
+  font-weight: 500;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 /* ─── Priority icons inside table ─── */
@@ -261,6 +283,11 @@
 .ann-status--archived {
   background: #f1f5f9;
   color: #64748b;
+}
+
+.ann-status--expired {
+  background: #f3f4f6;
+  color: #6b7280;
 }
 
 /* ─── View Button ─── */
