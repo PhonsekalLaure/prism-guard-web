@@ -16,6 +16,10 @@ export default function Step1ContactInfo({ data, onChange }) {
     };
   }, [preview]);
 
+  const handleMobileChange = (value) => {
+    onChange('mobile', value.replace(/\D/g, '').slice(0, 10));
+  };
+
   return (
     <div className="ae-step-content">
       <h3 className="ae-step-heading">
@@ -65,7 +69,7 @@ export default function Step1ContactInfo({ data, onChange }) {
           placeholder="912 345 6789"
           prefix="+63"
           value={data.mobile}
-          onChange={(e) => onChange('mobile', e.target.value)}
+          onChange={(e) => handleMobileChange(e.target.value)}
         />
       </div>
     </div>
