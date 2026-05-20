@@ -1,6 +1,12 @@
 import { FaFileAlt, FaCheck } from 'react-icons/fa';
 
-export default function RequestReportModal({ isOpen, onClose, onConfirm, incident }) {
+export default function RequestReportModal({
+  isOpen,
+  onClose,
+  onConfirm,
+  incident,
+  submitting = false,
+}) {
   if (!isOpen) return null;
 
   return (
@@ -10,37 +16,32 @@ export default function RequestReportModal({ isOpen, onClose, onConfirm, inciden
         onClick={(e) => e.stopPropagation()}
       >
         <div className="ir-modal-body">
-          {/* Icon */}
           <div className="ir-modal-icon">
             <FaFileAlt />
           </div>
 
-          {/* Title */}
           <h3 className="ir-modal-title">Request Full Report?</h3>
           <p className="ir-modal-desc">
-            The security team will prepare and send the full incident report to your
-            registered email within 24-48 hours.
+            The operations team will review your request and prepare the full incident report.
           </p>
 
-          {/* Details */}
           <div className="ir-modal-details">
             <div className="ir-modal-details__row">
               <span className="ir-modal-details__label">Incident ID:</span>
-              <span className="ir-modal-details__value">{incident?.id ?? '—'}</span>
+              <span className="ir-modal-details__value">{incident?.reportId ?? 'N/A'}</span>
             </div>
             <div className="ir-modal-details__row">
-              <span className="ir-modal-details__label">Delivery:</span>
-              <span className="ir-modal-details__value--muted">24-48 hours via email</span>
+              <span className="ir-modal-details__label">Site:</span>
+              <span className="ir-modal-details__value--muted">{incident?.siteName ?? 'N/A'}</span>
             </div>
           </div>
 
-          {/* Actions */}
           <div className="ir-modal-actions">
-            <button className="ir-btn-confirm" onClick={onConfirm}>
+            <button className="ir-btn-confirm" onClick={onConfirm} disabled={submitting}>
               <FaCheck />
-              Confirm Request
+              {submitting ? 'Submitting...' : 'Confirm Request'}
             </button>
-            <button className="ir-btn-cancel" onClick={onClose}>
+            <button className="ir-btn-cancel" onClick={onClose} disabled={submitting}>
               Cancel
             </button>
           </div>

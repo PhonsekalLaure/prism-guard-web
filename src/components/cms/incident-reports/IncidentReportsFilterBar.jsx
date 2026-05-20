@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { FaSearch, FaMapMarkerAlt, FaExclamationCircle, FaCalendar } from 'react-icons/fa';
 
-export default function IncidentReportsFilterBar({ onFilterChange }) {
+export default function IncidentReportsFilterBar({ onFilterChange, sites = [] }) {
   const [search, setSearch]     = useState('');
   const [site, setSite]         = useState('all');
   const [severity, setSeverity] = useState('all');
@@ -38,10 +38,11 @@ export default function IncidentReportsFilterBar({ onFilterChange }) {
           className="filter-select"
         >
           <option value="all">All Sites</option>
-          <option value="main-gate">Main Gate</option>
-          <option value="parking">Parking Area</option>
-          <option value="back-gate">Back Gate</option>
-          <option value="building-lobby">Building Lobby</option>
+          {sites.map((siteOption) => (
+            <option key={siteOption.id} value={siteOption.id}>
+              {siteOption.site_name}
+            </option>
+          ))}
         </select>
       </div>
 

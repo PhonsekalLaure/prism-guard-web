@@ -1,59 +1,41 @@
 import { FaListUl, FaFileAlt, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
-const incidents = [
-  {
-    date: 'Feb 16, 2026',
-    id: 'INC-2026-012',
-    site: 'Main Gate',
-    type: 'Unauthorized Access',
-    severity: 'High',
-    severityClass: 'ir-badge ir-badge--high',
-    status: 'Investigating',
-    statusClass: 'ir-badge ir-badge--investigating',
-  },
-  {
-    date: 'Feb 15, 2026',
-    id: 'INC-2026-011',
-    site: 'Parking Area',
-    type: 'Property Damage',
-    severity: 'Medium',
-    severityClass: 'ir-badge ir-badge--medium',
-    status: 'Monitoring',
-    statusClass: 'ir-badge ir-badge--monitoring',
-  },
-  {
-    date: 'Feb 14, 2026',
-    id: 'INC-2026-010',
-    site: 'Building Lobby',
-    type: 'Visitor Incident',
-    severity: 'Low',
-    severityClass: 'ir-badge ir-badge--low',
-    status: 'Resolved',
-    statusClass: 'ir-badge ir-badge--resolved',
-  },
-  {
-    date: 'Feb 13, 2026',
-    id: 'INC-2026-009',
-    site: 'Back Gate',
-    type: 'Suspicious Activity',
-    severity: 'Low',
-    severityClass: 'ir-badge ir-badge--low',
-    status: 'Resolved',
-    statusClass: 'ir-badge ir-badge--resolved',
-  },
-  {
-    date: 'Feb 12, 2026',
-    id: 'INC-2026-008',
-    site: 'Main Gate',
-    type: 'Lost Item Recovery',
-    severity: 'Medium',
-    severityClass: 'ir-badge ir-badge--medium',
-    status: 'Resolved',
-    statusClass: 'ir-badge ir-badge--resolved',
-  },
-];
+function titleCase(value) {
+  return String(value || '')
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
 
-export default function IncidentReportsTable({ onRequestReport }) {
+function formatDate(value) {
+  if (!value) return 'N/A';
+  return new Date(value).toLocaleDateString('en-US', {
+    month: 'short',
+    day: '2-digit',
+    year: 'numeric',
+  });
+}
+
+function severityClass(severity) {
+  return `ir-badge ir-badge--${severity || 'low'}`;
+}
+
+function statusClass(status) {
+  if (status === 'resolved') return 'ir-badge ir-badge--resolved';
+  if (status === 'approved') return 'ir-badge ir-badge--monitoring';
+  return 'ir-badge ir-badge--investigating';
+}
+
+export default function IncidentReportsTable({
+  incidents = [],
+  loading = false,
+  metadata = {},
+  onPageChange,
+  onRequestReport,
+}) {
+  const page = metadata.page || 1;
+  const totalPages = metadata.totalPages || 1;
+  const total = metadata.total || 0;
+
   return (
     <div className="ir-table-panel">
       <div className="ir-table-header">
@@ -76,25 +58,38 @@ export default function IncidentReportsTable({ onRequestReport }) {
             </tr>
           </thead>
           <tbody>
-            {incidents.map((inc) => (
+            {loading && (
+              <tr>
+                <td colSpan={7} className="ir-td-muted">Loading incident reports...</td>
+              </tr>
+            )}
+
+            {!loading && incidents.length === 0 && (
+              <tr>
+                <td colSpan={7} className="ir-td-muted">No incident reports found.</td>
+              </tr>
+            )}
+
+            {!loading && incidents.map((inc) => (
               <tr key={inc.id} className="ir-table-row">
-                <td className="ir-td-muted">{inc.date}</td>
-                <td className="ir-td-id">{inc.id}</td>
-                <td>{inc.site}</td>
-                <td>{inc.type}</td>
+                <td className="ir-td-muted">{formatDate(inc.createdAt)}</td>
+                <td className="ir-td-id">{inc.reportId}</td>
+                <td>{inc.siteName}</td>
+                <td>{titleCase(inc.category)}</td>
                 <td>
-                  <span className={inc.severityClass}>{inc.severity}</span>
+                  <span className={severityClass(inc.severity)}>{titleCase(inc.severity)}</span>
                 </td>
                 <td>
-                  <span className={inc.statusClass}>{inc.status}</span>
+                  <span className={statusClass(inc.status)}>{titleCase(inc.status)}</span>
                 </td>
                 <td>
                   <button
                     className="ir-request-btn"
+                    disabled={['pending', 'approved'].includes(inc.requestStatus)}
                     onClick={() => onRequestReport?.(inc)}
                   >
                     <FaFileAlt />
-                    Request Full Report
+                    {inc.requestStatus ? titleCase(inc.requestStatus) : 'Request Full Report'}
                   </button>
                 </td>
               </tr>
@@ -104,12 +99,23 @@ export default function IncidentReportsTable({ onRequestReport }) {
       </div>
 
       <div className="ir-pagination">
-        <span className="ir-pagination-info">Showing 1-5 of 12 incidents</span>
+        <span className="ir-pagination-info">Showing {incidents.length} of {total} incidents</span>
         <div className="ir-page-btns">
-          <button className="page-btn"><FaChevronLeft /></button>
-          <button className="page-btn active">1</button>
-          <button className="page-btn">2</button>
-          <button className="page-btn"><FaChevronRight /></button>
+          <button
+            className="page-btn"
+            disabled={page <= 1 || loading}
+            onClick={() => onPageChange?.(page - 1)}
+          >
+            <FaChevronLeft />
+          </button>
+          <button className="page-btn active">{page}</button>
+          <button
+            className="page-btn"
+            disabled={page >= totalPages || loading}
+            onClick={() => onPageChange?.(page + 1)}
+          >
+            <FaChevronRight />
+          </button>
         </div>
       </div>
     </div>
