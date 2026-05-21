@@ -5,6 +5,7 @@ import IncidentReportsInfoBanner from '@cms-components/incident-reports/Incident
 import IncidentReportsFilterBar from '@cms-components/incident-reports/IncidentReportsFilterBar';
 import IncidentReportsTable from '@cms-components/incident-reports/IncidentReportsTable';
 import RequestReportModal from '@cms-components/incident-reports/RequestReportModal';
+import IncidentDetailModal from '@cms-components/incident-reports/IncidentDetailModal';
 import Notification from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
 import incidentReportsService from '@services/cms/incidentReportsService';
@@ -14,6 +15,7 @@ const INITIAL_FILTERS = { search: '', site: 'all', severity: 'all', date: '' };
 
 export default function IncidentReportsPage() {
   const [selectedIncident, setSelectedIncident] = useState(null);
+  const [viewedIncident, setViewedIncident] = useState(null);
   const [incidents, setIncidents] = useState([]);
   const [stats, setStats] = useState({});
   const [sites, setSites] = useState([]);
@@ -113,6 +115,7 @@ export default function IncidentReportsPage() {
           loading={loading}
           metadata={metadata}
           onPageChange={(page) => loadReports(page, filters)}
+          onViewIncident={(inc) => setViewedIncident(inc)}
           onRequestReport={(inc) => setSelectedIncident(inc)}
         />
       </div>
@@ -123,6 +126,15 @@ export default function IncidentReportsPage() {
         onClose={() => setSelectedIncident(null)}
         onConfirm={handleConfirm}
         submitting={submitting}
+      />
+
+      <IncidentDetailModal
+        incident={viewedIncident}
+        onClose={() => setViewedIncident(null)}
+        onRequestReport={(incident) => {
+          setViewedIncident(null);
+          setSelectedIncident(incident);
+        }}
       />
     </>
   );

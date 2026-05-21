@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   FaExclamationTriangle,
   FaExclamationCircle,
@@ -9,8 +9,6 @@ import {
   FaArrowRight,
   FaChevronLeft,
   FaChevronRight,
-  FaTimes,
-  FaCheck,
   FaRobot,
 } from 'react-icons/fa';
 
@@ -37,134 +35,13 @@ function formatDateTime(value) {
   });
 }
 
-function getInitials(name) {
-  return String(name || 'Unknown')
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join('') || 'U';
-}
-
-function IncidentModal({ incident, onClose, onReview, actionLoading }) {
-  if (!incident) return null;
-  const severity = incident.status === 'resolved' ? 'resolved' : (incident.severity || 'medium');
-  const Icon = severity === 'resolved' ? FaCheckCircle : (severityIcon[severity] || FaInfoCircle);
-
-  return (
-    <div className="ir-modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="ir-modal">
-        <div className={`ir-modal-header ${severity}`}>
-          <div>
-            <h2>Incident Report Details</h2>
-            <p>Report ID: {incident.reportId}</p>
-          </div>
-          <button className="ir-modal-close" onClick={onClose}><FaTimes /></button>
-        </div>
-
-        <div className="ir-modal-body">
-          <div className="ir-modal-badges">
-            <span className={`ir-badge priority-${severity}`}>{titleCase(incident.severity)} Priority</span>
-            <span className="ir-badge cat-unauth">{titleCase(incident.category)}</span>
-            <span className="ir-badge status-reviewing">{titleCase(incident.reviewStatus)}</span>
-          </div>
-
-          <div className="ir-modal-grid">
-            <div className="ir-modal-cell">
-              <label>Location</label>
-              <p>{incident.siteName}</p>
-              <span>{incident.siteAddress || incident.clientName}</span>
-            </div>
-            <div className="ir-modal-cell">
-              <label>Date &amp; Time</label>
-              <p>{formatDateTime(incident.createdAt)}</p>
-              <span>{titleCase(incident.status)}</span>
-            </div>
-          </div>
-
-          <div className="ir-modal-reporter">
-            <p className="ir-modal-reporter-label">Reported By</p>
-            <div className="ir-modal-reporter-row">
-              <div className="ir-modal-reporter-avatar">{getInitials(incident.reporterName)}</div>
-              <div className="ir-modal-reporter-info">
-                <h4>{incident.reporterName}</h4>
-                <p>
-                  {incident.reporterRole}
-                  {incident.reporterEmployeeNumber ? ` - ${incident.reporterEmployeeNumber}` : ''}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <p className="ir-modal-section-label">
-              <FaRobot />
-              AI-Generated Summary
-            </p>
-            <div className={`ir-nlp-box ${severity}`}>
-              <p className={`ir-nlp-text ${severity}`}>{incident.summary || 'No summary available.'}</p>
-            </div>
-          </div>
-
-          {incident.translatedText && (
-            <div>
-              <p className="ir-modal-section-label">Translated Report</p>
-              <div className="ir-modal-narrative">{incident.translatedText}</div>
-            </div>
-          )}
-
-          <div>
-            <p className="ir-modal-section-label">Original Report</p>
-            <div className="ir-modal-narrative">{incident.rawText || 'No original report available.'}</div>
-          </div>
-
-          {incident.reviewNotes && (
-            <div>
-              <p className="ir-modal-section-label">Review Notes</p>
-              <div className="ir-modal-narrative">{incident.reviewNotes}</div>
-            </div>
-          )}
-
-          <div className="ir-modal-actions">
-            <button
-              className="ir-modal-btn resolve"
-              disabled={actionLoading}
-              onClick={() => onReview(incident, 'approved')}
-            >
-              <FaCheck /> Approve
-            </button>
-            <button
-              className="ir-modal-btn print"
-              disabled={actionLoading}
-              onClick={() => onReview(incident, 'rejected')}
-            >
-              <Icon /> Reject
-            </button>
-            {incident.status !== 'resolved' && (
-              <button
-                className="ir-modal-btn share"
-                disabled={actionLoading}
-                onClick={() => onReview(incident, 'resolved')}
-              >
-                <FaCheckCircle /> Mark Resolved
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function HrisIncidentsFeed({
   incidents = [],
   loading = false,
   metadata = {},
   onPageChange,
-  onReview,
-  actionLoading = false,
 }) {
-  const [selected, setSelected] = useState(null);
+  const navigate = useNavigate();
   const page = metadata.page || 1;
   const totalPages = metadata.totalPages || 1;
   const total = metadata.total || 0;
@@ -181,13 +58,16 @@ export default function HrisIncidentsFeed({
         {!loading && incidents.map((inc, index) => {
           const severity = inc.status === 'resolved' ? 'resolved' : (inc.severity || 'medium');
           const Icon = severity === 'resolved' ? FaCheckCircle : (severityIcon[severity] || FaInfoCircle);
+          const activeClientRequest = (inc.clientReportRequests || []).find((request) =>
+            ['pending', 'approved'].includes(request.status)
+          );
 
           return (
             <div
               key={inc.id}
               className={`ir-card ${severity}`}
               style={{ animationDelay: `${index * 0.06}s` }}
-              onClick={() => setSelected(inc)}
+              onClick={() => navigate(`/incidents/${inc.id}`)}
             >
               <div className="ir-card-header">
                 <div className="ir-card-left">
@@ -199,6 +79,11 @@ export default function HrisIncidentsFeed({
                       <span className={`ir-badge priority-${severity}`}>
                         {titleCase(inc.severity)} Priority
                       </span>
+                      {activeClientRequest && (
+                        <span className="ir-badge status-reviewing">
+                          Full Report {titleCase(activeClientRequest.status)}
+                        </span>
+                      )}
                     </div>
                     <p className={`ir-card-title ${severity}`}>{inc.title}</p>
                     <p className="ir-card-location">
@@ -241,7 +126,7 @@ export default function HrisIncidentsFeed({
                 </div>
                 <button
                   className="ir-view-btn"
-                  onClick={(e) => { e.stopPropagation(); setSelected(inc); }}
+                  onClick={(e) => { e.stopPropagation(); navigate(`/incidents/${inc.id}`); }}
                 >
                   View Full Report <FaArrowRight />
                 </button>
@@ -273,18 +158,6 @@ export default function HrisIncidentsFeed({
           </button>
         </div>
       </div>
-
-      {selected && (
-        <IncidentModal
-          incident={selected}
-          onClose={() => setSelected(null)}
-          onReview={async (incident, status) => {
-            await onReview?.(incident, status);
-            setSelected(null);
-          }}
-          actionLoading={actionLoading}
-        />
-      )}
     </div>
   );
 }

@@ -424,6 +424,37 @@
 /* =============================================
    DETAIL MODAL
    ============================================= */
+.ir-detail-page-wrapper {
+  width: 100%;
+}
+
+.ir-detail-page-container {
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  width: 100%;
+}
+
+.ir-detail-page-container .ir-modal-header {
+  border-radius: 16px 16px 0 0;
+  position: static;
+}
+
+.ir-detail-page-state {
+  color: #4b5563;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 1.5rem;
+}
+
+.ir-detail-page-state.error {
+  color: #991b1b;
+}
+
 .ir-modal-overlay {
   position: fixed;
   inset: 0;
@@ -652,6 +683,197 @@
 .ir-modal-btn.print:hover { background: #d4a012; }
 .ir-modal-btn.secondary { background: #f3f4f6; color: #374151; flex: 0 0 auto; }
 .ir-modal-btn.secondary:hover { background: #e5e7eb; }
+
+.ir-request-panel {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-top: 1.5rem;
+  padding: 1.25rem 1.5rem;
+}
+
+.ir-request-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.ir-request-panel-header h3 {
+  color: #093269;
+  font-size: 1rem;
+  margin: 0 0 0.2rem;
+}
+
+.ir-request-panel-header p,
+.ir-request-empty,
+.ir-request-meta,
+.ir-request-notes {
+  color: #6b7280;
+  font-size: 0.82rem;
+  margin: 0;
+}
+
+.ir-request-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ir-request-row {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+}
+
+.ir-request-title {
+  color: #1f2937;
+  font-size: 0.92rem;
+  font-weight: 700;
+  margin: 0 0 0.2rem;
+}
+
+.ir-request-notes {
+  margin-top: 0.35rem;
+  font-style: italic;
+}
+
+.ir-request-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: flex-end;
+  min-width: 240px;
+}
+
+.ir-mini-btn {
+  border: none;
+  border-radius: 7px;
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.45rem 0.65rem;
+}
+
+.ir-mini-btn.approve { background: #16a34a; }
+.ir-mini-btn.reject { background: #dc2626; }
+.ir-mini-btn.send { background: #2563eb; }
+.ir-mini-btn.link {
+  background: #f3f4f6;
+  color: #374151;
+  text-decoration: none;
+}
+.ir-mini-btn:disabled { cursor: not-allowed; opacity: 0.55; }
+
+.ir-report-panel {
+  align-items: center;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+}
+
+.ir-report-title {
+  color: #1f2937;
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin: 0 0 0.15rem;
+}
+
+.ir-report-meta {
+  color: #6b7280;
+  font-size: 0.78rem;
+  margin: 0;
+}
+
+.ir-report-link {
+  align-items: center;
+  background: #eef2ff;
+  border: none;
+  border-radius: 8px;
+  color: #1d4ed8;
+  cursor: pointer;
+  display: inline-flex;
+  flex-shrink: 0;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  gap: 0.35rem;
+  padding: 0.55rem 0.75rem;
+  text-decoration: none;
+}
+
+.ir-client-request-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ir-client-request-card {
+  align-items: flex-start;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+}
+
+.ir-client-request-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: flex-end;
+  min-width: 250px;
+}
+
+.ir-note-modal {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  max-width: 520px;
+  padding: 1.25rem;
+  width: calc(100% - 2rem);
+}
+
+.ir-note-modal h3 {
+  color: #093269;
+  font-size: 1.05rem;
+  margin: 0 0 0.3rem;
+}
+
+.ir-note-modal p {
+  color: #6b7280;
+  font-size: 0.85rem;
+  margin: 0 0 0.9rem;
+  text-transform: capitalize;
+}
+
+.ir-note-textarea {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  padding: 0.75rem;
+  resize: vertical;
+  width: 100%;
+}
 
 /* =============================================
    ANIMATIONS

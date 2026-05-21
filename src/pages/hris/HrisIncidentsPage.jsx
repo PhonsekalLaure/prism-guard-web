@@ -18,7 +18,6 @@ export default function HrisIncidentsPage() {
   const [filters, setFilters] = useState(INITIAL_FILTERS);
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState(false);
   const { notification, showNotification, closeNotification } = useNotification();
 
   const loadIncidents = useCallback(async (page = 1, nextFilters = {}) => {
@@ -60,24 +59,6 @@ export default function HrisIncidentsPage() {
     loadIncidents(1, nextFilters);
   };
 
-  const handleReview = async (incident, status) => {
-    setActionLoading(true);
-    try {
-      if (status === 'resolved') {
-        await incidentsService.markResolved(incident.id);
-      } else {
-        await incidentsService.updateReview(incident.id, status);
-      }
-      showNotification('Incident report updated.', 'success');
-      await loadIncidents(metadata.page, filters);
-      await loadStats();
-    } catch (err) {
-      showNotification(err.response?.data?.error || 'Failed to update incident report.', 'error');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
   return (
     <>
       {notification && (
@@ -98,8 +79,6 @@ export default function HrisIncidentsPage() {
           loading={loading}
           metadata={metadata}
           onPageChange={(page) => loadIncidents(page, filters)}
-          onReview={handleReview}
-          actionLoading={actionLoading}
         />
       </div>
     </>

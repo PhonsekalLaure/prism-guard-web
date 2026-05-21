@@ -1,4 +1,5 @@
 import { FaListUl, FaFileAlt, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import authService from '@services/authService';
 
 function titleCase(value) {
   return String(value || '')
@@ -30,6 +31,7 @@ export default function IncidentReportsTable({
   loading = false,
   metadata = {},
   onPageChange,
+  onViewIncident,
   onRequestReport,
 }) {
   const page = metadata.page || 1;
@@ -83,14 +85,35 @@ export default function IncidentReportsTable({
                   <span className={statusClass(inc.status)}>{titleCase(inc.status)}</span>
                 </td>
                 <td>
-                  <button
-                    className="ir-request-btn"
-                    disabled={['pending', 'approved'].includes(inc.requestStatus)}
-                    onClick={() => onRequestReport?.(inc)}
-                  >
-                    <FaFileAlt />
-                    {inc.requestStatus ? titleCase(inc.requestStatus) : 'Request Full Report'}
-                  </button>
+                  <div className="ir-row-actions">
+                    <button
+                      className="ir-request-btn secondary"
+                      onClick={() => onViewIncident?.(inc)}
+                    >
+                      View
+                    </button>
+                    <button
+                      className="ir-request-btn"
+                      disabled={['pending', 'approved', 'sent'].includes(inc.requestStatus)}
+                      onClick={() => onRequestReport?.(inc)}
+                    >
+                      <FaFileAlt />
+                      {inc.requestStatus === 'rejected'
+                        ? 'Request Again'
+                        : inc.requestStatus
+                          ? titleCase(inc.requestStatus)
+                          : 'Request Full Report'}
+                    </button>
+                    {inc.clientReportUrl && (
+                      <button
+                        className="ir-request-btn secondary"
+                        onClick={() => authService.openFileUrl(inc.clientReportUrl)}
+                      >
+                        <FaFileAlt />
+                        Open Full Report
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

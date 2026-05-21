@@ -1,0 +1,314 @@
+import {
+  FaCheck,
+  FaCheckCircle,
+  FaExclamationCircle,
+  FaExclamationTriangle,
+  FaFilePdf,
+  FaInfoCircle,
+  FaPaperPlane,
+  FaRobot,
+} from 'react-icons/fa';
+import authService from '@services/authService';
+
+const severityIcon = {
+  high: FaExclamationTriangle,
+  medium: FaExclamationCircle,
+  low: FaInfoCircle,
+};
+
+function titleCase(value) {
+  return String(value || '')
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function formatDateTime(value) {
+  if (!value) return 'N/A';
+  return new Date(value).toLocaleString('en-US', {
+    month: 'short',
+    day: '2-digit',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
+function getInitials(name) {
+  return String(name || 'Unknown')
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('') || 'U';
+}
+
+export default function ViewIncidentDetail({
+  incident,
+  loading = false,
+  error = '',
+  actionLoading = false,
+  onReview,
+  onResolve,
+  onGenerateReport,
+  onSendPresident,
+  onClientRequestAction,
+}) {
+  if (loading) {
+    return (
+      <div className="ir-detail-page-container">
+        <div className="ir-detail-page-state">Loading incident report...</div>
+      </div>
+    );
+  }
+
+  if (error || !incident) {
+    return (
+      <div className="ir-detail-page-container">
+        <div className="ir-detail-page-state error">
+          {error || 'Incident report not found.'}
+        </div>
+      </div>
+    );
+  }
+
+  const severity = incident.status === 'resolved' ? 'resolved' : (incident.severity || 'medium');
+  const Icon = severity === 'resolved' ? FaCheckCircle : (severityIcon[severity] || FaInfoCircle);
+  const canReview = !['approved', 'rejected'].includes(incident.reviewStatus) && incident.status !== 'resolved';
+  const canResolve = incident.reviewStatus === 'approved' && incident.status !== 'resolved';
+  const canUseReports = incident.reviewStatus === 'approved' || incident.status === 'resolved';
+  const hasInternalReport = Boolean(incident.internalReportUrl);
+  const clientRequests = incident.clientReportRequests || [];
+
+  const openInternalReport = async () => {
+    await authService.openFileUrl(incident.internalReportUrl);
+  };
+
+  return (
+    <div className="ir-detail-page-container">
+      <div className={`ir-modal-header ${severity}`}>
+        <div>
+          <h2>Incident Report Details</h2>
+          <p>Report ID: {incident.reportId}</p>
+        </div>
+      </div>
+
+      <div className="ir-modal-body">
+        <div className="ir-modal-badges">
+          <span className={`ir-badge priority-${severity}`}>{titleCase(incident.severity)} Priority</span>
+          <span className="ir-badge cat-unauth">{titleCase(incident.category)}</span>
+          <span className="ir-badge status-reviewing">{titleCase(incident.reviewStatus)}</span>
+        </div>
+
+        <div className="ir-modal-grid">
+          <div className="ir-modal-cell">
+            <label>Location</label>
+            <p>{incident.siteName}</p>
+            <span>{incident.siteAddress || incident.clientName}</span>
+          </div>
+          <div className="ir-modal-cell">
+            <label>Date &amp; Time</label>
+            <p>{formatDateTime(incident.createdAt)}</p>
+            <span>{titleCase(incident.status)}</span>
+          </div>
+        </div>
+
+        <div className="ir-modal-reporter">
+          <p className="ir-modal-reporter-label">Reported By</p>
+          <div className="ir-modal-reporter-row">
+            <div className="ir-modal-reporter-avatar">{getInitials(incident.reporterName)}</div>
+            <div className="ir-modal-reporter-info">
+              <h4>{incident.reporterName}</h4>
+              <p>
+                {incident.reporterRole}
+                {incident.reporterEmployeeNumber ? ` - ${incident.reporterEmployeeNumber}` : ''}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <p className="ir-modal-section-label">
+            <FaRobot />
+            AI-Generated Summary
+          </p>
+          <div className={`ir-nlp-box ${severity}`}>
+            <p className={`ir-nlp-text ${severity}`}>{incident.summary || 'No summary available.'}</p>
+          </div>
+        </div>
+
+        <div>
+          <p className="ir-modal-section-label">Original Report</p>
+          <div className="ir-modal-narrative">{incident.rawText || 'No original report available.'}</div>
+        </div>
+
+        {incident.reviewNotes && (
+          <div>
+            <p className="ir-modal-section-label">Review Notes</p>
+            <div className="ir-modal-narrative">{incident.reviewNotes}</div>
+          </div>
+        )}
+
+        {canUseReports && (
+          <div>
+            <p className="ir-modal-section-label">Internal / President Report</p>
+            <div className="ir-report-panel">
+              <div>
+                <p className="ir-report-title">
+                  {hasInternalReport ? 'Internal formal report generated' : 'No internal formal report generated yet'}
+                </p>
+                <p className="ir-report-meta">
+                  {incident.internalReportGeneratedAt
+                    ? `Generated ${formatDateTime(incident.internalReportGeneratedAt)}`
+                    : 'Generate a stored PDF before sending it to the president.'}
+                </p>
+              </div>
+              <div className="ir-client-request-actions">
+                <button
+                  className="ir-mini-btn send"
+                  disabled={actionLoading}
+                  onClick={() => onGenerateReport?.(incident)}
+                >
+                  <FaFilePdf /> Generate Internal PDF
+                </button>
+                {hasInternalReport && (
+                  <button
+                    className="ir-mini-btn link"
+                    type="button"
+                    onClick={openInternalReport}
+                  >
+                    Open Internal PDF
+                  </button>
+                )}
+                <button
+                  className="ir-mini-btn approve"
+                  type="button"
+                  disabled={actionLoading || !hasInternalReport}
+                  onClick={() => onSendPresident?.(incident)}
+                >
+                  <FaPaperPlane /> Send to President
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {clientRequests.length > 0 && (
+          <div>
+            <p className="ir-modal-section-label">Client Full Report Request</p>
+            <div className="ir-client-request-list">
+              {clientRequests.map((request) => (
+                <div key={request.id} className="ir-client-request-card">
+                  <div>
+                    <p className="ir-report-title">{request.clientName}</p>
+                    <p className="ir-report-meta">
+                      Requested {formatDateTime(request.createdAt)}
+                      {request.requestNotes ? ` - ${request.requestNotes}` : ''}
+                    </p>
+                    {request.responseNotes && (
+                      <p className="ir-report-meta">Response: {request.responseNotes}</p>
+                    )}
+                    {request.clientReportGeneratedAt && (
+                      <p className="ir-report-meta">
+                        Client PDF generated {formatDateTime(request.clientReportGeneratedAt)}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="ir-client-request-actions">
+                    <span className="ir-badge status-reviewing">{titleCase(request.status)}</span>
+                    {request.status === 'pending' && (
+                      <>
+                        <button
+                          className="ir-mini-btn approve"
+                          disabled={actionLoading}
+                          onClick={() => onClientRequestAction?.(request, 'approved')}
+                        >
+                          <FaCheck /> Approve
+                        </button>
+                        <button
+                          className="ir-mini-btn reject"
+                          disabled={actionLoading}
+                          onClick={() => onClientRequestAction?.(request, 'rejected')}
+                        >
+                          <Icon /> Reject
+                        </button>
+                      </>
+                    )}
+                    {request.status === 'approved' && (
+                      <>
+                        <button
+                          className="ir-mini-btn send"
+                          disabled={actionLoading}
+                          onClick={() => onClientRequestAction?.(request, 'generate')}
+                        >
+                          <FaFilePdf /> Generate Client PDF
+                        </button>
+                        {request.clientReportUrl && (
+                          <button
+                            className="ir-mini-btn link"
+                            type="button"
+                            onClick={() => authService.openFileUrl(request.clientReportUrl)}
+                          >
+                            Open Client PDF
+                          </button>
+                        )}
+                        <button
+                          className="ir-mini-btn approve"
+                          disabled={actionLoading || !request.clientReportUrl}
+                          onClick={() => onClientRequestAction?.(request, 'sent')}
+                        >
+                          <FaPaperPlane /> Publish to CMS
+                        </button>
+                      </>
+                    )}
+                    {request.status === 'sent' && request.clientReportUrl && (
+                      <button
+                        className="ir-mini-btn link"
+                        type="button"
+                        onClick={() => authService.openFileUrl(request.clientReportUrl)}
+                      >
+                        Open Client PDF
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {(canReview || canResolve) && (
+          <div className="ir-modal-actions">
+            {canReview && (
+              <>
+                <button
+                  className="ir-modal-btn resolve"
+                  disabled={actionLoading}
+                  onClick={() => onReview?.(incident, 'approved')}
+                >
+                  <FaCheck /> Approve
+                </button>
+                <button
+                  className="ir-modal-btn print"
+                  disabled={actionLoading}
+                  onClick={() => onReview?.(incident, 'rejected')}
+                >
+                  <Icon /> Reject
+                </button>
+              </>
+            )}
+            {canResolve && (
+              <button
+                className="ir-modal-btn share"
+                disabled={actionLoading}
+                onClick={() => onResolve?.(incident)}
+              >
+                <FaCheckCircle /> Mark Resolved
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

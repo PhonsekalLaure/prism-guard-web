@@ -26,6 +26,11 @@ async function getStats() {
   return data;
 }
 
+async function getIncidentById(id) {
+  const { data } = await api.get(`/${id}`);
+  return data;
+}
+
 async function updateReview(id, reviewStatus, reviewNotes) {
   const { data } = await api.patch(`/${id}/review`, { reviewStatus, reviewNotes });
   return data;
@@ -36,21 +41,46 @@ async function markResolved(id, reviewNotes) {
   return data;
 }
 
+async function generateInternalReport(id) {
+  const { data } = await api.post(`/${id}/reports/internal`);
+  return data;
+}
+
+async function sendInternalReportToPresident(id) {
+  const { data } = await api.post(`/${id}/reports/internal/send-president`);
+  return data;
+}
+
 async function getClientReportRequests(params = {}) {
   const { data } = await api.get('/client-requests', { params });
   return data;
 }
 
-async function updateClientReportRequest(id, status, responseNotes) {
-  const { data } = await api.patch(`/client-requests/${id}`, { status, responseNotes });
+async function updateClientReportRequest(id, status) {
+  const { data } = await api.patch(`/client-requests/${id}`, { status });
+  return data;
+}
+
+async function sendClientReport(id) {
+  const { data } = await api.post(`/client-requests/${id}/send-report`);
+  return data;
+}
+
+async function generateClientReport(id) {
+  const { data } = await api.post(`/client-requests/${id}/generate-report`);
   return data;
 }
 
 export default {
   getIncidents,
+  getIncidentById,
   getStats,
   updateReview,
   markResolved,
+  generateInternalReport,
+  sendInternalReportToPresident,
   getClientReportRequests,
   updateClientReportRequest,
+  generateClientReport,
+  sendClientReport,
 };
