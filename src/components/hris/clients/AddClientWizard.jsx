@@ -260,8 +260,8 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
         if (!/\S+@\S+\.\S+/.test(formData.email)) {
           showNotification('Please enter a valid email address.', 'error'); return false;
         }
-        if (formData.mobile.replace(/\D/g, '').length !== 10) {
-          showNotification('Mobile number must be exactly 10 digits (excluding +63).', 'error'); return false;
+        if (!/^9\d{9}$/.test(formData.mobile.replace(/\D/g, ''))) {
+          showNotification('Mobile number must be a 10-digit Philippine mobile number starting with 9.', 'error'); return false;
         }
         return true;
       case 2:
