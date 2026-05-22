@@ -1,58 +1,87 @@
-import { FaExclamationTriangle, FaFileAlt, FaTimes } from 'react-icons/fa';
+import { FaExclamationTriangle, FaFileAlt, FaTimes, FaMapMarkerAlt, FaClock } from 'react-icons/fa';
 import authService from '@services/authService';
 import { formatIncidentDate, titleCase } from './incidentReportFormatters';
+
+function getSeverity(inc) {
+  if (inc.status === 'resolved') return 'resolved';
+  return inc.severity || 'low';
+}
 
 export default function IncidentDetailModal({ incident, onClose, onRequestReport }) {
   if (!incident) return null;
 
+  const severity = getSeverity(incident);
   const requestLocked = ['pending', 'approved', 'sent'].includes(incident.requestStatus);
 
   return (
-    <div className="ir-modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="ir-detail-modal">
-        <div className="ir-detail-modal__header">
+    <div className="cir-modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="cir-detail-modal">
+        {/* Header */}
+        <div className={`cir-detail-modal__header cir-header-${severity}`}>
           <div>
-            <h3>{incident.title}</h3>
-            <p>{incident.reportId}</p>
+            <div className="cir-modal-badges">
+              <span className={`cir-badge cir-badge-severity cir-badge-${severity}`}>
+                {titleCase(incident.severity)} Priority
+              </span>
+              <span className={`cir-badge cir-badge-status-${incident.status}`}>
+                {titleCase(incident.status)}
+              </span>
+            </div>
+            <h3>{incident.title || titleCase(incident.category)}</h3>
+            <p className="cir-modal-report-id">{incident.reportId}</p>
           </div>
-          <button className="ir-detail-modal__close" onClick={onClose}>
+          <button className="cir-modal-close" onClick={onClose}>
             <FaTimes />
           </button>
         </div>
 
-        <div className="ir-detail-modal__body">
-          <div className="ir-detail-grid">
-            <div>
-              <span>Date</span>
-              <strong>{formatIncidentDate(incident.occurredAt || incident.createdAt, {
+        {/* Body */}
+        <div className="cir-modal-body">
+          {/* Info grid */}
+          <div className="cir-modal-grid">
+            <div className="cir-modal-cell">
+              <label><FaClock /> Date</label>
+              <p>{formatIncidentDate(incident.occurredAt || incident.createdAt, {
                 hour: 'numeric',
                 minute: '2-digit',
-              })}</strong>
+              })}</p>
             </div>
-            <div>
-              <span>Site</span>
-              <strong>{incident.siteName}</strong>
+            <div className="cir-modal-cell">
+              <label><FaMapMarkerAlt /> Site</label>
+              <p>{incident.siteName}</p>
             </div>
-            <div>
-              <span>Category</span>
-              <strong>{titleCase(incident.category)}</strong>
+            <div className="cir-modal-cell">
+              <label>Category</label>
+              <p>{titleCase(incident.category)}</p>
             </div>
-            <div>
-              <span>Severity</span>
-              <strong>{titleCase(incident.severity)}</strong>
+            <div className="cir-modal-cell">
+              <label>Severity</label>
+              <p>{titleCase(incident.severity)}</p>
             </div>
           </div>
 
-          <div className="ir-detail-summary">
-            <p className="ir-detail-label">
+          {/* Summary */}
+          <div className={`cir-nlp-box cir-nlp-${severity}`}>
+            <p className={`cir-nlp-label cir-nlp-label-${severity}`}>
               <FaExclamationTriangle /> Reviewed Summary
             </p>
-            <p>{incident.summary || 'No summary available.'}</p>
+            <p className={`cir-nlp-text cir-nlp-text-${severity}`}>
+              {incident.summary || 'No summary available.'}
+            </p>
           </div>
 
-          <div className="ir-modal-actions">
+          {/* Actions */}
+          <div className="cir-modal-actions">
+            {incident.clientReportUrl && (
+              <button
+                className="cir-modal-btn cir-modal-btn-link"
+                onClick={() => authService.openFileUrl(incident.clientReportUrl)}
+              >
+                <FaFileAlt /> Open Full Report
+              </button>
+            )}
             <button
-              className="ir-btn-confirm"
+              className="cir-modal-btn cir-modal-btn-confirm"
               disabled={requestLocked}
               onClick={() => onRequestReport?.(incident)}
             >
@@ -60,15 +89,7 @@ export default function IncidentDetailModal({ incident, onClose, onRequestReport
                 ? titleCase(incident.requestStatus)
                 : 'Request Full Report'}
             </button>
-            {incident.clientReportUrl && (
-              <button
-                className="ir-btn-confirm"
-                onClick={() => authService.openFileUrl(incident.clientReportUrl)}
-              >
-                <FaFileAlt /> Open Full Report
-              </button>
-            )}
-            <button className="ir-btn-cancel" onClick={onClose}>
+            <button className="cir-modal-btn cir-modal-btn-cancel" onClick={onClose}>
               Close
             </button>
           </div>
