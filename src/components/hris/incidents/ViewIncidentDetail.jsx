@@ -125,6 +125,7 @@ export default function ViewIncidentDetail({
   const canResolve = incident.reviewStatus === 'approved' && incident.status !== 'resolved';
   const canUseReports = incident.reviewStatus === 'approved' || incident.status === 'resolved';
   const hasInternalReport = Boolean(incident.internalReportUrl);
+  const hasPresidentDelivery = Boolean(incident.presidentReportSentAt || incident.presidentEmailStatus === 'sent');
   const clientRequests = incident.clientReportRequests || [];
   const aiStatus = incident.aiProcessingStatus || 'completed';
   const aiFailed = aiStatus === 'failed';
@@ -223,22 +224,30 @@ export default function ViewIncidentDetail({
             <div className="ir-report-panel">
               <div>
                 <p className="ir-report-title">
-                  {hasInternalReport ? 'Internal formal report generated' : 'No internal formal report generated yet'}
+                  {hasPresidentDelivery
+                    ? 'Internal formal report sent to president'
+                    : hasInternalReport
+                      ? 'Internal formal report generated'
+                      : 'No internal formal report generated yet'}
                 </p>
                 <p className="ir-report-meta">
-                  {incident.internalReportGeneratedAt
+                  {hasPresidentDelivery
+                    ? `Sent ${formatDateTime(incident.presidentReportSentAt)}`
+                    : incident.internalReportGeneratedAt
                     ? `Generated ${formatDateTime(incident.internalReportGeneratedAt)}`
                     : 'Generate a stored PDF before sending it to the president.'}
                 </p>
               </div>
               <div className="ir-client-request-actions">
-                <button
-                  className="ir-mini-btn send"
-                  disabled={actionLoading || aiPending || (aiFailed && !incident.manualReviewApproved)}
-                  onClick={() => onGenerateReport?.(incident)}
-                >
-                  <FaFilePdf /> Generate Internal PDF
-                </button>
+                {!hasPresidentDelivery && (
+                  <button
+                    className="ir-mini-btn send"
+                    disabled={actionLoading || aiPending || (aiFailed && !incident.manualReviewApproved)}
+                    onClick={() => onGenerateReport?.(incident)}
+                  >
+                    <FaFilePdf /> Generate Internal PDF
+                  </button>
+                )}
                 {hasInternalReport && (
                   <button
                     className="ir-mini-btn link"
@@ -248,14 +257,16 @@ export default function ViewIncidentDetail({
                     Open Internal PDF
                   </button>
                 )}
-                <button
-                  className="ir-mini-btn approve"
-                  type="button"
-                  disabled={actionLoading || !hasInternalReport || aiPending || (aiFailed && !incident.manualReviewApproved)}
-                  onClick={() => onSendPresident?.(incident)}
-                >
-                  <FaPaperPlane /> Send to President
-                </button>
+                {!hasPresidentDelivery && (
+                  <button
+                    className="ir-mini-btn approve"
+                    type="button"
+                    disabled={actionLoading || !hasInternalReport || aiPending || (aiFailed && !incident.manualReviewApproved)}
+                    onClick={() => onSendPresident?.(incident)}
+                  >
+                    <FaPaperPlane /> Send to President
+                  </button>
+                )}
               </div>
             </div>
           </div>
