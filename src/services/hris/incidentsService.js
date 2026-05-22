@@ -31,8 +31,12 @@ async function getIncidentById(id) {
   return data;
 }
 
-async function updateReview(id, reviewStatus, reviewNotes) {
-  const { data } = await api.patch(`/${id}/review`, { reviewStatus, reviewNotes });
+async function updateReview(id, reviewStatus, reviewNotes, options = {}) {
+  const { data } = await api.patch(`/${id}/review`, {
+    reviewStatus,
+    reviewNotes,
+    ...options,
+  });
   return data;
 }
 
@@ -48,11 +52,6 @@ async function generateInternalReport(id) {
 
 async function sendInternalReportToPresident(id) {
   const { data } = await api.post(`/${id}/reports/internal/send-president`);
-  return data;
-}
-
-async function getClientReportRequests(params = {}) {
-  const { data } = await api.get('/client-requests', { params });
   return data;
 }
 
@@ -79,7 +78,6 @@ export default {
   markResolved,
   generateInternalReport,
   sendInternalReportToPresident,
-  getClientReportRequests,
   updateClientReportRequest,
   generateClientReport,
   sendClientReport,

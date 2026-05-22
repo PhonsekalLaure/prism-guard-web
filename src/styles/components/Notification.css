@@ -68,6 +68,14 @@
 .notif-info .notif-icon { color: #2563eb; }
 .notif-info .notif-message { color: #1e3a8a; }
 
+.notif-loading .notif-icon {
+  animation: notif-spin 0.9s linear infinite;
+}
+
+@keyframes notif-spin {
+  to { transform: rotate(360deg); }
+}
+
 /* ── Inner elements ── */
 .notif-icon {
   font-size: 1.1rem;

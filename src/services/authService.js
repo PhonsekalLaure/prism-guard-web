@@ -124,27 +124,24 @@ async function getFileObjectUrl(url) {
     throw new Error('No file URL provided');
   }
 
+  const requestUrl = isAbsoluteUrl(url) ? url : buildApiUrl(url);
   const token = getToken();
   const headers = {};
 
-  if (!isCloudinaryUrl(url) && token) {
+  if (!isCloudinaryUrl(requestUrl) && token) {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  if (!isAbsoluteUrl(url)) {
-    return url;
-  }
-
   try {
-    const { data } = await axios.get(url, {
+    const { data } = await axios.get(requestUrl, {
       responseType: 'blob',
       headers,
     });
 
     return URL.createObjectURL(data);
   } catch (error) {
-    if (isCloudinaryUrl(url)) {
-      return url;
+    if (isCloudinaryUrl(requestUrl)) {
+      return requestUrl;
     }
 
     throw error;
