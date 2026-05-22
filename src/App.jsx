@@ -35,6 +35,7 @@ import CmsProfilePage from '@cms-pages/CmsProfilePage';
 import CmsAnnouncementsPage from '@cms-pages/CmsAnnouncementsPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import NotificationsPage from './pages/NotificationsPage';
 
 function App() {
   return (
@@ -69,8 +70,9 @@ function App() {
           <Route path="/attendance" element={<ProtectedRoute requiredPermissions={['employees.read']}><HrisAttendancePage /></ProtectedRoute>} />
           <Route path="/cash-advance" element={<HrisCashAdvancePage />} />
           <Route path="/payroll" element={<HrisPayrollPage />} />
-          <Route path="/incidents" element={<HrisIncidentsPage />} />
-          <Route path="/incidents/:id" element={<HrisIncidentDetailPage />} />
+          <Route path="/incidents" element={<ProtectedRoute requiredPermissions={['incidents.read']}><HrisIncidentsPage /></ProtectedRoute>} />
+          <Route path="/incidents/:id" element={<ProtectedRoute requiredPermissions={['incidents.read']}><HrisIncidentDetailPage /></ProtectedRoute>} />
+          <Route path="/notifications" element={<NotificationsPage portal="hris" />} />
           <Route path="/announcements" element={<ProtectedRoute requiredPermissions={['announcements.read']}><HrisAnnouncementsPage /></ProtectedRoute>} />
         </Route>
 
@@ -88,6 +90,7 @@ function App() {
           <Route path="/cms/reviews" element={<ServiceReviewsPage />} />
           <Route path="/cms/profile" element={<CmsProfilePage />} />
           <Route path="/cms/announcements" element={<CmsAnnouncementsPage />} />
+          <Route path="/cms/notifications" element={<NotificationsPage portal="cms" />} />
         </Route>
 
         {/* Default route → login */}
