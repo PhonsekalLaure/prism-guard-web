@@ -4,9 +4,15 @@ import {
   FaExclamationCircle,
   FaExclamationTriangle,
   FaFilePdf,
+  FaFileAlt,
   FaInfoCircle,
+  FaMapMarkerAlt,
+  FaClock,
   FaPaperPlane,
   FaRobot,
+  FaUserShield,
+  FaClipboardList,
+  FaLock,
 } from 'react-icons/fa';
 import authService from '@services/authService';
 
@@ -56,10 +62,52 @@ export default function ViewIncidentDetail({
   if (loading) {
     return (
       <div className="ir-detail-page-container">
-        <div className="ir-detail-page-state">Loading incident report...</div>
+        {/* Header shimmer */}
+        <div className="ir-detail-skeleton-header" />
+
+        <div className="ir-modal-body">
+          {/* Badge row */}
+          <div className="ir-sk-badges">
+            {[90, 70, 80].map((w, i) => (
+              <div key={i} className="ir-skeleton" style={{ height: '1.35rem', width: `${w}px`, borderRadius: '999px' }} />
+            ))}
+          </div>
+
+          {/* 3-col info grid */}
+          <div className="ir-modal-grid-3">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="ir-modal-cell">
+                <div className="ir-skeleton" style={{ height: '0.6rem', width: '55%', marginBottom: '0.45rem' }} />
+                <div className="ir-skeleton" style={{ height: '1rem', width: '80%', marginBottom: '0.25rem' }} />
+                <div className="ir-skeleton" style={{ height: '0.65rem', width: '65%' }} />
+              </div>
+            ))}
+          </div>
+
+          {/* AI section */}
+          <div className="ir-sk-section">
+            <div className="ir-skeleton" style={{ height: '0.7rem', width: '140px' }} />
+            <div className="ir-skeleton" style={{ height: '1.3rem', width: '90px', borderRadius: '999px' }} />
+            <div className="ir-skeleton" style={{ height: '70px', borderRadius: '8px', marginTop: '0.2rem' }} />
+          </div>
+
+          {/* Narrative section */}
+          <div className="ir-sk-section">
+            <div className="ir-skeleton" style={{ height: '0.7rem', width: '110px' }} />
+            <div className="ir-skeleton" style={{ height: '90px', borderRadius: '8px' }} />
+          </div>
+
+          {/* Action bar skeleton */}
+          <div style={{ display: 'flex', gap: '0.65rem', paddingTop: '1rem', borderTop: '1px solid #e5e7eb' }}>
+            {[120, 100, 90].map((w, i) => (
+              <div key={i} className="ir-skeleton" style={{ height: '36px', width: `${w}px`, borderRadius: '8px' }} />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
+
 
   if (error || !incident) {
     return (
@@ -91,7 +139,7 @@ export default function ViewIncidentDetail({
     <div className="ir-detail-page-container">
       <div className={`ir-modal-header ${severity}`}>
         <div>
-          <h2>Incident Report Details</h2>
+          <h2><Icon style={{ marginRight: '0.4rem', opacity: 0.9 }} /> Incident Report Details</h2>
           <p>Report ID: {incident.reportId}</p>
         </div>
       </div>
@@ -103,29 +151,28 @@ export default function ViewIncidentDetail({
           <span className="ir-badge status-reviewing">{titleCase(incident.reviewStatus)}</span>
         </div>
 
-        <div className="ir-modal-grid">
+        <div className="ir-modal-grid-3">
           <div className="ir-modal-cell">
-            <label>Location</label>
+            <label><FaMapMarkerAlt />Location</label>
             <p>{incident.siteName}</p>
             <span>{incident.siteAddress || incident.clientName}</span>
           </div>
           <div className="ir-modal-cell">
-            <label>Incident Time</label>
+            <label><FaClock />Incident Time</label>
             <p>{formatDateTime(incident.occurredAt || incident.createdAt)}</p>
             <span>Submitted {formatDateTime(incident.createdAt)}</span>
           </div>
-        </div>
-
-        <div className="ir-modal-reporter">
-          <p className="ir-modal-reporter-label">Reported By</p>
-          <div className="ir-modal-reporter-row">
-            <div className="ir-modal-reporter-avatar">{getInitials(incident.reporterName)}</div>
-            <div className="ir-modal-reporter-info">
-              <h4>{incident.reporterName}</h4>
-              <p>
-                {incident.reporterRole}
-                {incident.reporterEmployeeNumber ? ` - ${incident.reporterEmployeeNumber}` : ''}
-              </p>
+          <div className="ir-modal-cell ir-modal-cell-reporter">
+            <label><FaUserShield />Reported By</label>
+            <div className="ir-reporter-mini">
+              <div className="ir-reporter-mini-avatar">{getInitials(incident.reporterName)}</div>
+              <div className="ir-reporter-mini-info">
+                <p>{incident.reporterName}</p>
+                <span>
+                  {incident.reporterRole}
+                  {incident.reporterEmployeeNumber ? ` · ${incident.reporterEmployeeNumber}` : ''}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -143,7 +190,7 @@ export default function ViewIncidentDetail({
               <span className="ir-badge priority-high">Manual review required</span>
             )}
           </div>
-          <div className={`ir-nlp-box ${severity}`}>
+          <div className={`ir-nlp-box ${severity}`} style={{ marginTop: '0.6rem' }}>
             <p className={`ir-nlp-text ${severity}`}>{incident.summary || 'No summary available.'}</p>
           </div>
           {aiFailed && (
@@ -159,20 +206,20 @@ export default function ViewIncidentDetail({
         </div>
 
         <div>
-          <p className="ir-modal-section-label">Original Report</p>
+          <p className="ir-modal-section-label"><FaClipboardList /> Original Report</p>
           <div className="ir-modal-narrative">{incident.rawText || 'No original report available.'}</div>
         </div>
 
         {incident.reviewNotes && (
           <div>
-            <p className="ir-modal-section-label">Review Notes</p>
+            <p className="ir-modal-section-label"><FaFileAlt /> Review Notes</p>
             <div className="ir-modal-narrative">{incident.reviewNotes}</div>
           </div>
         )}
 
         {canUseReports && (
           <div>
-            <p className="ir-modal-section-label">Internal / President Report</p>
+            <p className="ir-modal-section-label"><FaFilePdf /> Internal / President Report</p>
             <div className="ir-report-panel">
               <div>
                 <p className="ir-report-title">
@@ -216,7 +263,7 @@ export default function ViewIncidentDetail({
 
         {clientRequests.length > 0 && (
           <div>
-            <p className="ir-modal-section-label">Client Full Report Request</p>
+            <p className="ir-modal-section-label"><FaLock /> Client Full Report Request</p>
             <div className="ir-client-request-list">
               {clientRequests.map((request) => (
                 <div key={request.id} className="ir-client-request-card">

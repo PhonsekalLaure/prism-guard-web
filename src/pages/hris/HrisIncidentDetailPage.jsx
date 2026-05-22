@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
-import { FaArrowLeft, FaBars } from 'react-icons/fa';
+import { FaArrowLeft, FaBars, FaCheckCircle, FaUserCheck } from 'react-icons/fa';
 import Notification from '@components/ui/Notification';
 import ViewIncidentDetail from '@hris-components/incidents/ViewIncidentDetail';
 import useNotification from '@hooks/useNotification';
@@ -136,8 +136,13 @@ export default function HrisIncidentDetailPage() {
         await incidentsService.generateClientReport(request.id);
         showNotification('Client PDF generated. Review it before publishing to CMS.', 'success');
       } else if (action === 'sent') {
-        await incidentsService.sendClientReport(request.id);
-        showNotification('Client report published to CMS and notification email sent.', 'success');
+        const result = await incidentsService.sendClientReport(request.id);
+        showNotification(
+          result.notificationEmailStatus === 'failed'
+            ? 'Client report published to CMS, but the notification email failed.'
+            : 'Client report published to CMS and notification email sent.',
+          result.notificationEmailStatus === 'failed' ? 'warning' : 'success'
+        );
       } else {
         await incidentsService.updateClientReportRequest(request.id, action);
         showNotification('Client report request updated.', 'success');
@@ -192,8 +197,8 @@ export default function HrisIncidentDetailPage() {
       {showResolveNotes && (
         <div className="ir-modal-overlay" onClick={(e) => e.target === e.currentTarget && !actionLoading && closeResolveNotes()}>
           <div className="ir-note-modal">
-            <h3>Mark Incident Resolved</h3>
-            <p>Action: resolved</p>
+            <h3><FaCheckCircle style={{ color: '#16a34a' }} /> Mark Incident Resolved</h3>
+            <p>Add resolution notes to close this incident report.</p>
             <textarea
               className="ir-note-textarea"
               value={resolveNotes}
@@ -207,7 +212,7 @@ export default function HrisIncidentDetailPage() {
                 disabled={actionLoading}
                 onClick={confirmResolve}
               >
-                Confirm
+                <FaCheckCircle /> Confirm Resolution
               </button>
               <button
                 className="ir-modal-btn secondary"
@@ -224,7 +229,7 @@ export default function HrisIncidentDetailPage() {
       {showManualApproveNotes && (
         <div className="ir-modal-overlay" onClick={(e) => e.target === e.currentTarget && !actionLoading && closeManualApproveNotes()}>
           <div className="ir-note-modal">
-            <h3>Manual Incident Approval</h3>
+            <h3><FaUserCheck style={{ color: '#093269' }} /> Manual Incident Approval</h3>
             <p>AI processing failed. Confirm that you reviewed the original guard report manually before approval.</p>
             <textarea
               className="ir-note-textarea"
@@ -239,7 +244,7 @@ export default function HrisIncidentDetailPage() {
                 disabled={actionLoading}
                 onClick={confirmManualApprove}
               >
-                Confirm Manual Approval
+                <FaUserCheck /> Confirm Manual Approval
               </button>
               <button
                 className="ir-modal-btn secondary"

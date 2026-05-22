@@ -1,43 +1,62 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FaSearch, FaTag, FaFilter } from 'react-icons/fa';
 
 export default function HrisIncidentsFilterBar({ onFilterChange }) {
-  const [search, setSearch] = useState('');
+  const [localSearch, setLocalSearch] = useState('');
   const [status, setStatus] = useState('all');
   const [severity, setSeverity] = useState('all');
+  const latestFiltersRef = useRef({ onFilterChange, status, severity });
 
-  const notify = (patch) => onFilterChange?.({ search, status, severity, ...patch });
+  useEffect(() => {
+    latestFiltersRef.current = { onFilterChange, status, severity };
+  }, [onFilterChange, status, severity]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const latest = latestFiltersRef.current;
+      latest.onFilterChange?.({
+        search: localSearch,
+        status: latest.status,
+        severity: latest.severity,
+      });
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [localSearch]);
+
+  const handleStatus = (e) => {
+    const val = e.target.value;
+    setStatus(val);
+    onFilterChange?.({ search: localSearch, status: val, severity });
+  };
+
+  const handleSeverity = (e) => {
+    const val = e.target.value;
+    setSeverity(val);
+    onFilterChange?.({ search: localSearch, status, severity: val });
+  };
 
   return (
-    <div className="ir-filter-bar">
-      <div className="ir-filter-group">
-        <label className="ir-filter-label">
-          <FaSearch /> Search Employee
+    <div className="filter-bar three-cols">
+      <div className="filter-group">
+        <label className="filter-label">
+          <FaSearch className="filter-icon" />
+          Search Incident
         </label>
         <input
           type="text"
-          className="ir-filter-input"
-          placeholder="Search by employee, site, or report"
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            notify({ search: e.target.value });
-          }}
+          className="filter-input"
+          placeholder="Search by employee, site, or report ID..."
+          value={localSearch}
+          onChange={(e) => setLocalSearch(e.target.value)}
         />
       </div>
 
-      <div className="ir-filter-group">
-        <label className="ir-filter-label">
-          <FaTag /> Category
+      <div className="filter-group">
+        <label className="filter-label">
+          <FaTag className="filter-icon" />
+          Review Status
         </label>
-        <select
-          className="ir-filter-select"
-          value={status}
-          onChange={(e) => {
-            setStatus(e.target.value);
-            notify({ status: e.target.value });
-          }}
-        >
+        <select className="filter-select" value={status} onChange={handleStatus}>
           <option value="all">All Review Statuses</option>
           <option value="pending">Pending</option>
           <option value="in_review">In Review</option>
@@ -46,18 +65,12 @@ export default function HrisIncidentsFilterBar({ onFilterChange }) {
         </select>
       </div>
 
-      <div className="ir-filter-group">
-        <label className="ir-filter-label">
-          <FaFilter /> Priority
+      <div className="filter-group">
+        <label className="filter-label">
+          <FaFilter className="filter-icon" />
+          Priority
         </label>
-        <select
-          className="ir-filter-select"
-          value={severity}
-          onChange={(e) => {
-            setSeverity(e.target.value);
-            notify({ severity: e.target.value });
-          }}
-        >
+        <select className="filter-select" value={severity} onChange={handleSeverity}>
           <option value="all">All Priorities</option>
           <option value="high">High</option>
           <option value="medium">Medium</option>
