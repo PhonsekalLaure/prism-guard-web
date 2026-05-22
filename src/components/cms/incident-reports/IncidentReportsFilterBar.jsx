@@ -2,16 +2,15 @@ import { useState } from 'react';
 import { FaSearch, FaMapMarkerAlt, FaExclamationCircle, FaCalendar } from 'react-icons/fa';
 
 export default function IncidentReportsFilterBar({ onFilterChange, sites = [] }) {
-  const [search, setSearch]     = useState('');
-  const [site, setSite]         = useState('all');
+  const [search, setSearch] = useState('');
+  const [site, setSite] = useState('all');
   const [severity, setSeverity] = useState('all');
-  const [date, setDate]         = useState('');
+  const [date, setDate] = useState('');
 
   const notify = (patch) => onFilterChange?.({ search, site, severity, date, ...patch });
 
   return (
     <div className="filter-bar ir-filter-bar">
-      {/* Search */}
       <div className="filter-group">
         <label className="filter-label">
           <FaSearch className="filter-icon" />
@@ -26,7 +25,6 @@ export default function IncidentReportsFilterBar({ onFilterChange, sites = [] })
         />
       </div>
 
-      {/* Site */}
       <div className="filter-group">
         <label className="filter-label">
           <FaMapMarkerAlt className="filter-icon" />
@@ -46,7 +44,6 @@ export default function IncidentReportsFilterBar({ onFilterChange, sites = [] })
         </select>
       </div>
 
-      {/* Severity */}
       <div className="filter-group">
         <label className="filter-label">
           <FaExclamationCircle className="filter-icon" />
@@ -64,11 +61,10 @@ export default function IncidentReportsFilterBar({ onFilterChange, sites = [] })
         </select>
       </div>
 
-      {/* Date Range */}
       <div className="filter-group">
         <label className="filter-label">
           <FaCalendar className="filter-icon" />
-          Date Range
+          Incident Date
         </label>
         <input
           type="date"

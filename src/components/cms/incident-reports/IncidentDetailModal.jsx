@@ -1,22 +1,6 @@
 import { FaExclamationTriangle, FaFileAlt, FaTimes } from 'react-icons/fa';
 import authService from '@services/authService';
-
-function titleCase(value) {
-  return String(value || '')
-    .replace(/_/g, ' ')
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-}
-
-function formatDate(value) {
-  if (!value) return 'N/A';
-  return new Date(value).toLocaleString('en-US', {
-    month: 'short',
-    day: '2-digit',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-}
+import { formatIncidentDate, titleCase } from './incidentReportFormatters';
 
 export default function IncidentDetailModal({ incident, onClose, onRequestReport }) {
   if (!incident) return null;
@@ -40,7 +24,10 @@ export default function IncidentDetailModal({ incident, onClose, onRequestReport
           <div className="ir-detail-grid">
             <div>
               <span>Date</span>
-              <strong>{formatDate(incident.createdAt)}</strong>
+              <strong>{formatIncidentDate(incident.occurredAt || incident.createdAt, {
+                hour: 'numeric',
+                minute: '2-digit',
+              })}</strong>
             </div>
             <div>
               <span>Site</span>

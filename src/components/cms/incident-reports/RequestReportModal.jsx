@@ -5,6 +5,8 @@ export default function RequestReportModal({
   onClose,
   onConfirm,
   incident,
+  requestNotes = '',
+  onRequestNotesChange,
   submitting = false,
 }) {
   if (!isOpen) return null;
@@ -35,6 +37,19 @@ export default function RequestReportModal({
               <span className="ir-modal-details__value--muted">{incident?.siteName ?? 'N/A'}</span>
             </div>
           </div>
+
+          <label className="ir-request-notes-label" htmlFor="incident-request-notes">
+            Request Notes
+          </label>
+          <textarea
+            id="incident-request-notes"
+            className="ir-request-notes-input"
+            value={requestNotes}
+            onChange={(e) => onRequestNotesChange?.(e.target.value)}
+            placeholder="Add context for the operations team..."
+            rows={4}
+            disabled={submitting}
+          />
 
           <div className="ir-modal-actions">
             <button className="ir-btn-confirm" onClick={onConfirm} disabled={submitting}>

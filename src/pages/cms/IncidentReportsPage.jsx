@@ -24,6 +24,7 @@ export default function IncidentReportsPage() {
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [requestNotes, setRequestNotes] = useState('');
   const { notification, showNotification, closeNotification } = useNotification();
 
   const loadReports = useCallback(async (page = 1, nextFilters = {}) => {
@@ -79,8 +80,12 @@ export default function IncidentReportsPage() {
     if (!selectedIncident) return;
     setSubmitting(true);
     try {
-      const result = await incidentReportsService.requestFullReport(selectedIncident.id);
+      const result = await incidentReportsService.requestFullReport(
+        selectedIncident.id,
+        requestNotes.trim()
+      );
       setSelectedIncident(null);
+      setRequestNotes('');
       showNotification(result.duplicate
         ? 'A full report request is already active for this incident.'
         : 'Report request submitted for operations review.', 'success');
@@ -91,6 +96,12 @@ export default function IncidentReportsPage() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const closeRequestModal = () => {
+    if (submitting) return;
+    setSelectedIncident(null);
+    setRequestNotes('');
   };
 
   return (
@@ -123,7 +134,9 @@ export default function IncidentReportsPage() {
       <RequestReportModal
         isOpen={!!selectedIncident}
         incident={selectedIncident}
-        onClose={() => setSelectedIncident(null)}
+        requestNotes={requestNotes}
+        onRequestNotesChange={setRequestNotes}
+        onClose={closeRequestModal}
         onConfirm={handleConfirm}
         submitting={submitting}
       />

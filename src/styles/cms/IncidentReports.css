@@ -318,6 +318,34 @@
   color: #374151;
 }
 
+.ir-request-notes-label {
+  display: block;
+  margin: 0 0 0.45rem;
+  color: #093269;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: left;
+}
+
+.ir-request-notes-input {
+  width: 100%;
+  resize: vertical;
+  min-height: 92px;
+  margin-bottom: 1.25rem;
+  border: 1px solid #d9e2ef;
+  border-radius: 8px;
+  padding: 0.75rem;
+  color: #1f2937;
+  font: inherit;
+  line-height: 1.45;
+}
+
+.ir-request-notes-input:focus {
+  outline: none;
+  border-color: #093269;
+  box-shadow: 0 0 0 3px rgba(9, 50, 105, 0.12);
+}
+
 .ir-modal-actions {
   display: flex;
   gap: 0.75rem;

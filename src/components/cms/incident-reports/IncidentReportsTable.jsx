@@ -1,20 +1,7 @@
-import { FaListUl, FaFileAlt, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaListUl, FaFileAlt } from 'react-icons/fa';
+import Pagination from '@components/ui/Pagination';
 import authService from '@services/authService';
-
-function titleCase(value) {
-  return String(value || '')
-    .replace(/_/g, ' ')
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-}
-
-function formatDate(value) {
-  if (!value) return 'N/A';
-  return new Date(value).toLocaleDateString('en-US', {
-    month: 'short',
-    day: '2-digit',
-    year: 'numeric',
-  });
-}
+import { formatIncidentDate, titleCase } from './incidentReportFormatters';
 
 function severityClass(severity) {
   return `ir-badge ir-badge--${severity || 'low'}`;
@@ -37,6 +24,9 @@ export default function IncidentReportsTable({
   const page = metadata.page || 1;
   const totalPages = metadata.totalPages || 1;
   const total = metadata.total || 0;
+  const limit = metadata.limit || incidents.length || 1;
+  const start = total === 0 ? 0 : ((page - 1) * limit) + 1;
+  const end = Math.min(start + incidents.length - 1, total);
 
   return (
     <div className="ir-table-panel">
@@ -74,7 +64,7 @@ export default function IncidentReportsTable({
 
             {!loading && incidents.map((inc) => (
               <tr key={inc.id} className="ir-table-row">
-                <td className="ir-td-muted">{formatDate(inc.createdAt)}</td>
+                <td className="ir-td-muted">{formatIncidentDate(inc.occurredAt || inc.createdAt)}</td>
                 <td className="ir-td-id">{inc.reportId}</td>
                 <td>{inc.siteName}</td>
                 <td>{titleCase(inc.category)}</td>
@@ -121,26 +111,18 @@ export default function IncidentReportsTable({
         </table>
       </div>
 
-      <div className="ir-pagination">
-        <span className="ir-pagination-info">Showing {incidents.length} of {total} incidents</span>
-        <div className="ir-page-btns">
-          <button
-            className="page-btn"
-            disabled={page <= 1 || loading}
-            onClick={() => onPageChange?.(page - 1)}
-          >
-            <FaChevronLeft />
-          </button>
-          <button className="page-btn active">{page}</button>
-          <button
-            className="page-btn"
-            disabled={page >= totalPages || loading}
-            onClick={() => onPageChange?.(page + 1)}
-          >
-            <FaChevronRight />
-          </button>
-        </div>
-      </div>
+      {total > 0 && (
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+          startIndex={start - 1}
+          endIndex={end}
+          totalItems={total}
+          label="incidents"
+          disabled={loading}
+        />
+      )}
     </div>
   );
 }
