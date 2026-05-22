@@ -4,6 +4,7 @@ import {
   FaIdCard,
   FaPhone,
 } from 'react-icons/fa';
+import Pagination from '@components/ui/Pagination';
 
 const STATUS_LABELS = {
   pending: 'PENDING',
@@ -95,14 +96,15 @@ export default function ApplicantsGrid({
         ))}
       </div>
 
-      <div className="applicants-pagination">
-        <p className="applicants-pagination-info">Showing {from}-{to} of {total} applicants</p>
-        <div className="applicants-page-btns">
-          <button className="page-btn" disabled={page <= 1} onClick={() => onPageChange(page - 1)}>‹</button>
-          <button className="page-btn active">{page}</button>
-          <button className="page-btn" disabled={page >= totalPages} onClick={() => onPageChange(page + 1)}>›</button>
-        </div>
-      </div>
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        onPageChange={onPageChange}
+        startIndex={from - 1}
+        endIndex={to}
+        totalItems={total}
+        label="applicants"
+      />
     </>
   );
 }

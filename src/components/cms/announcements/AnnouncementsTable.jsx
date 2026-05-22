@@ -1,18 +1,16 @@
-import { useMemo } from 'react';
 import {
   FaBullhorn,
   FaExclamationCircle,
   FaExclamationTriangle,
   FaInfoCircle,
-  FaChevronLeft,
-  FaChevronRight,
   FaEye,
 } from 'react-icons/fa';
+import Pagination from '@components/ui/Pagination';
 
 const ITEMS_PER_PAGE = 10;
 
 function PriorityIcon({ priority }) {
-  if (priority === 'Urgent')    return <FaExclamationCircle className="ann-priority-icon ann-priority-icon--urgent" />;
+  if (priority === 'Urgent') return <FaExclamationCircle className="ann-priority-icon ann-priority-icon--urgent" />;
   if (priority === 'Important') return <FaExclamationTriangle className="ann-priority-icon ann-priority-icon--important" />;
   return <FaInfoCircle className="ann-priority-icon ann-priority-icon--normal" />;
 }
@@ -21,23 +19,6 @@ function buildPreview(message) {
   const normalized = String(message || '').replace(/\s+/g, ' ').trim();
   if (normalized.length <= 120) return normalized;
   return `${normalized.slice(0, 117)}...`;
-}
-
-function buildPageNumbers(page, totalPages) {
-  if (totalPages <= 7) {
-    return Array.from({ length: totalPages }, (_, index) => index + 1);
-  }
-
-  const pages = new Set([1, totalPages, page, page - 1, page + 1]);
-  if (page <= 3) { pages.add(2); pages.add(3); pages.add(4); }
-  if (page >= totalPages - 2) { pages.add(totalPages - 1); pages.add(totalPages - 2); pages.add(totalPages - 3); }
-
-  const sorted = [...pages].filter((item) => item >= 1 && item <= totalPages).sort((a, b) => a - b);
-  return sorted.reduce((result, item, index) => {
-    if (index > 0 && item - sorted[index - 1] > 1) result.push(`gap-${sorted[index - 1]}-${item}`);
-    result.push(item);
-    return result;
-  }, []);
 }
 
 function SkeletonRow() {
@@ -72,12 +53,8 @@ export default function AnnouncementsTable({
   const total = metadata?.total || 0;
   const limit = metadata?.limit || ITEMS_PER_PAGE;
   const totalPages = metadata?.totalPages || 0;
-  const paginated = useMemo(() => announcements, [announcements]);
-  const pageNumbers = useMemo(() => buildPageNumbers(page, totalPages), [page, totalPages]);
-
-  const handlePageChange = (p) => {
-    if (p >= 1 && p <= totalPages) onPageChange?.(p);
-  };
+  const start = total === 0 ? 0 : Math.min((page - 1) * limit + 1, total);
+  const end = Math.min(page * limit, total);
 
   return (
     <div className="ann-table-panel">
@@ -103,7 +80,7 @@ export default function AnnouncementsTable({
           <tbody>
             {loading
               ? Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={`skel-${i}`} />)
-              : paginated.length === 0
+              : announcements.length === 0
               ? (
                 <tr>
                   <td colSpan={6} className="ann-table-empty">
@@ -114,7 +91,7 @@ export default function AnnouncementsTable({
                     </div>
                   </td>
                 </tr>
-              ) : paginated.map((ann) => (
+              ) : announcements.map((ann) => (
                 <tr key={ann.id} className="ann-table-row">
                   <td className="ann-td-muted">{ann.date}</td>
                   <td className="ann-td-id">{ann.id}</td>
@@ -142,41 +119,15 @@ export default function AnnouncementsTable({
       </div>
 
       {!loading && total > 0 && (
-        <div className="ann-pagination">
-          <span className="ann-pagination-info">
-            Showing {Math.min((page - 1) * limit + 1, total)}–
-            {Math.min(page * limit, total)} of {total} announcement{total !== 1 ? 's' : ''}
-          </span>
-          <div className="ann-pagination-btns">
-            <button
-              className="ann-page-btn"
-              onClick={() => handlePageChange(page - 1)}
-              disabled={page === 1}
-            >
-              <FaChevronLeft />
-            </button>
-            {pageNumbers.map((p) =>
-              typeof p === 'number' ? (
-                <button
-                  key={p}
-                  className={`ann-page-btn${p === page ? ' active' : ''}`}
-                  onClick={() => handlePageChange(p)}
-                >
-                  {p}
-                </button>
-              ) : (
-                <span key={p} className="ann-page-gap">…</span>
-              )
-            )}
-            <button
-              className="ann-page-btn"
-              onClick={() => handlePageChange(page + 1)}
-              disabled={page === totalPages}
-            >
-              <FaChevronRight />
-            </button>
-          </div>
-        </div>
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+          startIndex={start - 1}
+          endIndex={end}
+          totalItems={total}
+          label={`announcement${total !== 1 ? 's' : ''}`}
+        />
       )}
     </div>
   );

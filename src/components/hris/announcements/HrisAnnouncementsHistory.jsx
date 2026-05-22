@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  FaHistory, FaBullhorn, FaEye, FaChevronLeft, FaChevronRight,
+  FaHistory, FaBullhorn, FaEye,
   FaTimes, FaArrowLeft, FaSearch, FaEdit, FaArchive, FaTrash,
   FaSave, FaExclamationTriangle,
 } from 'react-icons/fa';
+import Pagination from '@components/ui/Pagination';
 
 const AUDIENCE_OPTIONS = [
   { value: '', label: 'All Audiences' },
@@ -304,36 +305,6 @@ function ConfirmModal({ action, saving, onCancel, onConfirm }) {
   );
 }
 
-function buildPageNumbers(page, totalPages) {
-  if (totalPages <= 7) {
-    return Array.from({ length: totalPages }, (_, index) => index + 1);
-  }
-
-  const pages = new Set([1, totalPages, page, page - 1, page + 1]);
-  if (page <= 3) {
-    pages.add(2);
-    pages.add(3);
-    pages.add(4);
-  }
-  if (page >= totalPages - 2) {
-    pages.add(totalPages - 1);
-    pages.add(totalPages - 2);
-    pages.add(totalPages - 3);
-  }
-
-  const sorted = [...pages]
-    .filter((item) => item >= 1 && item <= totalPages)
-    .sort((a, b) => a - b);
-
-  return sorted.reduce((result, item, index) => {
-    if (index > 0 && item - sorted[index - 1] > 1) {
-      result.push(`gap-${sorted[index - 1]}-${item}`);
-    }
-    result.push(item);
-    return result;
-  }, []);
-}
-
 export default function HrisAnnouncementsHistory({
   rows = [],
   loading = false,
@@ -355,7 +326,6 @@ export default function HrisAnnouncementsHistory({
   const totalPages = metadata.totalPages || 0;
   const start = metadata.total ? ((page - 1) * metadata.limit) + 1 : 0;
   const end = metadata.total ? Math.min(page * metadata.limit, metadata.total) : 0;
-  const pageNumbers = useMemo(() => buildPageNumbers(page, totalPages), [page, totalPages]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -533,41 +503,18 @@ export default function HrisAnnouncementsHistory({
         </table>
       </div>
 
-      <div className="an-pagination">
-        <p className="an-pagination-text">
-          Showing {start ? `${start}-${end}` : '0'} of {metadata.total || 0} announcements
-        </p>
-        <div className="an-pagination-controls">
-          <button
-            className="an-page-btn"
-            disabled={loading || page <= 1}
-            onClick={() => onPageChange(page - 1)}
-          >
-            <FaChevronLeft />
-          </button>
-          {pageNumbers.map((item) => (
-            typeof item === 'number' ? (
-              <button
-                key={item}
-                className={`an-page-btn ${item === page ? 'active' : ''}`}
-                disabled={loading}
-                onClick={() => onPageChange(item)}
-              >
-                {item}
-              </button>
-            ) : (
-              <span key={item} className="an-page-gap">...</span>
-            )
-          ))}
-          <button
-            className="an-page-btn"
-            disabled={loading || page >= totalPages}
-            onClick={() => onPageChange(page + 1)}
-          >
-            <FaChevronRight />
-          </button>
-        </div>
-      </div>
+      {(metadata.total || 0) > 0 && (
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+          startIndex={start - 1}
+          endIndex={end}
+          totalItems={metadata.total || 0}
+          label="announcements"
+          disabled={loading}
+        />
+      )}
 
       {selected && <ViewModal item={selected} onClose={() => setSelected(null)} />}
       {editing && (
