@@ -48,6 +48,39 @@ function getInitials(name) {
     .join('') || 'U';
 }
 
+function getIncidentStatusMeta(incident = {}) {
+  const value = incident.status === 'resolved' ? 'resolved' : (incident.reviewStatus || incident.status || 'pending');
+  const className = {
+    pending: 'status-new',
+    in_review: 'status-reviewing',
+    approved: 'status-approved',
+    rejected: 'status-rejected',
+    resolved: 'status-resolved',
+  }[value] || 'status-logged';
+
+  return {
+    label: value === 'resolved' ? 'Resolved' : titleCase(value),
+    className,
+  };
+}
+
+function getProcessingStatusClass(status) {
+  return {
+    pending: 'status-reviewing',
+    completed: 'status-resolved',
+    failed: 'status-rejected',
+  }[status] || 'status-logged';
+}
+
+function getRequestStatusClass(status) {
+  return {
+    pending: 'status-new',
+    approved: 'status-approved',
+    rejected: 'status-rejected',
+    sent: 'status-resolved',
+  }[status] || 'status-logged';
+}
+
 export default function ViewIncidentDetail({
   incident,
   loading = false,
@@ -131,6 +164,7 @@ export default function ViewIncidentDetail({
   const aiFailed = aiStatus === 'failed';
   const aiPending = aiStatus === 'pending';
   const summaryLabel = aiStatus === 'completed' ? 'AI-Generated Summary' : 'Processing Summary';
+  const statusMeta = getIncidentStatusMeta(incident);
 
   const openInternalReport = async () => {
     await authService.openFileUrl(incident.internalReportUrl);
@@ -149,7 +183,7 @@ export default function ViewIncidentDetail({
         <div className="ir-modal-badges">
           <span className={`ir-badge priority-${severity}`}>{titleCase(incident.severity)} Priority</span>
           <span className="ir-badge cat-unauth">{titleCase(incident.category)}</span>
-          <span className="ir-badge status-reviewing">{titleCase(incident.reviewStatus)}</span>
+          <span className={`ir-badge ${statusMeta.className}`}>{statusMeta.label}</span>
         </div>
 
         <div className="ir-modal-grid-3">
@@ -184,7 +218,7 @@ export default function ViewIncidentDetail({
             {summaryLabel}
           </p>
           <div className="ir-modal-badges">
-            <span className="ir-badge status-reviewing">
+            <span className={`ir-badge ${getProcessingStatusClass(aiStatus)}`}>
               AI {titleCase(aiStatus)}
             </span>
             {aiFailed && incident.aiProcessingError && (
@@ -295,7 +329,7 @@ export default function ViewIncidentDetail({
                   </div>
 
                   <div className="ir-client-request-actions">
-                    <span className="ir-badge status-reviewing">{titleCase(request.status)}</span>
+                    <span className={`ir-badge ${getRequestStatusClass(request.status)}`}>{titleCase(request.status)}</span>
                     {request.status === 'pending' && (
                       <>
                         <button

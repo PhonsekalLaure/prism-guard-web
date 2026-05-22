@@ -309,6 +309,8 @@
 
 .ir-badge.status-new       { background: #fee2e2; color: #991b1b; }
 .ir-badge.status-reviewing { background: #fef3c7; color: #92400e; }
+.ir-badge.status-approved  { background: #dbeafe; color: #1d4ed8; }
+.ir-badge.status-rejected  { background: #fee2e2; color: #991b1b; }
 .ir-badge.status-logged    { background: #f3f4f6; color: #374151; }
 .ir-badge.status-resolved  { background: #dcfce7; color: #14532d; }
 

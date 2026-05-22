@@ -35,6 +35,31 @@ function formatDateTime(value) {
   });
 }
 
+function getIncidentStatusMeta(incident = {}) {
+  const value = incident.status === 'resolved' ? 'resolved' : (incident.reviewStatus || incident.status || 'pending');
+  const className = {
+    pending: 'status-new',
+    in_review: 'status-reviewing',
+    approved: 'status-approved',
+    rejected: 'status-rejected',
+    resolved: 'status-resolved',
+  }[value] || 'status-logged';
+
+  return {
+    label: value === 'resolved' ? 'Resolved' : titleCase(value),
+    className,
+  };
+}
+
+function getRequestStatusClass(status) {
+  return {
+    pending: 'status-new',
+    approved: 'status-approved',
+    rejected: 'status-rejected',
+    sent: 'status-resolved',
+  }[status] || 'status-logged';
+}
+
 function SkeletonCard({ delay }) {
   return (
     <div className="ir-card-skeleton" style={{ animationDelay: delay }}>
@@ -114,6 +139,7 @@ export default function HrisIncidentsFeed({
           );
           const aiStatus = inc.aiProcessingStatus || 'completed';
           const summaryLabel = aiStatus === 'completed' ? 'AI-Generated Summary' : `AI ${titleCase(aiStatus)}`;
+          const statusMeta = getIncidentStatusMeta(inc);
 
           return (
             <div
@@ -133,7 +159,7 @@ export default function HrisIncidentsFeed({
                         {titleCase(inc.severity)} Priority
                       </span>
                       {activeClientRequest && (
-                        <span className="ir-badge status-reviewing">
+                        <span className={`ir-badge ${getRequestStatusClass(activeClientRequest.status)}`}>
                           Full Report {titleCase(activeClientRequest.status)}
                         </span>
                       )}
@@ -151,7 +177,7 @@ export default function HrisIncidentsFeed({
                 </div>
 
                 <div className="ir-card-right">
-                  <span className="ir-badge status-reviewing">{titleCase(inc.reviewStatus)}</span>
+                  <span className={`ir-badge ${statusMeta.className}`}>{statusMeta.label}</span>
                   <p><FaClock /> {formatDateTime(inc.occurredAt || inc.createdAt)}</p>
                 </div>
               </div>
