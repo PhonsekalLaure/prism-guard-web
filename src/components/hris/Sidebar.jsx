@@ -4,6 +4,7 @@ import {
   FaTachometerAlt, FaBuilding, FaFileInvoiceDollar, FaHeadset, FaStar,
   FaUsers, FaFingerprint, FaCalendarAlt, FaHandHoldingUsd, FaMoneyBillWave,
   FaUserPlus, FaExclamationTriangle, FaBullhorn, FaUserShield, FaSignOutAlt,
+  FaBell,
 } from 'react-icons/fa';
 import logo from '@assets/logo.png';
 import authService from '@services/authService';
@@ -39,7 +40,8 @@ const navGroups = [
   {
     label: 'Operations',
     items: [
-      { to: '/incidents', icon: FaExclamationTriangle, label: 'Incidents' },
+      { to: '/notifications', icon: FaBell, label: 'Notifications' },
+      { to: '/incidents', icon: FaExclamationTriangle, label: 'Incidents', permissions: ['incidents.read'] },
       { to: '/announcements', icon: FaBullhorn, label: 'Announcements', permissions: ['announcements.read'] },
     ],
   },
