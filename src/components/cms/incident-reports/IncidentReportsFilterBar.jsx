@@ -1,16 +1,30 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FaSearch, FaMapMarkerAlt, FaExclamationCircle, FaCalendar } from 'react-icons/fa';
 
 export default function IncidentReportsFilterBar({ onFilterChange, sites = [] }) {
-  const [search, setSearch] = useState('');
+  const [localSearch, setLocalSearch] = useState('');
   const [site, setSite] = useState('all');
   const [severity, setSeverity] = useState('all');
   const [date, setDate] = useState('');
+  const latestRef = useRef({ onFilterChange, site, severity, date });
 
-  const notify = (patch) => onFilterChange?.({ search, site, severity, date, ...patch });
+  useEffect(() => {
+    latestRef.current = { onFilterChange, site, severity, date };
+  }, [onFilterChange, site, severity, date]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const { onFilterChange: fn, site: s, severity: sv, date: d } = latestRef.current;
+      fn?.({ search: localSearch, site: s, severity: sv, date: d });
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [localSearch]);
+
+  const notify = (patch) =>
+    onFilterChange?.({ search: localSearch, site, severity, date, ...patch });
 
   return (
-    <div className="filter-bar ir-filter-bar">
+    <div className="filter-bar cir-filter-bar">
       <div className="filter-group">
         <label className="filter-label">
           <FaSearch className="filter-icon" />
@@ -18,9 +32,9 @@ export default function IncidentReportsFilterBar({ onFilterChange, sites = [] })
         </label>
         <input
           type="text"
-          placeholder="Search incidents..."
-          value={search}
-          onChange={(e) => { setSearch(e.target.value); notify({ search: e.target.value }); }}
+          placeholder="Search by incident ID, site, or type..."
+          value={localSearch}
+          onChange={(e) => setLocalSearch(e.target.value)}
           className="filter-input"
         />
       </div>
@@ -36,10 +50,8 @@ export default function IncidentReportsFilterBar({ onFilterChange, sites = [] })
           className="filter-select"
         >
           <option value="all">All Sites</option>
-          {sites.map((siteOption) => (
-            <option key={siteOption.id} value={siteOption.id}>
-              {siteOption.site_name}
-            </option>
+          {sites.map((s) => (
+            <option key={s.id} value={s.id}>{s.site_name}</option>
           ))}
         </select>
       </div>
@@ -54,7 +66,7 @@ export default function IncidentReportsFilterBar({ onFilterChange, sites = [] })
           onChange={(e) => { setSeverity(e.target.value); notify({ severity: e.target.value }); }}
           className="filter-select"
         >
-          <option value="all">All</option>
+          <option value="all">All Severities</option>
           <option value="high">High</option>
           <option value="medium">Medium</option>
           <option value="low">Low</option>
