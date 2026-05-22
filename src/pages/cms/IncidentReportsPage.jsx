@@ -9,6 +9,7 @@ import IncidentDetailModal from '@cms-components/incident-reports/IncidentDetail
 import Notification from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
 import incidentReportsService from '@services/cms/incidentReportsService';
+import '../../styles/cms/IncidentReports.css';
 
 const PAGE_LIMIT = 8;
 const INITIAL_FILTERS = { search: '', site: 'all', severity: 'all', date: '' };
