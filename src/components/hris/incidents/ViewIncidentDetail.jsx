@@ -78,6 +78,10 @@ export default function ViewIncidentDetail({
   const canUseReports = incident.reviewStatus === 'approved' || incident.status === 'resolved';
   const hasInternalReport = Boolean(incident.internalReportUrl);
   const clientRequests = incident.clientReportRequests || [];
+  const aiStatus = incident.aiProcessingStatus || 'completed';
+  const aiFailed = aiStatus === 'failed';
+  const aiPending = aiStatus === 'pending';
+  const summaryLabel = aiStatus === 'completed' ? 'AI-Generated Summary' : 'Processing Summary';
 
   const openInternalReport = async () => {
     await authService.openFileUrl(incident.internalReportUrl);
@@ -106,9 +110,9 @@ export default function ViewIncidentDetail({
             <span>{incident.siteAddress || incident.clientName}</span>
           </div>
           <div className="ir-modal-cell">
-            <label>Date &amp; Time</label>
-            <p>{formatDateTime(incident.createdAt)}</p>
-            <span>{titleCase(incident.status)}</span>
+            <label>Incident Time</label>
+            <p>{formatDateTime(incident.occurredAt || incident.createdAt)}</p>
+            <span>Submitted {formatDateTime(incident.createdAt)}</span>
           </div>
         </div>
 
@@ -129,11 +133,29 @@ export default function ViewIncidentDetail({
         <div>
           <p className="ir-modal-section-label">
             <FaRobot />
-            AI-Generated Summary
+            {summaryLabel}
           </p>
+          <div className="ir-modal-badges">
+            <span className="ir-badge status-reviewing">
+              AI {titleCase(aiStatus)}
+            </span>
+            {aiFailed && incident.aiProcessingError && (
+              <span className="ir-badge priority-high">Manual review required</span>
+            )}
+          </div>
           <div className={`ir-nlp-box ${severity}`}>
             <p className={`ir-nlp-text ${severity}`}>{incident.summary || 'No summary available.'}</p>
           </div>
+          {aiFailed && (
+            <p className="ir-report-meta">
+              AI processing failed. Review the original report manually before approval.
+            </p>
+          )}
+          {aiPending && (
+            <p className="ir-report-meta">
+              AI processing is still running. Approval and formal report generation are temporarily disabled.
+            </p>
+          )}
         </div>
 
         <div>
@@ -165,7 +187,7 @@ export default function ViewIncidentDetail({
               <div className="ir-client-request-actions">
                 <button
                   className="ir-mini-btn send"
-                  disabled={actionLoading}
+                  disabled={actionLoading || aiPending || (aiFailed && !incident.manualReviewApproved)}
                   onClick={() => onGenerateReport?.(incident)}
                 >
                   <FaFilePdf /> Generate Internal PDF
@@ -182,7 +204,7 @@ export default function ViewIncidentDetail({
                 <button
                   className="ir-mini-btn approve"
                   type="button"
-                  disabled={actionLoading || !hasInternalReport}
+                  disabled={actionLoading || !hasInternalReport || aiPending || (aiFailed && !incident.manualReviewApproved)}
                   onClick={() => onSendPresident?.(incident)}
                 >
                   <FaPaperPlane /> Send to President
@@ -238,7 +260,7 @@ export default function ViewIncidentDetail({
                       <>
                         <button
                           className="ir-mini-btn send"
-                          disabled={actionLoading}
+                          disabled={actionLoading || aiPending || (aiFailed && !incident.manualReviewApproved)}
                           onClick={() => onClientRequestAction?.(request, 'generate')}
                         >
                           <FaFilePdf /> Generate Client PDF
@@ -254,7 +276,7 @@ export default function ViewIncidentDetail({
                         )}
                         <button
                           className="ir-mini-btn approve"
-                          disabled={actionLoading || !request.clientReportUrl}
+                          disabled={actionLoading || !request.clientReportUrl || aiPending || (aiFailed && !incident.manualReviewApproved)}
                           onClick={() => onClientRequestAction?.(request, 'sent')}
                         >
                           <FaPaperPlane /> Publish to CMS
@@ -283,10 +305,10 @@ export default function ViewIncidentDetail({
               <>
                 <button
                   className="ir-modal-btn resolve"
-                  disabled={actionLoading}
+                  disabled={actionLoading || aiPending}
                   onClick={() => onReview?.(incident, 'approved')}
                 >
-                  <FaCheck /> Approve
+                  <FaCheck /> {aiFailed ? 'Approve Manually' : 'Approve'}
                 </button>
                 <button
                   className="ir-modal-btn print"

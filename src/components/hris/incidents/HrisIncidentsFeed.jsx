@@ -61,6 +61,8 @@ export default function HrisIncidentsFeed({
           const activeClientRequest = (inc.clientReportRequests || []).find((request) =>
             ['pending', 'approved'].includes(request.status)
           );
+          const aiStatus = inc.aiProcessingStatus || 'completed';
+          const summaryLabel = aiStatus === 'completed' ? 'AI-GENERATED SUMMARY' : `AI ${titleCase(aiStatus)}`;
 
           return (
             <div
@@ -84,6 +86,11 @@ export default function HrisIncidentsFeed({
                           Full Report {titleCase(activeClientRequest.status)}
                         </span>
                       )}
+                      {aiStatus !== 'completed' && (
+                        <span className="ir-badge status-reviewing">
+                          AI {titleCase(aiStatus)}
+                        </span>
+                      )}
                     </div>
                     <p className={`ir-card-title ${severity}`}>{inc.title}</p>
                     <p className="ir-card-location">
@@ -94,7 +101,7 @@ export default function HrisIncidentsFeed({
 
                 <div className="ir-card-right">
                   <span className="ir-badge status-reviewing">{titleCase(inc.reviewStatus)}</span>
-                  <p><FaClock /> {formatDateTime(inc.createdAt)}</p>
+                  <p><FaClock /> {formatDateTime(inc.occurredAt || inc.createdAt)}</p>
                 </div>
               </div>
 
@@ -115,7 +122,7 @@ export default function HrisIncidentsFeed({
 
               <div className={`ir-nlp-box ${severity}`}>
                 <p className={`ir-nlp-label ${severity}`}>
-                  <FaRobot /> AI-GENERATED SUMMARY
+                  <FaRobot /> {summaryLabel}
                 </p>
                 <p className={`ir-nlp-text ${severity}`}>{inc.summary || 'No summary available.'}</p>
               </div>

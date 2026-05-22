@@ -17,6 +17,8 @@ export default function HrisIncidentDetailPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [showResolveNotes, setShowResolveNotes] = useState(false);
   const [resolveNotes, setResolveNotes] = useState('');
+  const [showManualApproveNotes, setShowManualApproveNotes] = useState(false);
+  const [manualApproveNotes, setManualApproveNotes] = useState('');
   const { notification, showNotification, closeNotification } = useNotification();
 
   const loadIncident = useCallback(async () => {
@@ -37,26 +39,60 @@ export default function HrisIncidentDetailPage() {
     loadIncident();
   }, [loadIncident]);
 
-  const handleReview = async (_incident, status) => {
+  const submitReview = async (status, reviewNotes, options = {}) => {
     setActionLoading(true);
     try {
-      await incidentsService.updateReview(id, status);
+      await incidentsService.updateReview(id, status, reviewNotes, options);
       showNotification('Incident report updated.', 'success');
       await loadIncident();
+      return true;
     } catch (err) {
       showNotification(err.response?.data?.error || 'Failed to update incident report.', 'error');
+      return false;
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const closeResolveNotes = () => {
+    setShowResolveNotes(false);
+    setResolveNotes('');
+  };
+
+  const closeManualApproveNotes = () => {
+    setShowManualApproveNotes(false);
+    setManualApproveNotes('');
+  };
+
+  const handleReview = async (targetIncident, status) => {
+    if (status === 'approved' && targetIncident?.aiProcessingStatus === 'failed') {
+      setShowResolveNotes(false);
+      setShowManualApproveNotes(true);
+      return;
+    }
+
+    await submitReview(status);
+  };
+
+  const confirmManualApprove = async () => {
+    const notes = manualApproveNotes.trim();
+    if (!notes) {
+      showNotification('Manual review notes are required.', 'error');
+      return;
+    }
+
+    const updated = await submitReview('approved', notes, { manualReview: true });
+    if (updated) {
+      closeManualApproveNotes();
     }
   };
 
   const confirmResolve = async () => {
     setActionLoading(true);
     try {
-      await incidentsService.markResolved(id, resolveNotes);
+      await incidentsService.markResolved(id, resolveNotes.trim());
       showNotification('Incident report marked as resolved.', 'success');
-      setShowResolveNotes(false);
-      setResolveNotes('');
+      closeResolveNotes();
       await loadIncident();
     } catch (err) {
       showNotification(err.response?.data?.error || 'Failed to mark incident as resolved.', 'error');
@@ -67,9 +103,10 @@ export default function HrisIncidentDetailPage() {
 
   const handleGenerateReport = async () => {
     setActionLoading(true);
+    showNotification('Generating PDF...', 'loading', 0);
     try {
       await incidentsService.generateInternalReport(id);
-      showNotification('Formal incident report generated.', 'success');
+      showNotification('PDF generated. Review it before sending.', 'success');
       await loadIncident();
     } catch (err) {
       showNotification(err.response?.data?.error || 'Failed to generate formal report.', 'error');
@@ -95,6 +132,7 @@ export default function HrisIncidentDetailPage() {
     setActionLoading(true);
     try {
       if (action === 'generate') {
+        showNotification('Generating client PDF...', 'loading', 0);
         await incidentsService.generateClientReport(request.id);
         showNotification('Client PDF generated. Review it before publishing to CMS.', 'success');
       } else if (action === 'sent') {
@@ -141,7 +179,10 @@ export default function HrisIncidentDetailPage() {
           error={error}
           actionLoading={actionLoading}
           onReview={handleReview}
-          onResolve={() => setShowResolveNotes(true)}
+          onResolve={() => {
+            setShowManualApproveNotes(false);
+            setShowResolveNotes(true);
+          }}
           onGenerateReport={handleGenerateReport}
           onSendPresident={handleSendPresident}
           onClientRequestAction={handleClientRequestAction}
@@ -149,7 +190,7 @@ export default function HrisIncidentDetailPage() {
       </div>
 
       {showResolveNotes && (
-        <div className="ir-modal-overlay" onClick={(e) => e.target === e.currentTarget && !actionLoading && setShowResolveNotes(false)}>
+        <div className="ir-modal-overlay" onClick={(e) => e.target === e.currentTarget && !actionLoading && closeResolveNotes()}>
           <div className="ir-note-modal">
             <h3>Mark Incident Resolved</h3>
             <p>Action: resolved</p>
@@ -171,7 +212,39 @@ export default function HrisIncidentDetailPage() {
               <button
                 className="ir-modal-btn secondary"
                 disabled={actionLoading}
-                onClick={() => setShowResolveNotes(false)}
+                onClick={closeResolveNotes}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showManualApproveNotes && (
+        <div className="ir-modal-overlay" onClick={(e) => e.target === e.currentTarget && !actionLoading && closeManualApproveNotes()}>
+          <div className="ir-note-modal">
+            <h3>Manual Incident Approval</h3>
+            <p>AI processing failed. Confirm that you reviewed the original guard report manually before approval.</p>
+            <textarea
+              className="ir-note-textarea"
+              value={manualApproveNotes}
+              onChange={(e) => setManualApproveNotes(e.target.value)}
+              placeholder="Add manual review notes..."
+              rows={5}
+            />
+            <div className="ir-modal-actions">
+              <button
+                className="ir-modal-btn resolve"
+                disabled={actionLoading}
+                onClick={confirmManualApprove}
+              >
+                Confirm Manual Approval
+              </button>
+              <button
+                className="ir-modal-btn secondary"
+                disabled={actionLoading}
+                onClick={closeManualApproveNotes}
               >
                 Cancel
               </button>
