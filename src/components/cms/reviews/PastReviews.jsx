@@ -1,79 +1,74 @@
-import { useState } from 'react';
-import { FaHistory, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { useState, useEffect, useCallback } from 'react';
+import { FaHistory, FaSpinner } from 'react-icons/fa';
+import Pagination from '@components/ui/Pagination';
 import ReviewCard from './ReviewCard';
+import serviceReviewsService from '@/services/cms/serviceReviewsService';
 
-const PAST_REVIEWS = [
-  {
-    id: 1,
-    category: 'Guard Performance',
-    status: 'Published',
-    date: 'Feb 10, 2026',
-    score: 5.0,
-    text: "Outstanding performance from the security team during the university's enrollment period. Guards effectively managed crowd control and ensured smooth vehicle flow at all entry points. Special commendation for the night shift team at Main Gate.",
-    site: 'Main Gate',
-    period: 'Jan 2026',
-    reviewer: 'Engr. Maria Santos',
-  },
-  {
-    id: 2,
-    category: 'Incident Response',
-    status: 'Published',
-    date: 'Jan 25, 2026',
-    score: 4.0,
-    text: 'Prompt and professional handling of the unauthorized vehicle access incident on Jan 20. The guard on duty responded within minutes and followed proper escalation procedures. However, the written report was delayed by one day which could be improved.',
-    site: 'Parking Area',
-    period: 'Jan 2026',
-    reviewer: 'Engr. Maria Santos',
-  },
-  {
-    id: 3,
-    category: 'Communication',
-    status: 'Published',
-    date: 'Dec 20, 2025',
-    score: 4.0,
-    text: "Communication between the agency's operations team and our office has improved significantly this quarter. Shift change reports are now being submitted more consistently. The new online portal for service requests is a welcome addition.",
-    site: 'All Sites',
-    period: 'Dec 2025',
-    reviewer: 'Engr. Maria Santos',
-  },
-  {
-    id: 4,
-    category: 'Overall Service',
-    status: 'Pending',
-    date: 'Nov 15, 2025',
-    score: 4.5,
-    text: 'Overall very satisfied with the security services provided this quarter. The guards are professional and well-trained. Response time to our requests has been consistently fast. Looking forward to continued partnership.',
-    site: 'All Sites',
-    period: 'Q3 2025',
-    reviewer: 'Engr. Maria Santos',
-  },
+const CATEGORY_OPTIONS = [
+  { value: 'all', label: 'All Categories' },
+  { value: 'guard-performance', label: 'Guard Performance' },
+  { value: 'incident-response', label: 'Incident Response' },
+  { value: 'communication', label: 'Communication' },
+  { value: 'overall-service', label: 'Overall Service' },
 ];
 
-const CATEGORIES = [
-  'All Categories',
-  'Guard Performance',
-  'Incident Response',
-  'Communication',
-  'Overall Service',
+const SORT_OPTIONS = [
+  { value: 'most_recent', label: 'Most Recent' },
+  { value: 'highest_rated', label: 'Highest Rated' },
+  { value: 'lowest_rated', label: 'Lowest Rated' },
 ];
 
-const SORT_OPTIONS = ['Most Recent', 'Highest Rated', 'Lowest Rated'];
+const LIMIT = 6;
 
-export default function PastReviews() {
-  const [category, setCategory] = useState('All Categories');
-  const [sort, setSort]         = useState('Most Recent');
+export default function PastReviews({ refreshKey }) {
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [category, setCategory] = useState('all');
+  const [sort, setSort] = useState('most_recent');
 
-  const filtered = PAST_REVIEWS
-    .filter((r) => category === 'All Categories' || r.category === category)
-    .sort((a, b) => {
-      if (sort === 'Highest Rated') return b.score - a.score;
-      if (sort === 'Lowest Rated')  return a.score - b.score;
-      return 0; // Most Recent — data already in order
-    });
+  const fetchReviews = useCallback(async (p = page) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await serviceReviewsService.getServiceReviews({
+        page: p,
+        limit: LIMIT,
+        category: category !== 'all' ? category : undefined,
+        sort,
+      });
+      setReviews(result.data || []);
+      setTotal(result.metadata?.total || 0);
+      setTotalPages(result.metadata?.totalPages || 1);
+    } catch {
+      setError('Failed to load reviews. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [category, sort, page]);
+
+  useEffect(() => {
+    fetchReviews(page);
+  }, [fetchReviews, page, refreshKey]);
+
+  const handleCategoryChange = (e) => {
+    setCategory(e.target.value);
+    setPage(1);
+  };
+
+  const handleSortChange = (e) => {
+    setSort(e.target.value);
+    setPage(1);
+  };
+
+  const start = total === 0 ? 0 : (page - 1) * LIMIT + 1;
+  const end = Math.min(page * LIMIT, total);
 
   return (
     <div>
-      {/* Section header */}
       <div className="srv-past-header">
         <h3 className="srv-past-title">
           <FaHistory /> Your Past Reviews
@@ -81,47 +76,66 @@ export default function PastReviews() {
         <div className="srv-past-filters">
           <select
             value={category}
-            onChange={(e) => setCategory(e.target.value)}
+            onChange={handleCategoryChange}
             className="srv-filter-select"
           >
-            {CATEGORIES.map((c) => (
-              <option key={c} value={c}>{c}</option>
+            {CATEGORY_OPTIONS.map((c) => (
+              <option key={c.value} value={c.value}>{c.label}</option>
             ))}
           </select>
           <select
             value={sort}
-            onChange={(e) => setSort(e.target.value)}
+            onChange={handleSortChange}
             className="srv-filter-select"
           >
             {SORT_OPTIONS.map((s) => (
-              <option key={s} value={s}>{s}</option>
+              <option key={s.value} value={s.value}>{s.label}</option>
             ))}
           </select>
         </div>
       </div>
 
-      {/* Review list */}
-      <div className="srv-reviews-list">
-        {filtered.map((review) => (
-          <ReviewCard key={review.id} review={review} />
-        ))}
-      </div>
+      {loading && (
+        <div className="srv-reviews-loading">
+          <FaSpinner className="srv-spinner" />
+          <span>Loading reviews...</span>
+        </div>
+      )}
 
-      {/* Pagination */}
-      <div className="srv-pagination">
-        <p className="srv-pagination-info">
-          Showing {filtered.length} of {PAST_REVIEWS.length} reviews
-        </p>
-        <div className="srv-page-btns">
-          <button className="page-btn" disabled>
-            <FaChevronLeft />
-          </button>
-          <button className="page-btn active">1</button>
-          <button className="page-btn" disabled>
-            <FaChevronRight />
+      {!loading && error && (
+        <div className="srv-reviews-error">
+          <p>{error}</p>
+          <button className="srv-btn-clear" onClick={() => fetchReviews(page)}>
+            Retry
           </button>
         </div>
-      </div>
+      )}
+
+      {!loading && !error && reviews.length === 0 && (
+        <div className="srv-reviews-empty">
+          <p>No reviews found. Submit your first review above!</p>
+        </div>
+      )}
+
+      {!loading && !error && reviews.length > 0 && (
+        <div className="srv-reviews-list">
+          {reviews.map((review) => (
+            <ReviewCard key={review.id} review={review} />
+          ))}
+        </div>
+      )}
+
+      {!loading && !error && total > 0 && (
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          startIndex={start - 1}
+          endIndex={end}
+          totalItems={total}
+          label={`review${total !== 1 ? 's' : ''}`}
+        />
+      )}
     </div>
   );
 }

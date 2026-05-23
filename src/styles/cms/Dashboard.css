@@ -200,8 +200,16 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.cms-sidebar-avatar--img {
+  background: transparent;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.25);
 }
 
 .cms-sidebar-user-info {
@@ -251,6 +259,34 @@
 /* =============================================
    TOPBAR
    ============================================= */
+.dashboard-topbar {
+  background: #fff;
+  padding: 1.2rem 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.topbar-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.topbar-inner h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #093269;
+  margin: 0 0 0.15rem;
+}
+
+.topbar-inner .subtitle {
+  font-size: 0.8rem;
+  color: #7f8c8d;
+  margin: 0;
+}
+
 .cms-topbar {
   background: #fff;
   padding: 1.2rem 1.5rem;
@@ -493,6 +529,11 @@
   background: #093269;
   color: #fff;
   border-color: #093269;
+}
+
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 /* =============================================
