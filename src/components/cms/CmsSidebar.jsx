@@ -1,8 +1,9 @@
+import { createElement } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   FaTachometerAlt, FaUsers, FaHeadset, FaExclamationTriangle,
   FaCreditCard, FaStar, FaBuilding, FaSignOutAlt,
-  FaUserShield, FaFileInvoiceDollar, FaBars, FaBullhorn,
+  FaUserShield, FaFileInvoiceDollar, FaBars, FaBullhorn, FaBell,
 } from 'react-icons/fa';
 import logo from '@assets/logo.png';
 
@@ -32,6 +33,7 @@ const navGroups = [
     label: 'Reports',
     labelIcon: FaBars,
     items: [
+      { to: '/cms/notifications',  icon: FaBell,                 label: 'Notifications' },
       { to: '/cms/incident-reports', icon: FaExclamationTriangle, label: 'Incidents' },
       { to: '/cms/announcements',    icon: FaBullhorn,             label: 'Announcements' },
     ],
@@ -112,7 +114,7 @@ export default function CmsSidebar({ profile, onLogoutClick }) {
                     isActive ? 'cms-nav-item active' : 'cms-nav-item'
                   }
                 >
-                  <Icon className="cms-nav-icon" />
+                  {createElement(Icon, { className: 'cms-nav-icon' })}
                   <span>{label}</span>
                 </NavLink>
               ))}
@@ -130,7 +132,7 @@ export default function CmsSidebar({ profile, onLogoutClick }) {
               isActive ? 'cms-nav-item active' : 'cms-nav-item'
             }
           >
-            <Icon className="cms-nav-icon" />
+            {createElement(Icon, { className: 'cms-nav-icon' })}
             <span>{label}</span>
           </NavLink>
         ))}

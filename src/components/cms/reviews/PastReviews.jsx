@@ -1,42 +1,42 @@
 import { useState, useEffect, useCallback } from 'react';
-import { FaHistory, FaChevronLeft, FaChevronRight, FaSpinner } from 'react-icons/fa';
+import { FaHistory, FaSpinner } from 'react-icons/fa';
+import Pagination from '@components/ui/Pagination';
 import ReviewCard from './ReviewCard';
 import serviceReviewsService from '@/services/cms/serviceReviewsService';
 
 const CATEGORY_OPTIONS = [
-  { value: 'all',               label: 'All Categories' },
+  { value: 'all', label: 'All Categories' },
   { value: 'guard-performance', label: 'Guard Performance' },
   { value: 'incident-response', label: 'Incident Response' },
-  { value: 'communication',     label: 'Communication' },
-  { value: 'overall-service',   label: 'Overall Service' },
+  { value: 'communication', label: 'Communication' },
+  { value: 'overall-service', label: 'Overall Service' },
 ];
 
 const SORT_OPTIONS = [
-  { value: 'most_recent',    label: 'Most Recent' },
-  { value: 'highest_rated',  label: 'Highest Rated' },
-  { value: 'lowest_rated',   label: 'Lowest Rated' },
+  { value: 'most_recent', label: 'Most Recent' },
+  { value: 'highest_rated', label: 'Highest Rated' },
+  { value: 'lowest_rated', label: 'Lowest Rated' },
 ];
 
 const LIMIT = 6;
 
 export default function PastReviews({ refreshKey }) {
-  const [reviews,   setReviews]   = useState([]);
-  const [loading,   setLoading]   = useState(true);
-  const [error,     setError]     = useState(null);
-  const [total,     setTotal]     = useState(0);
-  const [page,      setPage]      = useState(1);
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-
   const [category, setCategory] = useState('all');
-  const [sort,     setSort]     = useState('most_recent');
+  const [sort, setSort] = useState('most_recent');
 
   const fetchReviews = useCallback(async (p = page) => {
     setLoading(true);
     setError(null);
     try {
       const result = await serviceReviewsService.getServiceReviews({
-        page:     p,
-        limit:    LIMIT,
+        page: p,
+        limit: LIMIT,
         category: category !== 'all' ? category : undefined,
         sort,
       });
@@ -50,12 +50,10 @@ export default function PastReviews({ refreshKey }) {
     }
   }, [category, sort, page]);
 
-  // Re-fetch when filters or page change
   useEffect(() => {
     fetchReviews(page);
   }, [fetchReviews, page, refreshKey]);
 
-  // Reset to page 1 when filters change
   const handleCategoryChange = (e) => {
     setCategory(e.target.value);
     setPage(1);
@@ -66,15 +64,11 @@ export default function PastReviews({ refreshKey }) {
     setPage(1);
   };
 
-  const handlePrev = () => setPage((p) => Math.max(p - 1, 1));
-  const handleNext = () => setPage((p) => Math.min(p + 1, totalPages));
-
-  const start = (page - 1) * LIMIT + 1;
-  const end   = Math.min(page * LIMIT, total);
+  const start = total === 0 ? 0 : (page - 1) * LIMIT + 1;
+  const end = Math.min(page * LIMIT, total);
 
   return (
     <div>
-      {/* Section header */}
       <div className="srv-past-header">
         <h3 className="srv-past-title">
           <FaHistory /> Your Past Reviews
@@ -101,15 +95,13 @@ export default function PastReviews({ refreshKey }) {
         </div>
       </div>
 
-      {/* Loading */}
       {loading && (
         <div className="srv-reviews-loading">
           <FaSpinner className="srv-spinner" />
-          <span>Loading reviews…</span>
+          <span>Loading reviews...</span>
         </div>
       )}
 
-      {/* Error */}
       {!loading && error && (
         <div className="srv-reviews-error">
           <p>{error}</p>
@@ -119,14 +111,12 @@ export default function PastReviews({ refreshKey }) {
         </div>
       )}
 
-      {/* Empty */}
       {!loading && !error && reviews.length === 0 && (
         <div className="srv-reviews-empty">
           <p>No reviews found. Submit your first review above!</p>
         </div>
       )}
 
-      {/* Review list */}
       {!loading && !error && reviews.length > 0 && (
         <div className="srv-reviews-list">
           {reviews.map((review) => (
@@ -135,42 +125,16 @@ export default function PastReviews({ refreshKey }) {
         </div>
       )}
 
-      {/* Pagination */}
       {!loading && !error && total > 0 && (
-        <div className="srv-pagination">
-          <p className="srv-pagination-info">
-            {total === 0
-              ? 'No reviews'
-              : `Showing ${start}–${end} of ${total} review${total !== 1 ? 's' : ''}`}
-          </p>
-          <div className="srv-page-btns">
-            <button
-              className="page-btn"
-              onClick={handlePrev}
-              disabled={page <= 1}
-            >
-              <FaChevronLeft />
-            </button>
-
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-              <button
-                key={p}
-                className={`page-btn${p === page ? ' active' : ''}`}
-                onClick={() => setPage(p)}
-              >
-                {p}
-              </button>
-            ))}
-
-            <button
-              className="page-btn"
-              onClick={handleNext}
-              disabled={page >= totalPages}
-            >
-              <FaChevronRight />
-            </button>
-          </div>
-        </div>
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          startIndex={start - 1}
+          endIndex={end}
+          totalItems={total}
+          label={`review${total !== 1 ? 's' : ''}`}
+        />
       )}
     </div>
   );

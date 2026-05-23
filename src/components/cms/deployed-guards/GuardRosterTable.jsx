@@ -1,11 +1,12 @@
-import { FaUsers, FaEye, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaUsers, FaEye } from 'react-icons/fa';
+import Pagination from '@components/ui/Pagination';
 
 const statusConfig = {
-  'active': { label: 'Active', className: 'dg-status-badge dg-status-badge--active' },
-  'inactive': { label: 'Inactive', className: 'dg-status-badge dg-status-badge--inactive' },
-  'terminated': { label: 'Terminated', className: 'dg-status-badge dg-status-badge--terminated' },
-  'archived': { label: 'Archived', className: 'dg-status-badge dg-status-badge--archived' },
-  'unknown': { label: 'Unknown', className: 'dg-status-badge dg-status-badge--unknown' },
+  active: { label: 'Active', className: 'dg-status-badge dg-status-badge--active' },
+  inactive: { label: 'Inactive', className: 'dg-status-badge dg-status-badge--inactive' },
+  terminated: { label: 'Terminated', className: 'dg-status-badge dg-status-badge--terminated' },
+  archived: { label: 'Archived', className: 'dg-status-badge dg-status-badge--archived' },
+  unknown: { label: 'Unknown', className: 'dg-status-badge dg-status-badge--unknown' },
 };
 
 export default function GuardRosterTable({
@@ -18,19 +19,17 @@ export default function GuardRosterTable({
   onPageChange,
   onViewGuard,
 }) {
-  const pageStart = (currentPage - 1) * limit + 1;
+  const pageStart = totalCount === 0 ? 0 : (currentPage - 1) * limit + 1;
   const pageEnd = Math.min(currentPage * limit, totalCount);
 
   return (
     <div className="dg-table-panel">
-      {/* Table Header */}
       <div className="dg-table-header">
         <h3 className="dg-table-title">
           <FaUsers /> Guard Roster
         </h3>
       </div>
 
-      {/* Table */}
       <div className="dg-table-wrapper">
         <table className="dg-table">
           <thead>
@@ -57,7 +56,7 @@ export default function GuardRosterTable({
               </tr>
             ) : (
               guards.map((guard) => {
-                const badge = statusConfig[guard.status] || statusConfig['unknown'];
+                const badge = statusConfig[guard.status] || statusConfig.unknown;
                 return (
                   <tr
                     key={guard.id}
@@ -105,40 +104,18 @@ export default function GuardRosterTable({
         </table>
       </div>
 
-      {/* Pagination */}
-      <div className="dg-pagination">
-        <span className="dg-pagination-info">
-          {totalCount === 0
-            ? 'No guards'
-            : `Showing ${pageStart}–${pageEnd} of ${totalCount} guard${totalCount !== 1 ? 's' : ''}`}
-        </span>
-        <div className="dg-page-btns">
-          <button
-            className="page-btn"
-            onClick={() => onPageChange?.(currentPage - 1)}
-            disabled={currentPage <= 1 || loading}
-          >
-            <FaChevronLeft />
-          </button>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-            <button
-              key={p}
-              className={`page-btn${p === currentPage ? ' active' : ''}`}
-              onClick={() => onPageChange?.(p)}
-              disabled={loading}
-            >
-              {p}
-            </button>
-          ))}
-          <button
-            className="page-btn"
-            onClick={() => onPageChange?.(currentPage + 1)}
-            disabled={currentPage >= totalPages || loading}
-          >
-            <FaChevronRight />
-          </button>
-        </div>
-      </div>
+      {totalCount > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+          startIndex={pageStart - 1}
+          endIndex={pageEnd}
+          totalItems={totalCount}
+          label={`guard${totalCount !== 1 ? 's' : ''}`}
+          disabled={loading}
+        />
+      )}
     </div>
   );
 }

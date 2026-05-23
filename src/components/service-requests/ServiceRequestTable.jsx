@@ -1,11 +1,10 @@
 import {
   FaBuilding,
-  FaChevronLeft,
-  FaChevronRight,
   FaEye,
   FaListAlt,
   FaReply,
 } from 'react-icons/fa';
+import Pagination from '@components/ui/Pagination';
 import {
   getServiceRequestTypeIcon,
   getStatusBadgeClass,
@@ -30,16 +29,6 @@ function SkeletonRows({ showClient }) {
   ));
 }
 
-function paginationWindow(page, totalPages) {
-  return Array.from({ length: Math.min(totalPages, 5) }, (_, index) => {
-    const half = 2;
-    let first = Math.max(1, page - half);
-    const last = Math.min(totalPages, first + 4);
-    first = Math.max(1, last - 4);
-    return first + index;
-  }).filter((candidate) => candidate >= 1 && candidate <= totalPages);
-}
-
 export default function ServiceRequestTable({
   requests = [],
   metadata = { total: 0, page: 1, limit: 8, totalPages: 1 },
@@ -54,7 +43,6 @@ export default function ServiceRequestTable({
   const columns = showClient ? 8 : 7;
   const start = total === 0 ? 0 : (page - 1) * limit + 1;
   const end = Math.min(page * limit, total);
-  const pages = paginationWindow(page, totalPages);
 
   return (
     <div className="sr-table-card">
@@ -152,37 +140,18 @@ export default function ServiceRequestTable({
         </table>
       </div>
 
-      <div className="sr-table-footer">
-        <p className="sr-showing-text">
-          {total === 0 ? 'No requests' : `Showing ${start}-${end} of ${total} request${total === 1 ? '' : 's'}`}
-        </p>
-        <div className="sr-page-btns">
-          <button
-            className="sr-page-btn"
-            disabled={page <= 1 || loading}
-            onClick={() => onPageChange?.(page - 1)}
-          >
-            <FaChevronLeft />
-          </button>
-          {pages.map((candidate) => (
-            <button
-              key={candidate}
-              className={`sr-page-btn${candidate === page ? ' active' : ''}`}
-              disabled={loading || candidate === page}
-              onClick={() => onPageChange?.(candidate)}
-            >
-              {candidate}
-            </button>
-          ))}
-          <button
-            className="sr-page-btn"
-            disabled={page >= totalPages || loading}
-            onClick={() => onPageChange?.(page + 1)}
-          >
-            <FaChevronRight />
-          </button>
-        </div>
-      </div>
+      {total > 0 && (
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+          startIndex={start - 1}
+          endIndex={end}
+          totalItems={total}
+          label={`request${total === 1 ? '' : 's'}`}
+          disabled={loading}
+        />
+      )}
     </div>
   );
 }

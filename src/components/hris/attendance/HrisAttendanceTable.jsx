@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { FaChevronLeft, FaChevronRight, FaEye, FaListUl, FaMinusCircle } from 'react-icons/fa';
+import { FaEye, FaListUl, FaMinusCircle } from 'react-icons/fa';
+import Pagination from '@components/ui/Pagination';
 import attendanceService from '@services/hris/attendanceService';
 import HrisAttendanceAvatar from './HrisAttendanceAvatar';
 import HrisAttendanceDetailModal from './HrisAttendanceDetailModal';
@@ -11,28 +12,6 @@ import {
   getClockOutNoteClass,
   getHoursNoteClass,
 } from './attendanceUi';
-
-function renderPages(metadata, onPageChange) {
-  const totalPages = Math.max(metadata?.totalPages || 1, 1);
-  const currentPage = metadata?.page || 1;
-  const pages = [];
-  const start = Math.max(1, Math.min(currentPage - 1, totalPages - 2));
-  const end = Math.min(totalPages, start + 2);
-
-  for (let page = start; page <= end; page += 1) {
-    pages.push(
-      <button
-        key={page}
-        className={`ha-page-btn ${page === currentPage ? 'active' : ''}`}
-        onClick={() => onPageChange?.(page)}
-      >
-        {page}
-      </button>
-    );
-  }
-
-  return pages;
-}
 
 export default function HrisAttendanceTable({
   records = [],
@@ -163,26 +142,18 @@ export default function HrisAttendanceTable({
         </table>
       </div>
 
-      <div className="ha-pagination">
-        <p className="ha-pagination-text">Showing {from}-{to} of {totalRecords} records</p>
-        <div className="ha-pagination-controls">
-          <button
-            className="ha-page-btn"
-            disabled={currentPage <= 1}
-            onClick={() => onPageChange?.(currentPage - 1)}
-          >
-            <FaChevronLeft />
-          </button>
-          {renderPages(metadata, onPageChange)}
-          <button
-            className="ha-page-btn"
-            disabled={currentPage >= totalPages}
-            onClick={() => onPageChange?.(currentPage + 1)}
-          >
-            <FaChevronRight />
-          </button>
-        </div>
-      </div>
+      {totalRecords > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+          startIndex={from - 1}
+          endIndex={to}
+          totalItems={totalRecords}
+          label="records"
+          disabled={loading}
+        />
+      )}
 
       {selectedRow && (
         <HrisAttendanceDetailModal
