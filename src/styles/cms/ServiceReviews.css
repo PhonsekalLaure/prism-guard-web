@@ -369,6 +369,11 @@
   color: #a16207;
 }
 
+.srv-status-badge--rejected {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
 .srv-review-date {
   font-size: 0.72rem;
   color: #9ca3af;
