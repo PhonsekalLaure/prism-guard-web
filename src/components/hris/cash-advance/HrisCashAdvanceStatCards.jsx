@@ -1,3 +1,6 @@
+import { FaCheckCircle, FaHandHoldingUsd, FaHourglassHalf, FaTimesCircle } from 'react-icons/fa';
+import StatCards from '@components/ui/StatCards';
+
 const stats = [
   {
     label: 'Total Disbursed',
@@ -5,6 +8,9 @@ const stats = [
     sub: 'This month',
     valueColor: '#16a34a',
     borderColor: '#22c55e',
+    icon: FaHandHoldingUsd,
+    iconBg: 'rgba(34, 197, 94, 0.12)',
+    iconColor: '#16a34a',
     delay: '0s',
   },
   {
@@ -13,6 +19,9 @@ const stats = [
     sub: 'Awaiting review',
     valueColor: '#e6b215',
     borderColor: '#eab308',
+    icon: FaHourglassHalf,
+    iconBg: 'rgba(234, 179, 8, 0.12)',
+    iconColor: '#ca8a04',
     delay: '0.05s',
   },
   {
@@ -21,6 +30,9 @@ const stats = [
     sub: 'This month',
     valueColor: '#dc2626',
     borderColor: '#ef4444',
+    icon: FaTimesCircle,
+    iconBg: 'rgba(239, 68, 68, 0.12)',
+    iconColor: '#dc2626',
     delay: '0.1s',
   },
   {
@@ -29,24 +41,13 @@ const stats = [
     sub: 'This month',
     valueColor: '#2563eb',
     borderColor: '#3b82f6',
+    icon: FaCheckCircle,
+    iconBg: 'rgba(59, 130, 246, 0.12)',
+    iconColor: '#2563eb',
     delay: '0.15s',
   },
 ];
 
 export default function HrisCashAdvanceStatCards() {
-  return (
-    <div className="ca-stat-grid">
-      {stats.map((s, i) => (
-        <div
-          key={i}
-          className="ca-stat-card"
-          style={{ borderLeftColor: s.borderColor, animationDelay: s.delay }}
-        >
-          <p className="ca-stat-label">{s.label}</p>
-          <p className="ca-stat-value" style={{ color: s.valueColor }}>{s.value}</p>
-          <p className="ca-stat-sub">{s.sub}</p>
-        </div>
-      ))}
-    </div>
-  );
+  return <StatCards cards={stats} />;
 }
