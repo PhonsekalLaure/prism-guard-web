@@ -12,6 +12,7 @@ import {
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
 import EmptyState from '@components/ui/EmptyState';
+import { IncidentCardSkeleton, SkeletonList } from '@components/ui/Skeleton';
 import authService from '@services/authService';
 import { formatIncidentDate, titleCase } from './incidentReportFormatters';
 
@@ -24,39 +25,6 @@ const severityIcon = {
 function getSeverityClass(severity, status) {
   if (status === 'resolved') return 'resolved';
   return severity || 'low';
-}
-
-function SkeletonCard({ delay }) {
-  return (
-    <div className="cir-card-skeleton" style={{ animationDelay: delay }}>
-      <div className="cir-sk-header">
-        <div className="cir-sk-left">
-          <div className="cir-skeleton cir-sk-icon" />
-          <div className="cir-sk-lines">
-            <div className="cir-skeleton" style={{ height: '0.65rem', width: '38%', borderRadius: '999px' }} />
-            <div className="cir-skeleton" style={{ height: '1rem', width: '65%', marginTop: '0.1rem' }} />
-            <div className="cir-skeleton" style={{ height: '0.68rem', width: '42%', marginTop: '0.15rem' }} />
-          </div>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', alignItems: 'flex-end' }}>
-          <div className="cir-skeleton" style={{ height: '1.3rem', width: '80px', borderRadius: '999px' }} />
-          <div className="cir-skeleton" style={{ height: '0.65rem', width: '110px' }} />
-        </div>
-      </div>
-      <div className="cir-sk-details">
-        {[55, 45, 60, 50].map((w, i) => (
-          <div key={i} className="cir-sk-detail-col">
-            <div className="cir-skeleton" style={{ height: '0.6rem', width: `${w}%` }} />
-            <div className="cir-skeleton" style={{ height: '0.85rem', width: '80%' }} />
-          </div>
-        ))}
-      </div>
-      <div className="cir-sk-footer">
-        <div className="cir-skeleton" style={{ height: '0.7rem', width: '100px' }} />
-        <div className="cir-skeleton" style={{ height: '0.7rem', width: '140px' }} />
-      </div>
-    </div>
-  );
 }
 
 function getRequestBtnLabel(inc) {
@@ -89,9 +57,9 @@ export default function IncidentReportsTable({
       </div>
 
       <div className="cir-feed">
-        {loading && [0, 1, 2, 3].map((i) => (
-          <SkeletonCard key={i} delay={`${i * 0.07}s`} />
-        ))}
+        {loading && <SkeletonList count={4}>{(index) => (
+          <IncidentCardSkeleton key={index} detailColumns={4} delay={`${index * 0.07}s`} />
+        )}</SkeletonList>}
 
         {!loading && incidents.length === 0 && (
           <EmptyState

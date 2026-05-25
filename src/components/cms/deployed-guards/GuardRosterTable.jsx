@@ -1,6 +1,7 @@
 import { FaUsers, FaEye } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
 import EmptyState from '@components/ui/EmptyState';
+import { TableSkeletonRows } from '@components/ui/Skeleton';
 
 const statusConfig = {
   active: { label: 'Active', className: 'dg-status-badge dg-status-badge--active' },
@@ -8,6 +9,13 @@ const statusConfig = {
   terminated: { label: 'Terminated', className: 'dg-status-badge dg-status-badge--terminated' },
   archived: { label: 'Archived', className: 'dg-status-badge dg-status-badge--archived' },
   unknown: { label: 'Unknown', className: 'dg-status-badge dg-status-badge--unknown' },
+};
+
+const getGuardSkeletonCellStyle = (column) => {
+  if (column === 0) return { width: '82%', height: 32 };
+  if (column === 3) return { width: 78, height: 22, borderRadius: 20 };
+  if (column === 4) return { width: 64, height: 30, borderRadius: 6 };
+  return { width: '60%' };
 };
 
 export default function GuardRosterTable({
@@ -45,11 +53,11 @@ export default function GuardRosterTable({
           </thead>
           <tbody>
             {loading ? (
-              <tr>
-                <td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: '#7f8c8d' }}>
-                  Loading guards...
-                </td>
-              </tr>
+              <TableSkeletonRows
+                rows={6}
+                columns={5}
+                getCellStyle={getGuardSkeletonCellStyle}
+              />
             ) : guards.length === 0 ? (
               <tr>
                 <td colSpan={5} style={{ padding: '1.5rem' }}>

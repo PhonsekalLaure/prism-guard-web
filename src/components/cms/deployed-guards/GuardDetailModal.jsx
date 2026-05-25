@@ -3,6 +3,7 @@ import {
   FaMapMarkedAlt, FaDownload, FaCommentAlt, FaArrowLeft, FaCheckCircle,
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { SkeletonBlock, SkeletonList } from '@components/ui/Skeleton';
 
 const STATUS_CONFIG = {
   active: { label: 'Active', className: 'dg-badge dg-badge--active' },
@@ -103,6 +104,42 @@ function downloadProfile(guard) {
   URL.revokeObjectURL(url);
 }
 
+function GuardProfileSkeleton() {
+  return (
+    <div className="detail-skeleton">
+      <div className="dg-guard-identity">
+        <SkeletonBlock className="entity-card-skeleton__avatar" />
+        <div className="entity-card-skeleton__lines">
+          <SkeletonBlock className="entity-card-skeleton__line entity-card-skeleton__line--long" />
+          <SkeletonBlock className="entity-card-skeleton__line entity-card-skeleton__line--short" />
+          <div className="entity-card-skeleton__tag-row">
+            <SkeletonBlock className="entity-card-skeleton__tag" />
+            <SkeletonBlock className="entity-card-skeleton__tag" />
+          </div>
+        </div>
+      </div>
+
+      {[4, 6, 3].map((count, sectionIndex) => (
+        <div key={sectionIndex} className="dg-modal-section">
+          <SkeletonBlock
+            height="0.85rem"
+            width={sectionIndex === 0 ? 140 : 180}
+            style={{ marginBottom: '0.75rem' }}
+          />
+          <div className="dg-info-grid">
+            <SkeletonList count={count}>{(index) => (
+              <div key={index} className="dg-info-cell">
+                <SkeletonBlock height="0.65rem" width="46%" style={{ marginBottom: '0.45rem' }} />
+                <SkeletonBlock height="0.9rem" width="72%" />
+              </div>
+            )}</SkeletonList>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function GuardDetailModal({ isOpen, onClose, guard, loading }) {
   const navigate = useNavigate();
 
@@ -138,9 +175,11 @@ export default function GuardDetailModal({ isOpen, onClose, guard, loading }) {
         </div>
 
         <div className="dg-modal-body">
-          {loading || !guard ? (
+          {loading ? (
+            <GuardProfileSkeleton />
+          ) : !guard ? (
             <div style={{ textAlign: 'center', padding: '3rem', color: '#7f8c8d' }}>
-              {loading ? 'Loading guard profile...' : 'No data available.'}
+              No data available.
             </div>
           ) : (
             <>
