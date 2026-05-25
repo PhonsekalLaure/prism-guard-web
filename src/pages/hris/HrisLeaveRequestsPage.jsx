@@ -70,6 +70,10 @@ export default function HrisLeaveRequestsPage() {
     setFilters((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleResetFilters = () => {
+    setFilters(DEFAULT_FILTERS);
+  };
+
   return (
     <>
       {notification && (
@@ -91,6 +95,7 @@ export default function HrisLeaveRequestsPage() {
           metadata={metadata}
           loading={loading}
           onPageChange={loadLeaveRequests}
+          onResetFilters={handleResetFilters}
         />
       </div>
     </>

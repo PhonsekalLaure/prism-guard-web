@@ -16,6 +16,7 @@ export default function HrisIncidentsPage() {
   const [stats, setStats] = useState({});
   const [metadata, setMetadata] = useState({ page: 1, limit: 8, total: 0, totalPages: 1 });
   const [filters, setFilters] = useState(INITIAL_FILTERS);
+  const [filterResetKey, setFilterResetKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
   const { notification, showNotification, closeNotification } = useNotification();
@@ -59,6 +60,12 @@ export default function HrisIncidentsPage() {
     loadIncidents(1, nextFilters);
   };
 
+  const handleResetFilters = () => {
+    setFilters(INITIAL_FILTERS);
+    setFilterResetKey((key) => key + 1);
+    loadIncidents(1, INITIAL_FILTERS);
+  };
+
   return (
     <>
       {notification && (
@@ -73,12 +80,13 @@ export default function HrisIncidentsPage() {
 
       <div className="dashboard-content">
         <HrisIncidentsStatCards stats={stats} loading={statsLoading} />
-        <HrisIncidentsFilterBar onFilterChange={handleFilterChange} />
+        <HrisIncidentsFilterBar key={filterResetKey} onFilterChange={handleFilterChange} />
         <HrisIncidentsFeed
           incidents={incidents}
           loading={loading}
           metadata={metadata}
           onPageChange={(page) => loadIncidents(page, filters)}
+          onResetFilters={handleResetFilters}
         />
       </div>
     </>

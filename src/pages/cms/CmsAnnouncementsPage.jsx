@@ -84,6 +84,7 @@ function formatAnnouncement(item) {
 
 export default function CmsAnnouncementsPage() {
   const [filters, setFilters] = useState({ search: '', priority: 'all', sort: 'newest', date: '' });
+  const [filterResetKey, setFilterResetKey] = useState(0);
   const [announcements, setAnnouncements] = useState([]);
   const [metadata, setMetadata] = useState({ total: 0, page: 1, limit: 10, totalPages: 0 });
   const [loading, setLoading] = useState(true);
@@ -134,6 +135,12 @@ export default function CmsAnnouncementsPage() {
     setMetadata((prev) => ({ ...prev, page: 1 }));
   };
 
+  const handleResetFilters = () => {
+    setFilters({ search: '', priority: 'all', sort: 'newest', date: '' });
+    setFilterResetKey((key) => key + 1);
+    setMetadata((prev) => ({ ...prev, page: 1 }));
+  };
+
   const handlePageChange = (page) => {
     setMetadata((prev) => ({ ...prev, page }));
   };
@@ -152,13 +159,14 @@ export default function CmsAnnouncementsPage() {
       <AnnouncementsTopbar />
 
       <div className="cms-content">
-        <AnnouncementsFilterBar onFilterChange={handleFilterChange} />
+        <AnnouncementsFilterBar key={filterResetKey} onFilterChange={handleFilterChange} />
         <AnnouncementsTable
           announcements={rows}
           metadata={metadata}
           loading={loading}
           onPageChange={handlePageChange}
           onViewDetail={(ann) => setSelectedAnnouncement(ann)}
+          onResetFilters={handleResetFilters}
         />
       </div>
 

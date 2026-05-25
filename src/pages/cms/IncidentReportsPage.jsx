@@ -25,6 +25,7 @@ export default function IncidentReportsPage() {
   const [sites, setSites] = useState([]);
   const [metadata, setMetadata] = useState({ page: 1, limit: 8, total: 0, totalPages: 1 });
   const [filters, setFilters] = useState(INITIAL_FILTERS);
+  const [filterResetKey, setFilterResetKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -91,6 +92,12 @@ export default function IncidentReportsPage() {
     loadReports(1, nextFilters);
   };
 
+  const handleResetFilters = () => {
+    setFilters(INITIAL_FILTERS);
+    setFilterResetKey((key) => key + 1);
+    loadReports(1, INITIAL_FILTERS);
+  };
+
   const handleConfirm = async () => {
     if (!selectedIncident) return;
     setSubmitting(true);
@@ -135,7 +142,7 @@ export default function IncidentReportsPage() {
       <div className="cms-content">
         <IncidentReportsInfoBanner />
         <IncidentReportsStatCards stats={stats} loading={statsLoading} />
-        <IncidentReportsFilterBar onFilterChange={handleFilterChange} sites={sites} />
+        <IncidentReportsFilterBar key={filterResetKey} onFilterChange={handleFilterChange} sites={sites} />
         <IncidentReportsTable
           incidents={incidents}
           loading={loading}
@@ -143,6 +150,7 @@ export default function IncidentReportsPage() {
           onPageChange={(page) => loadReports(page, filters)}
           onViewIncident={(inc) => setViewedIncident(inc)}
           onRequestReport={(inc) => setSelectedIncident(inc)}
+          onResetFilters={handleResetFilters}
         />
       </div>
 

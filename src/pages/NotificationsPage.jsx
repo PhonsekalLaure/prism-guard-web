@@ -15,6 +15,7 @@ import {
 import Notification from '@components/ui/Notification';
 import Pagination from '@components/ui/Pagination';
 import StatCards from '@components/ui/StatCards';
+import EmptyState from '@components/ui/EmptyState';
 import useNotification from '@hooks/useNotification';
 import notificationsService from '@services/notificationsService';
 import '@styles/NotificationsPage.css';
@@ -199,6 +200,13 @@ export default function NotificationsPage({ portal = 'hris' }) {
     loadNotifications(1, nextFilters);
   };
 
+  const handleResetFilters = () => {
+    const nextFilters = { filter: 'all', type: 'all', search: '' };
+    setFilters(nextFilters);
+    setMetadata((prev) => ({ ...prev, page: 1 }));
+    loadNotifications(1, nextFilters);
+  };
+
   const handlePageChange = (page) => {
     setMetadata((prev) => ({ ...prev, page }));
     loadNotifications(page, filters);
@@ -360,11 +368,14 @@ export default function NotificationsPage({ portal = 'hris' }) {
             ))}
 
             {!loading && notifications.length === 0 && (
-              <div className="notif-empty">
-                <FaInbox />
-                <h3>No notifications</h3>
-                <p>New activity that needs your attention will appear here.</p>
-              </div>
+              <EmptyState
+                icon={FaInbox}
+                title="No notifications found"
+                description="We couldn't find any notifications matching your current search or filter criteria. New activity that needs your attention will appear here."
+                actionLabel="Reset All Filters"
+                onAction={handleResetFilters}
+                compact
+              />
             )}
 
             {!loading && notifications.map((item) => (

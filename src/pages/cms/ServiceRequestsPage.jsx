@@ -83,6 +83,11 @@ export default function ServiceRequestsPage() {
     fetchTickets(1, newFilters);
   }, [fetchTickets]);
 
+  const handleResetFilters = useCallback(() => {
+    setFilters(DEFAULT_FILTERS);
+    fetchTickets(1, DEFAULT_FILTERS);
+  }, [fetchTickets]);
+
   // ── Page change ───────────────────────────────────────────────────────────
   const handlePageChange = useCallback((page) => {
     fetchTickets(page, filters);
@@ -153,13 +158,14 @@ export default function ServiceRequestsPage() {
 
       <div className="cms-content">
         <ServiceRequestsStatCards stats={stats} loading={loadingStats} />
-        <ServiceRequestsFilterBar onFilterChange={handleFilterChange} />
+        <ServiceRequestsFilterBar filters={filters} onFilterChange={handleFilterChange} />
         <ServiceRequestsTable
           tickets={tickets}
           metadata={metadata}
           loading={loadingTickets}
           onViewRequest={handleViewRequest}
           onPageChange={handlePageChange}
+          onResetFilters={handleResetFilters}
         />
       </div>
 
