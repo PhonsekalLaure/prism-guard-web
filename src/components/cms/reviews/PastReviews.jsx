@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { FaHistory, FaSpinner } from 'react-icons/fa';
+import { FaHistory, FaSpinner, FaSort, FaTag } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
 import EmptyState from '@components/ui/EmptyState';
 import ReviewCard from './ReviewCard';
@@ -80,20 +80,31 @@ export default function PastReviews({ refreshKey }) {
         <h3 className="srv-past-title">
           <FaHistory /> Your Past Reviews
         </h3>
-        <div className="srv-past-filters">
+      </div>
+
+      <div className="filter-bar two-cols">
+        <div className="filter-group">
+          <label className="filter-label">
+            <FaTag className="filter-icon" /> Category
+          </label>
           <select
             value={category}
             onChange={handleCategoryChange}
-            className="srv-filter-select"
+            className="filter-select"
           >
             {CATEGORY_OPTIONS.map((c) => (
               <option key={c.value} value={c.value}>{c.label}</option>
             ))}
           </select>
+        </div>
+        <div className="filter-group">
+          <label className="filter-label">
+            <FaSort className="filter-icon" /> Sort
+          </label>
           <select
             value={sort}
             onChange={handleSortChange}
-            className="srv-filter-select"
+            className="filter-select"
           >
             {SORT_OPTIONS.map((s) => (
               <option key={s.value} value={s.value}>{s.label}</option>

@@ -333,40 +333,51 @@ export default function NotificationsPage({ portal = 'hris' }) {
         <StatCards cards={statCards} stats={stats} columns={3} />
 
         <section className="notif-panel">
-          <div className="notif-filter-bar">
-            <label className="notif-search-box">
-              <FaSearch />
+          <div className="filter-bar three-cols">
+            <div className="filter-group">
+              <label className="filter-label">
+                <FaSearch className="filter-icon" /> Search
+              </label>
               <input
                 type="search"
                 value={filters.search}
                 onChange={(event) => handleFilterChange({ search: event.target.value })}
                 placeholder="Search notifications"
+                className="filter-input"
               />
-            </label>
+            </div>
 
-            <label className="notif-select-wrap">
-              <FaFilter />
+            <div className="filter-group">
+              <label className="filter-label">
+                <FaFilter className="filter-icon" /> Status
+              </label>
               <select
                 value={filters.filter}
                 onChange={(event) => handleFilterChange({ filter: event.target.value })}
+                className="filter-select"
               >
                 <option value="all">All notifications</option>
                 <option value="unread">Unread only</option>
               </select>
-            </label>
+            </div>
 
-            <select
-              className="notif-type-select"
-              value={filters.type}
-              onChange={(event) => handleFilterChange({ type: event.target.value })}
-            >
-              <option value="all">All types</option>
-              {typeOptions.map((option) => (
-                <option key={option.type} value={option.type}>
-                  {option.label} ({option.count})
-                </option>
-              ))}
-            </select>
+            <div className="filter-group">
+              <label className="filter-label">
+                <FaBell className="filter-icon" /> Type
+              </label>
+              <select
+                className="filter-select"
+                value={filters.type}
+                onChange={(event) => handleFilterChange({ type: event.target.value })}
+              >
+                <option value="all">All types</option>
+                {typeOptions.map((option) => (
+                  <option key={option.type} value={option.type}>
+                    {option.label} ({option.count})
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div className="notif-list">

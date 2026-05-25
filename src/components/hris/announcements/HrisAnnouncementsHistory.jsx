@@ -392,17 +392,24 @@ export default function HrisAnnouncementsHistory({
         <h3><FaHistory /> Announcement History</h3>
       </div>
 
-      <div className="an-filter-bar">
-        <div className="an-search-box">
-          <FaSearch />
+      <div className="filter-bar four-cols">
+        <div className="filter-group">
+          <label className="filter-label">
+            <FaSearch className="filter-icon" /> Search
+          </label>
           <input
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Search announcements"
+            className="filter-input"
           />
         </div>
+        <div className="filter-group">
+          <label className="filter-label">
+            <FaFilter className="filter-icon" /> Audience
+          </label>
         <select
-          className="an-filter-select"
+          className="filter-select"
           value={filters.targetAudience || ''}
           onChange={(e) => updateFilter('targetAudience', e.target.value)}
         >
@@ -410,8 +417,13 @@ export default function HrisAnnouncementsHistory({
             <option key={option.value} value={option.value}>{option.label}</option>
           ))}
         </select>
+        </div>
+        <div className="filter-group">
+          <label className="filter-label">
+            <FaTag className="filter-icon" /> Priority
+          </label>
         <select
-          className="an-filter-select"
+          className="filter-select"
           value={filters.priority || ''}
           onChange={(e) => updateFilter('priority', e.target.value)}
         >
@@ -419,8 +431,13 @@ export default function HrisAnnouncementsHistory({
             <option key={option.value} value={option.value}>{option.label}</option>
           ))}
         </select>
+        </div>
+        <div className="filter-group">
+          <label className="filter-label">
+            <FaArchive className="filter-icon" /> Status
+          </label>
         <select
-          className="an-filter-select"
+          className="filter-select"
           value={filters.status || ''}
           onChange={(e) => updateFilter('status', e.target.value)}
         >
@@ -428,6 +445,7 @@ export default function HrisAnnouncementsHistory({
             <option key={option.value} value={option.value}>{option.label}</option>
           ))}
         </select>
+        </div>
       </div>
 
       <div className="an-table-wrap">
