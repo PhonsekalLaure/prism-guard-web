@@ -12,6 +12,9 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type'];
+  }
   return config;
 });
 
@@ -25,13 +28,28 @@ async function getStats() {
   return data;
 }
 
+async function getLeaveRequestById(id) {
+  const { data } = await api.get(`/${id}`);
+  return data;
+}
+
 async function getReplacementGuards(id) {
   const { data } = await api.get(`/${id}/replacement-guards`);
   return data?.data || [];
 }
 
 async function approveLeaveRequest(id, payload = {}) {
-  const { data } = await api.patch(`/${id}/approve`, payload);
+  const requestPayload = payload.deploymentOrderFile instanceof File
+    ? (() => {
+      const formData = new FormData();
+      formData.append('relieverEmployeeId', payload.relieverEmployeeId || '');
+      formData.append('reviewNotes', payload.reviewNotes || '');
+      formData.append('document_deployment_order', payload.deploymentOrderFile);
+      return formData;
+    })()
+    : payload;
+
+  const { data } = await api.patch(`/${id}/approve`, requestPayload);
   return data;
 }
 
@@ -55,6 +73,7 @@ async function openSupportingDocument(id) {
 
 export default {
   cancelLeaveRequest,
+  getLeaveRequestById,
   getLeaveRequests,
   getStats,
   getReplacementGuards,
