@@ -2,26 +2,26 @@ import { FaSearch, FaTag, FaFilter } from 'react-icons/fa';
 
 export default function HrisLeaveRequestsFilterBar({ filters, onChange }) {
   return (
-    <div className="hlr-filter-bar">
-      <div className="hlr-filter-group">
-        <label className="hlr-filter-label">
+    <div className="filter-bar three-cols">
+      <div className="filter-group">
+        <label className="filter-label">
           <FaSearch /> Search Employee
         </label>
         <input
           type="text"
           placeholder="Search by name or ID..."
-          className="hlr-filter-input"
+          className="filter-input"
           value={filters.search}
           onChange={(event) => onChange('search', event.target.value)}
         />
       </div>
 
-      <div className="hlr-filter-group">
-        <label className="hlr-filter-label">
+      <div className="filter-group">
+        <label className="filter-label">
           <FaTag /> Leave Type
         </label>
         <select
-          className="hlr-filter-select"
+          className="filter-select"
           value={filters.leaveType}
           onChange={(event) => onChange('leaveType', event.target.value)}
         >
@@ -32,12 +32,12 @@ export default function HrisLeaveRequestsFilterBar({ filters, onChange }) {
         </select>
       </div>
 
-      <div className="hlr-filter-group">
-        <label className="hlr-filter-label">
+      <div className="filter-group">
+        <label className="filter-label">
           <FaFilter /> Status
         </label>
         <select
-          className="hlr-filter-select"
+          className="filter-select"
           value={filters.status}
           onChange={(event) => onChange('status', event.target.value)}
         >

@@ -18,39 +18,39 @@ export default function HrisAttendanceFilterBar({
   };
 
   return (
-    <div className="ha-filter-bar">
-      <div className="ha-filter-group">
-        <label className="ha-filter-label">
+    <div className="filter-bar four-cols">
+      <div className="filter-group">
+        <label className="filter-label">
           <FaSearch /> Search Employee
         </label>
         <input
           type="text"
           placeholder="Search by name or ID..."
-          className="ha-filter-input"
+          className="filter-input"
           value={currentFilters.search}
           onChange={(event) => updateFilter('search', event.target.value)}
         />
       </div>
 
-      <div className="ha-filter-group">
-        <label className="ha-filter-label">
+      <div className="filter-group">
+        <label className="filter-label">
           <FaCalendarAlt /> Attendance Date
         </label>
         <input
           type="date"
-          className="ha-filter-input"
+          className="filter-input"
           value={selectedDate}
           max={maxDate}
           onChange={(event) => onDateChange?.(event.target.value)}
         />
       </div>
 
-      <div className="ha-filter-group">
-        <label className="ha-filter-label">
+      <div className="filter-group">
+        <label className="filter-label">
           <FaBuilding /> Location/Client
         </label>
         <select
-          className="ha-filter-select"
+          className="filter-select"
           value={currentFilters.clientId}
           onChange={(event) => updateFilter('clientId', event.target.value)}
         >
@@ -61,12 +61,12 @@ export default function HrisAttendanceFilterBar({
         </select>
       </div>
 
-      <div className="ha-filter-group">
-        <label className="ha-filter-label">
+      <div className="filter-group">
+        <label className="filter-label">
           <FaFilter /> Status Filter
         </label>
         <select
-          className="ha-filter-select"
+          className="filter-select"
           value={currentFilters.status}
           onChange={(event) => updateFilter('status', event.target.value)}
         >
