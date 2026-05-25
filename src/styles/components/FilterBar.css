@@ -21,6 +21,14 @@
   grid-template-columns: 2fr 1fr 1fr;
 }
 
+.filter-bar.four-cols {
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+}
+
+.filter-bar.equal-cols {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
 .filter-group {
   display: flex;
   flex-direction: column;
@@ -40,6 +48,12 @@
 .filter-icon {
   color: #093269;
   font-size: 0.85rem;
+}
+
+.filter-label svg {
+  color: #093269;
+  font-size: 0.85rem;
+  flex-shrink: 0;
 }
 
 .filter-input,
@@ -64,7 +78,11 @@
 }
 
 @media (max-width: 1024px) {
-  .filter-bar, .filter-bar.two-cols, .filter-bar.three-cols {
+  .filter-bar,
+  .filter-bar.two-cols,
+  .filter-bar.three-cols,
+  .filter-bar.four-cols,
+  .filter-bar.equal-cols {
     grid-template-columns: 1fr;
   }
 }
