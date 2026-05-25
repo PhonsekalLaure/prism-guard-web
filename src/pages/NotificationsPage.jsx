@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { createElement } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FaBell,
@@ -15,6 +14,7 @@ import {
 } from 'react-icons/fa';
 import Notification from '@components/ui/Notification';
 import Pagination from '@components/ui/Pagination';
+import StatCards from '@components/ui/StatCards';
 import useNotification from '@hooks/useNotification';
 import notificationsService from '@services/notificationsService';
 import '@styles/NotificationsPage.css';
@@ -81,20 +81,6 @@ function buildOpenState(item) {
   }
 
   return undefined;
-}
-
-function StatCard({ icon: Icon, label, value, tone }) {
-  return (
-    <div className={`notif-stat notif-stat--${tone}`}>
-      <div className="notif-stat-left">
-        <p className="notif-stat-label">{label}</p>
-        <p className="notif-stat-value">{value}</p>
-      </div>
-      <div className={`notif-stat-icon notif-stat-icon--${tone}`}>
-        {createElement(Icon)}
-      </div>
-    </div>
-  );
 }
 
 function NotificationRow({ item, portal, onOpen, onMarkRead, onDismiss }) {
@@ -261,6 +247,35 @@ export default function NotificationsPage({ portal = 'hris' }) {
   const start = metadata.total === 0 ? 0 : ((metadata.page - 1) * metadata.limit) + 1;
   const end = Math.min(metadata.page * metadata.limit, metadata.total);
   const portalLabel = portal === 'cms' ? 'Client Portal' : 'Admin Portal';
+  const statCards = [
+    {
+      key: 'total',
+      label: 'Total',
+      valueColor: '#093269',
+      borderColor: '#093269',
+      icon: FaInbox,
+      iconBg: 'rgba(9, 50, 105, 0.1)',
+      iconColor: '#093269',
+    },
+    {
+      key: 'unread',
+      label: 'Unread',
+      valueColor: '#b45309',
+      borderColor: '#e6b215',
+      icon: FaBell,
+      iconBg: 'rgba(230, 178, 21, 0.12)',
+      iconColor: '#b45309',
+    },
+    {
+      key: 'urgent',
+      label: 'Urgent',
+      valueColor: '#dc2626',
+      borderColor: '#ef4444',
+      icon: FaExclamationTriangle,
+      iconBg: 'rgba(239, 68, 68, 0.12)',
+      iconColor: '#dc2626',
+    },
+  ];
 
   return (
     <>
@@ -293,11 +308,7 @@ export default function NotificationsPage({ portal = 'hris' }) {
       </header>
 
       <div className={portal === 'cms' ? 'cms-content' : 'dashboard-content'}>
-        <section className="notif-stat-grid">
-          <StatCard icon={FaInbox} label="Total" value={stats.total || 0} tone="total" />
-          <StatCard icon={FaBell} label="Unread" value={stats.unread || 0} tone="unread" />
-          <StatCard icon={FaExclamationTriangle} label="Urgent" value={stats.urgent || 0} tone="urgent" />
-        </section>
+        <StatCards cards={statCards} stats={stats} columns={3} />
 
         <section className="notif-panel">
           <div className="notif-filter-bar">

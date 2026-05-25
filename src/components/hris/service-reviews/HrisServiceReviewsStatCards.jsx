@@ -1,4 +1,5 @@
 import { FaComments, FaHourglassHalf, FaCheckCircle, FaStar } from 'react-icons/fa';
+import StatCards from '@components/ui/StatCards';
 
 const stats = [
   { label: 'Total Reviews', value: '12', icon: FaComments, iconBg: '#dbeafe', iconColor: '#2563eb', valueColor: '#093269', delay: '0s', borderColor: '#2563eb' },
@@ -8,22 +9,5 @@ const stats = [
 ];
 
 export default function HrisServiceReviewsStatCards() {
-  return (
-    <div className="sr-review-stat-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
-      {stats.map((s, index) => {
-        const Icon = s.icon;
-        return (
-          <div key={index} className="sr-review-stat-card" style={{ animationDelay: s.delay, borderLeftColor: s.borderColor }}>
-            <div className="sr-review-stat-icon-wrapper" style={{ backgroundColor: s.iconBg, color: s.iconColor }}>
-              <Icon />
-            </div>
-            <div>
-              <p className="sr-review-stat-value" style={{ color: s.valueColor }}>{s.value}</p>
-              <p className="sr-review-stat-label">{s.label}</p>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
+  return <StatCards cards={stats} />;
 }

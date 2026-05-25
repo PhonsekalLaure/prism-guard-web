@@ -4,6 +4,7 @@ import {
   FaInfoCircle,
   FaCheckCircle,
 } from 'react-icons/fa';
+import StatCards from '@components/ui/StatCards';
 
 const CARDS = [
   {
@@ -53,54 +54,12 @@ const CARDS = [
 ];
 
 export default function HrisIncidentsStatCards({ stats = {}, loading = false }) {
-  if (loading) {
-    return (
-      <div className="ir-stat-grid">
-        {CARDS.map((_, i) => (
-          <div
-            key={i}
-            className="ir-stat-card ir-stat-card-skeleton"
-            style={{ animationDelay: `${i * 0.07}s` }}
-          >
-            <div className="ir-stat-left">
-              <div className="ir-skeleton" style={{ height: '0.7rem', width: '70%', marginBottom: '0.55rem' }} />
-              <div className="ir-skeleton" style={{ height: '2rem', width: '45%', marginBottom: '0.4rem' }} />
-              <div className="ir-skeleton" style={{ height: '0.6rem', width: '85%' }} />
-            </div>
-            <div className="ir-skeleton ir-stat-icon-wrap" style={{ background: '#e9ecef', flexShrink: 0 }} />
-          </div>
-        ))}
-      </div>
-    );
-  }
+  const cards = CARDS.map((card) => ({
+    ...card,
+    sub: card.key === 'resolved'
+      ? (currentStats) => `${currentStats?.pending ?? 0} pending review`
+      : card.sub,
+  }));
 
-  return (
-    <div className="ir-stat-grid">
-      {CARDS.map((s, i) => (
-        <div
-          key={i}
-          className="ir-stat-card"
-          style={{ borderLeftColor: s.borderColor, animationDelay: s.delay }}
-        >
-          <div className="ir-stat-left">
-            <p className="ir-stat-label">{s.label}</p>
-            <p className="ir-stat-value" style={{ color: s.valueColor }}>
-              {stats[s.key] ?? 0}
-            </p>
-            <p className="ir-stat-sub">
-              {s.key === 'resolved'
-                ? `${stats.pending ?? 0} pending review`
-                : s.sub}
-            </p>
-          </div>
-          <div
-            className="ir-stat-icon-wrap"
-            style={{ background: s.iconBg, color: s.iconColor }}
-          >
-            <s.Icon />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
+  return <StatCards cards={cards} stats={stats} loading={loading} />;
 }
