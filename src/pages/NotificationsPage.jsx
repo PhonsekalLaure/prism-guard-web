@@ -14,6 +14,7 @@ import {
   FaTimes,
 } from 'react-icons/fa';
 import Notification from '@components/ui/Notification';
+import Pagination from '@components/ui/Pagination';
 import useNotification from '@hooks/useNotification';
 import notificationsService from '@services/notificationsService';
 import '@styles/NotificationsPage.css';
@@ -85,11 +86,11 @@ function buildOpenState(item) {
 function StatCard({ icon: Icon, label, value, tone }) {
   return (
     <div className={`notif-stat notif-stat--${tone}`}>
-      <div>
+      <div className="notif-stat-left">
         <p className="notif-stat-label">{label}</p>
         <p className="notif-stat-value">{value}</p>
       </div>
-      <div className="notif-stat-icon">
+      <div className={`notif-stat-icon notif-stat-icon--${tone}`}>
         {createElement(Icon)}
       </div>
     </div>
@@ -272,11 +273,8 @@ export default function NotificationsPage({ portal = 'hris' }) {
         />
       )}
 
-      <div className="notif-topbar">
+      <header className="notif-topbar">
         <div className="notif-title-group">
-          <div className="notif-title-icon">
-            <FaBell />
-          </div>
           <div>
             <h2>Notifications</h2>
             <p>{portalLabel} activity inbox</p>
@@ -292,7 +290,7 @@ export default function NotificationsPage({ portal = 'hris' }) {
           <FaEnvelopeOpenText />
           Mark all read
         </button>
-      </div>
+      </header>
 
       <div className={portal === 'cms' ? 'cms-content' : 'dashboard-content'}>
         <section className="notif-stat-grid">
@@ -370,26 +368,18 @@ export default function NotificationsPage({ portal = 'hris' }) {
             ))}
           </div>
 
-          <div className="notif-pagination">
-            <p>Showing {start}-{end} of {metadata.total}</p>
-            <div className="notif-pagination-actions">
-              <button
-                type="button"
-                onClick={() => handlePageChange(Math.max(metadata.page - 1, 1))}
-                disabled={metadata.page <= 1 || loading}
-              >
-                Previous
-              </button>
-              <span>Page {metadata.page} of {metadata.totalPages || 1}</span>
-              <button
-                type="button"
-                onClick={() => handlePageChange(metadata.page + 1)}
-                disabled={metadata.page >= (metadata.totalPages || 1) || loading}
-              >
-                Next
-              </button>
-            </div>
-          </div>
+          {metadata.total > 0 && (
+            <Pagination
+              currentPage={metadata.page}
+              totalPages={metadata.totalPages || 1}
+              onPageChange={handlePageChange}
+              startIndex={start - 1}
+              endIndex={end}
+              totalItems={metadata.total}
+              label="notifications"
+              disabled={loading}
+            />
+          )}
         </section>
       </div>
     </>

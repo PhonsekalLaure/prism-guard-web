@@ -2,8 +2,6 @@ import { useEffect, useState } from 'react';
 import {
   FaArrowRight,
   FaCheck,
-  FaChevronLeft,
-  FaChevronRight,
   FaClock,
   FaExternalLinkAlt,
   FaMapMarkerAlt,
@@ -13,6 +11,7 @@ import {
   FaTimesCircle,
   FaUserShield,
 } from 'react-icons/fa';
+import Pagination from '@components/ui/Pagination';
 
 const STATUS_ICONS = {
   pending: <FaClock className="mr-1" />,
@@ -22,17 +21,6 @@ const STATUS_ICONS = {
 
 function getStatusIcon(status) {
   return STATUS_ICONS[status] || <FaClock className="mr-1" />;
-}
-
-function getPaginationText(metadata = {}) {
-  const total = metadata.total || 0;
-  if (total === 0) return 'Showing 0 requests';
-
-  const page = metadata.page || 1;
-  const limit = metadata.limit || 8;
-  const start = (page - 1) * limit + 1;
-  const end = Math.min(page * limit, total);
-  return `Showing ${start}-${end} of ${total} requests`;
 }
 
 export default function HrisLeaveRequestsList({
@@ -109,8 +97,10 @@ export default function HrisLeaveRequestsList({
 
   const currentPage = metadata.page || 1;
   const totalPages = metadata.totalPages || 0;
-  const canGoPrevious = currentPage > 1 && !loading;
-  const canGoNext = currentPage < totalPages && !loading;
+  const totalRequests = metadata.total || 0;
+  const pageLimit = metadata.limit || 8;
+  const start = totalRequests === 0 ? 0 : (currentPage - 1) * pageLimit + 1;
+  const end = Math.min(currentPage * pageLimit, totalRequests);
   const selectedReplacementGuards = selectedRequest
     ? replacementGuardsByRequest[selectedRequest.id] || []
     : [];
@@ -205,30 +195,18 @@ export default function HrisLeaveRequestsList({
         ))
       )}
 
-      <div className="hlr-pagination">
-        <p className="hlr-pagination-text">{getPaginationText(metadata)}</p>
-        <div className="hlr-pagination-controls">
-          <button
-            className="hlr-page-btn"
-            disabled={!canGoPrevious}
-            onClick={() => onPageChange(currentPage - 1)}
-            type="button"
-          >
-            <FaChevronLeft /> Previous
-          </button>
-          <button className="hlr-page-btn active" type="button">
-            {currentPage}
-          </button>
-          <button
-            className="hlr-page-btn"
-            disabled={!canGoNext}
-            onClick={() => onPageChange(currentPage + 1)}
-            type="button"
-          >
-            Next <FaChevronRight />
-          </button>
-        </div>
-      </div>
+      {totalRequests > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+          startIndex={start - 1}
+          endIndex={end}
+          totalItems={totalRequests}
+          label="requests"
+          disabled={loading}
+        />
+      )}
 
       {selectedRequest && (
         <div className="hlr-modal-overlay" onClick={(e) => e.target === e.currentTarget && closeModal()}>
