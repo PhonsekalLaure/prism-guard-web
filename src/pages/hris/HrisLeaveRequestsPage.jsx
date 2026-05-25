@@ -3,6 +3,8 @@ import HrisLeaveRequestsTopbar from '@hris-components/leave-requests/HrisLeaveRe
 import HrisLeaveRequestsStatCards from '@hris-components/leave-requests/HrisLeaveRequestsStatCards';
 import HrisLeaveRequestsFilterBar from '@hris-components/leave-requests/HrisLeaveRequestsFilterBar';
 import HrisLeaveRequestsList from '@hris-components/leave-requests/HrisLeaveRequestsList';
+import Notification from '@components/ui/Notification';
+import useNotification from '@hooks/useNotification';
 import leaveRequestsService from '@services/hris/leaveRequestsService';
 import '../../styles/hris/HrisLeaveRequests.css';
 
@@ -28,14 +30,10 @@ export default function HrisLeaveRequestsPage() {
   });
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [loading, setLoading] = useState(true);
-  const [actionLoadingId, setActionLoadingId] = useState(null);
-  const [replacementLoadingId, setReplacementLoadingId] = useState(null);
-  const [replacementGuardsByRequest, setReplacementGuardsByRequest] = useState({});
-  const [error, setError] = useState('');
+  const { notification, showNotification, closeNotification } = useNotification();
 
   const loadLeaveRequests = useCallback(async (page = 1) => {
     setLoading(true);
-    setError('');
 
     try {
       const [requestsResponse, statsResponse] = await Promise.all([
@@ -58,11 +56,11 @@ export default function HrisLeaveRequestsPage() {
       });
       setStats(statsResponse);
     } catch (err) {
-      setError(err.response?.data?.error || err.message || 'Failed to load leave requests');
+      showNotification(err.response?.data?.error || err.message || 'Failed to load leave requests', 'error');
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, [filters, showNotification]);
 
   useEffect(() => {
     loadLeaveRequests(1);
@@ -72,108 +70,26 @@ export default function HrisLeaveRequestsPage() {
     setFilters((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleReject = async (request, reviewNotes) => {
-    setActionLoadingId(`reject:${request.id}`);
-    setError('');
-
-    try {
-      await leaveRequestsService.rejectLeaveRequest(request.id, reviewNotes);
-      await loadLeaveRequests(metadata.page);
-      return true;
-    } catch (err) {
-      setError(err.response?.data?.error || err.message || 'Failed to reject leave request');
-      return false;
-    } finally {
-      setActionLoadingId(null);
-    }
-  };
-
-  const handleLoadReplacementGuards = async (request) => {
-    if (replacementGuardsByRequest[request.id]) {
-      return replacementGuardsByRequest[request.id];
-    }
-
-    setReplacementLoadingId(request.id);
-    setError('');
-
-    try {
-      const guards = await leaveRequestsService.getReplacementGuards(request.id);
-      setReplacementGuardsByRequest((prev) => ({ ...prev, [request.id]: guards }));
-      return guards;
-    } catch (err) {
-      setError(err.response?.data?.error || err.message || 'Failed to load replacement guards');
-      return [];
-    } finally {
-      setReplacementLoadingId(null);
-    }
-  };
-
-  const handleApprove = async (request, payload) => {
-    setActionLoadingId(`approve:${request.id}`);
-    setError('');
-
-    try {
-      await leaveRequestsService.approveLeaveRequest(request.id, payload);
-      setReplacementGuardsByRequest((prev) => {
-        const next = { ...prev };
-        delete next[request.id];
-        return next;
-      });
-      await loadLeaveRequests(metadata.page);
-      return true;
-    } catch (err) {
-      setError(err.response?.data?.error || err.message || 'Failed to approve leave request');
-      return false;
-    } finally {
-      setActionLoadingId(null);
-    }
-  };
-
-  const handleCancel = async (request, reviewNotes = '') => {
-    setActionLoadingId(`cancel:${request.id}`);
-    setError('');
-
-    try {
-      await leaveRequestsService.cancelLeaveRequest(request.id, reviewNotes);
-      await loadLeaveRequests(metadata.page);
-      return true;
-    } catch (err) {
-      setError(err.response?.data?.error || err.message || 'Failed to cancel leave request');
-      return false;
-    } finally {
-      setActionLoadingId(null);
-    }
-  };
-
-  const handleOpenDocument = async (request) => {
-    setError('');
-    try {
-      await leaveRequestsService.openSupportingDocument(request.id);
-    } catch (err) {
-      setError(err.response?.data?.error || err.message || 'Failed to open supporting document');
-    }
-  };
-
   return (
     <>
+      {notification && (
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          duration={notification.duration}
+          onClose={closeNotification}
+        />
+      )}
+
       <HrisLeaveRequestsTopbar />
 
       <div className="dashboard-content">
-        <HrisLeaveRequestsStatCards stats={stats} />
+        <HrisLeaveRequestsStatCards stats={stats} loading={loading} />
         <HrisLeaveRequestsFilterBar filters={filters} onChange={handleFilterChange} />
-        {error && <div className="hlr-error-banner">{error}</div>}
         <HrisLeaveRequestsList
           requests={requests}
           metadata={metadata}
           loading={loading}
-          actionLoadingId={actionLoadingId}
-          replacementLoadingId={replacementLoadingId}
-          replacementGuardsByRequest={replacementGuardsByRequest}
-          onLoadReplacementGuards={handleLoadReplacementGuards}
-          onApprove={handleApprove}
-          onCancel={handleCancel}
-          onOpenDocument={handleOpenDocument}
-          onReject={handleReject}
           onPageChange={loadLeaveRequests}
         />
       </div>

@@ -36,8 +36,8 @@ function buildStats() {
   ];
 }
 
-export default function HrisLeaveRequestsStatCards({ stats }) {
+export default function HrisLeaveRequestsStatCards({ stats, loading = false }) {
   const items = buildStats();
 
-  return <StatCards cards={items} stats={stats} columns={3} />;
+  return <StatCards cards={items} stats={stats} loading={loading} columns={3} />;
 }
