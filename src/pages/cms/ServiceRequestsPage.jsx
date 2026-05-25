@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import ServiceRequestsTopbar from '@cms-components/service-requests/ServiceRequestsTopbar';
 import ServiceRequestsStatCards from '@cms-components/service-requests/ServiceRequestsStatCards';
 import ServiceRequestsFilterBar from '@cms-components/service-requests/ServiceRequestsFilterBar';
@@ -12,6 +13,8 @@ import serviceRequestsService from '@services/cms/serviceRequestsService';
 const DEFAULT_FILTERS = { status: 'all', type: 'all', urgency: 'all' };
 
 export default function ServiceRequestsPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [isNewRequestOpen, setIsNewRequestOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
 
@@ -118,6 +121,14 @@ export default function ServiceRequestsPage() {
       setLoadingDetail(false);
     }
   }, [showNotification]);
+
+  useEffect(() => {
+    const requestId = location.state?.openServiceRequestId;
+    if (!requestId) return;
+
+    handleViewRequest({ id: requestId });
+    navigate(location.pathname, { replace: true, state: null });
+  }, [handleViewRequest, location.pathname, location.state, navigate]);
 
   const refreshSelectedRequest = useCallback(async () => {
     if (!selectedRequest?.id) return;

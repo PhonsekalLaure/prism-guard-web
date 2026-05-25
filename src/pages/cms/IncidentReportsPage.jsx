@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import IncidentReportsTopbar from '@cms-components/incident-reports/IncidentReportsTopbar';
 import IncidentReportsStatCards from '@cms-components/incident-reports/IncidentReportsStatCards';
 import IncidentReportsInfoBanner from '@cms-components/incident-reports/IncidentReportsInfoBanner';
@@ -15,6 +16,8 @@ const PAGE_LIMIT = 8;
 const INITIAL_FILTERS = { search: '', site: 'all', severity: 'all', date: '' };
 
 export default function IncidentReportsPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [selectedIncident, setSelectedIncident] = useState(null);
   const [viewedIncident, setViewedIncident] = useState(null);
   const [incidents, setIncidents] = useState([]);
@@ -71,6 +74,17 @@ export default function IncidentReportsPage() {
     loadStats();
     loadSites();
   }, [loadReports, loadSites, loadStats]);
+
+  useEffect(() => {
+    const incidentId = location.state?.openIncidentId;
+    if (!incidentId || loading) return;
+
+    const incident = incidents.find((item) => item.id === incidentId);
+    if (incident) {
+      setViewedIncident(incident);
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [incidents, loading, location.pathname, location.state, navigate]);
 
   const handleFilterChange = (nextFilters) => {
     setFilters(nextFilters);
