@@ -16,6 +16,7 @@ import Notification from '@components/ui/Notification';
 import Pagination from '@components/ui/Pagination';
 import StatCards from '@components/ui/StatCards';
 import EmptyState from '@components/ui/EmptyState';
+import { SkeletonBlock, SkeletonList } from '@components/ui/Skeleton';
 import useNotification from '@hooks/useNotification';
 import notificationsService from '@services/notificationsService';
 import '@styles/NotificationsPage.css';
@@ -82,6 +83,19 @@ function buildOpenState(item) {
   }
 
   return undefined;
+}
+
+function NotificationRowSkeleton() {
+  return (
+    <article className="notif-row notif-row--skeleton">
+      <SkeletonBlock className="notif-skel-icon" as="span" />
+      <div className="notif-row-main">
+        <SkeletonBlock className="notif-skel-title" as="span" />
+        <SkeletonBlock className="notif-skel-message" as="span" />
+        <SkeletonBlock className="notif-skel-meta" as="span" />
+      </div>
+    </article>
+  );
 }
 
 function NotificationRow({ item, portal, onOpen, onMarkRead, onDismiss }) {
@@ -356,16 +370,9 @@ export default function NotificationsPage({ portal = 'hris' }) {
           </div>
 
           <div className="notif-list">
-            {loading && Array.from({ length: 5 }).map((_, index) => (
-              <div className="notif-row notif-row--skeleton" key={index}>
-                <span className="notif-skel notif-skel-icon" />
-                <div className="notif-row-main">
-                  <span className="notif-skel notif-skel-title" />
-                  <span className="notif-skel notif-skel-message" />
-                  <span className="notif-skel notif-skel-meta" />
-                </div>
-              </div>
-            ))}
+            {loading && <SkeletonList count={5}>{(index) => (
+              <NotificationRowSkeleton key={index} />
+            )}</SkeletonList>}
 
             {!loading && notifications.length === 0 && (
               <EmptyState

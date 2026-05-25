@@ -14,10 +14,72 @@ import {
   FaUserShield,
 } from 'react-icons/fa';
 import Notification from '@components/ui/Notification';
+import { SkeletonBlock, SkeletonList } from '@components/ui/Skeleton';
 import LeaveRequestAvatar from '@hris-components/leave-requests/LeaveRequestAvatar';
 import useNotification from '@hooks/useNotification';
 import leaveRequestsService from '@services/hris/leaveRequestsService';
 import '../../styles/hris/HrisLeaveRequests.css';
+
+function LeaveRequestDetailSkeleton() {
+  return (
+    <section className="hlr-review-panel">
+      <div className="hlr-modal-header">
+        <div className="hlr-header-text" style={{ width: '100%' }}>
+          <SkeletonBlock height="1rem" width={210} style={{ background: 'rgba(255,255,255,0.25)', marginBottom: '0.45rem' }} />
+          <SkeletonBlock height="0.75rem" width={120} style={{ background: 'rgba(255,255,255,0.18)' }} />
+        </div>
+        <SkeletonBlock height={24} width={90} radius="999px" style={{ background: 'rgba(255,255,255,0.22)' }} />
+      </div>
+
+      <div className="hlr-modal-body">
+        <div className="hlr-modal-emp-box">
+          <SkeletonBlock className="entity-card-skeleton__avatar entity-card-skeleton__avatar--square" />
+          <div className="entity-card-skeleton__lines">
+            <SkeletonBlock className="entity-card-skeleton__line entity-card-skeleton__line--long" />
+            <SkeletonBlock className="entity-card-skeleton__line entity-card-skeleton__line--short" />
+            <SkeletonBlock height="0.7rem" width="50%" />
+          </div>
+        </div>
+
+        <div className="hlr-modal-grid">
+          <SkeletonList count={4}>{(index) => (
+            <div key={index} className="hlr-modal-cell">
+              <SkeletonBlock height="0.65rem" width="42%" style={{ marginBottom: '0.45rem' }} />
+              <SkeletonBlock height="1rem" width="72%" />
+            </div>
+          )}</SkeletonList>
+        </div>
+
+        {[150, 180, 120].map((width, index) => (
+          <div key={index}>
+            <SkeletonBlock height="0.75rem" width={width} style={{ marginBottom: '0.6rem' }} />
+            <SkeletonBlock height={index === 0 ? 88 : 48} radius={10} />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ReplacementGuardSkeletonList() {
+  return (
+    <div className="hlr-replacement-list">
+      <SkeletonList count={3}>{(index) => (
+        <div key={index} className="hlr-replacement-card">
+          <SkeletonBlock className="hlr-replacement-avatar" />
+          <div className="hlr-replacement-info">
+            <div className="hlr-replacement-row">
+              <SkeletonBlock height="0.9rem" width={150} />
+              <SkeletonBlock height={22} width={84} radius="999px" />
+            </div>
+            <SkeletonBlock height="0.75rem" width={180} style={{ marginTop: '0.3rem' }} />
+          </div>
+          <SkeletonBlock height="0.8rem" width={72} />
+        </div>
+      )}</SkeletonList>
+    </div>
+  );
+}
 
 export default function HrisLeaveRequestDetailPage() {
   const { id } = useParams();
@@ -189,11 +251,7 @@ export default function HrisLeaveRequestDetailPage() {
 
       <div className="dashboard-content hlr-review-page-wrapper">
         {loading && (
-          <div className="hlr-list-container">
-            <div className="hlr-empty-state">
-              <FaSpinner className="hlr-spin" /> Loading leave request...
-            </div>
-          </div>
+          <LeaveRequestDetailSkeleton />
         )}
 
         {!loading && error && (
@@ -317,9 +375,7 @@ export default function HrisLeaveRequestDetailPage() {
                       </div>
 
                       {replacementLoading ? (
-                        <div className="hlr-replacement-empty">
-                          <FaSpinner className="hlr-spin" /> Loading replacement guards...
-                        </div>
+                        <ReplacementGuardSkeletonList />
                       ) : replacementGuards.length === 0 ? (
                         <div className="hlr-replacement-empty">
                           No replacement guards match this leave request and site location.

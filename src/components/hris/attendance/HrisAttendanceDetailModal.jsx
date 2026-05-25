@@ -1,4 +1,5 @@
 import { FaClock, FaMapMarkerAlt, FaMinusCircle, FaTimes, FaUserShield } from 'react-icons/fa';
+import { SkeletonBlock, SkeletonList } from '@components/ui/Skeleton';
 import HrisAttendanceAvatar from './HrisAttendanceAvatar';
 import {
   GPS_ICONS,
@@ -10,6 +11,41 @@ import {
   getClockOutNoteClass,
   getHoursNoteClass,
 } from './attendanceUi';
+
+function AttendanceDetailSkeleton() {
+  return (
+    <>
+      <div className="ha-modal-grid">
+        <SkeletonList count={4}>{(index) => (
+          <div key={index} className="ha-modal-cell">
+            <SkeletonBlock height="0.65rem" width="50%" style={{ marginBottom: '0.45rem' }} />
+            <SkeletonBlock height="1rem" width="72%" style={{ marginBottom: '0.25rem' }} />
+            <SkeletonBlock height="0.65rem" width="58%" />
+          </div>
+        )}</SkeletonList>
+      </div>
+
+      {[0, 1].map((sectionIndex) => (
+        <div key={sectionIndex} className="ha-modal-section">
+          <SkeletonBlock height="0.75rem" width={sectionIndex === 0 ? 130 : 100} />
+          <div className="ha-detail-grid">
+            <SkeletonList count={8}>{(index) => (
+              <div key={index}>
+                <SkeletonBlock height="0.65rem" width="56%" style={{ marginBottom: '0.35rem' }} />
+                <SkeletonBlock height="0.85rem" width="78%" />
+              </div>
+            )}</SkeletonList>
+          </div>
+        </div>
+      ))}
+
+      <div className="ha-modal-section">
+        <SkeletonBlock height="0.75rem" width={64} />
+        <SkeletonBlock height={70} radius={12} />
+      </div>
+    </>
+  );
+}
 
 export default function HrisAttendanceDetailModal({
   row,
@@ -49,19 +85,19 @@ export default function HrisAttendanceDetailModal({
             </span>
           </div>
 
-          {loading && (
-            <div className="ha-modal-notes-box">Loading complete log details...</div>
-          )}
+          {loading ? (
+            <AttendanceDetailSkeleton />
+          ) : (
+            <>
+              {error && (
+                <div className="ha-modal-alert">{error}</div>
+              )}
 
-          {error && (
-            <div className="ha-modal-alert">{error}</div>
-          )}
-
-          {!loading && !displayRow.attendanceLogId && (
-            <div className="ha-modal-alert neutral">
-              No attendance log exists for this expected attendance row. This record is derived from the active deployment and schedule for the selected date.
-            </div>
-          )}
+              {!displayRow.attendanceLogId && (
+                <div className="ha-modal-alert neutral">
+                  No attendance log exists for this expected attendance row. This record is derived from the active deployment and schedule for the selected date.
+                </div>
+              )}
 
           <div className="ha-modal-grid">
             <div className="ha-modal-cell">
@@ -144,6 +180,8 @@ export default function HrisAttendanceDetailModal({
               {displayRow.notes}
             </div>
           </div>
+            </>
+          )}
         </div>
 
         <div className="ha-modal-footer">
