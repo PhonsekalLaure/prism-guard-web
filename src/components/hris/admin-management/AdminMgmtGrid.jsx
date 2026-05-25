@@ -1,5 +1,6 @@
 import { FaCrown, FaUserShield, FaChevronRight } from 'react-icons/fa';
 import EmptyState from '@components/ui/EmptyState';
+import { EntityCardSkeleton, SkeletonList } from '@components/ui/Skeleton';
 import { getAdminRoleLabel } from '@utils/adminPermissions';
 
 function formatPermissionLabel(permission) {
@@ -84,22 +85,9 @@ export default function AdminMgmtGrid({ admins = [], loading = false, error = ''
   if (loading) {
     return (
       <div className="admin-cards-grid">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="admin-card admin-card-skeleton">
-            <div className="skeleton-header" />
-            <div className="admin-card-body">
-              <div className="admin-card-user">
-                <div className="skeleton-avatar" />
-                <div className="skeleton-lines">
-                  <div className="skeleton-line long" />
-                  <div className="skeleton-line short" />
-                </div>
-              </div>
-              <div className="skeleton-block" />
-              <div className="skeleton-block short" />
-            </div>
-          </div>
-        ))}
+        <SkeletonList count={3}>{(index) => (
+          <EntityCardSkeleton key={index} variant="admin" />
+        )}</SkeletonList>
       </div>
     );
   }

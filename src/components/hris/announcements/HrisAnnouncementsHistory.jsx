@@ -6,6 +6,7 @@ import {
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
 import EmptyState from '@components/ui/EmptyState';
+import { TableSkeletonRows } from '@components/ui/Skeleton';
 
 const AUDIENCE_OPTIONS = [
   { value: '', label: 'All Audiences' },
@@ -27,6 +28,14 @@ const STATUS_OPTIONS = [
   { value: 'archived', label: 'Archived' },
   { value: 'expired', label: 'Expired' },
 ];
+
+const getAnnouncementSkeletonCellStyle = (column) => {
+  if (column === 0) return { width: 120 };
+  if (column === 1) return { width: '82%', height: 28 };
+  if (column === 2 || column === 3 || column === 5) return { width: 78, height: 22, borderRadius: 20 };
+  if (column === 6) return { width: 132, height: 30 };
+  return { width: '60%' };
+};
 
 function toDatetimeLocalValue(value) {
   if (!value) return '';
@@ -435,29 +444,13 @@ export default function HrisAnnouncementsHistory({
             </tr>
           </thead>
           <tbody>
-            {loading && Array.from({ length: 5 }).map((_, i) => (
-              <tr key={`skel-${i}`} className="an-skel-row">
-                <td><div className="an-skel an-skel-id" /></td>
-                <td>
-                  <div className="an-subject-cell">
-                    <div className="an-skel an-skel-icon-sm" />
-                    <div className="an-skel an-skel-text-lg" />
-                  </div>
-                </td>
-                <td><div className="an-skel an-skel-badge" /></td>
-                <td><div className="an-skel an-skel-badge" /></td>
-                <td><div className="an-skel an-skel-text" /></td>
-                <td><div className="an-skel an-skel-badge" /></td>
-                <td>
-                  <div className="an-row-actions">
-                    <div className="an-skel an-skel-btn" />
-                    <div className="an-skel an-skel-btn" />
-                    <div className="an-skel an-skel-btn" />
-                    <div className="an-skel an-skel-btn" />
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {loading && (
+              <TableSkeletonRows
+                rows={5}
+                columns={7}
+                getCellStyle={getAnnouncementSkeletonCellStyle}
+              />
+            )}
 
             {!loading && rows.length === 0 && (
               <tr>

@@ -4,6 +4,7 @@ import {
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
 import EmptyState from '@components/ui/EmptyState';
+import { EntityCardSkeleton, SkeletonList } from '@components/ui/Skeleton';
 
 export default function ClientsGrid({
   clients = [],
@@ -23,22 +24,9 @@ export default function ClientsGrid({
   if (loading) {
     return (
       <div className="clients-grid">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="client-card client-card-skeleton">
-            <div className="client-card-header client-skeleton-header">
-              <div className="skeleton-avatar" style={{ borderRadius: '12px' }} />
-              <div className="skeleton-lines" style={{ marginTop: '0.6rem' }}>
-                <div className="skeleton-line long" style={{ background: 'rgba(255,255,255,0.25)' }} />
-                <div className="skeleton-line short" style={{ background: 'rgba(255,255,255,0.18)' }} />
-              </div>
-            </div>
-            <div className="client-card-body">
-              <div className="skeleton-block" />
-              <div className="skeleton-block" />
-              <div className="skeleton-block short" />
-            </div>
-          </div>
-        ))}
+        <SkeletonList count={6}>{(index) => (
+          <EntityCardSkeleton key={index} variant="client" />
+        )}</SkeletonList>
       </div>
     );
   }

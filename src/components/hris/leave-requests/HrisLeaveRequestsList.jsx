@@ -9,6 +9,7 @@ import {
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
 import EmptyState from '@components/ui/EmptyState';
+import { IncidentCardSkeleton, SkeletonList } from '@components/ui/Skeleton';
 import LeaveRequestAvatar from './LeaveRequestAvatar';
 
 const STATUS_ICONS = {
@@ -47,7 +48,14 @@ export default function HrisLeaveRequestsList({
           <h3><FaClipboardList /> Leave Requests</h3>
         </div>
         <div className="hlr-feed-body">
-          <div className="hlr-empty-state">Loading leave requests...</div>
+          <SkeletonList count={4}>{(index) => (
+            <IncidentCardSkeleton
+              key={index}
+              detailColumns={4}
+              showSummary
+              delay={`${index * 0.07}s`}
+            />
+          )}</SkeletonList>
         </div>
       </div>
     );

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { FaEye, FaListUl, FaMinusCircle } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
 import EmptyState from '@components/ui/EmptyState';
+import { TableSkeletonRows } from '@components/ui/Skeleton';
 import attendanceService from '@services/hris/attendanceService';
 import HrisAttendanceAvatar from './HrisAttendanceAvatar';
 import HrisAttendanceDetailModal from './HrisAttendanceDetailModal';
@@ -13,6 +14,13 @@ import {
   getClockOutNoteClass,
   getHoursNoteClass,
 } from './attendanceUi';
+
+const getAttendanceSkeletonCellStyle = (column) => {
+  if (column === 0) return { width: '85%', height: 32 };
+  if (column === 5 || column === 6) return { width: 86, height: 24, borderRadius: 20 };
+  if (column === 7) return { width: 34, height: 34, borderRadius: 8 };
+  return { width: '70%', height: 14 };
+};
 
 export default function HrisAttendanceTable({
   records = [],
@@ -82,9 +90,7 @@ export default function HrisAttendanceTable({
           </thead>
           <tbody>
             {loading && (
-              <tr>
-                <td colSpan="8" className="ha-empty-cell">Loading attendance records...</td>
-              </tr>
+              <TableSkeletonRows rows={6} columns={8} getCellStyle={getAttendanceSkeletonCellStyle} />
             )}
             {!loading && records.length === 0 && (
               <tr>

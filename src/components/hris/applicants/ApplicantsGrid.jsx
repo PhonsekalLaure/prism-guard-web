@@ -6,6 +6,7 @@ import {
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
 import EmptyState from '@components/ui/EmptyState';
+import { EntityCardSkeleton, SkeletonList } from '@components/ui/Skeleton';
 
 const STATUS_LABELS = {
   pending: 'PENDING',
@@ -83,7 +84,13 @@ export default function ApplicantsGrid({
   const to = Math.min(page * limit, total);
 
   if (isLoading) {
-    return <p className="applicants-empty">Loading applicants...</p>;
+    return (
+      <div className="applicants-grid">
+        <SkeletonList count={6}>{(index) => (
+          <EntityCardSkeleton key={index} variant="applicant" />
+        )}</SkeletonList>
+      </div>
+    );
   }
 
   if (!applicants.length) {

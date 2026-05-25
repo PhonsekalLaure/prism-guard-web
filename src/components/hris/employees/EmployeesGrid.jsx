@@ -4,6 +4,7 @@ import {
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
 import EmptyState from '@components/ui/EmptyState';
+import { EntityCardSkeleton, SkeletonList } from '@components/ui/Skeleton';
 
 export default function EmployeesGrid({ 
   employees = [], 
@@ -24,25 +25,9 @@ export default function EmployeesGrid({
   if (loading) {
     return (
       <div className="employees-grid">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="employee-card employee-card-skeleton">
-            <div className="employee-card-body">
-              <div className="employee-card-header-row">
-                <div className="employee-header-left">
-                  <div className="skeleton-avatar" />
-                  <div className="skeleton-lines">
-                    <div className="skeleton-line long" />
-                    <div className="skeleton-line short" />
-                  </div>
-                </div>
-                <div className="skeleton-badge" />
-              </div>
-              <div className="skeleton-block" />
-              <div className="skeleton-block" />
-              <div className="skeleton-block short" />
-            </div>
-          </div>
-        ))}
+        <SkeletonList count={6}>{(index) => (
+          <EntityCardSkeleton key={index} variant="employee" />
+        )}</SkeletonList>
       </div>
     );
   }
