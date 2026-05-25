@@ -1,5 +1,6 @@
 import { FaUsers, FaEye } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
+import EmptyState from '@components/ui/EmptyState';
 
 const statusConfig = {
   active: { label: 'Active', className: 'dg-status-badge dg-status-badge--active' },
@@ -18,6 +19,7 @@ export default function GuardRosterTable({
   limit = 6,
   onPageChange,
   onViewGuard,
+  onResetFilters,
 }) {
   const pageStart = totalCount === 0 ? 0 : (currentPage - 1) * limit + 1;
   const pageEnd = Math.min(currentPage * limit, totalCount);
@@ -50,8 +52,15 @@ export default function GuardRosterTable({
               </tr>
             ) : guards.length === 0 ? (
               <tr>
-                <td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: '#7f8c8d' }}>
-                  No deployed guards found.
+                <td colSpan={5} style={{ padding: '1.5rem' }}>
+                  <EmptyState
+                    icon={FaUsers}
+                    title="No deployed guards found"
+                    description="We couldn't find any deployed guards matching your current search or filter criteria. Try adjusting your settings to view more guards."
+                    actionLabel="Reset All Filters"
+                    onAction={onResetFilters}
+                    compact
+                  />
                 </td>
               </tr>
             ) : (

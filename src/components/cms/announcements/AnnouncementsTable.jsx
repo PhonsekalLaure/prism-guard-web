@@ -6,6 +6,7 @@ import {
   FaEye,
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
+import EmptyState from '@components/ui/EmptyState';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -48,6 +49,7 @@ export default function AnnouncementsTable({
   loading = false,
   onPageChange,
   onViewDetail,
+  onResetFilters,
 }) {
   const page = metadata?.page || 1;
   const total = metadata?.total || 0;
@@ -84,11 +86,14 @@ export default function AnnouncementsTable({
               ? (
                 <tr>
                   <td colSpan={6} className="ann-table-empty">
-                    <div className="ann-empty-state">
-                      <FaBullhorn className="ann-empty-icon" />
-                      <p>No announcements found</p>
-                      <span>Try adjusting your search or filters</span>
-                    </div>
+                    <EmptyState
+                      icon={FaBullhorn}
+                      title="No announcements found"
+                      description="We couldn't find any announcements matching your current search or filter criteria. Try adjusting your settings to view more announcements."
+                      actionLabel="Reset All Filters"
+                      onAction={onResetFilters}
+                      compact
+                    />
                   </td>
                 </tr>
               ) : announcements.map((ann) => (

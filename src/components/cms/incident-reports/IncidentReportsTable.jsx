@@ -11,6 +11,7 @@ import {
   FaExternalLinkAlt,
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
+import EmptyState from '@components/ui/EmptyState';
 import authService from '@services/authService';
 import { formatIncidentDate, titleCase } from './incidentReportFormatters';
 
@@ -71,6 +72,7 @@ export default function IncidentReportsTable({
   onPageChange,
   onViewIncident,
   onRequestReport,
+  onResetFilters,
 }) {
   const page = metadata.page || 1;
   const totalPages = metadata.totalPages || 1;
@@ -92,7 +94,13 @@ export default function IncidentReportsTable({
         ))}
 
         {!loading && incidents.length === 0 && (
-          <div className="cir-feed-empty">No incident reports found for the selected filters.</div>
+          <EmptyState
+            title="No incident reports found"
+            description="We couldn't find any incident reports matching your current search or filter criteria. Try adjusting your settings to view more incidents."
+            actionLabel="Reset All Filters"
+            onAction={onResetFilters}
+            compact
+          />
         )}
 
         {!loading && incidents.map((inc, index) => {

@@ -6,6 +6,7 @@ export default function ServiceRequestsTable({
   loading,
   onViewRequest,
   onPageChange,
+  onResetFilters,
 }) {
   return (
     <ServiceRequestTable
@@ -15,6 +16,7 @@ export default function ServiceRequestsTable({
       mode="cms"
       onOpenRequest={onViewRequest}
       onPageChange={onPageChange}
+      onResetFilters={onResetFilters}
     />
   );
 }

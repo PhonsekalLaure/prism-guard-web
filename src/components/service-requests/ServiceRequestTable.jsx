@@ -5,6 +5,7 @@ import {
   FaReply,
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
+import EmptyState from '@components/ui/EmptyState';
 import {
   getServiceRequestTypeIcon,
   getStatusBadgeClass,
@@ -37,6 +38,7 @@ export default function ServiceRequestTable({
   title,
   onOpenRequest,
   onPageChange,
+  onResetFilters,
 }) {
   const { total, page, limit, totalPages } = metadata;
   const showClient = mode === 'hris';
@@ -71,8 +73,14 @@ export default function ServiceRequestTable({
               <SkeletonRows showClient={showClient} />
             ) : requests.length === 0 ? (
               <tr>
-                <td colSpan={columns} style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
-                  No service requests found.
+                <td colSpan={columns} style={{ padding: '1.5rem' }}>
+                  <EmptyState
+                    title="No service requests found"
+                    description="We couldn't find any service requests matching your current search or filter criteria. Try adjusting your settings to view more requests."
+                    actionLabel="Reset All Filters"
+                    onAction={onResetFilters}
+                    compact
+                  />
                 </td>
               </tr>
             ) : requests.map((request) => {
