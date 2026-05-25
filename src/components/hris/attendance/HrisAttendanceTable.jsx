@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { FaEye, FaListUl, FaMinusCircle } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
+import EmptyState from '@components/ui/EmptyState';
 import attendanceService from '@services/hris/attendanceService';
 import HrisAttendanceAvatar from './HrisAttendanceAvatar';
 import HrisAttendanceDetailModal from './HrisAttendanceDetailModal';
@@ -19,6 +20,7 @@ export default function HrisAttendanceTable({
   loading = false,
   selectedDate = null,
   onPageChange,
+  onResetFilters,
 }) {
   const [selectedRow, setSelectedRow] = useState(null);
   const [selectedDetail, setSelectedDetail] = useState(null);
@@ -86,7 +88,15 @@ export default function HrisAttendanceTable({
             )}
             {!loading && records.length === 0 && (
               <tr>
-                <td colSpan="8" className="ha-empty-cell">No attendance records found.</td>
+                <td colSpan="8" className="ha-empty-cell">
+                  <EmptyState
+                    title="No attendance records found"
+                    description="We couldn't find any attendance records matching the selected date, search, or filter criteria. Try adjusting your settings to view more records."
+                    actionLabel="Reset All Filters"
+                    onAction={onResetFilters}
+                    compact
+                  />
+                </td>
               </tr>
             )}
             {!loading && records.map((row) => {

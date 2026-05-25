@@ -6,6 +6,7 @@ export default function HrisSRTable({
   loading,
   onOpenDetail,
   onPageChange,
+  onResetFilters,
 }) {
   return (
     <ServiceRequestTable
@@ -15,6 +16,7 @@ export default function HrisSRTable({
       mode="hris"
       onOpenRequest={onOpenDetail}
       onPageChange={onPageChange}
+      onResetFilters={onResetFilters}
     />
   );
 }

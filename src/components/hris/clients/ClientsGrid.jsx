@@ -3,6 +3,7 @@ import {
   FaSearch, FaExclamationTriangle
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
+import EmptyState from '@components/ui/EmptyState';
 
 export default function ClientsGrid({
   clients = [],
@@ -46,22 +47,13 @@ export default function ClientsGrid({
     <>
       <div className="clients-grid">
         {clients.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-state-icon">
-              <FaSearch />
-            </div>
-            <h3 className="empty-state-title">No clients found</h3>
-            <p className="empty-state-desc">
-              We couldn't find any clients matching your current search or filter criteria.
-              Try adjusting your settings or reset to view all clients.
-            </p>
-            <button
-              onClick={() => onResetFilters?.()}
-              className="empty-state-reset"
-            >
-              Reset All Filters
-            </button>
-          </div>
+          <EmptyState
+            icon={FaSearch}
+            title="No clients found"
+            description="We couldn't find any clients matching your current search or filter criteria. Try adjusting your settings or reset to view all clients."
+            actionLabel="Reset All Filters"
+            onAction={onResetFilters}
+          />
         ) : (
           clients.map((client, i) => (
             <div key={client.id || i} className="client-card">

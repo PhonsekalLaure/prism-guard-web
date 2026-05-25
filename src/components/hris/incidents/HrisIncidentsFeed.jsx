@@ -11,6 +11,7 @@ import {
   FaList,
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
+import EmptyState from '@components/ui/EmptyState';
 
 const severityIcon = {
   high: FaExclamationTriangle,
@@ -106,6 +107,7 @@ export default function HrisIncidentsFeed({
   loading = false,
   metadata = {},
   onPageChange,
+  onResetFilters,
 }) {
   const navigate = useNavigate();
   const page = metadata.page || 1;
@@ -128,7 +130,13 @@ export default function HrisIncidentsFeed({
         ))}
 
         {!loading && incidents.length === 0 && (
-          <div className="ir-feed-empty">No incident reports found.</div>
+          <EmptyState
+            title="No incident reports found"
+            description="We couldn't find any incident reports matching your current search or filter criteria. Try adjusting your settings to view more incidents."
+            actionLabel="Reset All Filters"
+            onAction={onResetFilters}
+            compact
+          />
         )}
 
         {!loading && incidents.map((inc, index) => {

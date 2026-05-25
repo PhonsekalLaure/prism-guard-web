@@ -1,4 +1,5 @@
 import { FaCrown, FaUserShield, FaChevronRight } from 'react-icons/fa';
+import EmptyState from '@components/ui/EmptyState';
 import { getAdminRoleLabel } from '@utils/adminPermissions';
 
 function formatPermissionLabel(permission) {
@@ -108,7 +109,13 @@ export default function AdminMgmtGrid({ admins = [], loading = false, error = ''
   }
 
   if (admins.length === 0) {
-    return <div className="admin-alert-box">No administrator accounts found.</div>;
+    return (
+      <EmptyState
+        icon={FaUserShield}
+        title="No administrator accounts found"
+        description="We couldn't find any administrator accounts matching your current search or filter criteria. Try adjusting your settings to view more accounts."
+      />
+    );
   }
 
   return (

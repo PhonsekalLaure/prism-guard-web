@@ -5,6 +5,7 @@ import {
   FaSave, FaExclamationTriangle,
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
+import EmptyState from '@components/ui/EmptyState';
 
 const AUDIENCE_OPTIONS = [
   { value: '', label: 'All Audiences' },
@@ -316,6 +317,7 @@ export default function HrisAnnouncementsHistory({
   onEdit,
   onFiltersChange,
   onPageChange,
+  onResetFilters,
   canWrite = true,
 }) {
   const [selected, setSelected] = useState(null);
@@ -339,6 +341,11 @@ export default function HrisAnnouncementsHistory({
 
   const updateFilter = (field, value) => {
     onFiltersChange({ ...filters, search: searchInput, [field]: value });
+  };
+
+  const handleResetFilters = () => {
+    setSearchInput('');
+    onResetFilters?.();
   };
 
   const handleArchive = (row) => {
@@ -454,7 +461,16 @@ export default function HrisAnnouncementsHistory({
 
             {!loading && rows.length === 0 && (
               <tr>
-                <td colSpan="7" className="an-empty-cell">No announcements found.</td>
+                <td colSpan="7" className="an-empty-cell">
+                  <EmptyState
+                    icon={FaBullhorn}
+                    title="No announcements found"
+                    description="We couldn't find any announcements matching your current search or filter criteria. Try adjusting your settings to view more announcements."
+                    actionLabel="Reset All Filters"
+                    onAction={handleResetFilters}
+                    compact
+                  />
+                </td>
               </tr>
             )}
 

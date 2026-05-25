@@ -1,9 +1,9 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FaBriefcase, FaBuilding, FaCalendarAlt, FaExclamationTriangle, FaEye, FaSearch
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
+import EmptyState from '@components/ui/EmptyState';
 
 export default function EmployeesGrid({ 
   employees = [], 
@@ -51,22 +51,13 @@ export default function EmployeesGrid({
     <>
       <div className="employees-grid">
         {employees.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-state-icon">
-              <FaSearch />
-            </div>
-            <h3 className="empty-state-title">No employees found</h3>
-            <p className="empty-state-desc">
-              We couldn't find any employees matching your current search or filter criteria. 
-              Try adjusting your settings or reset to view all employees.
-            </p>
-            <button 
-              onClick={() => onResetFilters?.()} 
-              className="empty-state-reset"
-            >
-              Reset All Filters
-            </button>
-          </div>
+          <EmptyState
+            icon={FaSearch}
+            title="No employees found"
+            description="We couldn't find any employees matching your current search or filter criteria. Try adjusting your settings or reset to view all employees."
+            actionLabel="Reset All Filters"
+            onAction={onResetFilters}
+          />
         ) : (
           employees.map((emp, i) => (
             <div key={emp.id || i} className="employee-card">

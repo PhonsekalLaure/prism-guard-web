@@ -8,6 +8,7 @@ import {
   FaTimesCircle,
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
+import EmptyState from '@components/ui/EmptyState';
 import LeaveRequestAvatar from './LeaveRequestAvatar';
 
 const STATUS_ICONS = {
@@ -25,6 +26,7 @@ export default function HrisLeaveRequestsList({
   metadata = {},
   loading = false,
   onPageChange,
+  onResetFilters,
 }) {
   const navigate = useNavigate();
   const currentPage = metadata.page || 1;
@@ -64,7 +66,13 @@ export default function HrisLeaveRequestsList({
 
       <div className="hlr-feed-body">
         {requests.length === 0 ? (
-          <div className="hlr-empty-state">No leave requests found.</div>
+          <EmptyState
+            title="No leave requests found"
+            description="We couldn't find any leave requests matching your current search or filter criteria. Try adjusting your settings to view more requests."
+            actionLabel="Reset All Filters"
+            onAction={onResetFilters}
+            compact
+          />
         ) : (
           requests.map((leave) => (
             <div

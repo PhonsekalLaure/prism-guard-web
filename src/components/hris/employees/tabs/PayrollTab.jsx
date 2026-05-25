@@ -1,4 +1,5 @@
 import { FaMoneyCheckAlt, FaHistory } from 'react-icons/fa';
+import EmptyState from '@components/ui/EmptyState';
 import { InfoCell } from './EmployeeEditFields';
 
 const toProperCase = (str) => {
@@ -54,7 +55,16 @@ export default function PayrollTab({ employee }) {
                   </tr>
                 );
               }) : (
-                <tr><td colSpan="5" className="text-center py-4 text-gray-500">No payroll records found</td></tr>
+                <tr>
+                  <td colSpan="5">
+                    <EmptyState
+                      icon={FaHistory}
+                      title="No payroll records found"
+                      description="This employee does not have any payroll records yet. Records will appear here once payroll activity is available."
+                      compact
+                    />
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
