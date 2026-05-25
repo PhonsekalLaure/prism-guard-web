@@ -33,6 +33,268 @@
   to   { opacity: 1; }
 }
 
+/* ========================================================
+   SHARED HRIS/CMS SKELETON PRIMITIVES
+   ======================================================== */
+.skeleton-block-base {
+  display: block;
+  background: linear-gradient(90deg, #f0f2f5 25%, #e4e8ed 50%, #f0f2f5 75%);
+  background-size: 200% 100%;
+  animation: dsk-shimmer 1.5s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+.table-skeleton-row {
+  pointer-events: none;
+}
+
+.table-skeleton-row td {
+  padding: 0.9rem 1rem;
+  vertical-align: middle;
+}
+
+.table-skeleton-line {
+  height: 12px;
+  width: 72%;
+}
+
+.entity-card-skeleton {
+  pointer-events: none;
+}
+
+.entity-card-skeleton__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.entity-card-skeleton__avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.entity-card-skeleton__avatar--square {
+  border-radius: 12px;
+}
+
+.entity-card-skeleton__lines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.entity-card-skeleton__line {
+  height: 12px;
+}
+
+.entity-card-skeleton__line--long {
+  width: 70%;
+}
+
+.entity-card-skeleton__line--short {
+  width: 45%;
+}
+
+.entity-card-skeleton__badge {
+  width: 56px;
+  height: 20px;
+  border-radius: 20px;
+  flex-shrink: 0;
+}
+
+.entity-card-skeleton__body-line {
+  height: 14px;
+  width: 100%;
+  margin-top: 0.1rem;
+}
+
+.entity-card-skeleton__body-line--short {
+  width: 60%;
+}
+
+.entity-card-skeleton__tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.entity-card-skeleton__tag {
+  width: 76px;
+  height: 22px;
+  border-radius: 4px;
+}
+
+.entity-card-skeleton__client-header {
+  min-height: 90px;
+  background: linear-gradient(90deg, #0a3a7a 25%, #0e4a96 50%, #0a3a7a 75%) !important;
+  background-size: 200% 100% !important;
+  animation: dsk-shimmer 1.5s ease-in-out infinite;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.entity-card-skeleton__light {
+  background: rgba(255, 255, 255, 0.25);
+  animation: none;
+}
+
+.entity-card-skeleton__admin-header {
+  height: 48px;
+  border-radius: 0;
+}
+
+.incident-card-skeleton {
+  background: #fff;
+  border-radius: 0 12px 12px 0;
+  border-left: 4px solid #e5e7eb;
+  border-top: 1px solid #f1f5f9;
+  border-right: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f1f5f9;
+  padding: 1.2rem 1.35rem;
+  animation: dsk-fadein 0.25s ease both;
+  pointer-events: none;
+}
+
+.incident-card-skeleton__header,
+.incident-card-skeleton__left,
+.incident-card-skeleton__footer {
+  display: flex;
+  align-items: flex-start;
+}
+
+.incident-card-skeleton__header {
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+  gap: 0.9rem;
+}
+
+.incident-card-skeleton__left {
+  gap: 0.9rem;
+  flex: 1;
+}
+
+.incident-card-skeleton__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.incident-card-skeleton__lines,
+.incident-card-skeleton__right,
+.incident-card-skeleton__detail,
+.incident-card-skeleton__summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.incident-card-skeleton__lines {
+  flex: 1;
+}
+
+.incident-card-skeleton__right {
+  align-items: flex-end;
+}
+
+.incident-card-skeleton__line {
+  height: 0.7rem;
+}
+
+.incident-card-skeleton__line--eyebrow {
+  width: 38%;
+  border-radius: 999px;
+}
+
+.incident-card-skeleton__line--title {
+  width: 65%;
+  height: 1rem;
+}
+
+.incident-card-skeleton__line--meta {
+  width: 42%;
+}
+
+.incident-card-skeleton__line--time {
+  width: 110px;
+}
+
+.incident-card-skeleton__pill {
+  width: 80px;
+  height: 1.3rem;
+  border-radius: 999px;
+}
+
+.incident-card-skeleton__details {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+}
+
+.incident-card-skeleton__detail-label {
+  width: 55%;
+  height: 0.6rem;
+}
+
+.incident-card-skeleton__detail-value {
+  width: 80%;
+  height: 0.85rem;
+}
+
+.incident-card-skeleton__summary {
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.85rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+}
+
+.incident-card-skeleton__summary-label {
+  width: 30%;
+}
+
+.incident-card-skeleton__summary-line {
+  width: 90%;
+}
+
+.incident-card-skeleton__summary-line--short {
+  width: 75%;
+}
+
+.incident-card-skeleton__footer {
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.incident-card-skeleton__footer-line {
+  width: 100px;
+}
+
+.incident-card-skeleton__footer-line--wide {
+  width: 140px;
+}
+
+@media (max-width: 1024px) {
+  .incident-card-skeleton__details {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .incident-card-skeleton__details {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 /* Shimmer base — applied to any shimmer element */
 .dsk-avatar,
 .dsk-line,
@@ -146,131 +408,6 @@
   border-radius: 8px;
 }
 
-
-/* ========================================================
-   ADMIN CARD GRID SKELETON
-   ======================================================== */
-.admin-card-skeleton { pointer-events: none; }
-.skeleton-header { height: 48px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: dsk-shimmer 1.4s infinite; }
-.skeleton-avatar { width: 48px; height: 48px; border-radius: 50%; background: #e5e7eb; animation: dsk-shimmer 1.4s infinite; flex-shrink: 0; }
-.skeleton-lines { flex: 1; display: flex; flex-direction: column; gap: 0.4rem; }
-.skeleton-line { height: 12px; border-radius: 6px; background: #e5e7eb; animation: dsk-shimmer 1.4s infinite; }
-
-
-/* ========================================================
-   EMPLOYEE CARD GRID SKELETON
-   ======================================================== */
-.employee-card-skeleton {
-  pointer-events: none;
-}
-
-@keyframes emp-shimmer {
-  0%   { background-position: -200% 0; }
-  100% { background-position:  200% 0; }
-}
-
-.employee-card-skeleton .skeleton-avatar {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: emp-shimmer 1.4s infinite;
-  flex-shrink: 0;
-}
-
-.employee-card-skeleton .skeleton-lines {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.employee-card-skeleton .skeleton-line {
-  height: 12px;
-  border-radius: 6px;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: emp-shimmer 1.4s infinite;
-}
-.employee-card-skeleton .skeleton-line.long  { width: 70%; }
-.employee-card-skeleton .skeleton-line.short { width: 45%; }
-
-.employee-card-skeleton .skeleton-badge {
-  width: 56px;
-  height: 20px;
-  border-radius: 20px;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: emp-shimmer 1.4s infinite;
-  flex-shrink: 0;
-}
-
-.employee-card-skeleton .skeleton-block {
-  height: 14px;
-  border-radius: 6px;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: emp-shimmer 1.4s infinite;
-  margin-top: 0.55rem;
-}
-.employee-card-skeleton .skeleton-block.short { width: 60%; }
-
-
-/* ========================================================
-   CLIENT CARD GRID SKELETON
-   ======================================================== */
-.client-card-skeleton {
-  pointer-events: none;
-}
-
-@keyframes cli-shimmer {
-  0%   { background-position: -200% 0; }
-  100% { background-position:  200% 0; }
-}
-
-/* Dark header skeleton mirrors the blue gradient header */
-.client-skeleton-header {
-  min-height: 90px;
-  background: linear-gradient(90deg, #0a3a7a 25%, #0e4a96 50%, #0a3a7a 75%) !important;
-  background-size: 200% 100% !important;
-  animation: cli-shimmer 1.4s infinite;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-}
-
-.client-card-skeleton .skeleton-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.25);
-  flex-shrink: 0;
-}
-
-.client-card-skeleton .skeleton-lines {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.client-card-skeleton .skeleton-line {
-  height: 11px;
-  border-radius: 6px;
-}
-.client-card-skeleton .skeleton-line.long  { width: 70%; }
-.client-card-skeleton .skeleton-line.short { width: 45%; }
-
-.client-card-skeleton .skeleton-block {
-  height: 13px;
-  border-radius: 6px;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: cli-shimmer 1.4s infinite;
-  margin-top: 0.5rem;
-}
-.client-card-skeleton .skeleton-block.short { width: 60%; }
 
 /* ========================================================
    FULL SCREEN INITIAL LOADER
