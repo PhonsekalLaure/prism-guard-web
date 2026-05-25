@@ -9,6 +9,10 @@ import {
 import logo from '@assets/logo.png';
 import authService from '@services/authService';
 import { getAdminRoleLabel, hasAllPermissions } from '@utils/adminPermissions';
+import {
+  formatNotificationBadgeCount,
+  getNotificationBadgeCount,
+} from '@utils/notificationBadges';
 
 const navGroups = [
   {
@@ -22,8 +26,8 @@ const navGroups = [
     items: [
       { to: '/clients', icon: FaBuilding, label: 'Clients', permissions: ['clients.read'] },
       { to: '/billing', icon: FaFileInvoiceDollar, label: 'Billing & Payments' },
-      { to: '/service-request', icon: FaHeadset, label: 'Service Request' },
-      { to: '/service-reviews', icon: FaStar, label: 'Service Reviews' },
+      { to: '/service-request', icon: FaHeadset, label: 'Service Request', notificationPrefixes: ['service_request_'] },
+      { to: '/service-reviews', icon: FaStar, label: 'Service Reviews', notificationPrefixes: ['service_review_'] },
     ],
   },
   {
@@ -31,25 +35,23 @@ const navGroups = [
     items: [
       { to: '/employees', icon: FaUsers, label: 'Employees', permissions: ['employees.read'] },
       { to: '/attendance', icon: FaFingerprint, label: 'Attendance' },
-      { to: '/leaves', icon: FaCalendarAlt, label: 'Leave Requests' },
+      { to: '/leaves', icon: FaCalendarAlt, label: 'Leave Requests', notificationPrefixes: ['leave_'] },
       { to: '/cash-advance', icon: FaHandHoldingUsd, label: 'Cash Advance' },
       { to: '/payroll', icon: FaMoneyBillWave, label: 'Payroll' },
-      { to: '/applicants', icon: FaUserPlus, label: 'Applicants' },
+      { to: '/applicants', icon: FaUserPlus, label: 'Applicants', notificationPrefixes: ['applicant_'] },
     ],
   },
   {
     label: 'Operations',
     items: [
-      { to: '/notifications', icon: FaBell, label: 'Notifications' },
-      { to: '/incidents', icon: FaExclamationTriangle, label: 'Incidents', permissions: ['incidents.read'] },
-      { to: '/announcements', icon: FaBullhorn, label: 'Announcements', permissions: ['announcements.read'] },
+      { to: '/notifications', icon: FaBell, label: 'Notifications', notificationTotal: true },
+      { to: '/incidents', icon: FaExclamationTriangle, label: 'Incidents', permissions: ['incidents.read'], notificationPrefixes: ['incident_'] },
+      { to: '/announcements', icon: FaBullhorn, label: 'Announcements', permissions: ['announcements.read'], notificationPrefixes: ['announcement_'] },
     ],
   },
 ];
 
-// ─── Header Navigation Support ─────────────────────────────────
-
-export default function Sidebar({ onLogoutClick, isOpen }) {
+export default function Sidebar({ onLogoutClick, isOpen, notificationStats }) {
   const profile = authService.getProfile() || {};
   const fullName = profile.first_name ? `${profile.first_name} ${profile.last_name}` : 'John Juan';
   const roleLabel = profile.role === 'admin'
@@ -75,16 +77,24 @@ export default function Sidebar({ onLogoutClick, isOpen }) {
             {group.label && <div className="nav-group-header">{group.label}</div>}
             {group.items
               .filter(({ permissions }) => !permissions || hasAllPermissions(profile, permissions))
-              .map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
-              >
-                {createElement(item.icon)}
-                <span>{item.label}</span>
-              </NavLink>
-            ))}
+              .map((item) => {
+                const badgeCount = getNotificationBadgeCount(item, notificationStats);
+                return (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+                  >
+                    {createElement(item.icon)}
+                    <span className="nav-label">{item.label}</span>
+                    {badgeCount > 0 && (
+                      <span className="nav-badge" aria-label={`${badgeCount} unread notifications`}>
+                        {formatNotificationBadgeCount(badgeCount)}
+                      </span>
+                    )}
+                  </NavLink>
+                );
+              })}
           </div>
         ))}
       </nav>

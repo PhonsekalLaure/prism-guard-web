@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from '@hris-components/Sidebar';
 import LogoutModal from '@components/ui/LogoutModal';
+import GlobalNotificationToasts from '@components/notifications/GlobalNotificationToasts';
 import authService from '@services/authService';
 import '@styles/components/Sidebar.css';
 import '@styles/components/StatCard.css';
@@ -17,6 +18,7 @@ import '@styles/hris/Profile.css';
 export default function DashboardLayout() {
   const [showLogout, setShowLogout] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [notificationStats, setNotificationStats] = useState(null);
 
   const handleLogout = async () => {
     await authService.logout();
@@ -25,12 +27,19 @@ export default function DashboardLayout() {
 
   return (
     <div className="dashboard-layout">
-      <Sidebar onLogoutClick={() => setShowLogout(true)} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar
+        onLogoutClick={() => setShowLogout(true)}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        notificationStats={notificationStats}
+      />
       {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>}
 
       <main className="dashboard-main">
         <Outlet context={{ toggleSidebar: () => setSidebarOpen(!sidebarOpen) }} />
       </main>
+
+      <GlobalNotificationToasts portal="hris" onStatsChange={setNotificationStats} />
 
       <LogoutModal
         isOpen={showLogout}

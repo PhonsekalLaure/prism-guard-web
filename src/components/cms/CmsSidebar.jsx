@@ -6,6 +6,10 @@ import {
   FaUserShield, FaFileInvoiceDollar, FaBars, FaBullhorn, FaBell,
 } from 'react-icons/fa';
 import logo from '@assets/logo.png';
+import {
+  formatNotificationBadgeCount,
+  getNotificationBadgeCount,
+} from '@utils/notificationBadges';
 
 const navGroups = [
   {
@@ -26,16 +30,16 @@ const navGroups = [
     label: 'Services',
     labelIcon: FaHeadset,
     items: [
-      { to: '/cms/service-requests', icon: FaHeadset, label: 'Service Request' },
+      { to: '/cms/service-requests', icon: FaHeadset, label: 'Service Request', notificationPrefixes: ['service_request_'] },
     ],
   },
   {
     label: 'Reports',
     labelIcon: FaBars,
     items: [
-      { to: '/cms/notifications',  icon: FaBell,                 label: 'Notifications' },
-      { to: '/cms/incident-reports', icon: FaExclamationTriangle, label: 'Incidents' },
-      { to: '/cms/announcements',    icon: FaBullhorn,             label: 'Announcements' },
+      { to: '/cms/notifications',  icon: FaBell,                 label: 'Notifications', notificationTotal: true },
+      { to: '/cms/incident-reports', icon: FaExclamationTriangle, label: 'Incidents', notificationPrefixes: ['incident_'] },
+      { to: '/cms/announcements',    icon: FaBullhorn,             label: 'Announcements', notificationPrefixes: ['announcement_'] },
     ],
   },
   {
@@ -48,7 +52,7 @@ const navGroups = [
 ];
 
 const bottomItems = [
-  { to: '/cms/reviews', icon: FaStar, label: 'Service Reviews' },
+  { to: '/cms/reviews', icon: FaStar, label: 'Service Reviews', notificationPrefixes: ['service_review_'] },
 ];
 
 function SidebarAvatar({ profile }) {
@@ -74,7 +78,7 @@ function SidebarAvatar({ profile }) {
   );
 }
 
-export default function CmsSidebar({ profile, onLogoutClick }) {
+export default function CmsSidebar({ profile, onLogoutClick, notificationStats }) {
   const displayName = profile
     ? `${profile.first_name ?? ''} ${profile.last_name ?? ''}`.trim()
     : '—';
@@ -106,36 +110,54 @@ export default function CmsSidebar({ profile, onLogoutClick }) {
                   {group.label}
                 </p>
               )}
-              {group.items.map(({ to, icon: Icon, label }) => (
-                <NavLink
-                  key={to}
-                  to={to}
-                  className={({ isActive }) =>
-                    isActive ? 'cms-nav-item active' : 'cms-nav-item'
-                  }
-                >
-                  {createElement(Icon, { className: 'cms-nav-icon' })}
-                  <span>{label}</span>
-                </NavLink>
-              ))}
+              {group.items.map((item) => {
+                const { to, icon: Icon, label } = item;
+                const badgeCount = getNotificationBadgeCount(item, notificationStats);
+                return (
+                  <NavLink
+                    key={to}
+                    to={to}
+                    className={({ isActive }) =>
+                      isActive ? 'cms-nav-item active' : 'cms-nav-item'
+                    }
+                  >
+                    {createElement(Icon, { className: 'cms-nav-icon' })}
+                    <span className="cms-nav-label">{label}</span>
+                    {badgeCount > 0 && (
+                      <span className="cms-nav-badge" aria-label={`${badgeCount} unread notifications`}>
+                        {formatNotificationBadgeCount(badgeCount)}
+                      </span>
+                    )}
+                  </NavLink>
+                );
+              })}
             </div>
           );
         })}
 
         {/* ── Service Reviews ── */}
         <div className="cms-nav-divider" />
-        {bottomItems.map(({ to, icon: Icon, label }) => (
-          <NavLink
-            key={to}
-            to={to}
-            className={({ isActive }) =>
-              isActive ? 'cms-nav-item active' : 'cms-nav-item'
-            }
-          >
-            {createElement(Icon, { className: 'cms-nav-icon' })}
-            <span>{label}</span>
-          </NavLink>
-        ))}
+        {bottomItems.map((item) => {
+          const { to, icon: Icon, label } = item;
+          const badgeCount = getNotificationBadgeCount(item, notificationStats);
+          return (
+            <NavLink
+              key={to}
+              to={to}
+              className={({ isActive }) =>
+                isActive ? 'cms-nav-item active' : 'cms-nav-item'
+              }
+            >
+              {createElement(Icon, { className: 'cms-nav-icon' })}
+              <span className="cms-nav-label">{label}</span>
+              {badgeCount > 0 && (
+                <span className="cms-nav-badge" aria-label={`${badgeCount} unread notifications`}>
+                  {formatNotificationBadgeCount(badgeCount)}
+                </span>
+              )}
+            </NavLink>
+          );
+        })}
 
         {/* ── Spacer ── */}
         <div className="cms-nav-spacer" />

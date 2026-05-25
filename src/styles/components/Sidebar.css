@@ -121,6 +121,27 @@
   font-size: 1rem;
 }
 
+.nav-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.nav-badge {
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.36rem;
+  border-radius: 999px;
+  background: #e6b215;
+  color: #0f172a !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-left: auto;
+}
+
 /* Sidebar footer */
 .sidebar-footer {
   padding: 0.8rem 0;

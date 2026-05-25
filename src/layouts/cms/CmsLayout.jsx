@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import CmsSidebar from '@components/cms/CmsSidebar';
 import LogoutModal from '@components/ui/LogoutModal';
+import GlobalNotificationToasts from '@components/notifications/GlobalNotificationToasts';
 import authService from '@services/authService';
 import '@styles/components/StatCard.css';
 import '@styles/components/FilterBar.css';
@@ -17,6 +18,7 @@ import '@styles/cms/CmsAnnouncements.css';
 
 export default function CmsLayout() {
   const [showLogout, setShowLogout] = useState(false);
+  const [notificationStats, setNotificationStats] = useState(null);
 
   // Profile is cached in localStorage at login — no extra network call needed
   const profile = authService.getProfile();
@@ -28,10 +30,16 @@ export default function CmsLayout() {
 
   return (
     <div className="cms-layout">
-      <CmsSidebar profile={profile} onLogoutClick={() => setShowLogout(true)} />
+      <CmsSidebar
+        profile={profile}
+        onLogoutClick={() => setShowLogout(true)}
+        notificationStats={notificationStats}
+      />
       <main className="cms-main">
         <Outlet context={{ toggleSidebar: () => {} }} />
       </main>
+
+      <GlobalNotificationToasts portal="cms" onStatsChange={setNotificationStats} />
 
       <LogoutModal
         isOpen={showLogout}
