@@ -466,37 +466,6 @@ export default function HrisLeaveRequestDetailPage() {
                 </>
               )}
 
-              {leaveRequest.status === 'approved' && (
-                <>
-                  {noteAction === 'cancel' && (
-                    <div>
-                      <span className="hlr-modal-section-label">Cancellation Notes (Optional)</span>
-                      <textarea
-                        className="hlr-admin-notes"
-                        placeholder="Add notes if this approved leave should be cancelled..."
-                        value={cancelNotes}
-                        onChange={(event) => setCancelNotes(event.target.value)}
-                      />
-                    </div>
-                  )}
-                  <div className="hlr-modal-actions">
-                    <button
-                      className="hlr-btn cancel"
-                      onClick={handleCancel}
-                      disabled={isCancelling}
-                      type="button"
-                    >
-                      {isCancelling ? (
-                        <><FaSpinner className="hlr-spin" /> Cancelling...</>
-                      ) : noteAction === 'cancel' ? (
-                        <><FaTimesCircle /> Confirm Cancellation</>
-                      ) : (
-                        <><FaTimesCircle /> Cancel Approved Leave</>
-                      )}
-                    </button>
-                  </div>
-                </>
-              )}
             </div>
           </section>
         )}
