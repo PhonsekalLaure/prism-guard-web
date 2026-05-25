@@ -65,6 +65,23 @@ function getPortalPath(path, portal) {
   return path;
 }
 
+function buildOpenState(item) {
+  const event = item.event || {};
+  const metadata = event.metadata || {};
+  const serviceRequestId = metadata.serviceRequestId || event.related_entity_id;
+  const incidentId = metadata.incidentId || event.related_entity_id;
+
+  if (event.action_url === '/cms/service-requests' && serviceRequestId) {
+    return { openServiceRequestId: serviceRequestId };
+  }
+
+  if (event.action_url === '/cms/incident-reports' && incidentId) {
+    return { openIncidentId: incidentId };
+  }
+
+  return undefined;
+}
+
 function StatCard({ icon: Icon, label, value, tone }) {
   return (
     <div className={`notif-stat notif-stat--${tone}`}>
@@ -236,7 +253,7 @@ export default function NotificationsPage({ portal = 'hris' }) {
     if (/^https?:\/\//i.test(actionUrl)) {
       window.open(actionUrl, '_blank', 'noopener,noreferrer');
     } else {
-      navigate(actionUrl);
+      navigate(actionUrl, { state: buildOpenState(item) });
     }
   };
 
