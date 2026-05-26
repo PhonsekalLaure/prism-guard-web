@@ -43,6 +43,11 @@ async function markAllRead() {
   return data;
 }
 
+async function markMatchingRead(payload = {}) {
+  const { data } = await api.patch('/read-matching', payload);
+  return data;
+}
+
 async function dismiss(id) {
   const { data } = await api.patch(`/${id}/dismiss`);
   return data;
@@ -53,5 +58,6 @@ export default {
   getNotifications,
   getStats,
   markAllRead,
+  markMatchingRead,
   markRead,
 };

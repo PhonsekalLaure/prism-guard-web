@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { useMemo, useState } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '@hris-components/Sidebar';
 import LogoutModal from '@components/ui/LogoutModal';
 import GlobalNotificationToasts from '@components/notifications/GlobalNotificationToasts';
+import useNotificationCenter from '@hooks/useNotificationCenter';
 import authService from '@services/authService';
 import '@styles/components/Sidebar.css';
 import '@styles/components/StatCard.css';
@@ -16,9 +17,20 @@ import '@styles/components/Loading.css';
 import '@styles/hris/Profile.css';
 
 export default function DashboardLayout() {
+  const location = useLocation();
   const [showLogout, setShowLogout] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [notificationStats, setNotificationStats] = useState(null);
+  const {
+    markCurrentRouteRead,
+    notificationStats,
+    refreshNotificationStats,
+    setNotificationStats,
+  } = useNotificationCenter('hris', location.pathname);
+
+  const outletContext = useMemo(() => ({
+    toggleSidebar: () => setSidebarOpen((current) => !current),
+    refreshNotificationStats,
+  }), [refreshNotificationStats]);
 
   const handleLogout = async () => {
     await authService.logout();
@@ -36,10 +48,14 @@ export default function DashboardLayout() {
       {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>}
 
       <main className="dashboard-main">
-        <Outlet context={{ toggleSidebar: () => setSidebarOpen(!sidebarOpen) }} />
+        <Outlet context={outletContext} />
       </main>
 
-      <GlobalNotificationToasts portal="hris" onStatsChange={setNotificationStats} />
+      <GlobalNotificationToasts
+        portal="hris"
+        onBeforeRefresh={markCurrentRouteRead}
+        onStatsChange={setNotificationStats}
+      />
 
       <LogoutModal
         isOpen={showLogout}

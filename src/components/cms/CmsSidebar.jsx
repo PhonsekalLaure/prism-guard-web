@@ -10,6 +10,7 @@ import {
   formatNotificationBadgeCount,
   getNotificationBadgeCount,
 } from '@utils/notificationBadges';
+import { NOTIFICATION_PREFIXES } from '@utils/notificationRouting';
 
 const navGroups = [
   {
@@ -30,16 +31,16 @@ const navGroups = [
     label: 'Services',
     labelIcon: FaHeadset,
     items: [
-      { to: '/cms/service-requests', icon: FaHeadset, label: 'Service Request', notificationPrefixes: ['service_request_'] },
+      { to: '/cms/service-requests', icon: FaHeadset, label: 'Service Request', notificationPrefixes: NOTIFICATION_PREFIXES.serviceRequest },
     ],
   },
   {
     label: 'Reports',
     labelIcon: FaBars,
     items: [
-      { to: '/cms/notifications',  icon: FaBell,                 label: 'Notifications', notificationTotal: true },
-      { to: '/cms/incident-reports', icon: FaExclamationTriangle, label: 'Incidents', notificationPrefixes: ['incident_'] },
-      { to: '/cms/announcements',    icon: FaBullhorn,             label: 'Announcements', notificationPrefixes: ['announcement_'] },
+      { to: '/cms/notifications',  icon: FaBell,                 label: 'Notifications', notificationUncategorized: true },
+      { to: '/cms/incident-reports', icon: FaExclamationTriangle, label: 'Incidents', notificationPrefixes: NOTIFICATION_PREFIXES.incident },
+      { to: '/cms/announcements',    icon: FaBullhorn,             label: 'Announcements', notificationPrefixes: NOTIFICATION_PREFIXES.announcement },
     ],
   },
   {
@@ -52,7 +53,7 @@ const navGroups = [
 ];
 
 const bottomItems = [
-  { to: '/cms/reviews', icon: FaStar, label: 'Service Reviews', notificationPrefixes: ['service_review_'] },
+  { to: '/cms/reviews', icon: FaStar, label: 'Service Reviews', notificationPrefixes: NOTIFICATION_PREFIXES.serviceReview },
 ];
 
 function SidebarAvatar({ profile }) {
@@ -123,7 +124,10 @@ export default function CmsSidebar({ profile, onLogoutClick, notificationStats }
                   >
                     {createElement(Icon, { className: 'cms-nav-icon' })}
                     <span className="cms-nav-label">{label}</span>
-                    {badgeCount > 0 && (
+                    {badgeCount > 0 && item.notificationUncategorized && (
+                      <span className="cms-nav-badge-dot" aria-label="Unread uncategorized notifications" />
+                    )}
+                    {badgeCount > 0 && !item.notificationUncategorized && (
                       <span className="cms-nav-badge" aria-label={`${badgeCount} unread notifications`}>
                         {formatNotificationBadgeCount(badgeCount)}
                       </span>
@@ -150,7 +154,10 @@ export default function CmsSidebar({ profile, onLogoutClick, notificationStats }
             >
               {createElement(Icon, { className: 'cms-nav-icon' })}
               <span className="cms-nav-label">{label}</span>
-              {badgeCount > 0 && (
+              {badgeCount > 0 && item.notificationUncategorized && (
+                <span className="cms-nav-badge-dot" aria-label="Unread uncategorized notifications" />
+              )}
+              {badgeCount > 0 && !item.notificationUncategorized && (
                 <span className="cms-nav-badge" aria-label={`${badgeCount} unread notifications`}>
                   {formatNotificationBadgeCount(badgeCount)}
                 </span>

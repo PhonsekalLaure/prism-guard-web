@@ -27,7 +27,11 @@ function getFallbackRoute(portal) {
   return portal === 'cms' ? '/cms/notifications' : '/notifications';
 }
 
-export default function GlobalNotificationToasts({ portal = 'hris', onStatsChange }) {
+export default function GlobalNotificationToasts({
+  portal = 'hris',
+  onBeforeRefresh,
+  onStatsChange,
+}) {
   const navigate = useNavigate();
   const [toasts, setToasts] = useState([]);
   const seenIdsRef = useRef(new Set());
@@ -38,6 +42,8 @@ export default function GlobalNotificationToasts({ portal = 'hris', onStatsChang
     loadingRef.current = true;
 
     try {
+      await onBeforeRefresh?.();
+
       const [stats, result] = await Promise.all([
         notificationsService.getStats(),
         notificationsService.getNotifications({
@@ -69,7 +75,7 @@ export default function GlobalNotificationToasts({ portal = 'hris', onStatsChang
     } finally {
       loadingRef.current = false;
     }
-  }, [onStatsChange]);
+  }, [onBeforeRefresh, onStatsChange]);
 
   useEffect(() => {
     loadUnreadNotifications();
@@ -84,6 +90,9 @@ export default function GlobalNotificationToasts({ portal = 'hris', onStatsChang
       const stats = await notificationsService.getStats();
       onStatsChange?.(stats);
     } catch {
+      if (item?.id) {
+        seenIdsRef.current.delete(item.id);
+      }
       loadUnreadNotifications();
     }
   }, [loadUnreadNotifications, onStatsChange]);

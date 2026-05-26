@@ -13,6 +13,7 @@ import {
   formatNotificationBadgeCount,
   getNotificationBadgeCount,
 } from '@utils/notificationBadges';
+import { NOTIFICATION_PREFIXES } from '@utils/notificationRouting';
 
 const navGroups = [
   {
@@ -26,8 +27,8 @@ const navGroups = [
     items: [
       { to: '/clients', icon: FaBuilding, label: 'Clients', permissions: ['clients.read'] },
       { to: '/billing', icon: FaFileInvoiceDollar, label: 'Billing & Payments' },
-      { to: '/service-request', icon: FaHeadset, label: 'Service Request', notificationPrefixes: ['service_request_'] },
-      { to: '/service-reviews', icon: FaStar, label: 'Service Reviews', notificationPrefixes: ['service_review_'] },
+      { to: '/service-request', icon: FaHeadset, label: 'Service Request', notificationPrefixes: NOTIFICATION_PREFIXES.serviceRequest },
+      { to: '/service-reviews', icon: FaStar, label: 'Service Reviews', notificationPrefixes: NOTIFICATION_PREFIXES.serviceReview },
     ],
   },
   {
@@ -35,18 +36,18 @@ const navGroups = [
     items: [
       { to: '/employees', icon: FaUsers, label: 'Employees', permissions: ['employees.read'] },
       { to: '/attendance', icon: FaFingerprint, label: 'Attendance' },
-      { to: '/leaves', icon: FaCalendarAlt, label: 'Leave Requests', notificationPrefixes: ['leave_'] },
+      { to: '/leaves', icon: FaCalendarAlt, label: 'Leave Requests', notificationPrefixes: NOTIFICATION_PREFIXES.leave },
       { to: '/cash-advance', icon: FaHandHoldingUsd, label: 'Cash Advance' },
       { to: '/payroll', icon: FaMoneyBillWave, label: 'Payroll' },
-      { to: '/applicants', icon: FaUserPlus, label: 'Applicants', notificationPrefixes: ['applicant_'] },
+      { to: '/applicants', icon: FaUserPlus, label: 'Applicants', notificationPrefixes: NOTIFICATION_PREFIXES.applicant },
     ],
   },
   {
     label: 'Operations',
     items: [
-      { to: '/notifications', icon: FaBell, label: 'Notifications', notificationTotal: true },
-      { to: '/incidents', icon: FaExclamationTriangle, label: 'Incidents', permissions: ['incidents.read'], notificationPrefixes: ['incident_'] },
-      { to: '/announcements', icon: FaBullhorn, label: 'Announcements', permissions: ['announcements.read'], notificationPrefixes: ['announcement_'] },
+      { to: '/notifications', icon: FaBell, label: 'Notifications', notificationUncategorized: true },
+      { to: '/incidents', icon: FaExclamationTriangle, label: 'Incidents', permissions: ['incidents.read'], notificationPrefixes: NOTIFICATION_PREFIXES.incident },
+      { to: '/announcements', icon: FaBullhorn, label: 'Announcements', permissions: ['announcements.read'], notificationPrefixes: NOTIFICATION_PREFIXES.announcement },
     ],
   },
 ];
@@ -87,7 +88,10 @@ export default function Sidebar({ onLogoutClick, isOpen, notificationStats }) {
                   >
                     {createElement(item.icon)}
                     <span className="nav-label">{item.label}</span>
-                    {badgeCount > 0 && (
+                    {badgeCount > 0 && item.notificationUncategorized && (
+                      <span className="nav-badge-dot" aria-label="Unread uncategorized notifications" />
+                    )}
+                    {badgeCount > 0 && !item.notificationUncategorized && (
                       <span className="nav-badge" aria-label={`${badgeCount} unread notifications`}>
                         {formatNotificationBadgeCount(badgeCount)}
                       </span>
