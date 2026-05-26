@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useOutletContext } from 'react-router-dom';
 import {
   FaBell,
   FaCheck,
@@ -154,6 +154,8 @@ function NotificationRow({ item, portal, onOpen, onMarkRead, onDismiss }) {
 
 export default function NotificationsPage({ portal = 'hris' }) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { refreshNotificationStats } = useOutletContext() || {};
   const [notifications, setNotifications] = useState([]);
   const [stats, setStats] = useState({ total: 0, unread: 0, urgent: 0, by_type: {} });
   const [metadata, setMetadata] = useState(DEFAULT_METADATA);
@@ -204,8 +206,9 @@ export default function NotificationsPage({ portal = 'hris' }) {
     await Promise.all([
       loadStats(),
       loadNotifications(metadata.page, filters),
+      refreshNotificationStats?.(),
     ]);
-  }, [filters, loadNotifications, loadStats, metadata.page]);
+  }, [filters, loadNotifications, loadStats, metadata.page, refreshNotificationStats]);
 
   const handleFilterChange = (patch) => {
     const nextFilters = { ...filters, ...patch };
@@ -257,10 +260,14 @@ export default function NotificationsPage({ portal = 'hris' }) {
   const handleOpen = async (item, actionUrl) => {
     if (!item.is_read) {
       await notificationsService.markRead(item.id).catch(() => null);
+      await refreshNotificationStats?.().catch(() => null);
     }
 
     if (/^https?:\/\//i.test(actionUrl)) {
       window.open(actionUrl, '_blank', 'noopener,noreferrer');
+      await refreshCurrentPage();
+    } else if (actionUrl === location.pathname) {
+      await refreshCurrentPage();
     } else {
       navigate(actionUrl, { state: buildOpenState(item) });
     }

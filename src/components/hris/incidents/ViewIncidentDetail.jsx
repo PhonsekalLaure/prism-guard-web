@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   FaCheck,
   FaCheckCircle,
@@ -47,6 +48,26 @@ function getInitials(name) {
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
     .join('') || 'U';
+}
+
+function ReporterAvatar({ avatarUrl, name }) {
+  const [failed, setFailed] = useState(false);
+  const canShowImage = Boolean(avatarUrl) && !failed;
+  const initials = getInitials(name);
+
+  return (
+    <div className={`ir-reporter-mini-avatar${canShowImage ? ' has-image' : ''}`}>
+      {canShowImage ? (
+        <img
+          src={avatarUrl}
+          alt={`${name || 'Reporter'} avatar`}
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        initials
+      )}
+    </div>
+  );
 }
 
 function getIncidentStatusMeta(incident = {}) {
@@ -201,7 +222,7 @@ export default function ViewIncidentDetail({
           <div className="ir-modal-cell ir-modal-cell-reporter">
             <label><FaUserShield />Reported By</label>
             <div className="ir-reporter-mini">
-              <div className="ir-reporter-mini-avatar">{getInitials(incident.reporterName)}</div>
+              <ReporterAvatar avatarUrl={incident.reporterAvatarUrl} name={incident.reporterName} />
               <div className="ir-reporter-mini-info">
                 <p>{incident.reporterName}</p>
                 <span>
