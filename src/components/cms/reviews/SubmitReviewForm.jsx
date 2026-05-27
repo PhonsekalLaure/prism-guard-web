@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FaPen, FaTag, FaMapMarkerAlt, FaCalendar, FaCommentAlt, FaPaperPlane } from 'react-icons/fa';
+import { FaPen, FaTag, FaMapMarkerAlt, FaCalendar, FaCommentAlt, FaPaperPlane, FaShieldAlt, FaTimes } from 'react-icons/fa';
 import StarRating from './StarRating';
 
 const CATEGORY_OPTIONS = [
@@ -30,14 +30,23 @@ const defaultForm = {
   punctuality: 0,
   communication: 0,
   responsiveness: 0,
-  category: '',
+  category: 'guard-performance',
   site: 'all',
-  period: '2026-02',
+  period: new Date().toISOString().slice(0, 7),
   reviewText: '',
 };
 
-export default function SubmitReviewForm({ onSubmitSuccess }) {
-  const [form, setForm] = useState(defaultForm);
+export default function SubmitReviewForm({ onSubmitSuccess, prefill = {} }) {
+  // If we arrived with guard prefill data, start with guard-performance selected
+  const [form, setForm] = useState(() => ({
+    ...defaultForm,
+    category: prefill.guardName ? 'guard-performance' : '',
+  }));
+
+  // Track whether the guard banner is still shown (user can dismiss it)
+  const [guardPrefill, setGuardPrefill] = useState(
+    prefill.guardName ? prefill : null,
+  );
 
   const handleRating = (key, value) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -47,7 +56,10 @@ export default function SubmitReviewForm({ onSubmitSuccess }) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleClear = () => setForm(defaultForm);
+  const handleClear = () => {
+    setForm(defaultForm);
+    setGuardPrefill(null);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -67,6 +79,33 @@ export default function SubmitReviewForm({ onSubmitSuccess }) {
 
       {/* Body */}
       <form className="srv-form-body" onSubmit={handleSubmit}>
+
+        {/* Guard pre-fill banner */}
+        {guardPrefill && (
+          <div className="srv-guard-banner">
+            <div className="srv-guard-banner-icon">
+              <FaShieldAlt />
+            </div>
+            <div className="srv-guard-banner-info">
+              <p className="srv-guard-banner-label">Reviewing Guard</p>
+              <p className="srv-guard-banner-name">{guardPrefill.guardName}</p>
+              <p className="srv-guard-banner-meta">
+                {[guardPrefill.guardEmployeeId, guardPrefill.siteName]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </p>
+            </div>
+            <button
+              type="button"
+              className="srv-guard-banner-clear"
+              onClick={() => setGuardPrefill(null)}
+              title="Clear guard selection"
+            >
+              <FaTimes />
+            </button>
+          </div>
+        )}
+
         {/* Overall Rating */}
         <div>
           <label className="srv-rating-label">
@@ -164,7 +203,11 @@ export default function SubmitReviewForm({ onSubmitSuccess }) {
           <textarea
             name="reviewText"
             rows={4}
-            placeholder="Share your experience with our security services. Be as specific as possible to help us improve..."
+            placeholder={
+              guardPrefill
+                ? `Share your experience with ${guardPrefill.guardName}. How was their performance, punctuality, and professionalism?`
+                : 'Share your experience with our security services. Be as specific as possible to help us improve...'
+            }
             value={form.reviewText}
             onChange={handleChange}
             className="srv-textarea"
