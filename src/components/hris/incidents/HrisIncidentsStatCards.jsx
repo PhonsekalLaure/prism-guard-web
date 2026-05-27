@@ -1,56 +1,65 @@
-const stats = [
+import {
+  FaExclamationTriangle,
+  FaExclamationCircle,
+  FaInfoCircle,
+  FaCheckCircle,
+} from 'react-icons/fa';
+import StatCards from '@components/ui/StatCards';
+
+const CARDS = [
   {
     label: 'High Priority',
-    value: '8',
-    sub: 'This month',
-    subClass: 'red',
+    sub: 'Needs immediate review',
     valueColor: '#dc2626',
     borderColor: '#ef4444',
+    iconBg: 'rgba(239, 68, 68, 0.12)',
+    iconColor: '#dc2626',
+    Icon: FaExclamationTriangle,
+    key: 'high',
     delay: '0s',
   },
   {
     label: 'Medium Priority',
-    value: '15',
-    sub: 'Under review',
-    subClass: '',
+    sub: 'Supervisor review',
     valueColor: '#d97706',
     borderColor: '#f59e0b',
-    delay: '0.05s',
+    iconBg: 'rgba(245, 158, 11, 0.12)',
+    iconColor: '#d97706',
+    Icon: FaExclamationCircle,
+    key: 'medium',
+    delay: '0.07s',
   },
   {
     label: 'Low Priority',
-    value: '23',
     sub: 'Routine reports',
-    subClass: '',
     valueColor: '#4b5563',
     borderColor: '#6b7280',
-    delay: '0.1s',
+    iconBg: 'rgba(107, 114, 128, 0.12)',
+    iconColor: '#4b5563',
+    Icon: FaInfoCircle,
+    key: 'low',
+    delay: '0.14s',
   },
   {
     label: 'Resolved',
-    value: '143',
-    sub: 'This month',
-    subClass: '',
+    sub: null, // derived from stats.pending
     valueColor: '#16a34a',
     borderColor: '#22c55e',
-    delay: '0.15s',
+    iconBg: 'rgba(34, 197, 94, 0.12)',
+    iconColor: '#16a34a',
+    Icon: FaCheckCircle,
+    key: 'resolved',
+    delay: '0.21s',
   },
 ];
 
-export default function HrisIncidentsStatCards() {
-  return (
-    <div className="ir-stat-grid">
-      {stats.map((s, i) => (
-        <div
-          key={i}
-          className="ir-stat-card"
-          style={{ borderLeftColor: s.borderColor, animationDelay: s.delay }}
-        >
-          <p className="ir-stat-label">{s.label}</p>
-          <p className="ir-stat-value" style={{ color: s.valueColor }}>{s.value}</p>
-          <p className={`ir-stat-sub ${s.subClass}`}>{s.sub}</p>
-        </div>
-      ))}
-    </div>
-  );
+export default function HrisIncidentsStatCards({ stats = {}, loading = false }) {
+  const cards = CARDS.map((card) => ({
+    ...card,
+    sub: card.key === 'resolved'
+      ? (currentStats) => `${currentStats?.pending ?? 0} pending review`
+      : card.sub,
+  }));
+
+  return <StatCards cards={cards} stats={stats} loading={loading} />;
 }

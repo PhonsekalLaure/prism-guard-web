@@ -59,6 +59,10 @@ function buildSiteForm(site = null) {
   };
 }
 
+function isAfterDate(dateValue, maxDateValue) {
+  return Boolean(dateValue && maxDateValue && String(dateValue) > String(maxDateValue));
+}
+
 export default function ViewClientDetail({
   isOpen, client: previewClient, onClose, onUpdated, pageMode = false,
 }) {
@@ -450,6 +454,9 @@ export default function ViewClientDetail({
     if (!deployForm.siteId) { showNotification('Please select an active site.', 'error'); return; }
     if (!selectedEmployee?.id) { showNotification('Please select a guard.', 'error'); return; }
     if (!deployForm.baseSalary) { showNotification('Please set the guard base pay.', 'error'); return; }
+    if (isAfterDate(deployForm.contractEndDate, data.contract_end_date)) {
+      showNotification(`Deployment contract end date cannot be later than the client contract end date (${data.contract_end_date}).`, 'error'); return;
+    }
     if (deployForm.daysOfWeek.length === 0) { showNotification('Please select at least one schedule day.', 'error'); return; }
     if (!deployForm.shiftStart || !deployForm.shiftEnd) { showNotification('Please set both shift start and end time.', 'error'); return; }
     if (!deployForm.deploymentOrderFile) { showNotification('Please upload the deployment order document.', 'error'); return; }
@@ -669,6 +676,7 @@ export default function ViewClientDetail({
                 deploymentForm={deployForm}
                 onFieldChange={(field, value) => setDeployForm((cur) => ({ ...cur, [field]: value }))}
                 toggleScheduleDay={toggleScheduleDay}
+                clientContractEndDate={data.contract_end_date || null}
                 emptyMessage="No deployable guards match the selected site and filters."
               />
             </div>

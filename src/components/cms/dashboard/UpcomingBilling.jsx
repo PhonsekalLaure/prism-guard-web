@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { FaCalendarCheck, FaTimesCircle, FaCheckCircle, FaArrowRight } from 'react-icons/fa';
+import { SkeletonBlock } from '@components/ui/Skeleton';
 
 function formatCurrency(amount) {
   if (amount == null) return '—';
@@ -18,9 +19,9 @@ export default function UpcomingBilling({ billing, loading }) {
       <div style={{ padding: '1.4rem' }}>
         {loading ? (
           <>
-            <div style={{ height: '14px', background: '#f0f0f0', borderRadius: '4px', marginBottom: '0.6rem', animation: 'pulse 1.5s ease-in-out infinite' }} />
-            <div style={{ height: '28px', background: '#f0f0f0', borderRadius: '4px', marginBottom: '0.4rem', animation: 'pulse 1.5s ease-in-out infinite' }} />
-            <div style={{ height: '22px', background: '#f0f0f0', borderRadius: '4px', marginBottom: '1rem', animation: 'pulse 1.5s ease-in-out infinite' }} />
+            <SkeletonBlock height={14} radius={4} style={{ marginBottom: '0.6rem' }} />
+            <SkeletonBlock height={28} radius={4} style={{ marginBottom: '0.4rem' }} />
+            <SkeletonBlock height={22} radius={4} style={{ marginBottom: '1rem' }} />
           </>
         ) : billing ? (
           <>

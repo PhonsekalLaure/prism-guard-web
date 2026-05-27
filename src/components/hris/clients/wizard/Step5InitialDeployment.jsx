@@ -145,7 +145,11 @@ export default function Step5InitialDeployment({
                           className="dep-input"
                           value={assignment.contractEndDate}
                           onChange={(e) => onAssignmentField(assignment.employeeId, 'contractEndDate', e.target.value)}
+                          max={data.contractEndDate || undefined}
                         />
+                        {data.contractEndDate && (
+                          <p className="ae-hint">Must be on or before client contract end date: {data.contractEndDate}</p>
+                        )}
                       </div>
                     </div>
                   </div>

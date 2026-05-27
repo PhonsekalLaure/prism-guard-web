@@ -1,22 +1,68 @@
 import { useState } from 'react';
 import {
   FaPenFancy, FaInfoCircle, FaUsers, FaFlag, FaHeading,
-  FaAlignLeft, FaBullhorn, FaCheckCircle,
+  FaAlignLeft, FaBullhorn, FaCheckCircle, FaCalendarAlt,
 } from 'react-icons/fa';
 
-export default function HrisAnnouncementsCompose({ onPublish }) {
+function toIsoOrNull(value) {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
+function getDatetimeLocalMin() {
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset() + 1);
+  return now.toISOString().slice(0, 16);
+}
+
+export default function HrisAnnouncementsCompose({ onPublish, publishing = false, canWrite = true }) {
   const [audience, setAudience] = useState('All');
   const [priority, setPriority] = useState('Normal');
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
+  const [expiresAt, setExpiresAt] = useState('');
+  const [error, setError] = useState('');
 
-  const handlePublish = () => {
-    if (!subject.trim() || !message.trim()) return;
+  const handlePublish = async () => {
+    if (!subject.trim() || !message.trim()) {
+      setError('Subject and message are required.');
+      return;
+    }
 
-    onPublish({ audience, priority, subject: subject.trim(), message: message.trim() });
+    const normalizedExpiresAt = toIsoOrNull(expiresAt);
+    if (expiresAt && (!normalizedExpiresAt || new Date(normalizedExpiresAt) <= new Date())) {
+      setError('Expiration must be a future date and time.');
+      return;
+    }
 
+    const audienceMap = {
+      All: 'both',
+      'Clients Only': 'clients',
+      'Guards Only': 'employees',
+    };
+    const priorityMap = {
+      Normal: 'normal',
+      Important: 'important',
+      Urgent: 'urgent',
+    };
+
+    try {
+      await onPublish({
+        targetAudience: audienceMap[audience],
+        priority: priorityMap[priority],
+        title: subject.trim(),
+        message: message.trim(),
+        expiresAt: normalizedExpiresAt,
+      });
+    } catch {
+      return;
+    }
+
+    setError('');
     setSubject('');
     setMessage('');
+    setExpiresAt('');
     setAudience('All');
     setPriority('Normal');
   };
@@ -26,7 +72,7 @@ export default function HrisAnnouncementsCompose({ onPublish }) {
       {/* Dark blue header */}
       <div className="an-compose-header">
         <h3><FaPenFancy /> Compose Announcement</h3>
-        <p><FaInfoCircle /> Share your feedback on our security services</p>
+        <p><FaInfoCircle /> Broadcast updates to clients and guards</p>
       </div>
 
       <div className="an-compose-body">
@@ -37,6 +83,7 @@ export default function HrisAnnouncementsCompose({ onPublish }) {
             <select
               className="an-field-select"
               value={audience}
+              disabled={publishing || !canWrite}
               onChange={(e) => setAudience(e.target.value)}
             >
               <option value="All">All</option>
@@ -49,6 +96,7 @@ export default function HrisAnnouncementsCompose({ onPublish }) {
             <select
               className="an-field-select"
               value={priority}
+              disabled={publishing || !canWrite}
               onChange={(e) => setPriority(e.target.value)}
             >
               <option value="Normal">Normal</option>
@@ -66,7 +114,11 @@ export default function HrisAnnouncementsCompose({ onPublish }) {
             className="an-field-input"
             placeholder="Enter announcement subject"
             value={subject}
-            onChange={(e) => setSubject(e.target.value)}
+            disabled={publishing || !canWrite}
+            onChange={(e) => {
+              setSubject(e.target.value);
+              if (error) setError('');
+            }}
           />
         </div>
 
@@ -78,14 +130,37 @@ export default function HrisAnnouncementsCompose({ onPublish }) {
             placeholder="Write your announcement message here"
             rows={4}
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            disabled={publishing || !canWrite}
+            onChange={(e) => {
+              setMessage(e.target.value);
+              if (error) setError('');
+            }}
           />
         </div>
 
+        <div className="an-field-group an-expires-field">
+          <label className="an-field-label"><FaCalendarAlt /> Expiration</label>
+          <input
+            type="datetime-local"
+            className="an-field-input"
+            min={getDatetimeLocalMin()}
+            value={expiresAt}
+            disabled={publishing || !canWrite}
+            onChange={(e) => {
+              setExpiresAt(e.target.value);
+              if (error) setError('');
+            }}
+          />
+          <p className="an-field-hint">Leave blank to keep the announcement visible until archived.</p>
+        </div>
+
+        {error && <p className="an-field-error">{error}</p>}
+
         {/* Publish */}
         <div className="an-compose-footer">
-          <button className="an-publish-btn" onClick={handlePublish}>
-            <FaBullhorn /> Publish Announcement
+          <button className="an-publish-btn" onClick={handlePublish} disabled={publishing || !canWrite}>
+            {publishing ? <FaCheckCircle /> : <FaBullhorn />}
+            {publishing ? 'Publishing...' : 'Publish Announcement'}
           </button>
         </div>
       </div>

@@ -1,18 +1,19 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  FaTimes, FaHistory, FaPaperPlane, FaEye, FaCheck,
-  FaDownload, FaBan,
+  FaTimes, FaHistory, FaPaperPlane, FaEye, FaCheck, FaBan, FaComments,
+  FaTicketAlt, FaExclamationTriangle,
 } from 'react-icons/fa';
+import ServiceRequestThread from '@components/service-requests/ServiceRequestThread';
+import ServiceRequestReplyBox from '@components/service-requests/ServiceRequestReplyBox';
+import ServiceRequestTypeDetails from '@components/service-requests/ServiceRequestTypeDetails';
 import serviceRequestsService from '@services/cms/serviceRequestsService';
 
-// ─── Timeline builder ─────────────────────────────────────────────────────────
 
 function buildTimeline(request) {
   if (!request) return [];
 
   const events = [];
 
-  // 1. Submitted
   events.push({
     icon: <FaPaperPlane />,
     bg: '#3b82f6',
@@ -21,8 +22,7 @@ function buildTimeline(request) {
     faded: false,
   });
 
-  // 2. Under review (if status is not just open)
-  if (['in_progress', 'resolved', 'cancelled'].includes(request.status)) {
+  if (['in_progress', 'resolved'].includes(request.status)) {
     events.push({
       icon: <FaEye />,
       bg: '#e6b215',
@@ -32,7 +32,6 @@ function buildTimeline(request) {
     });
   }
 
-  // 3. Final state
   if (request.status === 'resolved') {
     events.push({
       icon: <FaCheck />,
@@ -53,7 +52,7 @@ function buildTimeline(request) {
     events.push({
       icon: <FaCheck />,
       bg: '#9ca3af',
-      title: 'Awaiting Resolution…',
+      title: 'Awaiting Resolution...',
       time: null,
       faded: true,
     });
@@ -62,19 +61,28 @@ function buildTimeline(request) {
   return events;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
 
-export default function RequestDetailModal({ isOpen, request, onClose, onCancelSuccess }) {
+export default function RequestDetailModal({ isOpen, request, loadingDetail = false, onClose, onCancelSuccess, onMessageSent }) {
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState(null);
+  const [confirmingCancel, setConfirmingCancel] = useState(false);
+  const [messageText, setMessageText] = useState('');
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [messageError, setMessageError] = useState(null);
+
+  useEffect(() => {
+    setConfirmingCancel(false);
+    setCancelError(null);
+  }, [isOpen, request?.id]);
 
   if (!isOpen || !request) return null;
 
   const timeline = buildTimeline(request);
-  const canCancel = ['open', 'in_progress'].includes(request.status);
+  const canCancel = request.status === 'open' && !request.has_fulfillments;
+  const canMessage = ['open', 'in_progress'].includes(request.status);
+  const messages = request.messages || [];
 
   const handleCancel = async () => {
-    if (!window.confirm('Are you sure you want to cancel this request?')) return;
     try {
       setCancelling(true);
       setCancelError(null);
@@ -87,6 +95,25 @@ export default function RequestDetailModal({ isOpen, request, onClose, onCancelS
     }
   };
 
+  const handleSendMessage = async () => {
+    if (!messageText.trim()) {
+      setMessageError('Message is required.');
+      return;
+    }
+
+    try {
+      setSendingMessage(true);
+      setMessageError(null);
+      await serviceRequestsService.sendMessage(request.id, messageText.trim());
+      setMessageText('');
+      await onMessageSent?.();
+    } catch (err) {
+      setMessageError(err?.response?.data?.error || 'Failed to send message.');
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
   return (
     <div className="sr-modal-overlay" onClick={onClose}>
       <div
@@ -95,17 +122,83 @@ export default function RequestDetailModal({ isOpen, request, onClose, onCancelS
       >
         {/* Header */}
         <div className="sr-modal-header">
-          <div>
-            <h2>Service Request Details</h2>
-            <p>{String(request.id).substring(0, 8).toUpperCase()}</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 10,
+              background: 'rgba(255,255,255,0.15)',
+              border: '1.5px solid rgba(255,255,255,0.25)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '1.05rem', flexShrink: 0,
+            }}>
+              <FaTicketAlt />
+            </div>
+            <div>
+              <h2>Service Request Details</h2>
+              <p style={{ fontFamily: 'Courier New, monospace', letterSpacing: '0.05em' }}>
+                #{String(request.id).substring(0, 8).toUpperCase()}
+              </p>
+            </div>
           </div>
-          <button className="sr-modal-close" onClick={onClose}>
+          <button className="sr-modal-close" onClick={onClose} aria-label="Close">
             <FaTimes />
           </button>
         </div>
 
-        {/* Body */}
+        {/* Body — skeleton while full detail loads, real content after */}
+        {loadingDetail ? (
+          <div className="sr-modal-body">
+            {/* Badge row */}
+            <div className="sr-detail-skeleton__badges">
+              {[72, 72, 108].map((w, i) => (
+                <div key={i} className="dsk-btn" style={{ width: w, height: 24, borderRadius: 20 }} />
+              ))}
+            </div>
+            {/* Info grid */}
+            <div className="dsk-grid cols-2">
+              <div className="dsk-info-cell">
+                <div className="dsk-line sm" />
+                <div className="dsk-line md" />
+              </div>
+              <div className="dsk-info-cell">
+                <div className="dsk-line sm" />
+                <div className="dsk-line md" />
+              </div>
+            </div>
+            {/* Description */}
+            <div className="dsk-info-cell" style={{ minHeight: 72 }}>
+              <div className="dsk-line sm" />
+              <div className="dsk-line lg" />
+              <div className="dsk-line md" />
+            </div>
+            {/* Timeline */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="sr-detail-skeleton__timeline-item">
+                  <div className="dsk-btn" style={{ width: 30, height: 30, borderRadius: '50%', flexShrink: 0 }} />
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                    <div className="dsk-line md" />
+                    <div className="dsk-line sm" />
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* Conversation */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem' }}>
+              <div className="dsk-line" style={{ height: 13, width: '32%' }} />
+              <div className="dsk-info-cell" style={{ minHeight: 56 }}>
+                <div className="dsk-line md" />
+                <div className="dsk-line lg" />
+              </div>
+            </div>
+            {/* Action buttons */}
+            <div className="sr-detail-skeleton__actions">
+              <div className="dsk-btn" style={{ flex: 1, height: 38, borderRadius: 8 }} />
+              <div className="dsk-btn" style={{ flex: 1, height: 38, borderRadius: 8 }} />
+            </div>
+          </div>
+        ) : (
         <div className="sr-modal-body">
+
           {/* Badges */}
           <div className="sr-detail-badges">
             <span className={`sr-status-badge ${request.statusClass}`}>{request.statusLabel}</span>
@@ -113,9 +206,48 @@ export default function RequestDetailModal({ isOpen, request, onClose, onCancelS
             <span className="sr-type-pill">{request.type}</span>
           </div>
 
+          {/* Error */}
           {cancelError && (
-            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '0.7rem 1rem', color: '#dc2626', fontSize: '0.82rem', fontWeight: 500 }}>
+            <div className="sr-inline-error">
               {cancelError}
+            </div>
+          )}
+
+          {/* Info grid */}
+          <div className="sr-detail-grid">
+            <div className="sr-detail-info-cell">
+              <p className="sr-detail-info-label">Site / Location</p>
+              <p className="sr-detail-info-value">{request.site || '—'}</p>
+            </div>
+            <div className="sr-detail-info-cell">
+              <p className="sr-detail-info-label">Date Submitted</p>
+              <p className="sr-detail-info-value">{request.date}</p>
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="sr-detail-desc-box">
+            <p className="sr-detail-info-label">Request Description</p>
+            <p className="sr-detail-desc-text">
+              {request.description || 'No description provided.'}
+            </p>
+          </div>
+
+          <ServiceRequestTypeDetails
+            request={request}
+            detailBoxClassName="sr-detail-desc-box"
+            labelClassName="sr-detail-info-label"
+            textClassName="sr-detail-desc-text"
+            showCancellationLock
+          />
+
+          {/* Resolution notes (if resolved) */}
+          {request.resolution_notes && (
+            <div className="sr-detail-desc-box sr-resolution-note-box">
+              <p className="sr-detail-info-label">Resolution Notes</p>
+              <p className="sr-detail-desc-text">
+                {request.resolution_notes}
+              </p>
             </div>
           )}
 
@@ -142,55 +274,68 @@ export default function RequestDetailModal({ isOpen, request, onClose, onCancelS
             </div>
           </div>
 
-          {/* Info Grid */}
-          <div className="sr-detail-grid">
-            <div className="sr-detail-info-cell">
-              <p className="sr-detail-info-label">Site / Location</p>
-              <p className="sr-detail-info-value">{request.site}</p>
-            </div>
-            <div className="sr-detail-info-cell">
-              <p className="sr-detail-info-label">Date Submitted</p>
-              <p className="sr-detail-info-value">{request.date}</p>
-            </div>
+          {/* Conversation */}
+          <div className="sr-detail-section">
+            <h4 className="sr-detail-section-title">
+              <FaComments /> Conversation
+            </h4>
+            <ServiceRequestThread messages={messages} emptyClassName="sr-empty-thread" />
+            {canMessage && (
+              <ServiceRequestReplyBox
+                label="Reply"
+                value={messageText}
+                onChange={setMessageText}
+                onSend={handleSendMessage}
+                loading={sendingMessage}
+                error={messageError}
+                placeholder="Write a message to HRIS..."
+                buttonClassName="sr-reply-send-btn"
+              />
+            )}
           </div>
-
-          {/* Description */}
-          <div className="sr-detail-desc-box">
-            <p className="sr-detail-info-label">Description</p>
-            <p className="sr-detail-desc-text">
-              {request.description || 'No description provided.'}
-            </p>
-          </div>
-
-          {/* Resolution notes (if resolved) */}
-          {request.resolution_notes && (
-            <div className="sr-detail-desc-box" style={{ background: '#f0fdf4', borderColor: '#bbf7d0' }}>
-              <p className="sr-detail-info-label" style={{ color: '#15803d' }}>Resolution Notes</p>
-              <p className="sr-detail-desc-text" style={{ color: '#15803d' }}>
-                {request.resolution_notes}
-              </p>
-            </div>
-          )}
 
           {/* Actions */}
           <div className="sr-modal-actions sr-detail-actions">
-            <button className="sr-btn-download" disabled>
-              <FaDownload /> Download
-            </button>
-            {canCancel && (
+            {confirmingCancel ? (
+              <div className="sr-cancel-confirm sr-cancel-confirm--actions">
+                <p>
+                  <FaExclamationTriangle /> Are you sure you want to cancel this request?
+                </p>
+                <div>
+                  <button
+                    type="button"
+                    className="sr-btn-back"
+                    onClick={() => setConfirmingCancel(false)}
+                    disabled={cancelling}
+                  >
+                    Keep Request
+                  </button>
+                  <button
+                    type="button"
+                    className="sr-btn-cancel-req"
+                    onClick={handleCancel}
+                    disabled={cancelling}
+                  >
+                    <FaTimes /> {cancelling ? 'Cancelling...' : 'Cancel Request'}
+                  </button>
+                </div>
+              </div>
+            ) : canCancel && (
               <button
                 className="sr-btn-cancel-req"
-                onClick={handleCancel}
+                onClick={() => setConfirmingCancel(true)}
                 disabled={cancelling}
               >
-                <FaTimes /> {cancelling ? 'Cancelling…' : 'Cancel Request'}
+                <FaTimes /> {cancelling ? 'Cancelling...' : 'Cancel Request'}
               </button>
             )}
-            <button className="sr-btn-back" onClick={onClose}>
-              Back
+            <button className="sr-btn-back" onClick={onClose} disabled={cancelling}>
+              Close
             </button>
           </div>
+
         </div>
+        )} {/* end loadingDetail ternary */}
       </div>
     </div>
   );

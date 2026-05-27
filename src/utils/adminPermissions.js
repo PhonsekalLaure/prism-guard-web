@@ -7,8 +7,12 @@ export const ADMIN_ROLE_LABELS = {
 
 export const ADMIN_ROLE_PERMISSIONS = {
   president: [
+    'announcements.read',
+    'announcements.write',
     'clients.read',
     'clients.write',
+    'incidents.read',
+    'incidents.write',
     'employees.read',
     'employees.write',
     'profile.self.read',
@@ -16,14 +20,20 @@ export const ADMIN_ROLE_PERMISSIONS = {
     'admins.manage',
   ],
   operations_manager: [
+    'announcements.read',
+    'announcements.write',
     'clients.read',
     'clients.write',
+    'incidents.read',
+    'incidents.write',
     'employees.read',
     'employees.write',
     'profile.self.read',
     'profile.self.write',
   ],
   finance_manager: [
+    'announcements.read',
+    'announcements.write',
     'clients.read',
     'clients.write',
     'employees.read',
@@ -32,6 +42,8 @@ export const ADMIN_ROLE_PERMISSIONS = {
     'profile.self.write',
   ],
   secretary: [
+    'announcements.read',
+    'announcements.write',
     'clients.read',
     'clients.write',
     'employees.read',

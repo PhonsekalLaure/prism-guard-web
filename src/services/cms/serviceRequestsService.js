@@ -1,10 +1,9 @@
 import axios from 'axios';
 import authService from '@/services/authService';
-
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { buildApiUrl } from '@/services/apiConfig';
 
 const api = axios.create({
-  baseURL: `${API_BASE}/api/web/service-requests`,
+  baseURL: buildApiUrl('/api/web/service-requests'),
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -59,6 +58,11 @@ async function getServiceRequestById(id) {
   return data;
 }
 
+async function sendMessage(id, message) {
+  const { data } = await api.post(`/${id}/messages`, { message });
+  return data;
+}
+
 /**
  * Submit a new service request.
  *
@@ -71,7 +75,7 @@ async function createServiceRequest(payload) {
 }
 
 /**
- * Cancel an open/in-progress service request.
+ * Cancel an open service request.
  *
  * @param {string} id
  * @returns {Promise<{ message: string }>}
@@ -86,6 +90,7 @@ export default {
   getStats,
   getSites,
   getServiceRequestById,
+  sendMessage,
   createServiceRequest,
   cancelServiceRequest,
 };

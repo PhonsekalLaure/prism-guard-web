@@ -70,6 +70,10 @@ function isPastDate(dateValue) {
   return parsedDate < today;
 }
 
+function isAfterDate(dateValue, maxDateValue) {
+  return Boolean(dateValue && maxDateValue && String(dateValue) > String(maxDateValue));
+}
+
 export default function ViewEmployeeDetail({
   isOpen, employee: previewEmployee, onClose, onUpdated, pageMode = false,
 }) {
@@ -127,6 +131,8 @@ export default function ViewEmployeeDetail({
   const contractNeedsRenewal = Boolean(data.employment_contract_needs_renewal);
   const hasValidEmploymentContract = data.employment_contract_valid !== false;
   const contractActionMessage = data.admin_action_message || 'Employment contract needs admin review.';
+  const selectedDeploymentSite = sitesList.find((site) => site.id === deployForm.siteId);
+  const selectedClientContractEndDate = selectedDeploymentSite?.client_contract_end_date || null;
 
   const handleEdit   = () => { setEditForm(buildForm(data)); setPendingFiles({}); setIsEditing(true); };
   const handleCancel = () => { setIsEditing(false); setPendingFiles({}); };
@@ -281,6 +287,10 @@ export default function ViewEmployeeDetail({
     }
     if (isEarlierDate(deployForm.contractStartDate, deployForm.contractEndDate)) {
       showNotification('Deployment contract end date cannot be earlier than deployment contract start date.', 'error');
+      return;
+    }
+    if (isAfterDate(deployForm.contractEndDate, selectedClientContractEndDate)) {
+      showNotification(`Deployment contract end date cannot be later than the client contract end date (${selectedClientContractEndDate}).`, 'error');
       return;
     }
     if (deployForm.daysOfWeek.length === 0)    { showNotification('Please select at least one schedule day.', 'error'); return; }
@@ -507,6 +517,7 @@ export default function ViewEmployeeDetail({
         onDeploy={handleDeploy}
         toggleScheduleDay={toggleScheduleDay}
         isTransfer={hasActiveDeployment}
+        clientContractEndDate={selectedClientContractEndDate}
       />
 
       <RenewEmployeeContractDialog

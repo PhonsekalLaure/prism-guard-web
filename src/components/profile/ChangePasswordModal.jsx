@@ -1,15 +1,22 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-  FaCheckCircle,
+  FaExclamationCircle,
   FaEye,
   FaEyeSlash,
   FaKey,
-  FaLock,
-  FaRegCircle,
   FaSpinner,
   FaTimes,
 } from 'react-icons/fa';
+import PasswordRequirements from '@components/auth/PasswordRequirements';
 import profileService from '@services/profileService';
+import authService from '@services/authService';
+import {
+  getPasswordPolicyError,
+  getPasswordStrength,
+  validatePassword,
+} from '@utils/passwordPolicy';
+import '@styles/Auth.css';
 import '@styles/components/ChangePasswordModal.css';
 
 const emptyForm = {
@@ -24,35 +31,23 @@ const hiddenFields = {
   confirmPassword: false,
 };
 
-const fields = [
-  { name: 'currentPassword', label: 'Current Password', placeholder: 'Enter current password' },
-  { name: 'newPassword', label: 'New Password', placeholder: 'Enter new password' },
-  { name: 'confirmPassword', label: 'Confirm New Password', placeholder: 'Re-type new password' },
-];
-
 export default function ChangePasswordModal({ isOpen, onClose, variant = 'hris' }) {
+  const navigate = useNavigate();
   const [form, setForm] = useState(emptyForm);
   const [show, setShow] = useState(hiddenFields);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
 
   if (!isOpen) return null;
 
-  const hasUpper = /[A-Z]/.test(form.newPassword);
-  const hasLower = /[a-z]/.test(form.newPassword);
-  const hasNumber = /[0-9]/.test(form.newPassword);
-  const hasSymbol = /[^A-Za-z0-9]/.test(form.newPassword);
-  const hasLength = form.newPassword.length >= 8;
+  const passwordPolicy = validatePassword(form.newPassword);
+  const strength = getPasswordStrength(form.newPassword);
   const passwordsMatch = form.newPassword.length > 0 && form.newPassword === form.confirmPassword;
-  const isPasswordValid = hasUpper && hasLower && hasNumber && hasSymbol && hasLength;
-  const isCms = variant === 'cms';
 
   const resetState = () => {
     setForm(emptyForm);
     setShow(hiddenFields);
     setError(null);
-    setSuccess(false);
   };
 
   const handleClose = () => {
@@ -64,7 +59,6 @@ export default function ChangePasswordModal({ isOpen, onClose, variant = 'hris' 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     setError(null);
-    setSuccess(false);
   };
 
   const toggleShow = (field) => {
@@ -74,15 +68,14 @@ export default function ChangePasswordModal({ isOpen, onClose, variant = 'hris' 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    setSuccess(false);
 
     if (!form.currentPassword || !form.newPassword || !form.confirmPassword) {
       setError('All fields are required.');
       return;
     }
 
-    if (!isPasswordValid) {
-      setError('New password does not meet complexity requirements.');
+    if (!passwordPolicy.isValid) {
+      setError(getPasswordPolicyError(form.newPassword));
       return;
     }
 
@@ -99,11 +92,12 @@ export default function ChangePasswordModal({ isOpen, onClose, variant = 'hris' 
         confirmPassword: form.confirmPassword,
       });
 
-      setSuccess(true);
-      window.setTimeout(() => {
-        resetState();
-        onClose();
-      }, 1500);
+      authService.clearTokens();
+      resetState();
+      onClose();
+      navigate('/login', {
+        state: { message: 'Password changed successfully. Please log in again.', type: 'success' }
+      });
     } catch (err) {
       setError(err?.response?.data?.error || 'Failed to change password.');
     } finally {
@@ -111,175 +105,200 @@ export default function ChangePasswordModal({ isOpen, onClose, variant = 'hris' 
     }
   };
 
-  if (isCms) {
-    return (
-      <div className="cms-profile-modal-overlay" onClick={handleClose}>
-        <div className="cms-profile-modal-content" onClick={(e) => e.stopPropagation()}>
-          <div className="cms-profile-modal__header">
-            <div>
-              <h2>Change Password</h2>
-              <p>Secure your account credentials</p>
-            </div>
-            <button className="cms-profile-modal__close" onClick={handleClose} disabled={saving}>
-              <FaTimes />
-            </button>
-          </div>
-
-          <div className="cms-profile-modal__body">
-            <div className="cms-profile-modal__icon-wrap">
-              <FaLock />
-            </div>
-
-            <PasswordForm
-              error={error}
-              form={form}
-              isCms
-              onChange={handleChange}
-              onClose={handleClose}
-              onSubmit={handleSubmit}
-              requirements={{ hasLength, hasUpper, hasLower, hasNumber, hasSymbol, passwordsMatch }}
-              saving={saving}
-              show={show}
-              success={success}
-              toggleShow={toggleShow}
-            />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+  /* ── Unified premium modal (HRIS & CMS) — chpw-* ─────────────── */
   return (
-    <div className="dlg-overlay" onClick={handleClose}>
-      <div className="dlg-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
-        <div className="term-hero" style={{ background: 'linear-gradient(to right, #0f172a, #1e293b)' }}>
-          <div className="term-icon-ring" style={{ color: '#fbbf24', background: 'rgba(251, 191, 36, 0.1)' }}>
+    <div className="chpw-overlay" onClick={handleClose}>
+      <div className="chpw-modal" onClick={(e) => e.stopPropagation()}>
+
+        {/* Header — gradient with key icon, dot-grid texture */}
+        <div className="chpw-modal__header">
+          <div className="chpw-modal__header-bg" aria-hidden="true" />
+          <div className="chpw-modal__header-dots" aria-hidden="true" />
+
+          <div className="chpw-modal__icon">
             <FaKey />
           </div>
-          <div>
-            <h3 className="term-title" style={{ color: '#fff' }}>Change Password</h3>
-            <p className="term-subtitle" style={{ color: '#94a3b8' }}>Secure your account credentials</p>
-          </div>
+          <h2 className="chpw-modal__title">
+            Change Password
+          </h2>
+          <p className="chpw-modal__subtitle">
+            Secure your account credentials
+          </p>
+
+          <button
+            className="chpw-modal__close-btn"
+            onClick={handleClose}
+            disabled={saving}
+            aria-label="Close"
+          >
+            <FaTimes />
+          </button>
         </div>
 
-        <PasswordForm
-          error={error}
-          form={form}
-          onChange={handleChange}
-          onClose={handleClose}
-          onSubmit={handleSubmit}
-          requirements={{ hasLength, hasUpper, hasLower, hasNumber, hasSymbol, passwordsMatch }}
-          saving={saving}
-          show={show}
-          success={success}
-          toggleShow={toggleShow}
-        />
+        {/* Body */}
+        <div className="chpw-modal__body">
+          <PasswordForm
+            error={error}
+            form={form}
+            onChange={handleChange}
+            onClose={handleClose}
+            onSubmit={handleSubmit}
+            password={form.newPassword}
+            passwordsMatch={passwordsMatch}
+            strength={strength}
+            canSubmit={Boolean(form.currentPassword) && passwordPolicy.isValid && passwordsMatch}
+            saving={saving}
+            show={show}
+            toggleShow={toggleShow}
+          />
+        </div>
       </div>
     </div>
   );
 }
 
+/* ── Shared PasswordForm sub-component (unified HRIS + CMS) ──────── */
 function PasswordForm({
   error,
   form,
-  isCms = false,
   onChange,
   onClose,
   onSubmit,
-  requirements,
+  canSubmit,
+  password,
+  passwordsMatch,
+  strength,
   saving,
   show,
-  success,
   toggleShow,
 }) {
-  const formClassName = isCms ? 'cms-profile-modal__form' : 'term-body';
-  const fieldClassName = isCms ? 'cms-profile-form__field' : 'pf-field';
-  const labelClassName = isCms ? 'cms-profile-form__label' : 'pf-field-label';
-  const inputClassName = isCms ? 'cms-profile-form__input' : 'pf-edit-input';
-  const wrapperClassName = isCms ? 'cms-profile-modal__password-wrap' : 'shared-password-input-wrap';
-  const toggleClassName = isCms ? 'cms-profile-modal__toggle-show' : 'shared-password-toggle';
-  const actionsClassName = isCms ? 'cms-profile-modal__actions' : 'dlg-footer shared-password-footer';
-  const cancelClassName = isCms ? 'cms-profile-modal__cancel-btn' : 'dlg-btn dlg-btn-ghost';
-  const submitClassName = isCms ? 'cms-profile-modal__submit-btn' : 'dlg-btn shared-password-submit';
-  const errorClassName = isCms ? 'cms-profile-modal__error' : 'shared-password-error';
-  const successClassName = isCms ? 'cms-profile-modal__success-text' : 'shared-password-success';
-
+  /* Premium auth-style form — used by both HRIS and CMS */
   return (
-    <form onSubmit={onSubmit} className={formClassName}>
-      {fields.map(({ name, label, placeholder }) => (
-        <div key={name} className={fieldClassName}>
-          <label htmlFor={name} className={labelClassName}>
-            {label}
-          </label>
-          <div className={wrapperClassName}>
-            <FaLock className="shared-password-lock-icon" />
-            <input
-              id={name}
-              name={name}
-              type={show[name] ? 'text' : 'password'}
-              value={form[name]}
-              onChange={onChange}
-              className={inputClassName}
-              placeholder={placeholder}
-              disabled={saving}
-            />
-            <button
-              type="button"
-              className={toggleClassName}
-              onClick={() => toggleShow(name)}
-              aria-label={show[name] ? 'Hide password' : 'Show password'}
-              disabled={saving}
-            >
-              {show[name] ? <FaEyeSlash /> : <FaEye />}
-            </button>
-          </div>
+    <form onSubmit={onSubmit} className="chpw-form">
+
+      {/* Current Password */}
+      <div className="auth-form-group">
+        <label htmlFor="currentPassword">Current Password</label>
+        <div className="auth-password-wrapper">
+          <input
+            id="currentPassword"
+            name="currentPassword"
+            type={show.currentPassword ? 'text' : 'password'}
+            value={form.currentPassword}
+            onChange={onChange}
+            className="auth-input"
+            placeholder="Enter current password"
+            disabled={saving}
+          />
+          <button
+            type="button"
+            className="auth-password-toggle"
+            onClick={() => toggleShow('currentPassword')}
+            aria-label={show.currentPassword ? 'Hide password' : 'Show password'}
+            disabled={saving}
+          >
+            {show.currentPassword ? <FaEyeSlash /> : <FaEye />}
+          </button>
         </div>
-      ))}
+      </div>
 
-      <PasswordRequirements isCms={isCms} requirements={requirements} />
+      {/* New Password + strength bar */}
+      <div className="auth-form-group">
+        <label htmlFor="newPassword">New Password</label>
+        <div className="auth-password-wrapper">
+          <input
+            id="newPassword"
+            name="newPassword"
+            type={show.newPassword ? 'text' : 'password'}
+            value={form.newPassword}
+            onChange={onChange}
+            className="auth-input"
+            placeholder="Enter new password"
+            disabled={saving}
+          />
+          <button
+            type="button"
+            className="auth-password-toggle"
+            onClick={() => toggleShow('newPassword')}
+            aria-label={show.newPassword ? 'Hide password' : 'Show password'}
+            disabled={saving}
+          >
+            {show.newPassword ? <FaEyeSlash /> : <FaEye />}
+          </button>
+        </div>
 
-      {error && <p className={errorClassName}>{error}</p>}
-      {success && <p className={successClassName}>Password updated successfully.</p>}
+        {/* Strength meter — same markup as ResetPasswordPage */}
+        <div className="auth-strength-bar">
+          {[1, 2, 3, 4].map((seg) => (
+            <div
+              key={seg}
+              className={`auth-strength-segment ${strength.score >= seg ? strength.cls : ''}`}
+            />
+          ))}
+        </div>
+        <p className={`auth-strength-label ${strength.cls}`}>{strength.label}</p>
+      </div>
 
-      <div className={actionsClassName}>
-        <button type="button" className={cancelClassName} onClick={onClose} disabled={saving}>
+      {/* Password requirements checklist — reset variant (same as ResetPasswordPage) */}
+      <PasswordRequirements
+        password={password}
+        passwordsMatch={passwordsMatch}
+        variant="reset"
+      />
+
+      {/* Confirm Password */}
+      <div className="auth-form-group">
+        <label htmlFor="confirmPassword">Confirm New Password</label>
+        <div className="auth-password-wrapper">
+          <input
+            id="confirmPassword"
+            name="confirmPassword"
+            type={show.confirmPassword ? 'text' : 'password'}
+            value={form.confirmPassword}
+            onChange={onChange}
+            className="auth-input"
+            placeholder="Re-enter new password"
+            disabled={saving}
+          />
+          <button
+            type="button"
+            className="auth-password-toggle"
+            onClick={() => toggleShow('confirmPassword')}
+            aria-label={show.confirmPassword ? 'Hide password' : 'Show password'}
+            disabled={saving}
+          >
+            {show.confirmPassword ? <FaEyeSlash /> : <FaEye />}
+          </button>
+        </div>
+      </div>
+
+      {/* Notification banners */}
+      {error && (
+        <div className="chpw-notification error">
+          <FaExclamationCircle /><span>{error}</span>
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="chpw-actions">
+        <button
+          type="button"
+          className="chpw-cancel-btn"
+          onClick={onClose}
+          disabled={saving}
+        >
           Cancel
         </button>
-        <button type="submit" className={submitClassName} disabled={saving}>
+        <button
+          type="submit"
+          className="auth-btn chpw-submit-btn"
+          disabled={saving || !canSubmit}
+        >
           {saving ? <FaSpinner className="shared-password-spinner" /> : <FaKey />}
-          {saving ? 'Updating...' : 'Update Password'}
+          <span>{saving ? 'Updating...' : 'Update Password'}</span>
         </button>
       </div>
     </form>
   );
 }
 
-function PasswordRequirements({ isCms, requirements }) {
-  const items = [
-    [requirements.hasLength, 'At least 8 chars'],
-    [requirements.hasUpper, '1 Uppercase'],
-    [requirements.hasLower, '1 Lowercase'],
-    [requirements.hasNumber, '1 Number'],
-    [requirements.hasSymbol, '1 Symbol'],
-    [requirements.passwordsMatch, 'Passwords match'],
-  ];
-
-  return (
-    <div className={isCms ? 'cms-profile-password-rules' : 'shared-password-rules'}>
-      <p>Password Requirements:</p>
-      <div className={isCms ? 'cms-profile-password-rules__grid' : 'shared-password-rules__grid'}>
-        {items.map(([isMet, text]) => (
-          <div
-            key={text}
-            className={isCms
-              ? `cms-profile-password-rule${isMet ? ' is-met' : ''}`
-              : `shared-password-rule${isMet ? ' is-met' : ''}`}
-          >
-            {isMet ? <FaCheckCircle /> : <FaRegCircle />}
-            <span>{text}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}

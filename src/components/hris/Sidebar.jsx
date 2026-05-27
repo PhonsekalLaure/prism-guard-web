@@ -1,12 +1,19 @@
+import { createElement } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   FaTachometerAlt, FaBuilding, FaFileInvoiceDollar, FaHeadset, FaStar,
   FaUsers, FaFingerprint, FaCalendarAlt, FaHandHoldingUsd, FaMoneyBillWave,
   FaUserPlus, FaExclamationTriangle, FaBullhorn, FaUserShield, FaSignOutAlt,
+  FaBell,
 } from 'react-icons/fa';
 import logo from '@assets/logo.png';
 import authService from '@services/authService';
 import { getAdminRoleLabel, hasAllPermissions } from '@utils/adminPermissions';
+import {
+  formatNotificationBadgeCount,
+  getNotificationBadgeCount,
+} from '@utils/notificationBadges';
+import { NOTIFICATION_PREFIXES } from '@utils/notificationRouting';
 
 const navGroups = [
   {
@@ -20,8 +27,8 @@ const navGroups = [
     items: [
       { to: '/clients', icon: FaBuilding, label: 'Clients', permissions: ['clients.read'] },
       { to: '/billing', icon: FaFileInvoiceDollar, label: 'Billing & Payments' },
-      { to: '/service-request', icon: FaHeadset, label: 'Service Request' },
-      { to: '/service-reviews', icon: FaStar, label: 'Service Reviews' },
+      { to: '/service-request', icon: FaHeadset, label: 'Service Request', notificationPrefixes: NOTIFICATION_PREFIXES.serviceRequest },
+      { to: '/service-reviews', icon: FaStar, label: 'Service Reviews', notificationPrefixes: NOTIFICATION_PREFIXES.serviceReview },
     ],
   },
   {
@@ -29,24 +36,23 @@ const navGroups = [
     items: [
       { to: '/employees', icon: FaUsers, label: 'Employees', permissions: ['employees.read'] },
       { to: '/attendance', icon: FaFingerprint, label: 'Attendance' },
-      { to: '/leaves', icon: FaCalendarAlt, label: 'Leave Requests' },
+      { to: '/leaves', icon: FaCalendarAlt, label: 'Leave Requests', permissions: ['employees.read'], notificationPrefixes: NOTIFICATION_PREFIXES.leave },
       { to: '/cash-advance', icon: FaHandHoldingUsd, label: 'Cash Advance' },
       { to: '/payroll', icon: FaMoneyBillWave, label: 'Payroll' },
-      { to: '/applicants', icon: FaUserPlus, label: 'Applicants' },
+      { to: '/applicants', icon: FaUserPlus, label: 'Applicants', notificationPrefixes: NOTIFICATION_PREFIXES.applicant },
     ],
   },
   {
     label: 'Operations',
     items: [
-      { to: '/incidents', icon: FaExclamationTriangle, label: 'Incidents' },
-      { to: '/announcements', icon: FaBullhorn, label: 'Announcements' },
+      { to: '/notifications', icon: FaBell, label: 'Notifications', notificationUncategorized: true },
+      { to: '/incidents', icon: FaExclamationTriangle, label: 'Incidents', permissions: ['incidents.read'], notificationPrefixes: NOTIFICATION_PREFIXES.incident },
+      { to: '/announcements', icon: FaBullhorn, label: 'Announcements', permissions: ['announcements.read'], notificationPrefixes: NOTIFICATION_PREFIXES.announcement },
     ],
   },
 ];
 
-// ─── Header Navigation Support ─────────────────────────────────
-
-export default function Sidebar({ onLogoutClick, isOpen, onClose }) {
+export default function Sidebar({ onLogoutClick, isOpen, notificationStats }) {
   const profile = authService.getProfile() || {};
   const fullName = profile.first_name ? `${profile.first_name} ${profile.last_name}` : 'John Juan';
   const roleLabel = profile.role === 'admin'
@@ -72,16 +78,27 @@ export default function Sidebar({ onLogoutClick, isOpen, onClose }) {
             {group.label && <div className="nav-group-header">{group.label}</div>}
             {group.items
               .filter(({ permissions }) => !permissions || hasAllPermissions(profile, permissions))
-              .map(({ to, icon: Icon, label }) => (
-              <NavLink
-                key={to}
-                to={to}
-                className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
-              >
-                <Icon />
-                <span>{label}</span>
-              </NavLink>
-            ))}
+              .map((item) => {
+                const badgeCount = getNotificationBadgeCount(item, notificationStats);
+                return (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+                  >
+                    {createElement(item.icon)}
+                    <span className="nav-label">{item.label}</span>
+                    {badgeCount > 0 && item.notificationUncategorized && (
+                      <span className="nav-badge-dot" aria-label="Unread uncategorized notifications" />
+                    )}
+                    {badgeCount > 0 && !item.notificationUncategorized && (
+                      <span className="nav-badge" aria-label={`${badgeCount} unread notifications`}>
+                        {formatNotificationBadgeCount(badgeCount)}
+                      </span>
+                    )}
+                  </NavLink>
+                );
+              })}
           </div>
         ))}
       </nav>

@@ -3,6 +3,8 @@ import {
   FaSearch, FaExclamationTriangle
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
+import EmptyState from '@components/ui/EmptyState';
+import { EntityCardSkeleton, SkeletonList } from '@components/ui/Skeleton';
 
 export default function ClientsGrid({
   clients = [],
@@ -22,22 +24,9 @@ export default function ClientsGrid({
   if (loading) {
     return (
       <div className="clients-grid">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="client-card client-card-skeleton">
-            <div className="client-card-header client-skeleton-header">
-              <div className="skeleton-avatar" style={{ borderRadius: '12px' }} />
-              <div className="skeleton-lines" style={{ marginTop: '0.6rem' }}>
-                <div className="skeleton-line long" style={{ background: 'rgba(255,255,255,0.25)' }} />
-                <div className="skeleton-line short" style={{ background: 'rgba(255,255,255,0.18)' }} />
-              </div>
-            </div>
-            <div className="client-card-body">
-              <div className="skeleton-block" />
-              <div className="skeleton-block" />
-              <div className="skeleton-block short" />
-            </div>
-          </div>
-        ))}
+        <SkeletonList count={6}>{(index) => (
+          <EntityCardSkeleton key={index} variant="client" />
+        )}</SkeletonList>
       </div>
     );
   }
@@ -46,22 +35,13 @@ export default function ClientsGrid({
     <>
       <div className="clients-grid">
         {clients.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-state-icon">
-              <FaSearch />
-            </div>
-            <h3 className="empty-state-title">No clients found</h3>
-            <p className="empty-state-desc">
-              We couldn't find any clients matching your current search or filter criteria.
-              Try adjusting your settings or reset to view all clients.
-            </p>
-            <button
-              onClick={() => onResetFilters?.()}
-              className="empty-state-reset"
-            >
-              Reset All Filters
-            </button>
-          </div>
+          <EmptyState
+            icon={FaSearch}
+            title="No clients found"
+            description="We couldn't find any clients matching your current search or filter criteria. Try adjusting your settings or reset to view all clients."
+            actionLabel="Reset All Filters"
+            onAction={onResetFilters}
+          />
         ) : (
           clients.map((client, i) => (
             <div key={client.id || i} className="client-card">

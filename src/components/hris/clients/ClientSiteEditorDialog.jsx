@@ -1,6 +1,6 @@
 import GoogleAddressAutofill from '@hris-components/employees/GoogleAddressAutofill';
 
-const GOOGLE_MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+const MAX_GEOFENCE_RADIUS_METERS = 500;
 
 export default function ClientSiteEditorDialog({
   isOpen,
@@ -42,7 +42,6 @@ export default function ClientSiteEditorDialog({
             <div className="ae-form-group span-2">
               <label>Site Address</label>
               <GoogleAddressAutofill
-                apiKey={GOOGLE_MAPS_KEY}
                 value={form.siteAddress}
                 onChange={(e) => {
                   onFieldChange('siteAddress', e.target.value);
@@ -67,8 +66,10 @@ export default function ClientSiteEditorDialog({
                 className="ae-input"
                 value={form.geofenceRadius}
                 min="1"
+                max={MAX_GEOFENCE_RADIUS_METERS}
                 onChange={(e) => onFieldChange('geofenceRadius', e.target.value)}
               />
+              <p className="ae-hint">Maximum radius: {MAX_GEOFENCE_RADIUS_METERS}m.</p>
             </div>
           </div>
         </div>

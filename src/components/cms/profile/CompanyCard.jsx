@@ -44,8 +44,16 @@ export default function CompanyCard({ profile, onEditProfile, onChangePassword }
   return (
     <div className="cms-profile-company-card">
       <div className="cms-profile-company-card__header">
-        <div className="cms-profile-company-card__logo">
-          <FaBuilding />
+        <div className="cms-profile-company-card__logo" style={{ overflow: 'hidden' }}>
+          {profile?.avatar_url ? (
+            <img 
+              src={profile.avatar_url} 
+              alt={profile?.company || 'Company Logo'} 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+            />
+          ) : (
+            <FaBuilding />
+          )}
         </div>
         <h3 className="cms-profile-company-card__name">
           {profile?.company || 'Not provided'}

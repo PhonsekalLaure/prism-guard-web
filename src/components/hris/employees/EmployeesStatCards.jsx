@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
+import { FaFileContract, FaUserCheck, FaUserShield, FaUserTimes } from 'react-icons/fa';
+import StatCards from '@components/ui/StatCards';
 import employeeService from '@services/hris/employeeService';
 
 export default function EmployeesStatCards({ refreshKey = 0 }) {
   const [stats, setStats] = useState({
     totalEmployees: 0,
     inactive: 0,
-    absentToday: 0,
-    activeOnDuty: 0
+    activeOnDuty: 0,
+    expiringContracts: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -17,8 +19,8 @@ export default function EmployeesStatCards({ refreshKey = 0 }) {
         setStats(data || {
           totalEmployees: 0,
           inactive: 0,
-          absentToday: 0,
-          activeOnDuty: 0
+          activeOnDuty: 0,
+          expiringContracts: 0
         });
 
       } catch (err) {
@@ -32,49 +34,44 @@ export default function EmployeesStatCards({ refreshKey = 0 }) {
 
   const statConfig = [
     {
+      key: 'totalEmployees',
       label: 'Total Employees',
-      value: stats.totalEmployees,
       valueColor: '#093269',
       borderColor: '#093269',
+      icon: FaUserShield,
+      iconBg: 'rgba(9, 50, 105, 0.1)',
+      iconColor: '#093269',
     },
     {
+      key: 'inactive',
       label: 'Inactive',
-      value: stats.inactive,
       valueColor: '#e6b215',
       borderColor: '#e6b215',
+      icon: FaUserTimes,
+      iconBg: 'rgba(230, 178, 21, 0.12)',
+      iconColor: '#b45309',
     },
     {
-      label: 'Absent Today',
-      value: stats.absentToday,
-      valueColor: '#ef4444',
-      borderColor: '#ef4444',
-    },
-    {
+      key: 'activeOnDuty',
       label: 'Active On Duty',
-      value: stats.activeOnDuty,
       valueColor: '#16a34a',
       borderColor: '#16a34a',
+      icon: FaUserCheck,
+      iconBg: 'rgba(34, 197, 94, 0.12)',
+      iconColor: '#16a34a',
+    },
+    {
+      key: 'expiringContracts',
+      label: 'Expiring Contracts',
+      valueColor: '#f97316',
+      borderColor: '#f97316',
+      icon: FaFileContract,
+      iconBg: 'rgba(249, 115, 22, 0.12)',
+      iconColor: '#f97316',
     },
   ];
 
   return (
-    <div className="stat-grid">
-      {statConfig.map((s) => (
-        <div
-          key={s.label}
-          className="stat-card"
-          style={{ borderLeftColor: s.borderColor }}
-        >
-          {loading ? (
-            <div className="animate-pulse h-16 bg-gray-100 rounded"></div>
-          ) : (
-            <div>
-              <p className="stat-label">{s.label}</p>
-              <h3 className="stat-value" style={{ color: s.valueColor }}>{s.value}</h3>
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
+    <StatCards cards={statConfig} stats={stats} loading={loading} />
   );
 }

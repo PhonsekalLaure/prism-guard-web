@@ -12,6 +12,8 @@ const DAY_OPTIONS = [
 
 export default function Step2Employment({ data, onChange, sites, onSiteChange, toggleScheduleDay }) {
   const isFloating = !data.initialSiteId;
+  const selectedSite = sites.find((site) => site.id === data.initialSiteId);
+  const clientContractEndDate = selectedSite?.client_contract_end_date || null;
   const formatSiteLabel = (site) => {
     const baseLabel = `${site.site_name} - ${site.clients?.company || 'Unknown Client'}`;
     return site.distance_km != null
@@ -73,6 +75,8 @@ export default function Step2Employment({ data, onChange, sites, onSiteChange, t
               value={data.deploymentEndDate}
               onChange={(e) => onChange('deploymentEndDate', e.target.value)}
               min={data.deploymentStartDate || data.hireDate || undefined}
+              max={clientContractEndDate || undefined}
+              hint={clientContractEndDate ? `Must be on or before client contract end date: ${clientContractEndDate}` : undefined}
             />
             <div className="ae-form-group span-2">
               <label>Schedule Days *</label>

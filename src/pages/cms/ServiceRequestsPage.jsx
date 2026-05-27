@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import ServiceRequestsTopbar from '@cms-components/service-requests/ServiceRequestsTopbar';
 import ServiceRequestsStatCards from '@cms-components/service-requests/ServiceRequestsStatCards';
 import ServiceRequestsFilterBar from '@cms-components/service-requests/ServiceRequestsFilterBar';
@@ -12,6 +13,8 @@ import serviceRequestsService from '@services/cms/serviceRequestsService';
 const DEFAULT_FILTERS = { status: 'all', type: 'all', urgency: 'all' };
 
 export default function ServiceRequestsPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [isNewRequestOpen, setIsNewRequestOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
 
@@ -25,10 +28,13 @@ export default function ServiceRequestsPage() {
   const [stats, setStats] = useState(null);
   const [loadingStats, setLoadingStats] = useState(true);
 
+  // ── Detail loading state ──────────────────────────────────────────────────
+  const [loadingDetail, setLoadingDetail] = useState(false);
+
   const { notification, showNotification, closeNotification } = useNotification();
 
   // ── Fetch tickets ─────────────────────────────────────────────────────────
-  const fetchTickets = useCallback(async (page = 1, currentFilters = filters) => {
+  const fetchTickets = useCallback(async (page = 1, currentFilters = DEFAULT_FILTERS) => {
     try {
       setLoadingTickets(true);
       const result = await serviceRequestsService.getServiceRequests({
@@ -38,12 +44,15 @@ export default function ServiceRequestsPage() {
       });
       setTickets(result.data);
       setMetadata(result.metadata);
-    } catch {
-      // stay on current data, silently ignore
+    } catch (err) {
+      showNotification(
+        err?.response?.data?.error || 'Failed to load service requests.',
+        'error'
+      );
     } finally {
       setLoadingTickets(false);
     }
-  }, [filters]);
+  }, [showNotification]);
 
   // ── Fetch stats ───────────────────────────────────────────────────────────
   const fetchStats = useCallback(async () => {
@@ -51,29 +60,38 @@ export default function ServiceRequestsPage() {
       setLoadingStats(true);
       const result = await serviceRequestsService.getStats();
       setStats(result);
-    } catch {
-      // ignore
+    } catch (err) {
+      setStats(null);
+      showNotification(
+        err?.response?.data?.error || 'Failed to load service request stats.',
+        'error'
+      );
     } finally {
       setLoadingStats(false);
     }
-  }, []);
+  }, [showNotification]);
 
   // Initial load
   useEffect(() => {
     fetchTickets(1, DEFAULT_FILTERS);
     fetchStats();
-  }, []);
+  }, [fetchTickets, fetchStats]);
 
   // ── Filter change ─────────────────────────────────────────────────────────
   const handleFilterChange = useCallback((newFilters) => {
     setFilters(newFilters);
     fetchTickets(1, newFilters);
-  }, []);
+  }, [fetchTickets]);
+
+  const handleResetFilters = useCallback(() => {
+    setFilters(DEFAULT_FILTERS);
+    fetchTickets(1, DEFAULT_FILTERS);
+  }, [fetchTickets]);
 
   // ── Page change ───────────────────────────────────────────────────────────
   const handlePageChange = useCallback((page) => {
-    fetchTickets(page);
-  }, [filters]);
+    fetchTickets(page, filters);
+  }, [fetchTickets, filters]);
 
   // ── After a new request is submitted ─────────────────────────────────────
   const handleNewRequestSuccess = useCallback(() => {
@@ -81,7 +99,7 @@ export default function ServiceRequestsPage() {
     showNotification('Service request submitted successfully!', 'success');
     fetchTickets(1, filters);
     fetchStats();
-  }, [filters]);
+  }, [fetchTickets, fetchStats, filters, showNotification]);
 
   // ── After cancel ─────────────────────────────────────────────────────────
   const handleCancelSuccess = useCallback(() => {
@@ -89,7 +107,41 @@ export default function ServiceRequestsPage() {
     showNotification('Service request cancelled.', 'success');
     fetchTickets(metadata.page, filters);
     fetchStats();
-  }, [metadata.page, filters]);
+  }, [fetchTickets, fetchStats, metadata.page, filters, showNotification]);
+
+  // ── View / open a request (fetch full detail, show skeleton while loading) ─
+  const handleViewRequest = useCallback(async (request) => {
+    setSelectedRequest(request);
+    setLoadingDetail(true);
+    try {
+      const detail = await serviceRequestsService.getServiceRequestById(request.id);
+      setSelectedRequest(detail);
+    } catch (err) {
+      showNotification(
+        err?.response?.data?.error || 'Failed to load service request details.',
+        'error'
+      );
+      setSelectedRequest(request);
+    } finally {
+      setLoadingDetail(false);
+    }
+  }, [showNotification]);
+
+  useEffect(() => {
+    const requestId = location.state?.openServiceRequestId;
+    if (!requestId) return;
+
+    handleViewRequest({ id: requestId });
+    navigate(location.pathname, { replace: true, state: null });
+  }, [handleViewRequest, location.pathname, location.state, navigate]);
+
+  const refreshSelectedRequest = useCallback(async () => {
+    if (!selectedRequest?.id) return;
+    const detail = await serviceRequestsService.getServiceRequestById(selectedRequest.id);
+    setSelectedRequest(detail);
+    fetchTickets(metadata.page, filters);
+    fetchStats();
+  }, [fetchTickets, fetchStats, selectedRequest?.id, metadata.page, filters]);
 
   return (
     <>
@@ -106,13 +158,14 @@ export default function ServiceRequestsPage() {
 
       <div className="cms-content">
         <ServiceRequestsStatCards stats={stats} loading={loadingStats} />
-        <ServiceRequestsFilterBar onFilterChange={handleFilterChange} />
+        <ServiceRequestsFilterBar filters={filters} onFilterChange={handleFilterChange} />
         <ServiceRequestsTable
           tickets={tickets}
           metadata={metadata}
           loading={loadingTickets}
-          onViewRequest={setSelectedRequest}
+          onViewRequest={handleViewRequest}
           onPageChange={handlePageChange}
+          onResetFilters={handleResetFilters}
         />
       </div>
 
@@ -125,8 +178,10 @@ export default function ServiceRequestsPage() {
       <RequestDetailModal
         isOpen={!!selectedRequest}
         request={selectedRequest}
+        loadingDetail={loadingDetail}
         onClose={() => setSelectedRequest(null)}
         onCancelSuccess={handleCancelSuccess}
+        onMessageSent={refreshSelectedRequest}
       />
     </>
   );

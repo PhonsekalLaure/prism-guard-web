@@ -1,10 +1,9 @@
 import axios from 'axios';
 import authService from '@services/authService';
-
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { buildApiUrl } from '@services/apiConfig';
 
 const api = axios.create({
-  baseURL: `${API_BASE}/api/web/deployed-guards`,
+  baseURL: buildApiUrl('/api/web/deployed-guards'),
   headers: { 'Content-Type': 'application/json' },
 });
 

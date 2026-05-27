@@ -5,8 +5,6 @@ import {
 import GoogleAddressAutofill from '../GoogleAddressAutofill';
 import { EditInput, EditSelect, InfoCell } from './EmployeeEditFields';
 
-const GOOGLE_MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-
 const EDUCATIONAL_LEVELS = [
   'Elementary Graduate', 'High School Graduate', 'Vocational / TESDA',
   'College Level', "Bachelor's Degree", "Master's Degree", 'Doctorate',
@@ -147,7 +145,6 @@ export default function PersonalTab({
               <div className="ve-edit-field span-2">
                 <label className="ve-edit-label">Residential Address</label>
                 <GoogleAddressAutofill
-                  apiKey={GOOGLE_MAPS_KEY}
                   value={editForm.residential_address}
                   onChange={(e) => {
                     onField('residential_address', e.target.value);

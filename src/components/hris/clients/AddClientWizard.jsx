@@ -38,6 +38,10 @@ const INITIAL_FORM_DATA = {
   },
 };
 
+function isAfterDate(dateValue, maxDateValue) {
+  return Boolean(dateValue && maxDateValue && String(dateValue) > String(maxDateValue));
+}
+
 export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = false }) {
   const [currentStep,  setCurrentStep]  = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -256,8 +260,8 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
         if (!/\S+@\S+\.\S+/.test(formData.email)) {
           showNotification('Please enter a valid email address.', 'error'); return false;
         }
-        if (formData.mobile.replace(/\D/g, '').length !== 10) {
-          showNotification('Mobile number must be exactly 10 digits (excluding +63).', 'error'); return false;
+        if (!/^9\d{9}$/.test(formData.mobile.replace(/\D/g, ''))) {
+          showNotification('Mobile number must be a 10-digit Philippine mobile number starting with 9.', 'error'); return false;
         }
         return true;
       case 2:
@@ -271,6 +275,9 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
         }
         if (new Date(formData.contractStartDate) >= new Date(formData.contractEndDate)) {
           showNotification('Contract end date must be after start date.', 'error'); return false;
+        }
+        if (!(formData.contractUrl instanceof File)) {
+          showNotification('Please upload the client contract document.', 'error'); return false;
         }
         return true;
       case 4:
@@ -299,6 +306,9 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
           }
           if (!assignment.contractStartDate || !assignment.contractEndDate) {
             showNotification(`Please set the assignment contract dates for ${assignment.employeeName || 'each selected guard'}.`, 'error'); return false;
+          }
+          if (isAfterDate(assignment.contractEndDate, formData.contractEndDate)) {
+            showNotification(`Deployment end date for ${assignment.employeeName || 'each selected guard'} cannot be later than the client contract end date (${formData.contractEndDate}).`, 'error'); return false;
           }
           if (assignment.daysOfWeek.length === 0) {
             showNotification(`Please select at least one schedule day for ${assignment.employeeName || 'each selected guard'}.`, 'error'); return false;

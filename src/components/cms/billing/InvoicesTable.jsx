@@ -1,7 +1,8 @@
 import {
-  FaCreditCard, FaDownload, FaEye, FaFileInvoice,
-  FaReceipt, FaChevronLeft, FaChevronRight,
+  FaCreditCard, FaDownload, FaEye,
+  FaReceipt,
 } from 'react-icons/fa';
+import Pagination from '@components/ui/Pagination';
 
 const invoices = [
   {
@@ -118,14 +119,15 @@ export default function InvoicesTable({ onSwitchToSubmit }) {
         </table>
       </div>
 
-      <div className="cms-inv-pagination">
-        <span className="cms-inv-pagination-info">Showing 1-4 of 4 invoices</span>
-        <div className="cms-inv-page-btns">
-          <button className="page-btn"><FaChevronLeft /></button>
-          <button className="page-btn active">1</button>
-          <button className="page-btn"><FaChevronRight /></button>
-        </div>
-      </div>
+      <Pagination
+        currentPage={1}
+        totalPages={1}
+        onPageChange={() => {}}
+        startIndex={0}
+        endIndex={invoices.length}
+        totalItems={invoices.length}
+        label="invoices"
+      />
     </div>
   );
 }

@@ -2,23 +2,23 @@ import { FaSearch, FaBuilding, FaFilter } from 'react-icons/fa';
 
 export default function HrisPayrollFilterBar() {
   return (
-    <div className="pr-filter-bar">
-      <div className="pr-filter-group">
-        <label className="pr-filter-label">
+    <div className="filter-bar three-cols">
+      <div className="filter-group">
+        <label className="filter-label">
           <FaSearch /> Search Employee
         </label>
         <input
           type="text"
-          className="pr-filter-input"
+          className="filter-input"
           placeholder="Search by employee name or ID..."
         />
       </div>
 
-      <div className="pr-filter-group">
-        <label className="pr-filter-label">
+      <div className="filter-group">
+        <label className="filter-label">
           <FaBuilding /> Assigned Client
         </label>
-        <select className="pr-filter-select">
+        <select className="filter-select">
           <option>All Clients</option>
           <option>FEU Institute of Tech</option>
           <option>SM Mall of Asia</option>
@@ -26,11 +26,11 @@ export default function HrisPayrollFilterBar() {
         </select>
       </div>
 
-      <div className="pr-filter-group">
-        <label className="pr-filter-label">
+      <div className="filter-group">
+        <label className="filter-label">
           <FaFilter /> Status
         </label>
-        <select className="pr-filter-select">
+        <select className="filter-select">
           <option>All Status</option>
           <option>Processing</option>
           <option>Ready</option>

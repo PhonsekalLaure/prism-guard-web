@@ -1,21 +1,48 @@
 import axios from 'axios';
-
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import supabase from '@services/supabaseBrowserClient';
+import { buildApiUrl } from '@services/apiConfig';
 
 const api = axios.create({
-  baseURL: `${API_BASE}/api/web/auth`,
+  baseURL: buildApiUrl('/api/web/auth'),
   headers: { 'Content-Type': 'application/json' },
 });
 
-// ─── Token helpers ───────────────────────────────────────────
+const AUTH_STORAGE_KEYS = ['access_token', 'refresh_token', 'user_profile'];
 
-function getToken() {
-  return localStorage.getItem('access_token');
+// ─── Storage helpers ──────────────────────────────────────────
+// If the access_token is in localStorage the user checked "Remember Me".
+// Otherwise it lives in sessionStorage (cleared when the tab closes).
+
+function getActiveStorage() {
+  return localStorage.getItem('access_token') ? localStorage : sessionStorage;
 }
 
-function setTokens(session) {
-  localStorage.setItem('access_token', session.access_token);
-  localStorage.setItem('refresh_token', session.refresh_token);
+// ─── Token helpers ────────────────────────────────────────────
+
+function getToken() {
+  return localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+}
+
+function getRefreshToken() {
+  return localStorage.getItem('refresh_token') || sessionStorage.getItem('refresh_token');
+}
+
+function getRememberPreference() {
+  return Boolean(localStorage.getItem('access_token') || localStorage.getItem('refresh_token'));
+}
+
+function removeStoredAuthState() {
+  AUTH_STORAGE_KEYS.forEach((key) => {
+    localStorage.removeItem(key);
+    sessionStorage.removeItem(key);
+  });
+}
+
+function setTokens(session, rememberMe = false) {
+  const storage = rememberMe ? localStorage : sessionStorage;
+  removeStoredAuthState();
+  storage.setItem('access_token', session.access_token);
+  storage.setItem('refresh_token', session.refresh_token);
 }
 
 let inflightAuthPromise = null;
@@ -31,14 +58,12 @@ function resetAuthCache() {
 }
 
 function clearTokens() {
-  localStorage.removeItem('access_token');
-  localStorage.removeItem('refresh_token');
-  localStorage.removeItem('user_profile');
+  removeStoredAuthState();
   resetAuthCache();
 }
 
 function setProfile(profile) {
-  localStorage.setItem('user_profile', JSON.stringify(profile));
+  getActiveStorage().setItem('user_profile', JSON.stringify(profile));
 }
 
 function updateProfile(profileUpdates) {
@@ -60,7 +85,7 @@ function updateProfile(profileUpdates) {
 }
 
 function getProfile() {
-  const raw = localStorage.getItem('user_profile');
+  const raw = localStorage.getItem('user_profile') || sessionStorage.getItem('user_profile');
   return raw ? JSON.parse(raw) : null;
 }
 
@@ -99,27 +124,24 @@ async function getFileObjectUrl(url) {
     throw new Error('No file URL provided');
   }
 
+  const requestUrl = isAbsoluteUrl(url) ? url : buildApiUrl(url);
   const token = getToken();
   const headers = {};
 
-  if (!isCloudinaryUrl(url) && token) {
+  if (!isCloudinaryUrl(requestUrl) && token) {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  if (!isAbsoluteUrl(url)) {
-    return url;
-  }
-
   try {
-    const { data } = await axios.get(url, {
+    const { data } = await axios.get(requestUrl, {
       responseType: 'blob',
       headers,
     });
 
     return URL.createObjectURL(data);
   } catch (error) {
-    if (isCloudinaryUrl(url)) {
-      return url;
+    if (isCloudinaryUrl(requestUrl)) {
+      return requestUrl;
     }
 
     throw error;
@@ -136,16 +158,59 @@ async function getFileObjectUrl(url) {
  * @param {string} password
  * @returns {{ user, session, profile, redirect }}
  */
-async function login(email, password) {
+async function login(email, password, rememberMe = false) {
   const { data } = await api.post('/login', { email, password });
 
-  setTokens(data.session);
+  setTokens(data.session, rememberMe);
   setProfile(data.profile);
   cachedAuthData = data;
   cachedAuthToken = data.session.access_token;
   lastAuthFetchTime = Date.now();
 
   return data;
+}
+
+/**
+ * Send a password-reset email for the given address.
+ * Always resolves — the backend never reveals whether the email is registered.
+ *
+ * @param {string} email
+ */
+async function forgotPassword(email) {
+  await api.post('/forgot-password', { email });
+}
+
+async function updatePassword({ password, confirmPassword, clearMustChangePassword = false, accessToken }) {
+  const token = accessToken || getToken();
+
+  if (!token) {
+    throw new Error('Your password session is invalid or expired.');
+  }
+
+  const { data } = await api.post(
+    '/update-password',
+    { password, confirmPassword, clearMustChangePassword },
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+
+  return data;
+}
+
+async function refreshStoredSession() {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) return null;
+
+  const rememberMe = getRememberPreference();
+  const { data, error } = await supabase.auth.refreshSession({
+    refresh_token: refreshToken,
+  });
+
+  if (error || !data.session) {
+    return null;
+  }
+
+  setTokens(data.session, rememberMe);
+  return data.session.access_token;
 }
 
 /**
@@ -181,7 +246,26 @@ async function getMe(forceRefresh = false) {
       cachedAuthToken = token;
       lastAuthFetchTime = Date.now();
       return data;
-    } catch {
+    } catch (error) {
+      if (error.response?.status === 401) {
+        const refreshedToken = await refreshStoredSession();
+
+        if (refreshedToken) {
+          try {
+            const { data } = await api.get('/me', {
+              headers: { Authorization: `Bearer ${refreshedToken}` },
+            });
+            setProfile(data.profile);
+            cachedAuthData = data;
+            cachedAuthToken = refreshedToken;
+            lastAuthFetchTime = Date.now();
+            return data;
+          } catch {
+            // Fall through to clear stale state below.
+          }
+        }
+      }
+
       clearTokens();
       return null;
     } finally {
@@ -211,4 +295,4 @@ async function logout() {
   clearTokens();
 }
 
-export default { login, logout, getMe, getToken, getProfile, updateProfile, clearTokens, openFileUrl, getFileObjectUrl };
+export default { login, logout, forgotPassword, updatePassword, getMe, getToken, getProfile, updateProfile, clearTokens, openFileUrl, getFileObjectUrl };

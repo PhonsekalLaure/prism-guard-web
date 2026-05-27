@@ -4,6 +4,7 @@ import {
   FaExclamationCircle,
   FaExclamationTriangle,
   FaInfoCircle,
+  FaSpinner,
   FaTimes,
 } from 'react-icons/fa';
 import '@styles/components/Notification.css';
@@ -13,6 +14,7 @@ const iconMap = {
   error:   FaExclamationCircle,
   warning: FaExclamationTriangle,
   info:    FaInfoCircle,
+  loading: FaSpinner,
 };
 
 export default function Notification({ message, type = 'info', onClose, duration = 4000 }) {
@@ -33,7 +35,8 @@ export default function Notification({ message, type = 'info', onClose, duration
   if (!message) return null;
 
   const Icon = iconMap[type] || iconMap.info;
-  const typeClass = `notif-${type}`;
+  const normalizedType = type === 'loading' ? 'info' : type;
+  const typeClass = type === 'loading' ? 'notif-info notif-loading' : `notif-${normalizedType}`;
 
   return (
     <div className={`notif ${typeClass} ${isExiting ? 'notif-exit' : 'notif-enter'}`}>
