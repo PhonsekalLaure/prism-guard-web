@@ -1,4 +1,5 @@
 import { FaClock, FaUserTimes, FaHourglassEnd, FaSignOutAlt } from 'react-icons/fa';
+import StatCards from '@components/ui/StatCards';
 
 const stats = [
   {
@@ -44,30 +45,5 @@ const stats = [
 ];
 
 export default function HrisAttendanceStatCards({ stats: attendanceStats, loading = false }) {
-  return (
-    <div className="ha-stat-grid">
-      {stats.map((s, i) => {
-        const Icon = s.icon;
-        const value = loading ? '...' : (attendanceStats?.[s.key] ?? 0);
-        return (
-          <div
-            key={i}
-            className="ha-stat-card"
-            style={{ animationDelay: s.delay, borderLeftColor: s.borderColor }}
-          >
-            <div
-              className="ha-stat-icon-wrapper"
-              style={{ backgroundColor: s.iconBg, color: s.iconColor }}
-            >
-              <Icon />
-            </div>
-            <div>
-              <p className="ha-stat-value" style={{ color: s.valueColor }}>{value}</p>
-              <p className="ha-stat-label">{s.label}</p>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
+  return <StatCards cards={stats} stats={attendanceStats} loading={loading} />;
 }

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { createElement } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useOutletContext } from 'react-router-dom';
 import {
   FaBell,
   FaCheck,
@@ -14,6 +13,10 @@ import {
   FaTimes,
 } from 'react-icons/fa';
 import Notification from '@components/ui/Notification';
+import Pagination from '@components/ui/Pagination';
+import StatCards from '@components/ui/StatCards';
+import EmptyState from '@components/ui/EmptyState';
+import { SkeletonBlock, SkeletonList } from '@components/ui/Skeleton';
 import useNotification from '@hooks/useNotification';
 import notificationsService from '@services/notificationsService';
 import '@styles/NotificationsPage.css';
@@ -65,17 +68,33 @@ function getPortalPath(path, portal) {
   return path;
 }
 
-function StatCard({ icon: Icon, label, value, tone }) {
+function buildOpenState(item) {
+  const event = item.event || {};
+  const metadata = event.metadata || {};
+  const serviceRequestId = metadata.serviceRequestId || event.related_entity_id;
+  const incidentId = metadata.incidentId || event.related_entity_id;
+
+  if (event.action_url === '/cms/service-requests' && serviceRequestId) {
+    return { openServiceRequestId: serviceRequestId };
+  }
+
+  if (event.action_url === '/cms/incident-reports' && incidentId) {
+    return { openIncidentId: incidentId };
+  }
+
+  return undefined;
+}
+
+function NotificationRowSkeleton() {
   return (
-    <div className={`notif-stat notif-stat--${tone}`}>
-      <div>
-        <p className="notif-stat-label">{label}</p>
-        <p className="notif-stat-value">{value}</p>
+    <article className="notif-row notif-row--skeleton">
+      <SkeletonBlock className="notif-skel-icon" as="span" />
+      <div className="notif-row-main">
+        <SkeletonBlock className="notif-skel-title" as="span" />
+        <SkeletonBlock className="notif-skel-message" as="span" />
+        <SkeletonBlock className="notif-skel-meta" as="span" />
       </div>
-      <div className="notif-stat-icon">
-        {createElement(Icon)}
-      </div>
-    </div>
+    </article>
   );
 }
 
@@ -135,6 +154,8 @@ function NotificationRow({ item, portal, onOpen, onMarkRead, onDismiss }) {
 
 export default function NotificationsPage({ portal = 'hris' }) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { refreshNotificationStats } = useOutletContext() || {};
   const [notifications, setNotifications] = useState([]);
   const [stats, setStats] = useState({ total: 0, unread: 0, urgent: 0, by_type: {} });
   const [metadata, setMetadata] = useState(DEFAULT_METADATA);
@@ -185,11 +206,19 @@ export default function NotificationsPage({ portal = 'hris' }) {
     await Promise.all([
       loadStats(),
       loadNotifications(metadata.page, filters),
+      refreshNotificationStats?.(),
     ]);
-  }, [filters, loadNotifications, loadStats, metadata.page]);
+  }, [filters, loadNotifications, loadStats, metadata.page, refreshNotificationStats]);
 
   const handleFilterChange = (patch) => {
     const nextFilters = { ...filters, ...patch };
+    setFilters(nextFilters);
+    setMetadata((prev) => ({ ...prev, page: 1 }));
+    loadNotifications(1, nextFilters);
+  };
+
+  const handleResetFilters = () => {
+    const nextFilters = { filter: 'all', type: 'all', search: '' };
     setFilters(nextFilters);
     setMetadata((prev) => ({ ...prev, page: 1 }));
     loadNotifications(1, nextFilters);
@@ -231,18 +260,51 @@ export default function NotificationsPage({ portal = 'hris' }) {
   const handleOpen = async (item, actionUrl) => {
     if (!item.is_read) {
       await notificationsService.markRead(item.id).catch(() => null);
+      await refreshNotificationStats?.().catch(() => null);
     }
 
     if (/^https?:\/\//i.test(actionUrl)) {
       window.open(actionUrl, '_blank', 'noopener,noreferrer');
+      await refreshCurrentPage();
+    } else if (actionUrl === location.pathname) {
+      await refreshCurrentPage();
     } else {
-      navigate(actionUrl);
+      navigate(actionUrl, { state: buildOpenState(item) });
     }
   };
 
   const start = metadata.total === 0 ? 0 : ((metadata.page - 1) * metadata.limit) + 1;
   const end = Math.min(metadata.page * metadata.limit, metadata.total);
   const portalLabel = portal === 'cms' ? 'Client Portal' : 'Admin Portal';
+  const statCards = [
+    {
+      key: 'total',
+      label: 'Total',
+      valueColor: '#093269',
+      borderColor: '#093269',
+      icon: FaInbox,
+      iconBg: 'rgba(9, 50, 105, 0.1)',
+      iconColor: '#093269',
+    },
+    {
+      key: 'unread',
+      label: 'Unread',
+      valueColor: '#b45309',
+      borderColor: '#e6b215',
+      icon: FaBell,
+      iconBg: 'rgba(230, 178, 21, 0.12)',
+      iconColor: '#b45309',
+    },
+    {
+      key: 'urgent',
+      label: 'Urgent',
+      valueColor: '#dc2626',
+      borderColor: '#ef4444',
+      icon: FaExclamationTriangle,
+      iconBg: 'rgba(239, 68, 68, 0.12)',
+      iconColor: '#dc2626',
+    },
+  ];
 
   return (
     <>
@@ -255,11 +317,8 @@ export default function NotificationsPage({ portal = 'hris' }) {
         />
       )}
 
-      <div className="notif-topbar">
+      <header className="notif-topbar">
         <div className="notif-title-group">
-          <div className="notif-title-icon">
-            <FaBell />
-          </div>
           <div>
             <h2>Notifications</h2>
             <p>{portalLabel} activity inbox</p>
@@ -275,70 +334,73 @@ export default function NotificationsPage({ portal = 'hris' }) {
           <FaEnvelopeOpenText />
           Mark all read
         </button>
-      </div>
+      </header>
 
       <div className={portal === 'cms' ? 'cms-content' : 'dashboard-content'}>
-        <section className="notif-stat-grid">
-          <StatCard icon={FaInbox} label="Total" value={stats.total || 0} tone="total" />
-          <StatCard icon={FaBell} label="Unread" value={stats.unread || 0} tone="unread" />
-          <StatCard icon={FaExclamationTriangle} label="Urgent" value={stats.urgent || 0} tone="urgent" />
-        </section>
+        <StatCards cards={statCards} stats={stats} columns={3} />
 
         <section className="notif-panel">
-          <div className="notif-filter-bar">
-            <label className="notif-search-box">
-              <FaSearch />
+          <div className="filter-bar three-cols">
+            <div className="filter-group">
+              <label className="filter-label">
+                <FaSearch className="filter-icon" /> Search
+              </label>
               <input
                 type="search"
                 value={filters.search}
                 onChange={(event) => handleFilterChange({ search: event.target.value })}
                 placeholder="Search notifications"
+                className="filter-input"
               />
-            </label>
+            </div>
 
-            <label className="notif-select-wrap">
-              <FaFilter />
+            <div className="filter-group">
+              <label className="filter-label">
+                <FaFilter className="filter-icon" /> Status
+              </label>
               <select
                 value={filters.filter}
                 onChange={(event) => handleFilterChange({ filter: event.target.value })}
+                className="filter-select"
               >
                 <option value="all">All notifications</option>
                 <option value="unread">Unread only</option>
               </select>
-            </label>
+            </div>
 
-            <select
-              className="notif-type-select"
-              value={filters.type}
-              onChange={(event) => handleFilterChange({ type: event.target.value })}
-            >
-              <option value="all">All types</option>
-              {typeOptions.map((option) => (
-                <option key={option.type} value={option.type}>
-                  {option.label} ({option.count})
-                </option>
-              ))}
-            </select>
+            <div className="filter-group">
+              <label className="filter-label">
+                <FaBell className="filter-icon" /> Type
+              </label>
+              <select
+                className="filter-select"
+                value={filters.type}
+                onChange={(event) => handleFilterChange({ type: event.target.value })}
+              >
+                <option value="all">All types</option>
+                {typeOptions.map((option) => (
+                  <option key={option.type} value={option.type}>
+                    {option.label} ({option.count})
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div className="notif-list">
-            {loading && Array.from({ length: 5 }).map((_, index) => (
-              <div className="notif-row notif-row--skeleton" key={index}>
-                <span className="notif-skel notif-skel-icon" />
-                <div className="notif-row-main">
-                  <span className="notif-skel notif-skel-title" />
-                  <span className="notif-skel notif-skel-message" />
-                  <span className="notif-skel notif-skel-meta" />
-                </div>
-              </div>
-            ))}
+            {loading && <SkeletonList count={5}>{(index) => (
+              <NotificationRowSkeleton key={index} />
+            )}</SkeletonList>}
 
             {!loading && notifications.length === 0 && (
-              <div className="notif-empty">
-                <FaInbox />
-                <h3>No notifications</h3>
-                <p>New activity that needs your attention will appear here.</p>
-              </div>
+              <EmptyState
+                icon={FaInbox}
+                title="No notifications found"
+                description="We couldn't find any notifications matching your current search or filter criteria. New activity that needs your attention will appear here."
+                actionLabel="Reset All Filters"
+                onAction={handleResetFilters}
+                compact
+              />
             )}
 
             {!loading && notifications.map((item) => (
@@ -353,26 +415,18 @@ export default function NotificationsPage({ portal = 'hris' }) {
             ))}
           </div>
 
-          <div className="notif-pagination">
-            <p>Showing {start}-{end} of {metadata.total}</p>
-            <div className="notif-pagination-actions">
-              <button
-                type="button"
-                onClick={() => handlePageChange(Math.max(metadata.page - 1, 1))}
-                disabled={metadata.page <= 1 || loading}
-              >
-                Previous
-              </button>
-              <span>Page {metadata.page} of {metadata.totalPages || 1}</span>
-              <button
-                type="button"
-                onClick={() => handlePageChange(metadata.page + 1)}
-                disabled={metadata.page >= (metadata.totalPages || 1) || loading}
-              >
-                Next
-              </button>
-            </div>
-          </div>
+          {metadata.total > 0 && (
+            <Pagination
+              currentPage={metadata.page}
+              totalPages={metadata.totalPages || 1}
+              onPageChange={handlePageChange}
+              startIndex={start - 1}
+              endIndex={end}
+              totalItems={metadata.total}
+              label="notifications"
+              disabled={loading}
+            />
+          )}
         </section>
       </div>
     </>

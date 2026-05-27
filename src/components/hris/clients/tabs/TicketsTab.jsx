@@ -1,4 +1,5 @@
 import { FaTicketAlt } from 'react-icons/fa';
+import EmptyState from '@components/ui/EmptyState';
 import { fmtDate } from './ClientInfoCell';
 
 const priorityColor = (p) =>
@@ -44,10 +45,12 @@ export default function TicketsTab({ client }) {
             ))}
           </div>
         ) : (
-          <div className="vc-empty">
-            <FaTicketAlt className="vc-empty-icon" />
-            <p className="vc-empty-text">No service tickets found.</p>
-          </div>
+          <EmptyState
+            icon={FaTicketAlt}
+            title="No service tickets found"
+            description="This client does not have any service tickets yet. Tickets will appear here once requests are created."
+            compact
+          />
         )}
       </div>
     </div>

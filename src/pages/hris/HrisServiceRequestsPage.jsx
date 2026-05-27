@@ -72,6 +72,11 @@ export default function HrisServiceRequestsPage() {
     fetchRequests(1, nextFilters);
   }, [fetchRequests]);
 
+  const handleResetFilters = useCallback(() => {
+    setFilters(DEFAULT_FILTERS);
+    fetchRequests(1, DEFAULT_FILTERS);
+  }, [fetchRequests]);
+
   const handlePageChange = useCallback((page) => {
     fetchRequests(page, filters);
   }, [fetchRequests, filters]);
@@ -96,6 +101,7 @@ export default function HrisServiceRequestsPage() {
           loading={loading}
           onOpenDetail={(request) => navigate(`/service-requests/${request.id}`)}
           onPageChange={handlePageChange}
+          onResetFilters={handleResetFilters}
         />
       </div>
     </>

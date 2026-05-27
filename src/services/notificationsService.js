@@ -30,7 +30,7 @@ async function getNotifications(params = {}) {
 
 async function getStats() {
   const { data } = await api.get('/stats');
-  return data || { total: 0, unread: 0, urgent: 0, by_type: {} };
+  return data || { total: 0, unread: 0, urgent: 0, by_type: {}, unread_by_type: {} };
 }
 
 async function markRead(id) {
@@ -40,6 +40,11 @@ async function markRead(id) {
 
 async function markAllRead() {
   const { data } = await api.patch('/read-all');
+  return data;
+}
+
+async function markMatchingRead(payload = {}) {
+  const { data } = await api.patch('/read-matching', payload);
   return data;
 }
 
@@ -53,5 +58,6 @@ export default {
   getNotifications,
   getStats,
   markAllRead,
+  markMatchingRead,
   markRead,
 };

@@ -5,6 +5,8 @@ import {
   FaSave, FaExclamationTriangle,
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
+import EmptyState from '@components/ui/EmptyState';
+import { TableSkeletonRows } from '@components/ui/Skeleton';
 
 const AUDIENCE_OPTIONS = [
   { value: '', label: 'All Audiences' },
@@ -26,6 +28,14 @@ const STATUS_OPTIONS = [
   { value: 'archived', label: 'Archived' },
   { value: 'expired', label: 'Expired' },
 ];
+
+const getAnnouncementSkeletonCellStyle = (column) => {
+  if (column === 0) return { width: 120 };
+  if (column === 1) return { width: '82%', height: 28 };
+  if (column === 2 || column === 3 || column === 5) return { width: 78, height: 22, borderRadius: 20 };
+  if (column === 6) return { width: 132, height: 30 };
+  return { width: '60%' };
+};
 
 function toDatetimeLocalValue(value) {
   if (!value) return '';
@@ -316,6 +326,7 @@ export default function HrisAnnouncementsHistory({
   onEdit,
   onFiltersChange,
   onPageChange,
+  onResetFilters,
   canWrite = true,
 }) {
   const [selected, setSelected] = useState(null);
@@ -339,6 +350,11 @@ export default function HrisAnnouncementsHistory({
 
   const updateFilter = (field, value) => {
     onFiltersChange({ ...filters, search: searchInput, [field]: value });
+  };
+
+  const handleResetFilters = () => {
+    setSearchInput('');
+    onResetFilters?.();
   };
 
   const handleArchive = (row) => {
@@ -376,17 +392,24 @@ export default function HrisAnnouncementsHistory({
         <h3><FaHistory /> Announcement History</h3>
       </div>
 
-      <div className="an-filter-bar">
-        <div className="an-search-box">
-          <FaSearch />
+      <div className="filter-bar four-cols">
+        <div className="filter-group">
+          <label className="filter-label">
+            <FaSearch className="filter-icon" /> Search
+          </label>
           <input
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Search announcements"
+            className="filter-input"
           />
         </div>
+        <div className="filter-group">
+          <label className="filter-label">
+            <FaFilter className="filter-icon" /> Audience
+          </label>
         <select
-          className="an-filter-select"
+          className="filter-select"
           value={filters.targetAudience || ''}
           onChange={(e) => updateFilter('targetAudience', e.target.value)}
         >
@@ -394,8 +417,13 @@ export default function HrisAnnouncementsHistory({
             <option key={option.value} value={option.value}>{option.label}</option>
           ))}
         </select>
+        </div>
+        <div className="filter-group">
+          <label className="filter-label">
+            <FaTag className="filter-icon" /> Priority
+          </label>
         <select
-          className="an-filter-select"
+          className="filter-select"
           value={filters.priority || ''}
           onChange={(e) => updateFilter('priority', e.target.value)}
         >
@@ -403,8 +431,13 @@ export default function HrisAnnouncementsHistory({
             <option key={option.value} value={option.value}>{option.label}</option>
           ))}
         </select>
+        </div>
+        <div className="filter-group">
+          <label className="filter-label">
+            <FaArchive className="filter-icon" /> Status
+          </label>
         <select
-          className="an-filter-select"
+          className="filter-select"
           value={filters.status || ''}
           onChange={(e) => updateFilter('status', e.target.value)}
         >
@@ -412,6 +445,7 @@ export default function HrisAnnouncementsHistory({
             <option key={option.value} value={option.value}>{option.label}</option>
           ))}
         </select>
+        </div>
       </div>
 
       <div className="an-table-wrap">
@@ -428,33 +462,26 @@ export default function HrisAnnouncementsHistory({
             </tr>
           </thead>
           <tbody>
-            {loading && Array.from({ length: 5 }).map((_, i) => (
-              <tr key={`skel-${i}`} className="an-skel-row">
-                <td><div className="an-skel an-skel-id" /></td>
-                <td>
-                  <div className="an-subject-cell">
-                    <div className="an-skel an-skel-icon-sm" />
-                    <div className="an-skel an-skel-text-lg" />
-                  </div>
-                </td>
-                <td><div className="an-skel an-skel-badge" /></td>
-                <td><div className="an-skel an-skel-badge" /></td>
-                <td><div className="an-skel an-skel-text" /></td>
-                <td><div className="an-skel an-skel-badge" /></td>
-                <td>
-                  <div className="an-row-actions">
-                    <div className="an-skel an-skel-btn" />
-                    <div className="an-skel an-skel-btn" />
-                    <div className="an-skel an-skel-btn" />
-                    <div className="an-skel an-skel-btn" />
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {loading && (
+              <TableSkeletonRows
+                rows={5}
+                columns={7}
+                getCellStyle={getAnnouncementSkeletonCellStyle}
+              />
+            )}
 
             {!loading && rows.length === 0 && (
               <tr>
-                <td colSpan="7" className="an-empty-cell">No announcements found.</td>
+                <td colSpan="7" className="an-empty-cell">
+                  <EmptyState
+                    icon={FaBullhorn}
+                    title="No announcements found"
+                    description="We couldn't find any announcements matching your current search or filter criteria. Try adjusting your settings to view more announcements."
+                    actionLabel="Reset All Filters"
+                    onAction={handleResetFilters}
+                    compact
+                  />
+                </td>
               </tr>
             )}
 

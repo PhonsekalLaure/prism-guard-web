@@ -5,6 +5,8 @@ import {
   FaPhone,
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
+import EmptyState from '@components/ui/EmptyState';
+import { EntityCardSkeleton, SkeletonList } from '@components/ui/Skeleton';
 
 const STATUS_LABELS = {
   pending: 'PENDING',
@@ -73,6 +75,7 @@ export default function ApplicantsGrid({
   onPageChange,
   onReview,
   isLoading,
+  onResetFilters,
 }) {
   const total = pagination?.total || 0;
   const totalPages = pagination?.totalPages || 1;
@@ -81,11 +84,24 @@ export default function ApplicantsGrid({
   const to = Math.min(page * limit, total);
 
   if (isLoading) {
-    return <p className="applicants-empty">Loading applicants...</p>;
+    return (
+      <div className="applicants-grid">
+        <SkeletonList count={6}>{(index) => (
+          <EntityCardSkeleton key={index} variant="applicant" />
+        )}</SkeletonList>
+      </div>
+    );
   }
 
   if (!applicants.length) {
-    return <p className="applicants-empty">No applicants found.</p>;
+    return (
+      <EmptyState
+        title="No applicants found"
+        description="We couldn't find any applicants matching your current search or filter criteria. Try adjusting your settings to view more applicants."
+        actionLabel="Reset All Filters"
+        onAction={onResetFilters}
+      />
+    );
   }
 
   return (

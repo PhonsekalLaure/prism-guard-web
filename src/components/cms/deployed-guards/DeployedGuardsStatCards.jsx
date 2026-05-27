@@ -1,3 +1,6 @@
+import { FaClock, FaExchangeAlt, FaShieldAlt, FaUserCheck } from 'react-icons/fa';
+import StatCards from '@components/ui/StatCards';
+
 const statConfig = [
   {
     key: 'totalDeployed',
@@ -5,6 +8,10 @@ const statConfig = [
     sub: 'Across All Sites',
     valueColor: '#093269',
     borderColor: '#093269',
+    icon: FaShieldAlt,
+    iconBg: 'rgba(9, 50, 105, 0.1)',
+    iconColor: '#093269',
+    fallbackValue: '-',
   },
   {
     key: 'onDuty',
@@ -13,6 +20,10 @@ const statConfig = [
     valueColor: '#16a34a',
     subColor: '#16a34a',
     borderColor: '#16a34a',
+    icon: FaUserCheck,
+    iconBg: 'rgba(34, 197, 94, 0.12)',
+    iconColor: '#16a34a',
+    fallbackValue: '-',
   },
   {
     key: 'offDuty',
@@ -20,6 +31,10 @@ const statConfig = [
     sub: 'No active clock-in',
     valueColor: '#ca8a04',
     borderColor: '#ca8a04',
+    icon: FaClock,
+    iconBg: 'rgba(234, 179, 8, 0.12)',
+    iconColor: '#ca8a04',
+    fallbackValue: '-',
   },
   {
     key: 'tempReplaced',
@@ -27,27 +42,13 @@ const statConfig = [
     sub: 'Replacement assigned',
     valueColor: '#dc2626',
     borderColor: '#ef4444',
+    icon: FaExchangeAlt,
+    iconBg: 'rgba(239, 68, 68, 0.12)',
+    iconColor: '#dc2626',
+    fallbackValue: '-',
   },
 ];
 
 export default function DeployedGuardsStatCards({ stats, loading }) {
-  return (
-    <div className="stat-grid">
-      {statConfig.map((s) => (
-        <div
-          key={s.label}
-          className="stat-card"
-          style={{ borderLeftColor: s.borderColor }}
-        >
-          <div>
-            <p className="stat-label">{s.label}</p>
-            <h3 className="stat-value" style={{ color: s.valueColor }}>
-              {loading || stats === null ? '—' : (stats[s.key] ?? '—')}
-            </h3>
-            <p className="stat-sub" style={{ color: s.subColor || '#7f8c8d' }}>{s.sub}</p>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
+  return <StatCards cards={statConfig} stats={stats} loading={loading || stats === null} />;
 }

@@ -1,9 +1,10 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FaBriefcase, FaBuilding, FaCalendarAlt, FaExclamationTriangle, FaEye, FaSearch
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
+import EmptyState from '@components/ui/EmptyState';
+import { EntityCardSkeleton, SkeletonList } from '@components/ui/Skeleton';
 
 export default function EmployeesGrid({ 
   employees = [], 
@@ -24,25 +25,9 @@ export default function EmployeesGrid({
   if (loading) {
     return (
       <div className="employees-grid">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="employee-card employee-card-skeleton">
-            <div className="employee-card-body">
-              <div className="employee-card-header-row">
-                <div className="employee-header-left">
-                  <div className="skeleton-avatar" />
-                  <div className="skeleton-lines">
-                    <div className="skeleton-line long" />
-                    <div className="skeleton-line short" />
-                  </div>
-                </div>
-                <div className="skeleton-badge" />
-              </div>
-              <div className="skeleton-block" />
-              <div className="skeleton-block" />
-              <div className="skeleton-block short" />
-            </div>
-          </div>
-        ))}
+        <SkeletonList count={6}>{(index) => (
+          <EntityCardSkeleton key={index} variant="employee" />
+        )}</SkeletonList>
       </div>
     );
   }
@@ -51,22 +36,13 @@ export default function EmployeesGrid({
     <>
       <div className="employees-grid">
         {employees.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-state-icon">
-              <FaSearch />
-            </div>
-            <h3 className="empty-state-title">No employees found</h3>
-            <p className="empty-state-desc">
-              We couldn't find any employees matching your current search or filter criteria. 
-              Try adjusting your settings or reset to view all employees.
-            </p>
-            <button 
-              onClick={() => onResetFilters?.()} 
-              className="empty-state-reset"
-            >
-              Reset All Filters
-            </button>
-          </div>
+          <EmptyState
+            icon={FaSearch}
+            title="No employees found"
+            description="We couldn't find any employees matching your current search or filter criteria. Try adjusting your settings or reset to view all employees."
+            actionLabel="Reset All Filters"
+            onAction={onResetFilters}
+          />
         ) : (
           employees.map((emp, i) => (
             <div key={emp.id || i} className="employee-card">

@@ -1,13 +1,9 @@
-import { useState } from 'react';
 import ServiceRequestFilterBar from '@components/service-requests/ServiceRequestFilterBar';
 
 const DEFAULT_FILTERS = { status: 'all', type: 'all', urgency: 'all' };
 
-export default function ServiceRequestsFilterBar({ onFilterChange }) {
-  const [filters, setFilters] = useState(DEFAULT_FILTERS);
-
+export default function ServiceRequestsFilterBar({ filters = DEFAULT_FILTERS, onFilterChange }) {
   const handleFilterChange = (nextFilters) => {
-    setFilters(nextFilters);
     onFilterChange?.(nextFilters);
   };
 

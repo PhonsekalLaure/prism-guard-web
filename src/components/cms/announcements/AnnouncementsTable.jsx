@@ -6,6 +6,8 @@ import {
   FaEye,
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
+import EmptyState from '@components/ui/EmptyState';
+import { TableSkeletonRows } from '@components/ui/Skeleton';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -21,26 +23,13 @@ function buildPreview(message) {
   return `${normalized.slice(0, 117)}...`;
 }
 
-function SkeletonRow() {
-  return (
-    <tr className="ann-skel-row">
-      <td><span className="ann-skel ann-skel-text" /></td>
-      <td><span className="ann-skel ann-skel-id" /></td>
-      <td>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
-          <span className="ann-skel ann-skel-icon-sm" style={{ marginTop: 2 }} />
-          <div>
-            <span className="ann-skel ann-skel-text-lg" />
-            <span className="ann-skel ann-skel-text-sm" style={{ marginTop: 4 }} />
-          </div>
-        </div>
-      </td>
-      <td><span className="ann-skel ann-skel-badge" /></td>
-      <td><span className="ann-skel ann-skel-badge" /></td>
-      <td><span className="ann-skel ann-skel-btn" /></td>
-    </tr>
-  );
-}
+const getSkeletonCellStyle = (column) => {
+  if (column === 0) return { width: '55%' };
+  if (column === 1) return { width: '68%' };
+  if (column === 2) return { width: '82%', height: 28 };
+  if (column === 3 || column === 4) return { width: 80, height: 22, borderRadius: 20 };
+  return { width: 54, height: 28 };
+};
 
 export default function AnnouncementsTable({
   announcements = [],
@@ -48,6 +37,7 @@ export default function AnnouncementsTable({
   loading = false,
   onPageChange,
   onViewDetail,
+  onResetFilters,
 }) {
   const page = metadata?.page || 1;
   const total = metadata?.total || 0;
@@ -79,16 +69,19 @@ export default function AnnouncementsTable({
           </thead>
           <tbody>
             {loading
-              ? Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={`skel-${i}`} />)
+              ? <TableSkeletonRows rows={5} columns={6} getCellStyle={getSkeletonCellStyle} />
               : announcements.length === 0
               ? (
                 <tr>
                   <td colSpan={6} className="ann-table-empty">
-                    <div className="ann-empty-state">
-                      <FaBullhorn className="ann-empty-icon" />
-                      <p>No announcements found</p>
-                      <span>Try adjusting your search or filters</span>
-                    </div>
+                    <EmptyState
+                      icon={FaBullhorn}
+                      title="No announcements found"
+                      description="We couldn't find any announcements matching your current search or filter criteria. Try adjusting your settings to view more announcements."
+                      actionLabel="Reset All Filters"
+                      onAction={onResetFilters}
+                      compact
+                    />
                   </td>
                 </tr>
               ) : announcements.map((ann) => (

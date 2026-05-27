@@ -916,35 +916,10 @@
 /* =============================================
    SKELETON LOADING
    ============================================= */
-@keyframes anShimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-.an-skel {
-  background: linear-gradient(90deg, #f0f2f5 25%, #e8eaed 50%, #f0f2f5 75%);
-  background-size: 200% 100%;
-  animation: anShimmer 1.4s infinite linear;
-  border-radius: 6px;
-}
-
 .an-stat-skeleton {
   cursor: default;
   pointer-events: none;
 }
-
-.an-skel-label   { height: 10px; width: 55%; margin-bottom: 0.5rem; }
-.an-skel-value   { height: 28px; width: 40%; margin-bottom: 0.35rem; border-radius: 8px; }
-.an-skel-sub     { height: 9px; width: 70%; }
-.an-skel-icon    { width: 48px; height: 48px; border-radius: 12px; flex-shrink: 0; }
-
-.an-skel-row td  { padding: 0.85rem 1rem; vertical-align: middle; }
-.an-skel-id      { height: 12px; width: 140px; border-radius: 4px; }
-.an-skel-icon-sm { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; }
-.an-skel-text-lg { height: 12px; width: 200px; border-radius: 4px; }
-.an-skel-badge   { height: 22px; width: 70px; border-radius: 999px; }
-.an-skel-text    { height: 12px; width: 90px; border-radius: 4px; }
-.an-skel-btn     { width: 32px; height: 32px; border-radius: 7px; }
 
 /* =============================================
    ANIMATIONS

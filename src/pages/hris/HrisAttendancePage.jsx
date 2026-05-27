@@ -112,6 +112,13 @@ export default function HrisAttendancePage() {
     fetchStats(nextFilters);
   }, [fetchRecords, fetchStats]);
 
+  const handleResetFilters = useCallback(() => {
+    setFilters(DEFAULT_FILTERS);
+    setSelectedDate(today);
+    fetchRecords(1, DEFAULT_FILTERS, today);
+    fetchStats(DEFAULT_FILTERS, today);
+  }, [fetchRecords, fetchStats, today]);
+
   const handleDateChange = useCallback((nextDate) => {
     const safeDate = nextDate && nextDate <= today ? nextDate : today;
     setSelectedDate(safeDate);
@@ -174,6 +181,7 @@ export default function HrisAttendancePage() {
           loading={loading}
           selectedDate={selectedDate}
           onPageChange={handlePageChange}
+          onResetFilters={handleResetFilters}
         />
       </div>
     </>

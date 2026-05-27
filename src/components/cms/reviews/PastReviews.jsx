@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { FaHistory, FaSpinner } from 'react-icons/fa';
+import { FaHistory, FaSpinner, FaSort, FaTag } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
+import EmptyState from '@components/ui/EmptyState';
 import ReviewCard from './ReviewCard';
 import serviceReviewsService from '@/services/cms/serviceReviewsService';
 
@@ -64,6 +65,12 @@ export default function PastReviews({ refreshKey }) {
     setPage(1);
   };
 
+  const handleResetFilters = () => {
+    setCategory('all');
+    setSort('most_recent');
+    setPage(1);
+  };
+
   const start = total === 0 ? 0 : (page - 1) * LIMIT + 1;
   const end = Math.min(page * LIMIT, total);
 
@@ -73,20 +80,31 @@ export default function PastReviews({ refreshKey }) {
         <h3 className="srv-past-title">
           <FaHistory /> Your Past Reviews
         </h3>
-        <div className="srv-past-filters">
+      </div>
+
+      <div className="filter-bar two-cols">
+        <div className="filter-group">
+          <label className="filter-label">
+            <FaTag className="filter-icon" /> Category
+          </label>
           <select
             value={category}
             onChange={handleCategoryChange}
-            className="srv-filter-select"
+            className="filter-select"
           >
             {CATEGORY_OPTIONS.map((c) => (
               <option key={c.value} value={c.value}>{c.label}</option>
             ))}
           </select>
+        </div>
+        <div className="filter-group">
+          <label className="filter-label">
+            <FaSort className="filter-icon" /> Sort
+          </label>
           <select
             value={sort}
             onChange={handleSortChange}
-            className="srv-filter-select"
+            className="filter-select"
           >
             {SORT_OPTIONS.map((s) => (
               <option key={s.value} value={s.value}>{s.label}</option>
@@ -112,9 +130,13 @@ export default function PastReviews({ refreshKey }) {
       )}
 
       {!loading && !error && reviews.length === 0 && (
-        <div className="srv-reviews-empty">
-          <p>No reviews found. Submit your first review above!</p>
-        </div>
+        <EmptyState
+          title="No reviews found"
+          description="We couldn't find any reviews matching your current filter criteria. Try adjusting your settings or submit your first review above."
+          actionLabel="Reset All Filters"
+          onAction={handleResetFilters}
+          compact
+        />
       )}
 
       {!loading && !error && reviews.length > 0 && (

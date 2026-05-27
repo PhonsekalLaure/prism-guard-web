@@ -1388,10 +1388,6 @@
   gap: 1rem;
 }
 
-/* Table row skeleton */
-.sr-skel-row { pointer-events: none; }
-.sr-skel-row td { padding: 0.9rem 1rem; vertical-align: middle; }
-
 /* Detail / modal skeleton wrapper */
 .sr-detail-skeleton {
   display: flex;

@@ -2,7 +2,7 @@ import { FaSearch, FaBriefcase, FaFilter } from 'react-icons/fa';
 
 export default function ApplicantsFilterBar({ filters, onChange }) {
   return (
-    <div className="applicants-filter-bar">
+    <div className="filter-bar three-cols">
       <div className="filter-group">
         <label className="filter-label">
           <FaSearch className="filter-icon" />

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import IncidentReportsTopbar from '@cms-components/incident-reports/IncidentReportsTopbar';
 import IncidentReportsStatCards from '@cms-components/incident-reports/IncidentReportsStatCards';
 import IncidentReportsInfoBanner from '@cms-components/incident-reports/IncidentReportsInfoBanner';
@@ -15,6 +16,8 @@ const PAGE_LIMIT = 8;
 const INITIAL_FILTERS = { search: '', site: 'all', severity: 'all', date: '' };
 
 export default function IncidentReportsPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [selectedIncident, setSelectedIncident] = useState(null);
   const [viewedIncident, setViewedIncident] = useState(null);
   const [incidents, setIncidents] = useState([]);
@@ -22,6 +25,7 @@ export default function IncidentReportsPage() {
   const [sites, setSites] = useState([]);
   const [metadata, setMetadata] = useState({ page: 1, limit: 8, total: 0, totalPages: 1 });
   const [filters, setFilters] = useState(INITIAL_FILTERS);
+  const [filterResetKey, setFilterResetKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -72,9 +76,26 @@ export default function IncidentReportsPage() {
     loadSites();
   }, [loadReports, loadSites, loadStats]);
 
+  useEffect(() => {
+    const incidentId = location.state?.openIncidentId;
+    if (!incidentId || loading) return;
+
+    const incident = incidents.find((item) => item.id === incidentId);
+    if (incident) {
+      setViewedIncident(incident);
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [incidents, loading, location.pathname, location.state, navigate]);
+
   const handleFilterChange = (nextFilters) => {
     setFilters(nextFilters);
     loadReports(1, nextFilters);
+  };
+
+  const handleResetFilters = () => {
+    setFilters(INITIAL_FILTERS);
+    setFilterResetKey((key) => key + 1);
+    loadReports(1, INITIAL_FILTERS);
   };
 
   const handleConfirm = async () => {
@@ -121,7 +142,7 @@ export default function IncidentReportsPage() {
       <div className="cms-content">
         <IncidentReportsInfoBanner />
         <IncidentReportsStatCards stats={stats} loading={statsLoading} />
-        <IncidentReportsFilterBar onFilterChange={handleFilterChange} sites={sites} />
+        <IncidentReportsFilterBar key={filterResetKey} onFilterChange={handleFilterChange} sites={sites} />
         <IncidentReportsTable
           incidents={incidents}
           loading={loading}
@@ -129,6 +150,7 @@ export default function IncidentReportsPage() {
           onPageChange={(page) => loadReports(page, filters)}
           onViewIncident={(inc) => setViewedIncident(inc)}
           onRequestReport={(inc) => setSelectedIncident(inc)}
+          onResetFilters={handleResetFilters}
         />
       </div>
 

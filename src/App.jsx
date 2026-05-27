@@ -17,6 +17,7 @@ import HrisServiceRequestsPage from '@hris-pages/HrisServiceRequestsPage';
 import ServiceRequestDetailPage from '@hris-pages/ServiceRequestDetailPage';
 import HrisServiceReviewsPage from '@hris-pages/HrisServiceReviewsPage';
 import HrisLeaveRequestsPage from '@hris-pages/HrisLeaveRequestsPage';
+import HrisLeaveRequestDetailPage from '@hris-pages/HrisLeaveRequestDetailPage';
 import HrisAttendancePage from '@hris-pages/HrisAttendancePage';
 import HrisCashAdvancePage from '@hris-pages/HrisCashAdvancePage';
 import HrisPayrollPage from '@hris-pages/HrisPayrollPage';
@@ -66,7 +67,8 @@ function App() {
           <Route path="/service-request" element={<HrisServiceRequestsPage />} />
           <Route path="/service-requests/:id" element={<ServiceRequestDetailPage />} />
           <Route path="/service-reviews" element={<HrisServiceReviewsPage />} />
-          <Route path="/leaves" element={<HrisLeaveRequestsPage />} />
+          <Route path="/leaves" element={<ProtectedRoute requiredPermissions={['employees.read']}><HrisLeaveRequestsPage /></ProtectedRoute>} />
+          <Route path="/leaves/:id" element={<ProtectedRoute requiredPermissions={['employees.read']}><HrisLeaveRequestDetailPage /></ProtectedRoute>} />
           <Route path="/attendance" element={<ProtectedRoute requiredPermissions={['employees.read']}><HrisAttendancePage /></ProtectedRoute>} />
           <Route path="/cash-advance" element={<HrisCashAdvancePage />} />
           <Route path="/payroll" element={<HrisPayrollPage />} />

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   FaCheck,
   FaCheckCircle,
@@ -14,6 +15,7 @@ import {
   FaClipboardList,
   FaLock,
 } from 'react-icons/fa';
+import { SkeletonBlock, SkeletonList } from '@components/ui/Skeleton';
 import authService from '@services/authService';
 
 const severityIcon = {
@@ -46,6 +48,26 @@ function getInitials(name) {
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
     .join('') || 'U';
+}
+
+function ReporterAvatar({ avatarUrl, name }) {
+  const [failed, setFailed] = useState(false);
+  const canShowImage = Boolean(avatarUrl) && !failed;
+  const initials = getInitials(name);
+
+  return (
+    <div className={`ir-reporter-mini-avatar${canShowImage ? ' has-image' : ''}`}>
+      {canShowImage ? (
+        <img
+          src={avatarUrl}
+          alt={`${name || 'Reporter'} avatar`}
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        initials
+      )}
+    </div>
+  );
 }
 
 function getIncidentStatusMeta(incident = {}) {
@@ -102,38 +124,38 @@ export default function ViewIncidentDetail({
           {/* Badge row */}
           <div className="ir-sk-badges">
             {[90, 70, 80].map((w, i) => (
-              <div key={i} className="ir-skeleton" style={{ height: '1.35rem', width: `${w}px`, borderRadius: '999px' }} />
+              <SkeletonBlock key={i} height="1.35rem" width={w} radius="999px" />
             ))}
           </div>
 
           {/* 3-col info grid */}
           <div className="ir-modal-grid-3">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="ir-modal-cell">
-                <div className="ir-skeleton" style={{ height: '0.6rem', width: '55%', marginBottom: '0.45rem' }} />
-                <div className="ir-skeleton" style={{ height: '1rem', width: '80%', marginBottom: '0.25rem' }} />
-                <div className="ir-skeleton" style={{ height: '0.65rem', width: '65%' }} />
+            <SkeletonList count={3}>{(index) => (
+              <div key={index} className="ir-modal-cell">
+                <SkeletonBlock height="0.6rem" width="55%" style={{ marginBottom: '0.45rem' }} />
+                <SkeletonBlock height="1rem" width="80%" style={{ marginBottom: '0.25rem' }} />
+                <SkeletonBlock height="0.65rem" width="65%" />
               </div>
-            ))}
+            )}</SkeletonList>
           </div>
 
           {/* AI section */}
           <div className="ir-sk-section">
-            <div className="ir-skeleton" style={{ height: '0.7rem', width: '140px' }} />
-            <div className="ir-skeleton" style={{ height: '1.3rem', width: '90px', borderRadius: '999px' }} />
-            <div className="ir-skeleton" style={{ height: '70px', borderRadius: '8px', marginTop: '0.2rem' }} />
+            <SkeletonBlock height="0.7rem" width={140} />
+            <SkeletonBlock height="1.3rem" width={90} radius="999px" />
+            <SkeletonBlock height={70} radius={8} style={{ marginTop: '0.2rem' }} />
           </div>
 
           {/* Narrative section */}
           <div className="ir-sk-section">
-            <div className="ir-skeleton" style={{ height: '0.7rem', width: '110px' }} />
-            <div className="ir-skeleton" style={{ height: '90px', borderRadius: '8px' }} />
+            <SkeletonBlock height="0.7rem" width={110} />
+            <SkeletonBlock height={90} radius={8} />
           </div>
 
           {/* Action bar skeleton */}
           <div style={{ display: 'flex', gap: '0.65rem', paddingTop: '1rem', borderTop: '1px solid #e5e7eb' }}>
             {[120, 100, 90].map((w, i) => (
-              <div key={i} className="ir-skeleton" style={{ height: '36px', width: `${w}px`, borderRadius: '8px' }} />
+              <SkeletonBlock key={i} height={36} width={w} radius={8} />
             ))}
           </div>
         </div>
@@ -200,7 +222,7 @@ export default function ViewIncidentDetail({
           <div className="ir-modal-cell ir-modal-cell-reporter">
             <label><FaUserShield />Reported By</label>
             <div className="ir-reporter-mini">
-              <div className="ir-reporter-mini-avatar">{getInitials(incident.reporterName)}</div>
+              <ReporterAvatar avatarUrl={incident.reporterAvatarUrl} name={incident.reporterName} />
               <div className="ir-reporter-mini-info">
                 <p>{incident.reporterName}</p>
                 <span>

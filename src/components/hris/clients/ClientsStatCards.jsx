@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { FaBuilding, FaCheckCircle, FaFileContract } from 'react-icons/fa';
+import StatCards from '@components/ui/StatCards';
 import clientService from '@services/hris/clientService';
 
 export default function ClientsStatCards({ refreshKey = 0 }) {
@@ -25,43 +27,35 @@ export default function ClientsStatCards({ refreshKey = 0 }) {
 
   const statConfig = [
     {
+      key: 'totalClients',
       label: 'Total Clients',
-      value: stats.totalClients,
       valueColor: '#093269',
       borderColor: '#093269',
+      icon: FaBuilding,
+      iconBg: 'rgba(9, 50, 105, 0.1)',
+      iconColor: '#093269',
     },
     {
+      key: 'activeContracts',
       label: 'Active Contracts',
-      value: stats.activeContracts,
       valueColor: '#e6b215',
       borderColor: '#e6b215',
+      icon: FaCheckCircle,
+      iconBg: 'rgba(230, 178, 21, 0.12)',
+      iconColor: '#b45309',
     },
     {
+      key: 'expiringContracts',
       label: 'Expiring Contracts',
-      value: stats.expiringContracts,
       valueColor: '#f97316',
       borderColor: '#f97316',
+      icon: FaFileContract,
+      iconBg: 'rgba(249, 115, 22, 0.12)',
+      iconColor: '#f97316',
     },
   ];
 
   return (
-    <div className="stat-grid three-cols">
-      {statConfig.map((s) => (
-        <div
-          key={s.label}
-          className="stat-card"
-          style={{ borderLeftColor: s.borderColor }}
-        >
-          {loading ? (
-            <div className="animate-pulse h-16 bg-gray-100 rounded"></div>
-          ) : (
-            <div>
-              <p className="stat-label">{s.label}</p>
-              <h3 className="stat-value" style={{ color: s.valueColor }}>{s.value}</h3>
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
+    <StatCards cards={statConfig} stats={stats} loading={loading} columns={3} />
   );
 }

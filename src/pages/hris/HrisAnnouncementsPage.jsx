@@ -138,6 +138,11 @@ export default function HrisAnnouncementsPage() {
     loadAnnouncements({ page: 1, filters: nextFilters });
   };
 
+  const handleResetFilters = () => {
+    setFilters(EMPTY_FILTERS);
+    loadAnnouncements({ page: 1, filters: EMPTY_FILTERS });
+  };
+
   const handlePageChange = (page) => {
     loadAnnouncements({ page, filters });
   };
@@ -225,6 +230,7 @@ export default function HrisAnnouncementsPage() {
           onEdit={handleEdit}
           onFiltersChange={handleFiltersChange}
           onPageChange={handlePageChange}
+          onResetFilters={handleResetFilters}
           canWrite={canWriteAnnouncements}
         />
       </div>
