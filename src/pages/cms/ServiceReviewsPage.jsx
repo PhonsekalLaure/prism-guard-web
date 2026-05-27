@@ -45,7 +45,7 @@ export default function ServiceReviewsPage() {
       <ServiceReviewsTopbar />
 
       <div className="cms-content">
-        <SubmitReviewForm onSubmitSuccess={handleSubmitSuccess} />
+        <SubmitReviewForm onSubmitSuccess={handleSubmitSuccess} prefill={prefill} />
         <PastReviews refreshKey={reviewsRefreshKey} />
       </div>
 
