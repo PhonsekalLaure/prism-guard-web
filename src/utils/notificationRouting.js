@@ -10,7 +10,7 @@ export const NOTIFICATION_PREFIXES = {
 export const NOTIFICATION_SECTIONS = [
   {
     portal: 'hris',
-    paths: ['/service-request', '/service-requests'],
+    paths: ['/service-requests'],
     prefixes: NOTIFICATION_PREFIXES.serviceRequest,
   },
   {
