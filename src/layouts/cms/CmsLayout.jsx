@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import CmsSidebar from '@components/cms/CmsSidebar';
 import LogoutModal from '@components/ui/LogoutModal';
@@ -21,6 +21,7 @@ export default function CmsLayout() {
   const location = useLocation();
   const [showLogout, setShowLogout] = useState(false);
   const {
+    currentRoutePrefixes,
     markCurrentRouteRead,
     notificationStats,
     refreshNotificationStats,
@@ -40,6 +41,21 @@ export default function CmsLayout() {
     window.location.href = '/login';
   };
 
+  useEffect(() => {
+    let isCurrent = true;
+
+    markCurrentRouteRead()
+      .then(() => {
+        if (isCurrent) return refreshNotificationStats();
+        return null;
+      })
+      .catch(() => null);
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [markCurrentRouteRead, refreshNotificationStats]);
+
   return (
     <div className="cms-layout">
       <CmsSidebar
@@ -53,7 +69,7 @@ export default function CmsLayout() {
 
       <GlobalNotificationToasts
         portal="cms"
-        onBeforeRefresh={markCurrentRouteRead}
+        currentRoutePrefixes={currentRoutePrefixes}
         onStatsChange={setNotificationStats}
       />
 

@@ -29,7 +29,7 @@ function getFallbackRoute(portal) {
 
 export default function GlobalNotificationToasts({
   portal = 'hris',
-  onBeforeRefresh,
+  currentRoutePrefixes = [],
   onStatsChange,
 }) {
   const navigate = useNavigate();
@@ -42,8 +42,6 @@ export default function GlobalNotificationToasts({
     loadingRef.current = true;
 
     try {
-      await onBeforeRefresh?.();
-
       const [stats, result] = await Promise.all([
         notificationsService.getStats(),
         notificationsService.getNotifications({
@@ -75,13 +73,22 @@ export default function GlobalNotificationToasts({
     } finally {
       loadingRef.current = false;
     }
-  }, [onBeforeRefresh, onStatsChange]);
+  }, [onStatsChange]);
 
   useEffect(() => {
     loadUnreadNotifications();
     const timer = setInterval(loadUnreadNotifications, POLL_INTERVAL_MS);
     return () => clearInterval(timer);
   }, [loadUnreadNotifications]);
+
+  useEffect(() => {
+    if (currentRoutePrefixes.length === 0) return;
+
+    setToasts((current) => current.filter((toast) => {
+      const type = String(toast.event?.type || '').toLowerCase();
+      return !currentRoutePrefixes.some((prefix) => type.startsWith(prefix));
+    }));
+  }, [currentRoutePrefixes]);
 
   const markReadAndRemove = useCallback(async (item) => {
     setToasts((current) => current.filter((toast) => toast.id !== item.id));

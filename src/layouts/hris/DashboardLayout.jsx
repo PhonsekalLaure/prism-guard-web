@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '@hris-components/Sidebar';
 import LogoutModal from '@components/ui/LogoutModal';
@@ -21,6 +21,7 @@ export default function DashboardLayout() {
   const [showLogout, setShowLogout] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const {
+    currentRoutePrefixes,
     markCurrentRouteRead,
     notificationStats,
     refreshNotificationStats,
@@ -36,6 +37,21 @@ export default function DashboardLayout() {
     await authService.logout();
     window.location.href = '/login';
   };
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    markCurrentRouteRead()
+      .then(() => {
+        if (isCurrent) return refreshNotificationStats();
+        return null;
+      })
+      .catch(() => null);
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [markCurrentRouteRead, refreshNotificationStats]);
 
   return (
     <div className="dashboard-layout">
@@ -53,7 +69,7 @@ export default function DashboardLayout() {
 
       <GlobalNotificationToasts
         portal="hris"
-        onBeforeRefresh={markCurrentRouteRead}
+        currentRoutePrefixes={currentRoutePrefixes}
         onStatsChange={setNotificationStats}
       />
 
