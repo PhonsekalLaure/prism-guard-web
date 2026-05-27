@@ -36,16 +36,13 @@ export default function HrisLeaveRequestsPage() {
     setLoading(true);
 
     try {
-      const [requestsResponse, statsResponse] = await Promise.all([
-        leaveRequestsService.getLeaveRequests({
-          page,
-          limit: PAGE_LIMIT,
-          search: filters.search || undefined,
-          leaveType: filters.leaveType !== 'all' ? filters.leaveType : undefined,
-          status: filters.status !== 'all' ? filters.status : undefined,
-        }),
-        leaveRequestsService.getStats(),
-      ]);
+      const requestsResponse = await leaveRequestsService.getLeaveRequests({
+        page,
+        limit: PAGE_LIMIT,
+        search: filters.search || undefined,
+        leaveType: filters.leaveType !== 'all' ? filters.leaveType : undefined,
+        status: filters.status !== 'all' ? filters.status : undefined,
+      });
 
       setRequests(requestsResponse.data || []);
       setMetadata(requestsResponse.metadata || {
@@ -54,7 +51,11 @@ export default function HrisLeaveRequestsPage() {
         limit: PAGE_LIMIT,
         totalPages: 0,
       });
-      setStats(statsResponse);
+      setStats(requestsResponse.stats || {
+        pending: 0,
+        approvedThisMonth: 0,
+        rejected: 0,
+      });
     } catch (err) {
       showNotification(err.response?.data?.error || err.message || 'Failed to load leave requests', 'error');
     } finally {
