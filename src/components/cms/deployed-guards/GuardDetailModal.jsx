@@ -5,7 +5,6 @@ import {
   FaFileAlt, FaPhone, FaEnvelope, FaShieldAlt, FaIdCard,
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import { SkeletonBlock, SkeletonList } from '@components/ui/Skeleton';
 
 /* ─────────────────────────────────────────────────────────
    Constants & helpers
@@ -61,54 +60,6 @@ function fmtSchedule(s) {
 
 function fmtStatus(status) {
   return STATUS_CONFIG[status] || STATUS_CONFIG.unknown;
-}
-
-function buildProfileText(guard) {
-  const lines = [
-    'PRISM Guard Profile',
-    '',
-    `Name: ${guard.full_name || guard.name || 'N/A'}`,
-    `Employee ID: ${guard.employee_id_number || 'N/A'}`,
-    `Status: ${fmtStatus(guard.status).label}`,
-    `Position: ${guard.position || 'N/A'}`,
-    `Employment Type: ${guard.employment_type || 'N/A'}`,
-    `Date Hired: ${fmtDate(guard.hire_date)}`,
-    '',
-    'Contact',
-    `Phone: ${guard.phone_number || 'N/A'}`,
-    `Email: ${guard.contact_email || 'N/A'}`,
-    `Residential Address: ${guard.residential_address || 'N/A'}`,
-    `Emergency Contact: ${guard.emergency_contact_name || 'N/A'} (${guard.emergency_contact_number || 'N/A'})`,
-    '',
-    'Personal',
-    `Date of Birth: ${fmtDate(guard.date_of_birth)}`,
-    `Age: ${guard.age ?? 'N/A'}`,
-    `Gender: ${guard.gender || 'N/A'}`,
-    `Civil Status: ${guard.civil_status || 'N/A'}`,
-    `Citizenship: ${guard.citizenship || 'N/A'}`,
-    `Height: ${guard.height_cm ? `${guard.height_cm} cm` : 'N/A'}`,
-    `Education: ${guard.educational_level || 'N/A'}`,
-    '',
-    'Deployment',
-    `Company: ${guard.company || 'N/A'}`,
-    `Site: ${guard.site_name || 'N/A'}`,
-    `Site Address: ${guard.site_address || 'N/A'}`,
-    `Shift: ${guard.shift || 'N/A'}`,
-    `Deployment Type: ${guard.deployment_type || 'N/A'}`,
-    `Deployment Start: ${fmtDate(guard.start_date)}`,
-    `Deployment End: ${fmtDate(guard.end_date)}`,
-  ];
-  if (Array.isArray(guard.schedules) && guard.schedules.length > 0) {
-    lines.push('', 'Schedules');
-    guard.schedules.forEach((s) => lines.push(fmtSchedule(s)));
-  }
-  if (Array.isArray(guard.clearances) && guard.clearances.length > 0) {
-    lines.push('', 'Clearances');
-    guard.clearances.forEach((c) =>
-      lines.push(`${c.clearance_type || 'Document'}: ${c.status || 'N/A'} | expires ${fmtDate(c.expiry_date)}`)
-    );
-  }
-  return lines.join('\n');
 }
 
 
@@ -359,41 +310,7 @@ function DeploymentTab({ guard }) {
   );
 }
 
-function GuardProfileSkeleton() {
-  return (
-    <div className="detail-skeleton">
-      <div className="dg-guard-identity">
-        <SkeletonBlock className="entity-card-skeleton__avatar" />
-        <div className="entity-card-skeleton__lines">
-          <SkeletonBlock className="entity-card-skeleton__line entity-card-skeleton__line--long" />
-          <SkeletonBlock className="entity-card-skeleton__line entity-card-skeleton__line--short" />
-          <div className="entity-card-skeleton__tag-row">
-            <SkeletonBlock className="entity-card-skeleton__tag" />
-            <SkeletonBlock className="entity-card-skeleton__tag" />
-          </div>
-        </div>
-      </div>
 
-      {[4, 6, 3].map((count, sectionIndex) => (
-        <div key={sectionIndex} className="dg-modal-section">
-          <SkeletonBlock
-            height="0.85rem"
-            width={sectionIndex === 0 ? 140 : 180}
-            style={{ marginBottom: '0.75rem' }}
-          />
-          <div className="dg-info-grid">
-            <SkeletonList count={count}>{(index) => (
-              <div key={index} className="dg-info-cell">
-                <SkeletonBlock height="0.65rem" width="46%" style={{ marginBottom: '0.45rem' }} />
-                <SkeletonBlock height="0.9rem" width="72%" />
-              </div>
-            )}</SkeletonList>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 export default function GuardDetailModal({ isOpen, onClose, guard, loading }) {
   const navigate = useNavigate();
@@ -433,40 +350,19 @@ export default function GuardDetailModal({ isOpen, onClose, guard, loading }) {
           </button>
         </div>
 
-        <div className="dg-modal-body">
-          {loading ? (
-            <GuardProfileSkeleton />
-          ) : !guard ? (
-            <div style={{ textAlign: 'center', padding: '3rem', color: '#7f8c8d' }}>
-              No data available.
-            </div>
-          ) : (
-            <>
-              {/* Guard Identity */}
-              <div className="dg-guard-identity">
-                {guard.avatar_url ? (
-                  <img
-                    src={guard.avatar_url}
-                    alt={guard.name}
-                    className="dg-guard-avatar"
-                    style={{ objectFit: 'cover', borderRadius: '50%' }}
-                  />
-                ) : (
-                  <div className="dg-guard-avatar">
-                    {guard.initials}
-                  </div>
-                )}
-                <div className="dg-guard-identity-info">
-                  <h3>{guard.full_name || guard.name}</h3>
-                  <p>{guard.position || 'Security Officer'}</p>
-                  <div className="dg-guard-badges">
-                    <span className={status.className}>{status.label}</span>
-                    {guard.deployment_type === 'reliever' && (
-                      <span className="dg-badge dg-badge--armed">Temporary Reliever</span>
-                    )}
-                  </div>
-                </div>
-              </div>
+        {/* ── Tab bar ── */}
+        <div className="gdm-tabs-bar">
+          {TABS.map((tab) => (
+            <button
+              key={tab.key}
+              className={`gdm-tab ${activeTab === tab.key ? 'active' : ''}`}
+              onClick={() => setActiveTab(tab.key)}
+              disabled={loading || !guard}
+            >
+              <tab.icon /> {tab.label}
+            </button>
+          ))}
+        </div>
 
         {/* ── Body ── */}
         <div className="gdm-body">
@@ -507,6 +403,7 @@ export default function GuardDetailModal({ isOpen, onClose, guard, loading }) {
             </>
           )}
         </div>
+
 
         {/* ── Footer actions ── */}
         <div className="gdm-footer">
