@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
-import { FaPen, FaTag, FaMapMarkerAlt, FaCalendar, FaCommentAlt, FaPaperPlane, FaSpinner } from 'react-icons/fa';
+import {
+  FaPen, FaTag, FaMapMarkerAlt, FaCalendar, FaCommentAlt,
+  FaPaperPlane, FaSpinner, FaShieldAlt, FaTimes,
+} from 'react-icons/fa';
 import StarRating from './StarRating';
 import serviceReviewsService from '@/services/cms/serviceReviewsService';
 import authService from '@/services/authService';
@@ -31,15 +34,23 @@ const defaultForm = {
   reviewText:     '',
 };
 
-export default function SubmitReviewForm({ onSubmitSuccess }) {
-  const [form, setForm]       = useState(defaultForm);
-  const [sites, setSites]     = useState([]);
+export default function SubmitReviewForm({ onSubmitSuccess, prefill = {} }) {
+  const [form, setForm] = useState(() => ({
+    ...defaultForm,
+    category: prefill.guardName ? 'guard-performance' : '',
+  }));
+  const [guardPrefill, setGuardPrefill] = useState(
+    prefill.guardName ? prefill : null,
+  );
+  const [sites, setSites]         = useState([]);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError]     = useState(null);
+  const [error, setError]         = useState(null);
 
   // Derive company name from stored profile
   const profile     = authService.getProfile();
-  const companyName = profile?.company || `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 'Your Company';
+  const companyName = profile?.company
+    || `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim()
+    || 'Your Company';
 
   // Load client sites for dropdown
   useEffect(() => {
@@ -58,6 +69,7 @@ export default function SubmitReviewForm({ onSubmitSuccess }) {
 
   const handleClear = () => {
     setForm(defaultForm);
+    setGuardPrefill(null);
     setError(null);
   };
 
@@ -65,7 +77,6 @@ export default function SubmitReviewForm({ onSubmitSuccess }) {
     e.preventDefault();
     setError(null);
 
-    // Client-side guard
     if (!form.overallRating) {
       setError('Please select an overall rating before submitting.');
       return;
@@ -89,6 +100,7 @@ export default function SubmitReviewForm({ onSubmitSuccess }) {
         reviewText:     form.reviewText.trim(),
       });
       setForm(defaultForm);
+      setGuardPrefill(null);
       onSubmitSuccess?.();
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to submit review. Please try again.');
