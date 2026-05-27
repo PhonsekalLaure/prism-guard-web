@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaPen, FaTag, FaMapMarkerAlt, FaCalendar, FaCommentAlt, FaPaperPlane, FaSpinner } from 'react-icons/fa';
+import { FaPen, FaTag, FaMapMarkerAlt, FaCalendar, FaCommentAlt, FaPaperPlane, FaSpinner, FaShieldAlt, FaTimes } from 'react-icons/fa';
 import StarRating from './StarRating';
 import serviceReviewsService from '@/services/cms/serviceReviewsService';
 import authService from '@/services/authService';
@@ -31,8 +31,14 @@ const defaultForm = {
   reviewText:     '',
 };
 
-export default function SubmitReviewForm({ onSubmitSuccess }) {
-  const [form, setForm]       = useState(defaultForm);
+export default function SubmitReviewForm({ onSubmitSuccess, prefill = {} }) {
+  const [form, setForm]       = useState(() => ({
+    ...defaultForm,
+    category: prefill.guardName ? 'guard-performance' : '',
+  }));
+  const [guardPrefill, setGuardPrefill] = useState(
+    prefill.guardName ? prefill : null,
+  );
   const [sites, setSites]     = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError]     = useState(null);
@@ -58,6 +64,7 @@ export default function SubmitReviewForm({ onSubmitSuccess }) {
 
   const handleClear = () => {
     setForm(defaultForm);
+    setGuardPrefill(null);
     setError(null);
   };
 
