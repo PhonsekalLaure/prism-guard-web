@@ -117,6 +117,33 @@ export default function SubmitReviewForm({ onSubmitSuccess }) {
 
       {/* Body */}
       <form className="srv-form-body" onSubmit={handleSubmit}>
+
+        {/* Guard pre-fill banner */}
+        {guardPrefill && (
+          <div className="srv-guard-banner">
+            <div className="srv-guard-banner-icon">
+              <FaShieldAlt />
+            </div>
+            <div className="srv-guard-banner-info">
+              <p className="srv-guard-banner-label">Reviewing Guard</p>
+              <p className="srv-guard-banner-name">{guardPrefill.guardName}</p>
+              <p className="srv-guard-banner-meta">
+                {[guardPrefill.guardEmployeeId, guardPrefill.siteName]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </p>
+            </div>
+            <button
+              type="button"
+              className="srv-guard-banner-clear"
+              onClick={() => setGuardPrefill(null)}
+              title="Clear guard selection"
+            >
+              <FaTimes />
+            </button>
+          </div>
+        )}
+
         {/* Overall Rating */}
         <div>
           <label className="srv-rating-label">
@@ -215,7 +242,11 @@ export default function SubmitReviewForm({ onSubmitSuccess }) {
           <textarea
             name="reviewText"
             rows={4}
-            placeholder="Share your experience with our security services. Be as specific as possible to help us improve..."
+            placeholder={
+              guardPrefill
+                ? `Share your experience with ${guardPrefill.guardName}. How was their performance, punctuality, and professionalism?`
+                : 'Share your experience with our security services. Be as specific as possible to help us improve...'
+            }
             value={form.reviewText}
             onChange={handleChange}
             className="srv-textarea"
