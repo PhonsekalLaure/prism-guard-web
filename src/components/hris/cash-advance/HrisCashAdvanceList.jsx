@@ -9,6 +9,7 @@ import {
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
 import EmptyState from '@components/ui/EmptyState';
+import EntityAvatar from '@components/ui/EntityAvatar';
 import { IncidentCardSkeleton, SkeletonList } from '@components/ui/Skeleton';
 
 const tabs = [
@@ -59,7 +60,7 @@ export default function HrisCashAdvanceList({
 
   if (loading && requests.length === 0) {
     return (
-      <div>
+      <div className="ca-list-container">
         <div className="ca-tabs-bar">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -70,7 +71,10 @@ export default function HrisCashAdvanceList({
             );
           })}
         </div>
-        <div className="ca-list">
+        <div className="ca-feed-header">
+          <h3><FaHandHoldingUsd /> Cash Advance Requests</h3>
+        </div>
+        <div className="ca-feed-body">
           <SkeletonList count={4}>{(index) => (
             <IncidentCardSkeleton key={index} detailColumns={4} showSummary delay={`${index * 0.07}s`} />
           )}</SkeletonList>
@@ -80,7 +84,7 @@ export default function HrisCashAdvanceList({
   }
 
   return (
-    <div>
+    <div className="ca-list-container">
       <div className="ca-tabs-bar">
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -98,7 +102,16 @@ export default function HrisCashAdvanceList({
         })}
       </div>
 
-      <div className="ca-list">
+      <div className="ca-feed-header">
+        <h3><FaHandHoldingUsd /> Cash Advance Requests</h3>
+        {totalRequests > 0 && (
+          <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>
+            {totalRequests} total
+          </span>
+        )}
+      </div>
+
+      <div className="ca-feed-body">
         {requests.length === 0 ? (
           <EmptyState
             title="No cash advance requests found"
@@ -117,7 +130,7 @@ export default function HrisCashAdvanceList({
             >
               <div className="ca-card-header">
                 <div className="ca-card-emp">
-                  <div className="ca-avatar">{request.initials}</div>
+                  <EntityAvatar avatarUrl={request.avatarUrl} initials={request.initials} className="ca-avatar" />
                   <div>
                     <p className="ca-emp-name">
                       {request.name}
@@ -169,7 +182,7 @@ export default function HrisCashAdvanceList({
                   }}
                   type="button"
                 >
-                  View Request <FaArrowRight />
+                  View Request <FaArrowRight style={{ marginLeft: '4px' }} />
                 </button>
               </div>
             </div>

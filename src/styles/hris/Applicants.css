@@ -144,6 +144,18 @@
   font-weight: 700;
   font-size: 1rem;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.applicant-avatar.has-image {
+  background: #e5e7eb;
+}
+
+.applicant-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .applicant-name {
@@ -445,6 +457,18 @@
   font-weight: 700;
   font-size: 1.2rem;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.ar-profile-avatar.has-image {
+  background: #e5e7eb;
+}
+
+.ar-profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .ar-profile-name {

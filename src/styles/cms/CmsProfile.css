@@ -168,6 +168,18 @@
   color: #093269;
   font-size: 2.2rem;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.cms-profile-company-card__logo.has-image {
+  background: #e5e7eb;
+}
+
+.cms-profile-company-card__logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .cms-profile-company-card__name {

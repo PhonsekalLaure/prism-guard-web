@@ -381,15 +381,7 @@
   object-fit: cover;
   position: absolute;
   inset: 0;
-}
-
-.ha-avatar span {
-  position: relative;
-  z-index: 1;
-}
-
-.ha-avatar img ~ span {
-  visibility: hidden;
+  display: block;
 }
 
 .ha-emp-name {

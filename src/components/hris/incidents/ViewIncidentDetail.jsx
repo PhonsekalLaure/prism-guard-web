@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import {
   FaCheck,
   FaCheckCircle,
@@ -16,6 +15,7 @@ import {
   FaLock,
 } from 'react-icons/fa';
 import { SkeletonBlock, SkeletonList } from '@components/ui/Skeleton';
+import EntityAvatar from '@components/ui/EntityAvatar';
 import authService from '@services/authService';
 
 const severityIcon = {
@@ -48,26 +48,6 @@ function getInitials(name) {
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
     .join('') || 'U';
-}
-
-function ReporterAvatar({ avatarUrl, name }) {
-  const [failed, setFailed] = useState(false);
-  const canShowImage = Boolean(avatarUrl) && !failed;
-  const initials = getInitials(name);
-
-  return (
-    <div className={`ir-reporter-mini-avatar${canShowImage ? ' has-image' : ''}`}>
-      {canShowImage ? (
-        <img
-          src={avatarUrl}
-          alt={`${name || 'Reporter'} avatar`}
-          onError={() => setFailed(true)}
-        />
-      ) : (
-        initials
-      )}
-    </div>
-  );
 }
 
 function getIncidentStatusMeta(incident = {}) {
@@ -222,7 +202,12 @@ export default function ViewIncidentDetail({
           <div className="ir-modal-cell ir-modal-cell-reporter">
             <label><FaUserShield />Reported By</label>
             <div className="ir-reporter-mini">
-              <ReporterAvatar avatarUrl={incident.reporterAvatarUrl} name={incident.reporterName} />
+              <EntityAvatar
+                avatarUrl={incident.reporterAvatarUrl}
+                initials={getInitials(incident.reporterName)}
+                className="ir-reporter-mini-avatar"
+                alt={incident.reporterName || 'Reporter'}
+              />
               <div className="ir-reporter-mini-info">
                 <p>{incident.reporterName}</p>
                 <span>

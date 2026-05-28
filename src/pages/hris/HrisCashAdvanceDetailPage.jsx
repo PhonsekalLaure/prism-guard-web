@@ -8,6 +8,7 @@ import {
   FaTimesCircle,
 } from 'react-icons/fa';
 import Notification from '@components/ui/Notification';
+import EntityAvatar from '@components/ui/EntityAvatar';
 import { SkeletonBlock, SkeletonList } from '@components/ui/Skeleton';
 import useNotification from '@hooks/useNotification';
 import cashAdvanceService from '@services/hris/cashAdvanceService';
@@ -127,7 +128,11 @@ export default function HrisCashAdvanceDetailPage() {
             <div className="ca-modal-body">
               <div className="ca-modal-emp-box">
                 <div className="ca-modal-emp-left">
-                  <div className="ca-modal-avatar">{request.initials}</div>
+                  <EntityAvatar
+                    avatarUrl={request.avatarUrl}
+                    initials={request.initials}
+                    className="ca-modal-avatar"
+                  />
                   <div className="ca-modal-emp-info">
                     <h3>{request.name}</h3>
                     <p>{request.role} - {request.empId}</p>
