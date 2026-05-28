@@ -189,6 +189,8 @@
   padding: 0 1.5rem;
   display: flex;
   gap: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
 }
 
 .ca-tab-btn {
@@ -565,6 +567,27 @@
   animation: caSlideUp 0.25s ease;
 }
 
+.ca-review-page-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.ca-review-panel {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 840px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  animation: caFadeInUp 0.25s ease both;
+}
+
+.ca-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
 .ca-modal-header {
   background: linear-gradient(90deg, #093269 0%, #0a4080 100%);
   padding: 1.5rem;
@@ -588,6 +611,11 @@
   font-size: 0.8rem;
   opacity: 0.8;
   margin: 0;
+}
+
+.ca-review-panel .ca-modal-header {
+  border-radius: 16px 16px 0 0;
+  position: static;
 }
 
 .ca-modal-close {
@@ -742,6 +770,39 @@
   border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 700;
+}
+
+.ca-readonly-note {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.84rem;
+  font-weight: 600;
+  padding: 0.85rem 1rem;
+}
+
+.ca-readonly-note svg {
+  color: #093269;
+  flex-shrink: 0;
+}
+
+.ca-error-banner {
+  width: 100%;
+  max-width: 840px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  color: #991b1b;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 1rem 1.2rem;
 }
 
 /* Narrative / details */
@@ -933,6 +994,16 @@
 
 @media (max-width: 768px) {
   .ca-topbar { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  .ca-tabs-bar { padding: 0 1rem; }
+  .ca-card-header,
+  .ca-card-footer,
+  .ca-modal-emp-box {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.85rem;
+  }
+  .ca-card-status { text-align: left; }
+  .ca-card-status p { justify-content: flex-start; }
   .ca-modal-grid { grid-template-columns: 1fr; }
   .ca-repayment-grid { grid-template-columns: 1fr; }
   .ca-modal-actions { flex-direction: column; }
