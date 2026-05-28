@@ -20,6 +20,7 @@ import HrisLeaveRequestsPage from '@hris-pages/HrisLeaveRequestsPage';
 import HrisLeaveRequestDetailPage from '@hris-pages/HrisLeaveRequestDetailPage';
 import HrisAttendancePage from '@hris-pages/HrisAttendancePage';
 import HrisCashAdvancePage from '@hris-pages/HrisCashAdvancePage';
+import HrisCashAdvanceDetailPage from '@hris-pages/HrisCashAdvanceDetailPage';
 import HrisPayrollPage from '@hris-pages/HrisPayrollPage';
 import HrisIncidentsPage from '@hris-pages/HrisIncidentsPage';
 import HrisIncidentDetailPage from '@hris-pages/HrisIncidentDetailPage';
@@ -70,7 +71,8 @@ function App() {
           <Route path="/leaves" element={<ProtectedRoute requiredPermissions={['employees.read']}><HrisLeaveRequestsPage /></ProtectedRoute>} />
           <Route path="/leaves/:id" element={<ProtectedRoute requiredPermissions={['employees.read']}><HrisLeaveRequestDetailPage /></ProtectedRoute>} />
           <Route path="/attendance" element={<ProtectedRoute requiredPermissions={['employees.read']}><HrisAttendancePage /></ProtectedRoute>} />
-          <Route path="/cash-advance" element={<HrisCashAdvancePage />} />
+          <Route path="/cash-advance" element={<ProtectedRoute requiredPermissions={['employees.read']}><HrisCashAdvancePage /></ProtectedRoute>} />
+          <Route path="/cash-advance/:id" element={<ProtectedRoute requiredPermissions={['employees.read']}><HrisCashAdvanceDetailPage /></ProtectedRoute>} />
           <Route path="/payroll" element={<HrisPayrollPage />} />
           <Route path="/incidents" element={<ProtectedRoute requiredPermissions={['incidents.read']}><HrisIncidentsPage /></ProtectedRoute>} />
           <Route path="/incidents/:id" element={<ProtectedRoute requiredPermissions={['incidents.read']}><HrisIncidentDetailPage /></ProtectedRoute>} />
