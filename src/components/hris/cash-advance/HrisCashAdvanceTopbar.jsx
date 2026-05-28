@@ -5,7 +5,7 @@ export default function HrisCashAdvanceTopbar() {
     <header className="ca-topbar">
       <div className="ca-title-group">
         <h2>Cash Advance Requests (Bale)</h2>
-        <p>Review and approve employee cash advance requests applications</p>
+        <p>Receive and review employee cash advance request applications</p>
       </div>
       <button className="ca-export-btn">
         <FaDownload /> Export Report
