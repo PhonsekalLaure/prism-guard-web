@@ -1,43 +1,63 @@
-import { useState } from 'react';
-import { FaPen, FaTag, FaMapMarkerAlt, FaCalendar, FaCommentAlt, FaPaperPlane } from 'react-icons/fa';
+import { useState, useEffect } from 'react';
+import {
+  FaPen, FaTag, FaMapMarkerAlt, FaCalendar, FaCommentAlt,
+  FaPaperPlane, FaSpinner, FaShieldAlt, FaTimes,
+} from 'react-icons/fa';
 import StarRating from './StarRating';
+import serviceReviewsService from '@/services/cms/serviceReviewsService';
+import authService from '@/services/authService';
 
 const CATEGORY_OPTIONS = [
-  { value: '', label: 'Select a Category' },
+  { value: '',                  label: 'Select a Category' },
   { value: 'guard-performance', label: 'Guard Performance' },
   { value: 'incident-response', label: 'Incident Response' },
-  { value: 'communication', label: 'Communication' },
-  { value: 'overall-service', label: 'Overall Service' },
-];
-
-const SITE_OPTIONS = [
-  { value: 'all', label: 'All Sites' },
-  { value: 'main-gate', label: 'Main Gate' },
-  { value: 'parking', label: 'Parking Area' },
-  { value: 'back-gate', label: 'Back Gate' },
+  { value: 'communication',     label: 'Communication' },
+  { value: 'overall-service',   label: 'Overall Service' },
 ];
 
 const CATEGORY_RATINGS = [
-  { key: 'guardQuality', label: 'Guard Quality' },
-  { key: 'punctuality', label: 'Punctuality' },
-  { key: 'communication', label: 'Communication' },
+  { key: 'guardQuality',   label: 'Guard Quality' },
+  { key: 'punctuality',    label: 'Punctuality' },
+  { key: 'communication',  label: 'Communication' },
   { key: 'responsiveness', label: 'Responsiveness' },
 ];
 
 const defaultForm = {
-  overallRating: 0,
-  guardQuality: 0,
-  punctuality: 0,
-  communication: 0,
+  overallRating:  0,
+  guardQuality:   0,
+  punctuality:    0,
+  communication:  0,
   responsiveness: 0,
-  category: '',
-  site: 'all',
-  period: '2026-02',
-  reviewText: '',
+  category:       '',
+  siteId:         '',
+  period:         '',
+  reviewText:     '',
 };
 
-export default function SubmitReviewForm({ onSubmitSuccess }) {
-  const [form, setForm] = useState(defaultForm);
+export default function SubmitReviewForm({ onSubmitSuccess, prefill = {} }) {
+  const [form, setForm] = useState(() => ({
+    ...defaultForm,
+    category: prefill.guardName ? 'guard-performance' : '',
+  }));
+  const [guardPrefill, setGuardPrefill] = useState(
+    prefill.guardName ? prefill : null,
+  );
+  const [sites, setSites]         = useState([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError]         = useState(null);
+
+  // Derive company name from stored profile
+  const profile     = authService.getProfile();
+  const companyName = profile?.company
+    || `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim()
+    || 'Your Company';
+
+  // Load client sites for dropdown
+  useEffect(() => {
+    serviceReviewsService.getSites()
+      .then(setSites)
+      .catch(() => setSites([]));
+  }, []);
 
   const handleRating = (key, value) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -47,11 +67,46 @@ export default function SubmitReviewForm({ onSubmitSuccess }) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleClear = () => setForm(defaultForm);
+  const handleClear = () => {
+    setForm(defaultForm);
+    setGuardPrefill(null);
+    setError(null);
+  };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmitSuccess?.();
+    setError(null);
+
+    if (!form.overallRating) {
+      setError('Please select an overall rating before submitting.');
+      return;
+    }
+    if (form.reviewText.trim().length < 50) {
+      setError('Your review must be at least 50 characters.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await serviceReviewsService.createServiceReview({
+        overallRating:  form.overallRating,
+        guardQuality:   form.guardQuality   || null,
+        punctuality:    form.punctuality    || null,
+        communication:  form.communication  || null,
+        responsiveness: form.responsiveness || null,
+        category:       form.category,
+        siteId:         form.siteId || null,
+        period:         form.period || null,
+        reviewText:     form.reviewText.trim(),
+      });
+      setForm(defaultForm);
+      setGuardPrefill(null);
+      onSubmitSuccess?.();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to submit review. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -65,8 +120,42 @@ export default function SubmitReviewForm({ onSubmitSuccess }) {
         <p>Share your feedback on our security services</p>
       </div>
 
+      {/* Error Banner */}
+      {error && (
+        <div className="srv-form-error" role="alert">
+          {error}
+        </div>
+      )}
+
       {/* Body */}
       <form className="srv-form-body" onSubmit={handleSubmit}>
+
+        {/* Guard pre-fill banner */}
+        {guardPrefill && (
+          <div className="srv-guard-banner">
+            <div className="srv-guard-banner-icon">
+              <FaShieldAlt />
+            </div>
+            <div className="srv-guard-banner-info">
+              <p className="srv-guard-banner-label">Reviewing Guard</p>
+              <p className="srv-guard-banner-name">{guardPrefill.guardName}</p>
+              <p className="srv-guard-banner-meta">
+                {[guardPrefill.guardEmployeeId, guardPrefill.siteName]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </p>
+            </div>
+            <button
+              type="button"
+              className="srv-guard-banner-clear"
+              onClick={() => setGuardPrefill(null)}
+              title="Clear guard selection"
+            >
+              <FaTimes />
+            </button>
+          </div>
+        )}
+
         {/* Overall Rating */}
         <div>
           <label className="srv-rating-label">
@@ -126,14 +215,15 @@ export default function SubmitReviewForm({ onSubmitSuccess }) {
               Site / Location
             </label>
             <select
-              name="site"
-              value={form.site}
+              name="siteId"
+              value={form.siteId}
               onChange={handleChange}
               className="srv-select"
             >
-              {SITE_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
+              <option value="">All Sites</option>
+              {sites.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.site_name}
                 </option>
               ))}
             </select>
@@ -164,28 +254,58 @@ export default function SubmitReviewForm({ onSubmitSuccess }) {
           <textarea
             name="reviewText"
             rows={4}
-            placeholder="Share your experience with our security services. Be as specific as possible to help us improve..."
+            placeholder={
+              guardPrefill
+                ? `Share your experience with ${guardPrefill.guardName}. How was their performance, punctuality, and professionalism?`
+                : 'Share your experience with our security services. Be as specific as possible to help us improve...'
+            }
             value={form.reviewText}
             onChange={handleChange}
             className="srv-textarea"
             required
+            minLength={50}
           />
-          <p className="srv-char-hint">Minimum 50 characters</p>
+          <p className="srv-char-hint">
+            Minimum 50 characters
+            {form.reviewText.length > 0 && (
+              <span style={{ marginLeft: '0.5rem', opacity: 0.7 }}>
+                ({form.reviewText.length} / 50)
+              </span>
+            )}
+          </p>
         </div>
 
         {/* Footer */}
         <div className="srv-form-footer">
           <div className="srv-submitting-as">
             <span>Submitting as:</span>
-            <span>FEU Institute of Technology</span>
+            <span>{companyName}</span>
           </div>
           <div className="srv-form-actions">
-            <button type="button" className="srv-btn-clear" onClick={handleClear}>
+            <button
+              type="button"
+              className="srv-btn-clear"
+              onClick={handleClear}
+              disabled={submitting}
+            >
               Clear
             </button>
-            <button type="submit" className="srv-btn-submit">
-              <FaPaperPlane />
-              Submit Review
+            <button
+              type="submit"
+              className="srv-btn-submit"
+              disabled={submitting}
+            >
+              {submitting ? (
+                <>
+                  <FaSpinner className="srv-spinner" />
+                  Submitting…
+                </>
+              ) : (
+                <>
+                  <FaPaperPlane />
+                  Submit Review
+                </>
+              )}
             </button>
           </div>
         </div>

@@ -8,8 +8,8 @@ export default function AdminMgmtAlertBox() {
         <p className="admin-alert-title">Admin Account Security</p>
         <p className="admin-alert-text">
           Only Super Administrators can create, modify, or deactivate admin accounts.
-          All actions are logged for security audit purposes. Default passwords must
-          be changed on first login.
+          For now, new admin accounts are provisioned with a president-set temporary
+          password and role-based access.
         </p>
       </div>
     </div>

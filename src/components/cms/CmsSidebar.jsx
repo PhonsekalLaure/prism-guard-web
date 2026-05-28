@@ -1,10 +1,16 @@
+import { createElement } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   FaTachometerAlt, FaUsers, FaHeadset, FaExclamationTriangle,
   FaCreditCard, FaStar, FaBuilding, FaSignOutAlt,
-  FaUserShield, FaFileInvoiceDollar, FaBars,
+  FaUserShield, FaFileInvoiceDollar, FaBars, FaBullhorn, FaBell,
 } from 'react-icons/fa';
 import logo from '@assets/logo.png';
+import {
+  formatNotificationBadgeCount,
+  getNotificationBadgeCount,
+} from '@utils/notificationBadges';
+import { NOTIFICATION_PREFIXES } from '@utils/notificationRouting';
 
 const navGroups = [
   {
@@ -25,14 +31,16 @@ const navGroups = [
     label: 'Services',
     labelIcon: FaHeadset,
     items: [
-      { to: '/cms/service-requests', icon: FaHeadset, label: 'Service Request' },
+      { to: '/cms/service-requests', icon: FaHeadset, label: 'Service Request', notificationPrefixes: NOTIFICATION_PREFIXES.serviceRequest },
     ],
   },
   {
     label: 'Reports',
     labelIcon: FaBars,
     items: [
-      { to: '/cms/incident-reports', icon: FaExclamationTriangle, label: 'Incidents' },
+      { to: '/cms/notifications',  icon: FaBell,                 label: 'Notifications', notificationUncategorized: true },
+      { to: '/cms/incident-reports', icon: FaExclamationTriangle, label: 'Incidents', notificationPrefixes: NOTIFICATION_PREFIXES.incident },
+      { to: '/cms/announcements',    icon: FaBullhorn,             label: 'Announcements', notificationPrefixes: NOTIFICATION_PREFIXES.announcement },
     ],
   },
   {
@@ -45,10 +53,39 @@ const navGroups = [
 ];
 
 const bottomItems = [
-  { to: '/cms/reviews', icon: FaStar, label: 'Service Reviews' },
+  { to: '/cms/reviews', icon: FaStar, label: 'Service Reviews', notificationPrefixes: NOTIFICATION_PREFIXES.serviceReview },
 ];
 
-export default function CmsSidebar({ onLogoutClick }) {
+function SidebarAvatar({ profile }) {
+  if (profile?.avatar_url) {
+    return (
+      <img
+        src={profile.avatar_url}
+        alt={profile.first_name}
+        className="cms-sidebar-avatar cms-sidebar-avatar--img"
+      />
+    );
+  }
+
+  // Show first letter of the company name, or first letter of the user's name as fallback
+  const initial = profile?.company
+    ? profile.company.charAt(0).toUpperCase()
+    : profile?.first_name?.charAt(0).toUpperCase() || <FaBuilding />;
+
+  return (
+    <div className="cms-sidebar-avatar">
+      {initial}
+    </div>
+  );
+}
+
+export default function CmsSidebar({ profile, onLogoutClick, notificationStats }) {
+  const displayName = profile
+    ? `${profile.first_name ?? ''} ${profile.last_name ?? ''}`.trim()
+    : '—';
+
+  const displayCompany = profile?.company || '—';
+
   return (
     <aside className="cms-sidebar">
 
@@ -74,36 +111,60 @@ export default function CmsSidebar({ onLogoutClick }) {
                   {group.label}
                 </p>
               )}
-              {group.items.map(({ to, icon: Icon, label }) => (
-                <NavLink
-                  key={to}
-                  to={to}
-                  className={({ isActive }) =>
-                    isActive ? 'cms-nav-item active' : 'cms-nav-item'
-                  }
-                >
-                  <Icon className="cms-nav-icon" />
-                  <span>{label}</span>
-                </NavLink>
-              ))}
+              {group.items.map((item) => {
+                const { to, icon: Icon, label } = item;
+                const badgeCount = getNotificationBadgeCount(item, notificationStats);
+                return (
+                  <NavLink
+                    key={to}
+                    to={to}
+                    className={({ isActive }) =>
+                      isActive ? 'cms-nav-item active' : 'cms-nav-item'
+                    }
+                  >
+                    {createElement(Icon, { className: 'cms-nav-icon' })}
+                    <span className="cms-nav-label">{label}</span>
+                    {badgeCount > 0 && item.notificationUncategorized && (
+                      <span className="cms-nav-badge-dot" aria-label="Unread uncategorized notifications" />
+                    )}
+                    {badgeCount > 0 && !item.notificationUncategorized && (
+                      <span className="cms-nav-badge" aria-label={`${badgeCount} unread notifications`}>
+                        {formatNotificationBadgeCount(badgeCount)}
+                      </span>
+                    )}
+                  </NavLink>
+                );
+              })}
             </div>
           );
         })}
 
         {/* ── Service Reviews ── */}
         <div className="cms-nav-divider" />
-        {bottomItems.map(({ to, icon: Icon, label }) => (
-          <NavLink
-            key={to}
-            to={to}
-            className={({ isActive }) =>
-              isActive ? 'cms-nav-item active' : 'cms-nav-item'
-            }
-          >
-            <Icon className="cms-nav-icon" />
-            <span>{label}</span>
-          </NavLink>
-        ))}
+        {bottomItems.map((item) => {
+          const { to, icon: Icon, label } = item;
+          const badgeCount = getNotificationBadgeCount(item, notificationStats);
+          return (
+            <NavLink
+              key={to}
+              to={to}
+              className={({ isActive }) =>
+                isActive ? 'cms-nav-item active' : 'cms-nav-item'
+              }
+            >
+              {createElement(Icon, { className: 'cms-nav-icon' })}
+              <span className="cms-nav-label">{label}</span>
+              {badgeCount > 0 && item.notificationUncategorized && (
+                <span className="cms-nav-badge-dot" aria-label="Unread uncategorized notifications" />
+              )}
+              {badgeCount > 0 && !item.notificationUncategorized && (
+                <span className="cms-nav-badge" aria-label={`${badgeCount} unread notifications`}>
+                  {formatNotificationBadgeCount(badgeCount)}
+                </span>
+              )}
+            </NavLink>
+          );
+        })}
 
         {/* ── Spacer ── */}
         <div className="cms-nav-spacer" />
@@ -112,12 +173,10 @@ export default function CmsSidebar({ onLogoutClick }) {
       {/* ── User Footer ── */}
       <div className="cms-sidebar-footer">
         <NavLink to="/cms/profile" className="cms-sidebar-user">
-          <div className="cms-sidebar-avatar">
-            <FaBuilding />
-          </div>
+          <SidebarAvatar profile={profile} />
           <div className="cms-sidebar-user-info">
-            <p className="cms-sidebar-user-name">John Juan</p>
-            <p className="cms-sidebar-user-role">President</p>
+            <p className="cms-sidebar-user-name">{displayName}</p>
+            <p className="cms-sidebar-user-role">{displayCompany}</p>
           </div>
         </NavLink>
 

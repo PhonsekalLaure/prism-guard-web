@@ -1,22 +1,54 @@
-import { FaTimes, FaUserCheck, FaCalendarCheck, FaTimesCircle, FaCheck } from 'react-icons/fa';
+import { useState } from 'react';
+import { FaCalendarCheck, FaCheck, FaTimes, FaTimesCircle, FaUserCheck } from 'react-icons/fa';
 
-const qualChecks = [
-  'Filipino Citizenship',
-  'Age Requirement (18-45)',
-  "Height Requirement (5'4\" min)",
-  'Valid PNP-SOSIA License',
-];
+function DetailCell({ label, value }) {
+  return (
+    <div className="ar-detail-cell">
+      <p className="ar-detail-label">{label}</p>
+      <p className="ar-detail-value">{value || 'N/A'}</p>
+    </div>
+  );
+}
 
-export default function ReviewApplicantModal({ isOpen, applicant, onClose }) {
+function formatDateTimeLocal(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  const offsetMs = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+}
+
+export default function ReviewApplicantModal({
+  isOpen,
+  applicant,
+  onClose,
+  onScheduleInterview,
+  onReject,
+  onAccept,
+  isSubmitting,
+}) {
+  const [interviewScheduledAt, setInterviewScheduledAt] = useState(() =>
+    formatDateTimeLocal(applicant?.interview_scheduled_at)
+  );
+  const [interviewNotes, setInterviewNotes] = useState(() =>
+    applicant?.interview_notes || ''
+  );
+  const [notes, setNotes] = useState(() =>
+    applicant?.notes || ''
+  );
+  const [passedInterview, setPassedInterview] = useState(() =>
+    applicant?.notes_payload?.interview?.passed === true
+  );
+
   if (!isOpen || !applicant) return null;
 
+  const canSchedule = applicant.status !== 'rejected' && applicant.status !== 'hired';
+
   return (
-    <div className="ar-modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="ar-modal-overlay" onClick={(event) => event.target === event.currentTarget && onClose()}>
       <div className="ar-modal-content">
-        {/* Header */}
         <div className="ar-modal-header">
           <div>
-            <h2>Application Review</h2>
+            <h2>Application Tracking</h2>
             <p>Applicant ID: {applicant.id}</p>
           </div>
           <button className="ar-close-btn" onClick={onClose}>
@@ -24,15 +56,13 @@ export default function ReviewApplicantModal({ isOpen, applicant, onClose }) {
           </button>
         </div>
 
-        {/* Body */}
         <div className="ar-modal-body">
-          {/* Profile strip */}
           <div className="ar-profile-strip">
             <div className="ar-profile-avatar">{applicant.initials}</div>
             <div>
               <p className="ar-profile-name">{applicant.name}</p>
               <p className="ar-profile-sub">{applicant.position} Position</p>
-              <p className="ar-profile-sub">Applied: February 07, 2026</p>
+              <p className="ar-profile-sub">Applied: {applicant.appliedDate}</p>
             </div>
             <div className="ar-profile-badge-wrap">
               <span className={`applicant-status-badge status-${applicant.status}`} style={{ fontSize: '0.75rem', padding: '0.35rem 1rem' }}>
@@ -41,29 +71,21 @@ export default function ReviewApplicantModal({ isOpen, applicant, onClose }) {
             </div>
           </div>
 
-          {/* Personal details */}
           <div className="ar-detail-grid">
-            <div className="ar-detail-cell">
-              <p className="ar-detail-label">Age</p>
-              <p className="ar-detail-value">{applicant.physical.split('Age: ')[1] ? applicant.physical.split('Age: ')[1] + ' years old' : '—'}</p>
-            </div>
-            <div className="ar-detail-cell">
-              <p className="ar-detail-label">Height</p>
-              <p className="ar-detail-value">{applicant.physical.split(' •')[0].replace('Height: ', '')}</p>
-            </div>
-            <div className="ar-detail-cell">
-              <p className="ar-detail-label">Contact Number</p>
-              <p className="ar-detail-value">{applicant.phone}</p>
-            </div>
-            <div className="ar-detail-cell">
-              <p className="ar-detail-label">Email</p>
-              <p className="ar-detail-value">{applicant.initials.toLowerCase().replace('', '.') + '@email.com'}</p>
-            </div>
+            <DetailCell label="Age" value={applicant.age ? `${applicant.age} years old` : null} />
+            <DetailCell label="Height" value={applicant.height} />
+            <DetailCell label="Contact Number" value={applicant.phone} />
+            <DetailCell label="Email" value={applicant.email} />
+            <DetailCell label="Education" value={applicant.educational_level} />
+            <DetailCell label="Civil Status" value={applicant.civil_status} />
+            <DetailCell label="Experience" value={applicant.years_experience != null ? `${applicant.years_experience} year(s)` : 'No prior experience'} />
+            <DetailCell label="Available From" value={applicant.availability_date} />
+            <DetailCell label="Preferred Shift" value={applicant.preferred_shift} />
+            <DetailCell label="Emergency Contact" value={applicant.emergency_contact_name} />
           </div>
 
-          {/* Credentials */}
           <div>
-            <p className="ar-section-title">Security Credentials</p>
+            <p className="ar-section-title">Declared Security Credentials</p>
             <div className="ar-credentials-box">
               <div className="ar-credential-row">
                 <div>
@@ -71,54 +93,103 @@ export default function ReviewApplicantModal({ isOpen, applicant, onClose }) {
                   <p className="ar-credential-sub">{applicant.license}</p>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <span className="ar-credential-badge"><FaCheck /> VALID</span>
-                  <p className="ar-credential-expires">Expires: Dec 2026</p>
+                  <span className="ar-credential-badge"><FaCheck /> DECLARED</span>
+                  <p className="ar-credential-expires">Expires: {applicant.license_expiry_date || 'N/A'}</p>
                 </div>
               </div>
               <div className="ar-credential-row">
                 <div>
-                  <p className="ar-credential-name">NBI Clearance</p>
-                  <p className="ar-credential-sub">Attached &amp; Verified</p>
+                  <p className="ar-credential-name">Badge Number</p>
+                  <p className="ar-credential-sub">{applicant.badge_number || 'Not declared'}</p>
                 </div>
-                <span className="ar-credential-badge"><FaCheck /> CLEAR</span>
               </div>
             </div>
           </div>
 
-          {/* Qualification checks */}
           <div>
-            <p className="ar-section-title">Qualification Check</p>
-            <div className="ar-qual-list">
-              {qualChecks.map((q) => (
-                <div key={q} className="ar-qual-row">
-                  <span className="ar-qual-label">{q}</span>
-                  <FaCheck className="ar-qual-icon" />
-                </div>
-              ))}
+            <p className="ar-section-title">Interview Plan</p>
+            <div className="ar-detail-grid">
+              <div className="ar-detail-cell">
+                <p className="ar-detail-label">Interview Schedule</p>
+                <input
+                  className="ar-inline-input"
+                  type="datetime-local"
+                  value={interviewScheduledAt}
+                  disabled={!canSchedule || isSubmitting}
+                  onChange={(event) => setInterviewScheduledAt(event.target.value)}
+                />
+              </div>
+              <div className="ar-detail-cell">
+                <p className="ar-detail-label">Residential Address</p>
+                <p className="ar-detail-value">{applicant.residential_address}</p>
+              </div>
             </div>
           </div>
 
-          {/* Notes */}
+          <div>
+            <p className="ar-notes-label">Interview Notes</p>
+            <textarea
+              className="ar-notes-textarea"
+              rows={2}
+              value={interviewNotes}
+              disabled={!canSchedule || isSubmitting}
+              onChange={(event) => setInterviewNotes(event.target.value)}
+              placeholder="Add interview schedule instructions or reminders..."
+            />
+          </div>
+
+          {applicant.status === 'interview' && (
+            <label className="ar-pass-toggle">
+              <input
+                type="checkbox"
+                checked={passedInterview}
+                disabled={isSubmitting}
+                onChange={(event) => setPassedInterview(event.target.checked)}
+              />
+              Passed the interview
+            </label>
+          )}
+
           <div>
             <p className="ar-notes-label">Admin Notes</p>
             <textarea
               className="ar-notes-textarea"
               rows={3}
+              value={notes}
+              disabled={isSubmitting}
+              onChange={(event) => setNotes(event.target.value)}
               placeholder="Add notes about this applicant..."
             />
           </div>
 
-          {/* Actions */}
           <div className="ar-modal-actions">
-            <button className="ar-btn ar-btn-green">
-              <FaUserCheck /> Hire Applicant
-            </button>
-            <button className="ar-btn ar-btn-blue">
+            <button
+              className="ar-btn ar-btn-blue"
+              disabled={!canSchedule || isSubmitting}
+              onClick={() => onScheduleInterview(applicant.id, {
+                interviewScheduledAt,
+                interviewNotes,
+                notes,
+              })}
+            >
               <FaCalendarCheck /> Schedule Interview
             </button>
-            <button className="ar-btn ar-btn-red">
+            <button
+              className="ar-btn ar-btn-red"
+              disabled={isSubmitting || applicant.status === 'rejected'}
+              onClick={() => onReject(applicant.id, { notes })}
+            >
               <FaTimesCircle /> Reject
             </button>
+            {passedInterview && applicant.status === 'interview' && (
+              <button
+                className="ar-btn ar-btn-green"
+                disabled={isSubmitting}
+                onClick={() => onAccept(applicant.id, { notes, passedInterview: true })}
+              >
+                <FaUserCheck /> Accept
+              </button>
+            )}
           </div>
         </div>
       </div>

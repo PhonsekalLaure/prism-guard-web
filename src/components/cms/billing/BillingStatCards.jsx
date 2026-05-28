@@ -1,3 +1,6 @@
+import { FaCheckCircle, FaClock, FaExclamationTriangle, FaReceipt } from 'react-icons/fa';
+import StatCards from '@components/ui/StatCards';
+
 const stats = [
   {
     label: 'Total Due',
@@ -6,6 +9,9 @@ const stats = [
     valueColor: '#dc2626',
     subColor: '#dc2626',
     borderColor: '#ef4444',
+    icon: FaExclamationTriangle,
+    iconBg: 'rgba(239, 68, 68, 0.12)',
+    iconColor: '#dc2626',
   },
   {
     label: 'Paid This Month',
@@ -13,6 +19,9 @@ const stats = [
     sub: 'Feb 2026',
     valueColor: '#16a34a',
     borderColor: '#22c55e',
+    icon: FaCheckCircle,
+    iconBg: 'rgba(34, 197, 94, 0.12)',
+    iconColor: '#16a34a',
   },
   {
     label: 'Pending Verification',
@@ -20,6 +29,9 @@ const stats = [
     sub: '1 payment reviewing',
     valueColor: '#e6b215',
     borderColor: '#e6b215',
+    icon: FaClock,
+    iconBg: 'rgba(230, 178, 21, 0.12)',
+    iconColor: '#b45309',
   },
   {
     label: 'Total Paid (2026)',
@@ -27,25 +39,12 @@ const stats = [
     sub: 'Year to date',
     valueColor: '#093269',
     borderColor: '#093269',
+    icon: FaReceipt,
+    iconBg: 'rgba(9, 50, 105, 0.1)',
+    iconColor: '#093269',
   },
 ];
 
 export default function BillingStatCards() {
-  return (
-    <div className="stat-grid">
-      {stats.map((s) => (
-        <div
-          key={s.label}
-          className="stat-card"
-          style={{ borderLeftColor: s.borderColor }}
-        >
-          <div>
-            <p className="stat-label">{s.label}</p>
-            <h3 className="stat-value" style={{ color: s.valueColor }}>{s.value}</h3>
-            <p className="stat-sub" style={{ color: s.subColor || '#7f8c8d' }}>{s.sub}</p>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
+  return <StatCards cards={stats} />;
 }

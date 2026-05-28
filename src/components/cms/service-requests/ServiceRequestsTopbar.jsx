@@ -8,7 +8,7 @@ export default function ServiceRequestsTopbar({ onNewRequest }) {
           <h2>Service Requests</h2>
           <p className="subtitle">Submit and track your service inquiries</p>
         </div>
-        <div className="sr-topbar-actions">
+        <div className="topbar-actions">
           <button className="sr-btn-new" onClick={onNewRequest}>
             <FaPlus />
             New Request
