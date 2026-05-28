@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { FaEye, FaListUl, FaMinusCircle } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
 import EmptyState from '@components/ui/EmptyState';
+import EntityAvatar from '@components/ui/EntityAvatar';
 import { TableSkeletonRows } from '@components/ui/Skeleton';
 import attendanceService from '@services/hris/attendanceService';
-import HrisAttendanceAvatar from './HrisAttendanceAvatar';
 import HrisAttendanceDetailModal from './HrisAttendanceDetailModal';
 import {
   GPS_ICONS,
@@ -113,7 +113,12 @@ export default function HrisAttendanceTable({
                 <tr key={row.id} className={statusMeta.rowClass}>
                   <td>
                     <div className="ha-emp-cell">
-                      <HrisAttendanceAvatar row={row} />
+                      <EntityAvatar
+                        avatarUrl={row.avatarUrl}
+                        initials={row.initials}
+                        className="ha-avatar"
+                        alt={row.name || row.initials}
+                      />
                       <div>
                         <p className="ha-emp-name">{row.name}</p>
                         <p className="ha-emp-id">{row.empId}</p>

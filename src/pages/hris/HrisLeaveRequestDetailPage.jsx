@@ -15,7 +15,7 @@ import {
 } from 'react-icons/fa';
 import Notification from '@components/ui/Notification';
 import { SkeletonBlock, SkeletonList } from '@components/ui/Skeleton';
-import LeaveRequestAvatar from '@hris-components/leave-requests/LeaveRequestAvatar';
+import EntityAvatar from '@components/ui/EntityAvatar';
 import useNotification from '@hooks/useNotification';
 import leaveRequestsService from '@services/hris/leaveRequestsService';
 import '../../styles/hris/HrisLeaveRequests.css';
@@ -274,7 +274,7 @@ export default function HrisLeaveRequestDetailPage() {
 
             <div className="hlr-modal-body">
               <div className="hlr-modal-emp-box">
-                <LeaveRequestAvatar avatarUrl={leaveRequest.avatarUrl} initials={leaveRequest.initials} />
+                <EntityAvatar avatarUrl={leaveRequest.avatarUrl} initials={leaveRequest.initials} className="hlr-avatar" />
                 <div className="hlr-modal-emp-info">
                   <h3>{leaveRequest.name}</h3>
                   <p>{leaveRequest.role}</p>
