@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   FaHistory, FaBullhorn, FaEye,
   FaTimes, FaArrowLeft, FaSearch, FaEdit, FaArchive, FaTrash,
-  FaSave, FaExclamationTriangle,
+  FaSave, FaExclamationTriangle, FaFilter, FaTag,
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
 import EmptyState from '@components/ui/EmptyState';
