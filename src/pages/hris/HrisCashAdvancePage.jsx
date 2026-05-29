@@ -99,8 +99,6 @@ export default function HrisCashAdvancePage() {
           metadata={metadata}
           stats={stats}
           loading={loading}
-          statusFilter={filters.status}
-          onStatusChange={(status) => handleFilterChange('status', status)}
           onPageChange={loadCashAdvances}
           onResetFilters={handleResetFilters}
         />

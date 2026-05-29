@@ -12,14 +12,7 @@ import EmptyState from '@components/ui/EmptyState';
 import EntityAvatar from '@components/ui/EntityAvatar';
 import { IncidentCardSkeleton, SkeletonList } from '@components/ui/Skeleton';
 
-const tabs = [
-  { label: 'All', value: 'all', countKey: 'total', icon: FaReceipt },
-  { label: 'Pending', value: 'pending', countKey: 'pending', icon: FaClock },
-  { label: 'Approved', value: 'approved', countKey: 'approved', icon: FaCheckCircle },
-  { label: 'Released', value: 'released', countKey: 'released', icon: FaHandHoldingUsd },
-  { label: 'Rejected', value: 'rejected', countKey: 'rejected', icon: FaTimesCircle },
-  { label: 'Settled', value: 'settled', countKey: 'settled', icon: FaReceipt },
-];
+
 
 const STATUS_ICONS = {
   pending: FaClock,
@@ -39,8 +32,6 @@ export default function HrisCashAdvanceList({
   metadata = {},
   stats = {},
   loading = false,
-  statusFilter = 'all',
-  onStatusChange,
   onPageChange,
   onResetFilters,
 }) {
@@ -51,26 +42,12 @@ export default function HrisCashAdvanceList({
   const pageLimit = metadata.limit || 8;
   const start = totalRequests === 0 ? 0 : (currentPage - 1) * pageLimit + 1;
   const end = Math.min(currentPage * pageLimit, totalRequests);
-  const tabStats = {
-    ...stats,
-    total: ['pending', 'approved', 'released', 'rejected', 'settled']
-      .reduce((sum, key) => sum + Number(stats?.[key] || 0), 0),
-  };
+
   const openRequest = (id) => navigate(`/cash-advance/${id}`);
 
   if (loading && requests.length === 0) {
     return (
       <div className="ca-list-container">
-        <div className="ca-tabs-bar">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <button key={tab.value} className={`ca-tab-btn ${statusFilter === tab.value ? 'active' : ''}`} type="button" disabled>
-                <Icon /> {tab.label} (...)
-              </button>
-            );
-          })}
-        </div>
         <div className="ca-feed-header">
           <h3><FaHandHoldingUsd /> Cash Advance Requests</h3>
         </div>
@@ -85,23 +62,6 @@ export default function HrisCashAdvanceList({
 
   return (
     <div className="ca-list-container">
-      <div className="ca-tabs-bar">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          const count = tabStats[tab.countKey] || 0;
-          return (
-            <button
-              key={tab.value}
-              className={`ca-tab-btn ${statusFilter === tab.value ? 'active' : ''}`}
-              onClick={() => onStatusChange?.(tab.value)}
-              type="button"
-            >
-              <Icon /> {tab.label} ({count})
-            </button>
-          );
-        })}
-      </div>
-
       <div className="ca-feed-header">
         <h3><FaHandHoldingUsd /> Cash Advance Requests</h3>
         {totalRequests > 0 && (
