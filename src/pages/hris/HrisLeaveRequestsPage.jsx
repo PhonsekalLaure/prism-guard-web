@@ -11,7 +11,7 @@ import '../../styles/hris/HrisLeaveRequests.css';
 const DEFAULT_FILTERS = {
   search: '',
   leaveType: 'all',
-  status: 'all',
+  status: 'pending',
 };
 const PAGE_LIMIT = 8;
 
