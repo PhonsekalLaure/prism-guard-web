@@ -1,4 +1,4 @@
-import { FaStar, FaStarHalfAlt, FaRegStar, FaMapMarkerAlt, FaCalendar, FaCheckCircle, FaHourglassHalf, FaClock } from 'react-icons/fa';
+import { FaStar, FaStarHalfAlt, FaRegStar, FaMapMarkerAlt, FaCalendar, FaCheckCircle, FaHourglassHalf, FaClock, FaTimesCircle } from 'react-icons/fa';
 
 /**
  * Map category string → badge CSS class
@@ -7,6 +7,7 @@ const CATEGORY_CLASS = {
   'Guard Performance': 'srv-category-badge--guard',
   'Incident Response': 'srv-category-badge--incident',
   'Communication':     'srv-category-badge--communication',
+  'overall-service':   'srv-category-badge--overall', // fallback key
   'Overall Service':   'srv-category-badge--overall',
 };
 
@@ -45,7 +46,6 @@ export default function ReviewCard({ review }) {
   } = review;
 
   const categoryClass = CATEGORY_CLASS[category] ?? 'srv-category-badge--overall';
-  const isPublished   = status === 'Published';
 
   return (
     <div className="srv-review-card">
@@ -54,10 +54,16 @@ export default function ReviewCard({ review }) {
         <div className="srv-review-meta">
           <div className="srv-review-badges">
             <span className={`srv-category-badge ${categoryClass}`}>{category}</span>
-            <span className={`srv-status-badge ${isPublished ? 'srv-status-badge--published' : 'srv-status-badge--pending'}`}>
-              {isPublished
-                ? <><FaCheckCircle /> Published</>
-                : <><FaHourglassHalf /> Pending</>}
+            <span className={`srv-status-badge ${
+              status === 'Published'
+                ? 'srv-status-badge--published'
+                : status === 'Rejected'
+                ? 'srv-status-badge--rejected'
+                : 'srv-status-badge--pending'
+            }`}>
+              {status === 'Published' && <><FaCheckCircle /> Published</>}
+              {status === 'Rejected' && <><FaTimesCircle /> Rejected</>}
+              {status === 'Pending' && <><FaHourglassHalf /> Pending</>}
             </span>
           </div>
           <p className="srv-review-date">
@@ -81,7 +87,7 @@ export default function ReviewCard({ review }) {
             <FaMapMarkerAlt /> {site}
           </span>
           <span className="srv-footer-tag">
-            <FaCalendar /> Service Period: {period}
+            <FaCalendar /> Service Period: {period || 'N/A'}
           </span>
         </div>
         <span className="srv-reviewed-by">Reviewed by: {reviewer}</span>

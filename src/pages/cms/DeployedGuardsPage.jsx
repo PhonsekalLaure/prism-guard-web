@@ -22,6 +22,7 @@ export default function DeployedGuardsPage() {
 
   // ── Filters ────────────────────────────────────────────────────────────────
   const [filters, setFilters] = useState({ search: '', shift: 'all', status: 'all' });
+  const [filterResetKey, setFilterResetKey] = useState(0);
 
   // ── Guard detail modal ─────────────────────────────────────────────────────
   const [selectedGuard, setSelectedGuard] = useState(null);   // summary row from table
@@ -64,6 +65,12 @@ export default function DeployedGuardsPage() {
     setCurrentPage(1); // reset to page 1 on filter change
   };
 
+  const handleResetFilters = () => {
+    setFilters({ search: '', shift: 'all', status: 'all' });
+    setFilterResetKey((key) => key + 1);
+    setCurrentPage(1);
+  };
+
   const handleViewGuard = async (guard) => {
     setSelectedGuard(guard);
     setGuardDetail(null);
@@ -89,7 +96,7 @@ export default function DeployedGuardsPage() {
 
       <div className="cms-content">
         <DeployedGuardsStatCards stats={stats} loading={statsLoading} />
-        <DeployedGuardsFilterBar onFilterChange={handleFilterChange} />
+        <DeployedGuardsFilterBar key={filterResetKey} onFilterChange={handleFilterChange} />
         <GuardRosterTable
           guards={guards}
           loading={listLoading}
@@ -99,6 +106,7 @@ export default function DeployedGuardsPage() {
           limit={LIMIT}
           onPageChange={setCurrentPage}
           onViewGuard={handleViewGuard}
+          onResetFilters={handleResetFilters}
         />
       </div>
 

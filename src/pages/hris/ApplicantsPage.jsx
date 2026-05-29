@@ -52,6 +52,11 @@ export default function ApplicantsPage() {
     setPage(1);
   };
 
+  const handleResetFilters = () => {
+    setFilters({ search: '', position: 'all', status: 'all' });
+    setPage(1);
+  };
+
   const handleScheduleInterview = async (id, payload) => {
     setIsSubmitting(true);
     try {
@@ -90,7 +95,7 @@ export default function ApplicantsPage() {
       <ApplicantsTopbar />
 
       <div className="dashboard-content">
-        <ApplicantsStatCards stats={stats} />
+        <ApplicantsStatCards stats={stats} loading={isLoading} />
         <ApplicantsFilterBar filters={filters} onChange={updateFilters} />
         <ApplicantsGrid
           applicants={displayApplicants}
@@ -99,6 +104,7 @@ export default function ApplicantsPage() {
           onPageChange={setPage}
           onReview={(a) => setReviewApplicant(a)}
           isLoading={isLoading}
+          onResetFilters={handleResetFilters}
         />
       </div>
 

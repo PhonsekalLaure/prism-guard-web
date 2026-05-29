@@ -9,7 +9,7 @@ export default function HrisSRStatCards({ stats, loading = false }) {
       stats={stats}
       loading={loading}
       cards={HRIS_STATS}
-      style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}
+      columns={5}
     />
   );
 }

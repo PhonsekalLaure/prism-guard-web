@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import ServiceRequestsTopbar from '@cms-components/service-requests/ServiceRequestsTopbar';
 import ServiceRequestsStatCards from '@cms-components/service-requests/ServiceRequestsStatCards';
 import ServiceRequestsFilterBar from '@cms-components/service-requests/ServiceRequestsFilterBar';
@@ -12,6 +13,8 @@ import serviceRequestsService from '@services/cms/serviceRequestsService';
 const DEFAULT_FILTERS = { status: 'all', type: 'all', urgency: 'all' };
 
 export default function ServiceRequestsPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [isNewRequestOpen, setIsNewRequestOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
 
@@ -80,6 +83,11 @@ export default function ServiceRequestsPage() {
     fetchTickets(1, newFilters);
   }, [fetchTickets]);
 
+  const handleResetFilters = useCallback(() => {
+    setFilters(DEFAULT_FILTERS);
+    fetchTickets(1, DEFAULT_FILTERS);
+  }, [fetchTickets]);
+
   // ── Page change ───────────────────────────────────────────────────────────
   const handlePageChange = useCallback((page) => {
     fetchTickets(page, filters);
@@ -119,6 +127,14 @@ export default function ServiceRequestsPage() {
     }
   }, [showNotification]);
 
+  useEffect(() => {
+    const requestId = location.state?.openServiceRequestId;
+    if (!requestId) return;
+
+    handleViewRequest({ id: requestId });
+    navigate(location.pathname, { replace: true, state: null });
+  }, [handleViewRequest, location.pathname, location.state, navigate]);
+
   const refreshSelectedRequest = useCallback(async () => {
     if (!selectedRequest?.id) return;
     const detail = await serviceRequestsService.getServiceRequestById(selectedRequest.id);
@@ -142,13 +158,14 @@ export default function ServiceRequestsPage() {
 
       <div className="cms-content">
         <ServiceRequestsStatCards stats={stats} loading={loadingStats} />
-        <ServiceRequestsFilterBar onFilterChange={handleFilterChange} />
+        <ServiceRequestsFilterBar filters={filters} onFilterChange={handleFilterChange} />
         <ServiceRequestsTable
           tickets={tickets}
           metadata={metadata}
           loading={loadingTickets}
           onViewRequest={handleViewRequest}
           onPageChange={handlePageChange}
+          onResetFilters={handleResetFilters}
         />
       </div>
 

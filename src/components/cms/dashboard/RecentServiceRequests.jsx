@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
 import { FaHeadset, FaUserPlus, FaExchangeAlt, FaDotCircle, FaArrowRight, FaWrench } from 'react-icons/fa';
+import { TableSkeletonRows } from '@components/ui/Skeleton';
 
 const thStyle = { padding: '0.65rem 1rem', textAlign: 'left', fontSize: '0.68rem', fontWeight: 600, color: '#7f8c8d', textTransform: 'uppercase', letterSpacing: '0.5px' };
 const tdStyle = { padding: '0.85rem 1rem', fontSize: '0.85rem' };
+const tableSkeletonCellStyle = { height: 14, width: '100%' };
 
 /** Map ticket_type string to a matching icon */
 function typeIcon(type = '') {
@@ -23,18 +25,6 @@ function statusStyle(status = '') {
     case 'closed':      return { bg: '#dcfce7', color: '#15803d' };
     default:            return { bg: '#f3f4f6', color: '#374151' };
   }
-}
-
-function SkeletonRow() {
-  return (
-    <tr style={{ borderBottom: '1px solid #f0f0f0' }}>
-      {[1, 2, 3].map((i) => (
-        <td key={i} style={tdStyle}>
-          <div style={{ height: '14px', background: '#f0f0f0', borderRadius: '4px', animation: 'pulse 1.5s ease-in-out infinite' }} />
-        </td>
-      ))}
-    </tr>
-  );
 }
 
 export default function RecentServiceRequests({ requests, loading }) {
@@ -59,7 +49,7 @@ export default function RecentServiceRequests({ requests, loading }) {
           </thead>
           <tbody>
             {loading
-              ? Array.from({ length: 3 }).map((_, i) => <SkeletonRow key={i} />)
+              ? <TableSkeletonRows rows={3} columns={3} getCellStyle={() => tableSkeletonCellStyle} />
               : rows.length === 0
                 ? (
                   <tr>

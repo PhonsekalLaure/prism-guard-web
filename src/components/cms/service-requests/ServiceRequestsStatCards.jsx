@@ -7,7 +7,7 @@ export default function ServiceRequestsStatCards({ stats, loading }) {
       stats={stats}
       loading={loading}
       cards={BASE_STATS}
-      className="stat-grid three-cols"
+      columns={3}
     />
   );
 }

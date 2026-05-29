@@ -4,6 +4,9 @@ import {
   FaIdCard,
   FaPhone,
 } from 'react-icons/fa';
+import Pagination from '@components/ui/Pagination';
+import EmptyState from '@components/ui/EmptyState';
+import { EntityCardSkeleton, SkeletonList } from '@components/ui/Skeleton';
 
 const STATUS_LABELS = {
   pending: 'PENDING',
@@ -72,6 +75,7 @@ export default function ApplicantsGrid({
   onPageChange,
   onReview,
   isLoading,
+  onResetFilters,
 }) {
   const total = pagination?.total || 0;
   const totalPages = pagination?.totalPages || 1;
@@ -80,11 +84,24 @@ export default function ApplicantsGrid({
   const to = Math.min(page * limit, total);
 
   if (isLoading) {
-    return <p className="applicants-empty">Loading applicants...</p>;
+    return (
+      <div className="applicants-grid">
+        <SkeletonList count={6}>{(index) => (
+          <EntityCardSkeleton key={index} variant="applicant" />
+        )}</SkeletonList>
+      </div>
+    );
   }
 
   if (!applicants.length) {
-    return <p className="applicants-empty">No applicants found.</p>;
+    return (
+      <EmptyState
+        title="No applicants found"
+        description="We couldn't find any applicants matching your current search or filter criteria. Try adjusting your settings to view more applicants."
+        actionLabel="Reset All Filters"
+        onAction={onResetFilters}
+      />
+    );
   }
 
   return (
@@ -95,14 +112,15 @@ export default function ApplicantsGrid({
         ))}
       </div>
 
-      <div className="applicants-pagination">
-        <p className="applicants-pagination-info">Showing {from}-{to} of {total} applicants</p>
-        <div className="applicants-page-btns">
-          <button className="page-btn" disabled={page <= 1} onClick={() => onPageChange(page - 1)}>‹</button>
-          <button className="page-btn active">{page}</button>
-          <button className="page-btn" disabled={page >= totalPages} onClick={() => onPageChange(page + 1)}>›</button>
-        </div>
-      </div>
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        onPageChange={onPageChange}
+        startIndex={from - 1}
+        endIndex={to}
+        totalItems={total}
+        label="applicants"
+      />
     </>
   );
 }

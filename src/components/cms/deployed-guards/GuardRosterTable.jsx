@@ -1,11 +1,21 @@
-import { FaUsers, FaEye, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaUsers, FaEye } from 'react-icons/fa';
+import Pagination from '@components/ui/Pagination';
+import EmptyState from '@components/ui/EmptyState';
+import { TableSkeletonRows } from '@components/ui/Skeleton';
 
 const statusConfig = {
-  'active': { label: 'Active', className: 'dg-status-badge dg-status-badge--active' },
-  'inactive': { label: 'Inactive', className: 'dg-status-badge dg-status-badge--inactive' },
-  'terminated': { label: 'Terminated', className: 'dg-status-badge dg-status-badge--terminated' },
-  'archived': { label: 'Archived', className: 'dg-status-badge dg-status-badge--archived' },
-  'unknown': { label: 'Unknown', className: 'dg-status-badge dg-status-badge--unknown' },
+  active: { label: 'Active', className: 'dg-status-badge dg-status-badge--active' },
+  inactive: { label: 'Inactive', className: 'dg-status-badge dg-status-badge--inactive' },
+  terminated: { label: 'Terminated', className: 'dg-status-badge dg-status-badge--terminated' },
+  archived: { label: 'Archived', className: 'dg-status-badge dg-status-badge--archived' },
+  unknown: { label: 'Unknown', className: 'dg-status-badge dg-status-badge--unknown' },
+};
+
+const getGuardSkeletonCellStyle = (column) => {
+  if (column === 0) return { width: '82%', height: 32 };
+  if (column === 3) return { width: 78, height: 22, borderRadius: 20 };
+  if (column === 4) return { width: 64, height: 30, borderRadius: 6 };
+  return { width: '60%' };
 };
 
 export default function GuardRosterTable({
@@ -17,20 +27,19 @@ export default function GuardRosterTable({
   limit = 6,
   onPageChange,
   onViewGuard,
+  onResetFilters,
 }) {
-  const pageStart = (currentPage - 1) * limit + 1;
+  const pageStart = totalCount === 0 ? 0 : (currentPage - 1) * limit + 1;
   const pageEnd = Math.min(currentPage * limit, totalCount);
 
   return (
     <div className="dg-table-panel">
-      {/* Table Header */}
       <div className="dg-table-header">
         <h3 className="dg-table-title">
           <FaUsers /> Guard Roster
         </h3>
       </div>
 
-      {/* Table */}
       <div className="dg-table-wrapper">
         <table className="dg-table">
           <thead>
@@ -44,20 +53,27 @@ export default function GuardRosterTable({
           </thead>
           <tbody>
             {loading ? (
-              <tr>
-                <td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: '#7f8c8d' }}>
-                  Loading guards...
-                </td>
-              </tr>
+              <TableSkeletonRows
+                rows={6}
+                columns={5}
+                getCellStyle={getGuardSkeletonCellStyle}
+              />
             ) : guards.length === 0 ? (
               <tr>
-                <td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: '#7f8c8d' }}>
-                  No deployed guards found.
+                <td colSpan={5} style={{ padding: '1.5rem' }}>
+                  <EmptyState
+                    icon={FaUsers}
+                    title="No deployed guards found"
+                    description="We couldn't find any deployed guards matching your current search or filter criteria. Try adjusting your settings to view more guards."
+                    actionLabel="Reset All Filters"
+                    onAction={onResetFilters}
+                    compact
+                  />
                 </td>
               </tr>
             ) : (
               guards.map((guard) => {
-                const badge = statusConfig[guard.status] || statusConfig['unknown'];
+                const badge = statusConfig[guard.status] || statusConfig.unknown;
                 return (
                   <tr
                     key={guard.id}
@@ -105,40 +121,18 @@ export default function GuardRosterTable({
         </table>
       </div>
 
-      {/* Pagination */}
-      <div className="dg-pagination">
-        <span className="dg-pagination-info">
-          {totalCount === 0
-            ? 'No guards'
-            : `Showing ${pageStart}–${pageEnd} of ${totalCount} guard${totalCount !== 1 ? 's' : ''}`}
-        </span>
-        <div className="dg-page-btns">
-          <button
-            className="page-btn"
-            onClick={() => onPageChange?.(currentPage - 1)}
-            disabled={currentPage <= 1 || loading}
-          >
-            <FaChevronLeft />
-          </button>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-            <button
-              key={p}
-              className={`page-btn${p === currentPage ? ' active' : ''}`}
-              onClick={() => onPageChange?.(p)}
-              disabled={loading}
-            >
-              {p}
-            </button>
-          ))}
-          <button
-            className="page-btn"
-            onClick={() => onPageChange?.(currentPage + 1)}
-            disabled={currentPage >= totalPages || loading}
-          >
-            <FaChevronRight />
-          </button>
-        </div>
-      </div>
+      {totalCount > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+          startIndex={pageStart - 1}
+          endIndex={pageEnd}
+          totalItems={totalCount}
+          label={`guard${totalCount !== 1 ? 's' : ''}`}
+          disabled={loading}
+        />
+      )}
     </div>
   );
 }

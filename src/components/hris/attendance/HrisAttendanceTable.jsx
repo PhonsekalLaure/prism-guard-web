@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { FaChevronLeft, FaChevronRight, FaEye, FaListUl, FaMinusCircle } from 'react-icons/fa';
+import { FaEye, FaListUl, FaMinusCircle } from 'react-icons/fa';
+import Pagination from '@components/ui/Pagination';
+import EmptyState from '@components/ui/EmptyState';
+import { TableSkeletonRows } from '@components/ui/Skeleton';
 import attendanceService from '@services/hris/attendanceService';
 import HrisAttendanceAvatar from './HrisAttendanceAvatar';
 import HrisAttendanceDetailModal from './HrisAttendanceDetailModal';
@@ -12,27 +15,12 @@ import {
   getHoursNoteClass,
 } from './attendanceUi';
 
-function renderPages(metadata, onPageChange) {
-  const totalPages = Math.max(metadata?.totalPages || 1, 1);
-  const currentPage = metadata?.page || 1;
-  const pages = [];
-  const start = Math.max(1, Math.min(currentPage - 1, totalPages - 2));
-  const end = Math.min(totalPages, start + 2);
-
-  for (let page = start; page <= end; page += 1) {
-    pages.push(
-      <button
-        key={page}
-        className={`ha-page-btn ${page === currentPage ? 'active' : ''}`}
-        onClick={() => onPageChange?.(page)}
-      >
-        {page}
-      </button>
-    );
-  }
-
-  return pages;
-}
+const getAttendanceSkeletonCellStyle = (column) => {
+  if (column === 0) return { width: '85%', height: 32 };
+  if (column === 5 || column === 6) return { width: 86, height: 24, borderRadius: 20 };
+  if (column === 7) return { width: 34, height: 34, borderRadius: 8 };
+  return { width: '70%', height: 14 };
+};
 
 export default function HrisAttendanceTable({
   records = [],
@@ -40,6 +28,7 @@ export default function HrisAttendanceTable({
   loading = false,
   selectedDate = null,
   onPageChange,
+  onResetFilters,
 }) {
   const [selectedRow, setSelectedRow] = useState(null);
   const [selectedDetail, setSelectedDetail] = useState(null);
@@ -101,13 +90,19 @@ export default function HrisAttendanceTable({
           </thead>
           <tbody>
             {loading && (
-              <tr>
-                <td colSpan="8" className="ha-empty-cell">Loading attendance records...</td>
-              </tr>
+              <TableSkeletonRows rows={6} columns={8} getCellStyle={getAttendanceSkeletonCellStyle} />
             )}
             {!loading && records.length === 0 && (
               <tr>
-                <td colSpan="8" className="ha-empty-cell">No attendance records found.</td>
+                <td colSpan="8" className="ha-empty-cell">
+                  <EmptyState
+                    title="No attendance records found"
+                    description="We couldn't find any attendance records matching the selected date, search, or filter criteria. Try adjusting your settings to view more records."
+                    actionLabel="Reset All Filters"
+                    onAction={onResetFilters}
+                    compact
+                  />
+                </td>
               </tr>
             )}
             {!loading && records.map((row) => {
@@ -163,26 +158,18 @@ export default function HrisAttendanceTable({
         </table>
       </div>
 
-      <div className="ha-pagination">
-        <p className="ha-pagination-text">Showing {from}-{to} of {totalRecords} records</p>
-        <div className="ha-pagination-controls">
-          <button
-            className="ha-page-btn"
-            disabled={currentPage <= 1}
-            onClick={() => onPageChange?.(currentPage - 1)}
-          >
-            <FaChevronLeft />
-          </button>
-          {renderPages(metadata, onPageChange)}
-          <button
-            className="ha-page-btn"
-            disabled={currentPage >= totalPages}
-            onClick={() => onPageChange?.(currentPage + 1)}
-          >
-            <FaChevronRight />
-          </button>
-        </div>
-      </div>
+      {totalRecords > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+          startIndex={from - 1}
+          endIndex={to}
+          totalItems={totalRecords}
+          label="records"
+          disabled={loading}
+        />
+      )}
 
       {selectedRow && (
         <HrisAttendanceDetailModal

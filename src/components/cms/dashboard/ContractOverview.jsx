@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { FaClipboardList, FaArrowRight } from 'react-icons/fa';
+import { SkeletonBlock } from '@components/ui/Skeleton';
 
 /** Map contract status string to badge colours */
 function contractBadge(status = '') {
@@ -17,8 +18,8 @@ const rowStyle = { display: 'flex', justifyContent: 'space-between', alignItems:
 function SkeletonRow() {
   return (
     <div style={{ ...rowStyle }}>
-      <div style={{ height: '12px', width: '80px', background: '#f0f0f0', borderRadius: '4px', animation: 'pulse 1.5s ease-in-out infinite' }} />
-      <div style={{ height: '12px', width: '100px', background: '#f0f0f0', borderRadius: '4px', animation: 'pulse 1.5s ease-in-out infinite' }} />
+      <SkeletonBlock height={12} width={80} radius={4} />
+      <SkeletonBlock height={12} width={100} radius={4} />
     </div>
   );
 }

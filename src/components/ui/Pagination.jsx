@@ -19,9 +19,12 @@ export default function Pagination({
   startIndex, 
   endIndex, 
   totalItems,
-  label = 'items'
+  label = 'items',
+  disabled = false,
 }) {
   if (totalPages <= 0) return null;
+  const displayStart = totalItems > 0 ? startIndex + 1 : 0;
+  const displayEnd = Math.min(endIndex, totalItems);
 
   /**
    * Calculate which page numbers to display
@@ -65,14 +68,14 @@ export default function Pagination({
   return (
     <div className="ui-pagination">
       <p className="ui-pagination-info">
-        Showing {startIndex + 1}-{endIndex} of {totalItems} {label}
+        Showing {displayStart}-{displayEnd} of {totalItems} {label}
       </p>
       
       <div className="ui-page-btns">
         <button 
           className="ui-page-btn" 
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 1}
+          onClick={() => onPageChange?.(currentPage - 1)}
+          disabled={disabled || currentPage === 1}
           aria-label="Previous Page"
         >
           <FaChevronLeft />
@@ -85,7 +88,8 @@ export default function Pagination({
             <button
               key={page}
               className={`ui-page-btn ${currentPage === page ? 'active' : ''}`}
-              onClick={() => onPageChange(page)}
+              onClick={() => onPageChange?.(page)}
+              disabled={disabled}
             >
               {page}
             </button>
@@ -94,8 +98,8 @@ export default function Pagination({
         
         <button 
           className="ui-page-btn"
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
+          onClick={() => onPageChange?.(currentPage + 1)}
+          disabled={disabled || currentPage === totalPages}
           aria-label="Next Page"
         >
           <FaChevronRight />

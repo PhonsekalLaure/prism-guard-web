@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import ServiceReviewsTopbar from '@cms-components/reviews/ServiceReviewsTopbar';
 import SubmitReviewForm     from '@cms-components/reviews/SubmitReviewForm';
 import PastReviews          from '@cms-components/reviews/PastReviews';
@@ -8,6 +9,9 @@ import useNotification      from '@hooks/useNotification';
 import '@styles/cms/ServiceReviews.css';
 
 export default function ServiceReviewsPage() {
+  const location = useLocation();
+  const prefill  = location.state || {};
+
   const [showSuccess, setShowSuccess] = useState(false);
   // Increment this to trigger a re-fetch in PastReviews after a new submission
   const [reviewsRefreshKey, setReviewsRefreshKey] = useState(0);
@@ -41,7 +45,7 @@ export default function ServiceReviewsPage() {
       <ServiceReviewsTopbar />
 
       <div className="cms-content">
-        <SubmitReviewForm onSubmitSuccess={handleSubmitSuccess} />
+        <SubmitReviewForm onSubmitSuccess={handleSubmitSuccess} prefill={prefill} />
         <PastReviews refreshKey={reviewsRefreshKey} />
       </div>
 

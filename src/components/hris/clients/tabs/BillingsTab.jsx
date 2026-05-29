@@ -1,4 +1,5 @@
 import { FaHistory, FaFileInvoiceDollar } from 'react-icons/fa';
+import EmptyState from '@components/ui/EmptyState';
 import { fmtDate, fmtMoney } from './ClientInfoCell';
 
 export default function BillingsTab({ client }) {
@@ -45,10 +46,12 @@ export default function BillingsTab({ client }) {
             </table>
           </div>
         ) : (
-          <div className="vc-empty">
-            <FaFileInvoiceDollar className="vc-empty-icon" />
-            <p className="vc-empty-text">No billing records found.</p>
-          </div>
+          <EmptyState
+            icon={FaFileInvoiceDollar}
+            title="No billing records found"
+            description="This client does not have any billing records yet. Records will appear here once billing activity is available."
+            compact
+          />
         )}
       </div>
     </div>

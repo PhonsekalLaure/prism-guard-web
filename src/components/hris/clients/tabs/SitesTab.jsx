@@ -1,4 +1,5 @@
 import { FaMapMarkerAlt, FaPencilAlt, FaPlus, FaShieldAlt, FaUsers, FaUserShield } from 'react-icons/fa';
+import EmptyState from '@components/ui/EmptyState';
 import SiteMap from '../SiteMap';
 
 function formatDate(dateStr) {
@@ -162,10 +163,12 @@ export default function SitesTab({ client, onDeployGuard, onAddSite, onEditSite,
             })}
           </div>
         ) : (
-          <div className="vc-empty">
-            <FaMapMarkerAlt className="vc-empty-icon" />
-            <p className="vc-empty-text">No sites registered for this client.</p>
-          </div>
+          <EmptyState
+            icon={FaMapMarkerAlt}
+            title="No sites registered"
+            description="This client does not have any deployment sites yet. Sites will appear here once they are added."
+            compact
+          />
         )}
       </div>
     </div>

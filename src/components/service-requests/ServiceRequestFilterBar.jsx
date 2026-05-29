@@ -16,14 +16,14 @@ export default function ServiceRequestFilterBar({
   const emit = (updates) => onFilterChange?.({ ...current, ...updates });
 
   return (
-    <div className="sr-filter-bar">
+    <div className={`filter-bar ${clients ? 'four-cols' : 'three-cols'}`}>
       {clients && (
-        <div className="sr-filter-group">
-          <label className="sr-filter-label">
-            <FaBuilding className="sr-filter-icon" /> Client
+        <div className="filter-group">
+          <label className="filter-label">
+            <FaBuilding className="filter-icon" /> Client
           </label>
           <select
-            className="sr-filter-select"
+            className="filter-select"
             value={current.clientId}
             onChange={(event) => emit({ clientId: event.target.value })}
           >
@@ -35,12 +35,12 @@ export default function ServiceRequestFilterBar({
         </div>
       )}
 
-      <div className="sr-filter-group">
-        <label className="sr-filter-label">
-          <FaTag className="sr-filter-icon" /> Status
+      <div className="filter-group">
+        <label className="filter-label">
+          <FaTag className="filter-icon" /> Status
         </label>
         <select
-          className="sr-filter-select"
+          className="filter-select"
           value={current.status}
           onChange={(event) => emit({ status: event.target.value })}
         >
@@ -52,12 +52,12 @@ export default function ServiceRequestFilterBar({
         </select>
       </div>
 
-      <div className="sr-filter-group">
-        <label className="sr-filter-label">
-          <FaList className="sr-filter-icon" /> Type
+      <div className="filter-group">
+        <label className="filter-label">
+          <FaList className="filter-icon" /> Type
         </label>
         <select
-          className="sr-filter-select"
+          className="filter-select"
           value={current.type}
           onChange={(event) => emit({ type: event.target.value })}
         >
@@ -70,12 +70,12 @@ export default function ServiceRequestFilterBar({
         </select>
       </div>
 
-      <div className="sr-filter-group">
-        <label className="sr-filter-label">
-          <FaFlag className="sr-filter-icon" /> Urgency
+      <div className="filter-group">
+        <label className="filter-label">
+          <FaFlag className="filter-icon" /> Urgency
         </label>
         <select
-          className="sr-filter-select"
+          className="filter-select"
           value={current.urgency}
           onChange={(event) => emit({ urgency: event.target.value })}
         >

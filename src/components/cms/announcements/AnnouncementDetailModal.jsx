@@ -22,6 +22,9 @@ export default function AnnouncementDetailModal({ isOpen, announcement, onClose 
     <div className="ann-modal-overlay" onClick={onClose}>
       <div
         className="ann-modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cms-announcement-title"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -32,7 +35,7 @@ export default function AnnouncementDetailModal({ isOpen, announcement, onClose 
             </div>
             <div>
               <p className="ann-modal-id">{announcement.id}</p>
-              <h3 className="ann-modal-title">{announcement.subject}</h3>
+              <h3 id="cms-announcement-title" className="ann-modal-title">{announcement.subject}</h3>
             </div>
           </div>
           <button className="ann-modal-close" onClick={onClose} aria-label="Close">
@@ -61,12 +64,16 @@ export default function AnnouncementDetailModal({ isOpen, announcement, onClose 
                 {announcement.audience}
               </span>
             </div>
+            <div className="ann-modal-meta-item">
+              <FaCalendarAlt className="ann-modal-meta-icon" />
+              <span className="ann-modal-meta-label">Expires</span>
+              <span className="ann-modal-meta-value">{announcement.expiresAtDisplay}</span>
+            </div>
           </div>
 
           {/* Badges */}
           <div className="ann-modal-badges">
             <span className={announcement.priorityClass}>{announcement.priority}</span>
-            <span className={announcement.statusClass}>{announcement.status}</span>
           </div>
 
           {/* Divider */}

@@ -1,52 +1,53 @@
-const stats = [
+import { FaBullhorn, FaCheckCircle, FaBuilding, FaShieldAlt } from 'react-icons/fa';
+import StatCards from '@components/ui/StatCards';
+
+const CARD_META = [
   {
     label: 'Total',
-    value: '24',
     sub: 'All announcements',
     valueColor: '#093269',
     borderColor: '#093269',
+    iconBg: 'rgba(9,50,105,0.1)',
+    iconColor: '#093269',
+    Icon: FaBullhorn,
     delay: '0s',
+    statKey: 'total',
   },
   {
     label: 'Active',
-    value: '6',
     sub: 'Currently visible',
     valueColor: '#16a34a',
     borderColor: '#22c55e',
-    delay: '0.05s',
+    iconBg: 'rgba(34,197,94,0.1)',
+    iconColor: '#16a34a',
+    Icon: FaCheckCircle,
+    delay: '0.06s',
+    statKey: 'active',
   },
   {
-    label: 'Sent to Clients',
-    value: '10',
-    sub: 'Client-facing',
+    label: 'Client-Targeted',
+    sub: 'All client broadcasts',
     valueColor: '#2563eb',
     borderColor: '#3b82f6',
-    delay: '0.1s',
+    iconBg: 'rgba(59,130,246,0.1)',
+    iconColor: '#2563eb',
+    Icon: FaBuilding,
+    delay: '0.12s',
+    statKey: 'clients',
   },
   {
-    label: 'Sent to Guards',
-    value: '14',
-    sub: 'Guard-facing',
-    valueColor: '#e6b215',
+    label: 'Guard-Targeted',
+    sub: 'All guard broadcasts',
+    valueColor: '#b45309',
     borderColor: '#e6b215',
-    delay: '0.15s',
+    iconBg: 'rgba(230,178,21,0.12)',
+    iconColor: '#b45309',
+    Icon: FaShieldAlt,
+    delay: '0.18s',
+    statKey: 'employees',
   },
 ];
 
-export default function HrisAnnouncementsStatCards() {
-  return (
-    <div className="an-stat-grid">
-      {stats.map((s, i) => (
-        <div
-          key={i}
-          className="an-stat-card"
-          style={{ borderLeftColor: s.borderColor, animationDelay: s.delay }}
-        >
-          <p className="an-stat-label">{s.label}</p>
-          <p className="an-stat-value" style={{ color: s.valueColor }}>{s.value}</p>
-          <p className="an-stat-sub">{s.sub}</p>
-        </div>
-      ))}
-    </div>
-  );
+export default function HrisAnnouncementsStatCards({ stats, loading }) {
+  return <StatCards cards={CARD_META} stats={stats} loading={loading || !stats} />;
 }
