@@ -298,7 +298,7 @@
 .ca-avatar {
   width: 46px;
   height: 46px;
-  border-radius: 10px;
+  border-radius: 50% !important;
   background: linear-gradient(135deg, #093269 0%, #0d4a8f 100%);
   color: #fff;
   display: flex;
@@ -320,6 +320,10 @@
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.ca-feed-body .incident-card-skeleton__icon {
+  border-radius: 50%;
 }
 
 .ca-emp-name {
@@ -723,7 +727,7 @@
 .ca-modal-avatar {
   width: 60px;
   height: 60px;
-  border-radius: 12px;
+  border-radius: 50% !important;
   background: linear-gradient(135deg, #093269 0%, #0d4a8f 100%);
   color: #fff;
   display: flex;

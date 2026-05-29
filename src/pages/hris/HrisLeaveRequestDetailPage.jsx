@@ -33,7 +33,7 @@ function LeaveRequestDetailSkeleton() {
 
       <div className="hlr-modal-body">
         <div className="hlr-modal-emp-box">
-          <SkeletonBlock className="entity-card-skeleton__avatar entity-card-skeleton__avatar--square" />
+          <SkeletonBlock className="entity-card-skeleton__avatar" />
           <div className="entity-card-skeleton__lines">
             <SkeletonBlock className="entity-card-skeleton__line entity-card-skeleton__line--long" />
             <SkeletonBlock className="entity-card-skeleton__line entity-card-skeleton__line--short" />
