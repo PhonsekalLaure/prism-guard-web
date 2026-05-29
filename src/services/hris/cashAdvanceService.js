@@ -30,8 +30,32 @@ async function getCashAdvanceById(id) {
   return data;
 }
 
+async function approveCashAdvance(id, payload = {}) {
+  const { data } = await api.patch(`/${id}/approve`, payload);
+  return data;
+}
+
+async function rejectCashAdvance(id, reviewNotes = '') {
+  const { data } = await api.patch(`/${id}/reject`, { reviewNotes });
+  return data;
+}
+
+async function releaseCashAdvance(id, releaseNotes = '') {
+  const { data } = await api.patch(`/${id}/release`, { releaseNotes });
+  return data;
+}
+
+async function settleCashAdvance(id, settlementNotes = '') {
+  const { data } = await api.patch(`/${id}/settle`, { settlementNotes });
+  return data;
+}
+
 export default {
+  approveCashAdvance,
   getCashAdvanceById,
   getCashAdvances,
   getStats,
+  rejectCashAdvance,
+  releaseCashAdvance,
+  settleCashAdvance,
 };
