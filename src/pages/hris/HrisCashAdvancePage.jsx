@@ -13,7 +13,7 @@ const PAGE_LIMIT = 8;
 const DEFAULT_FILTERS = {
   search: '',
   reason: 'all',
-  status: 'pending',
+  status: 'all',
 };
 
 const DEFAULT_STATS = {
@@ -97,7 +97,6 @@ export default function HrisCashAdvancePage() {
         <HrisCashAdvanceList
           requests={requests}
           metadata={metadata}
-          stats={stats}
           loading={loading}
           onPageChange={loadCashAdvances}
           onResetFilters={handleResetFilters}

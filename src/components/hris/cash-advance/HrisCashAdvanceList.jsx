@@ -30,7 +30,6 @@ function getStatusIcon(status) {
 export default function HrisCashAdvanceList({
   requests = [],
   metadata = {},
-  stats = {},
   loading = false,
   onPageChange,
   onResetFilters,
