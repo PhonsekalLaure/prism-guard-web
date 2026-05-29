@@ -1015,6 +1015,52 @@
   box-shadow: 0 0 0 3px rgba(230, 178, 21, 0.1);
 }
 
+.ca-action-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.ca-action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.ca-action-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.ca-action-field span {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.ca-action-field input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 0.75rem 0.9rem;
+  font-size: 0.9rem;
+  font-family: 'Poppins', sans-serif;
+  outline: none;
+}
+
+.ca-action-field input:focus {
+  border-color: #e6b215;
+  box-shadow: 0 0 0 3px rgba(230, 178, 21, 0.1);
+}
+
 /* Modal action buttons */
 .ca-modal-actions {
   display: flex;
@@ -1045,6 +1091,11 @@
 .ca-btn.reject:hover { background: #b91c1c; }
 .ca-btn.secondary { background: #f3f4f6; color: #374151; flex: 0 0 auto; padding: 0.7rem 1.25rem; }
 .ca-btn.secondary:hover { background: #e5e7eb; }
+.ca-btn:disabled { opacity: 0.65; cursor: not-allowed; }
+
+.ca-spin {
+  animation: caSpin 0.9s linear infinite;
+}
 
 /* =============================================
    ANIMATIONS
@@ -1064,6 +1115,10 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes caSpin {
+  to { transform: rotate(360deg); }
+}
+
 /* =============================================
    RESPONSIVE
    ============================================= */
@@ -1076,6 +1131,7 @@
 @media (max-width: 768px) {
   .ca-topbar { flex-direction: column; align-items: flex-start; gap: 1rem; }
   .ca-tabs-bar { padding: 0 1rem; }
+  .ca-action-grid { grid-template-columns: 1fr; }
   .ca-card-header,
   .ca-card-footer,
   .ca-modal-emp-box {
