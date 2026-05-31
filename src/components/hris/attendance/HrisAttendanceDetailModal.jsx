@@ -131,6 +131,8 @@ export default function HrisAttendanceDetailModal({
             <div className="ha-detail-grid">
               <div><span>Attendance Log ID</span><strong>{detail?.log?.id || displayRow.attendanceLogId || 'N/A'}</strong></div>
               <div><span>Deployment ID</span><strong>{detail?.assignment?.deploymentId || displayRow.deploymentId || 'N/A'}</strong></div>
+              <div><span>Assignment Type</span><strong>{displayRow.deploymentTypeLabel || 'Regular Assignment'}</strong></div>
+              <div><span>Covering For</span><strong>{displayRow.coveringForName || 'N/A'}</strong></div>
               <div><span>Employee ID</span><strong>{detail?.employee?.employeeIdNumber || displayRow.empId}</strong></div>
               <div><span>Log Date</span><strong>{detail?.log?.logDate || 'N/A'}</strong></div>
               <div><span>Derived Status</span><strong>{statusMeta.label}</strong></div>

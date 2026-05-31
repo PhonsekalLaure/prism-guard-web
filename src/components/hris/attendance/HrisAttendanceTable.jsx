@@ -128,6 +128,16 @@ export default function HrisAttendanceTable({
                   <td>
                     <p className="ha-assign-name">{row.location}</p>
                     <p className="ha-assign-area">{row.area}</p>
+                    {row.isTemporaryReplacement && (
+                      <div className="ha-assignment-meta">
+                        <span className="ha-assignment-pill">Temporary Replacement</span>
+                        {row.coveringForName && (
+                          <span className="ha-assignment-covering">
+                            For {row.coveringForName}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </td>
                   <td>
                     <p className={`ha-time-main ${getClockInClass(row)}`}>{row.clockIn || '-'}</p>

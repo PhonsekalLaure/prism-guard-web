@@ -412,6 +412,34 @@
   font-weight: 500;
 }
 
+.ha-assignment-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+}
+
+.ha-assignment-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0.25rem 0.5rem;
+  text-transform: uppercase;
+}
+
+.ha-assignment-covering {
+  color: #475569;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
 .ha-time-main {
   font-weight: 600;
   color: #1e293b;
