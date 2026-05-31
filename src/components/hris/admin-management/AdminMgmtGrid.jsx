@@ -1,5 +1,6 @@
 import { FaCrown, FaUserShield, FaChevronRight } from 'react-icons/fa';
 import EmptyState from '@components/ui/EmptyState';
+import EntityAvatar from '@components/ui/EntityAvatar';
 import { EntityCardSkeleton, SkeletonList } from '@components/ui/Skeleton';
 import { getAdminRoleLabel } from '@utils/adminPermissions';
 
@@ -34,9 +35,13 @@ function AdminCard({ admin, onAdminClick }) {
 
       <div className="admin-card-body">
         <div className="admin-card-user">
-          <div className={`admin-card-avatar ${isPresident ? 'super' : 'default'}`}>
-            {isPresident ? <FaUserShield style={{ fontSize: '1.3rem' }} /> : initials}
-          </div>
+          <EntityAvatar
+            avatarUrl={admin.avatar_url || admin.avatarUrl}
+            initials={initials}
+            className={`admin-card-avatar ${isPresident ? 'super' : 'default'}`}
+            alt={admin.full_name || initials}
+            fallbackContent={isPresident ? <FaUserShield style={{ fontSize: '1.3rem' }} /> : undefined}
+          />
           <div>
             <p className="admin-card-name">{admin.full_name}</p>
             <p className="admin-card-email">{admin.contact_email}</p>

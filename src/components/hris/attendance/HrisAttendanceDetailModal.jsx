@@ -1,6 +1,6 @@
 import { FaClock, FaMapMarkerAlt, FaMinusCircle, FaTimes, FaUserShield } from 'react-icons/fa';
+import EntityAvatar from '@components/ui/EntityAvatar';
 import { SkeletonBlock, SkeletonList } from '@components/ui/Skeleton';
-import HrisAttendanceAvatar from './HrisAttendanceAvatar';
 import {
   GPS_ICONS,
   STATUS_META,
@@ -72,7 +72,12 @@ export default function HrisAttendanceDetailModal({
 
         <div className="ha-modal-body">
           <div className="ha-modal-emp-box">
-            <HrisAttendanceAvatar row={displayRow} className="ha-modal-avatar" />
+            <EntityAvatar
+              avatarUrl={displayRow.avatarUrl}
+              initials={displayRow.initials}
+              className="ha-avatar ha-modal-avatar"
+              alt={displayRow.name || displayRow.initials}
+            />
             <div className="ha-modal-emp-info">
               <h3>{displayRow.name}</h3>
               <p><FaUserShield style={{ marginRight: '4px' }} />{displayRow.role}</p>
@@ -126,6 +131,8 @@ export default function HrisAttendanceDetailModal({
             <div className="ha-detail-grid">
               <div><span>Attendance Log ID</span><strong>{detail?.log?.id || displayRow.attendanceLogId || 'N/A'}</strong></div>
               <div><span>Deployment ID</span><strong>{detail?.assignment?.deploymentId || displayRow.deploymentId || 'N/A'}</strong></div>
+              <div><span>Assignment Type</span><strong>{displayRow.deploymentTypeLabel || 'Regular Assignment'}</strong></div>
+              <div><span>Covering For</span><strong>{displayRow.coveringForName || 'N/A'}</strong></div>
               <div><span>Employee ID</span><strong>{detail?.employee?.employeeIdNumber || displayRow.empId}</strong></div>
               <div><span>Log Date</span><strong>{detail?.log?.logDate || 'N/A'}</strong></div>
               <div><span>Derived Status</span><strong>{statusMeta.label}</strong></div>

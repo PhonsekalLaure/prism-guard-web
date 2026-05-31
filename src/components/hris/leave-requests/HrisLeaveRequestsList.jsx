@@ -10,7 +10,7 @@ import {
 import Pagination from '@components/ui/Pagination';
 import EmptyState from '@components/ui/EmptyState';
 import { IncidentCardSkeleton, SkeletonList } from '@components/ui/Skeleton';
-import LeaveRequestAvatar from './LeaveRequestAvatar';
+import EntityAvatar from '@components/ui/EntityAvatar';
 
 const STATUS_ICONS = {
   pending: <FaClock className="mr-1" />,
@@ -92,7 +92,7 @@ export default function HrisLeaveRequestsList({
               <div className="hlr-card-body">
                 <div className="hlr-card-header">
                   <div className="hlr-employee-info">
-                    <LeaveRequestAvatar avatarUrl={leave.avatarUrl} initials={leave.initials} />
+                    <EntityAvatar avatarUrl={leave.avatarUrl} initials={leave.initials} className="hlr-avatar" />
                     <div>
                       <h3 className="hlr-employee-name">{leave.name}</h3>
                       <p className="hlr-employee-meta">{leave.empId} - {leave.role}</p>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { FaCalendarCheck, FaCheck, FaTimes, FaTimesCircle, FaUserCheck } from 'react-icons/fa';
+import EntityAvatar from '@components/ui/EntityAvatar';
 
 function DetailCell({ label, value }) {
   return (
@@ -58,7 +59,12 @@ export default function ReviewApplicantModal({
 
         <div className="ar-modal-body">
           <div className="ar-profile-strip">
-            <div className="ar-profile-avatar">{applicant.initials}</div>
+            <EntityAvatar
+              avatarUrl={applicant.avatarUrl || applicant.avatar_url}
+              initials={applicant.initials}
+              className="ar-profile-avatar"
+              alt={applicant.name || applicant.initials}
+            />
             <div>
               <p className="ar-profile-name">{applicant.name}</p>
               <p className="ar-profile-sub">{applicant.position} Position</p>

@@ -4,6 +4,7 @@ import {
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
 import EmptyState from '@components/ui/EmptyState';
+import EntityAvatar from '@components/ui/EntityAvatar';
 import { EntityCardSkeleton, SkeletonList } from '@components/ui/Skeleton';
 
 export default function ClientsGrid({
@@ -48,13 +49,12 @@ export default function ClientsGrid({
               {/* Colored header */}
               <div className="client-card-header">
                 {/* Avatar / Initials — matches employee-avatar style */}
-                <div className="client-avatar">
-                  {client.avatar_url ? (
-                    <img src={client.avatar_url} alt={client.initials || client.company} className="w-full h-full object-cover" />
-                  ) : (
-                    client.initials || '??'
-                  )}
-                </div>
+                <EntityAvatar
+                  avatarUrl={client.avatar_url}
+                  initials={client.initials || '??'}
+                  className="client-avatar"
+                  alt={client.company || client.initials}
+                />
 
                 <span className={`client-badge badge-${client.status}`}>
                   {client.status?.toUpperCase()}

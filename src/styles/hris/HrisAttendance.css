@@ -361,7 +361,7 @@
 .ha-avatar {
   width: 40px;
   height: 40px;
-  border-radius: 10px;
+  border-radius: 50%;
   background: linear-gradient(135deg, #093269 0%, #1a5bad 100%);
   color: #fff;
   display: flex;
@@ -381,15 +381,7 @@
   object-fit: cover;
   position: absolute;
   inset: 0;
-}
-
-.ha-avatar span {
-  position: relative;
-  z-index: 1;
-}
-
-.ha-avatar img ~ span {
-  visibility: hidden;
+  display: block;
 }
 
 .ha-emp-name {
@@ -418,6 +410,34 @@
   color: #64748b;
   margin: 0;
   font-weight: 500;
+}
+
+.ha-assignment-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+}
+
+.ha-assignment-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0.25rem 0.5rem;
+  text-transform: uppercase;
+}
+
+.ha-assignment-covering {
+  color: #475569;
+  font-size: 0.72rem;
+  font-weight: 600;
 }
 
 .ha-time-main {
@@ -898,7 +918,7 @@
   width: 54px !important;
   height: 54px !important;
   font-size: 1rem !important;
-  border-radius: 12px !important;
+  border-radius: 50% !important;
   box-shadow: 0 4px 12px rgba(9, 50, 105, 0.2) !important;
 }
 

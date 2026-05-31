@@ -1,4 +1,5 @@
 import { FaUserShield, FaMapMarkerAlt, FaTimes, FaArrowRight, FaIdCard } from 'react-icons/fa';
+import EntityAvatar from '@components/ui/EntityAvatar';
 
 export default function GuardFulfillmentPicker({
   isOpen,
@@ -90,7 +91,12 @@ export default function GuardFulfillmentPicker({
                     className={`sr-guard-card${isSelected ? ' sr-guard-card--selected' : ''}`}
                     onClick={() => onSelect(emp.id)}
                   >
-                    <div className="sr-guard-card-avatar">{initials}</div>
+                    <EntityAvatar
+                      avatarUrl={emp.avatarUrl || emp.avatar_url}
+                      initials={initials}
+                      className="sr-guard-card-avatar"
+                      alt={emp.name || initials}
+                    />
 
                     <div className="sr-guard-card-info">
                       <p className="sr-guard-card-name">{emp.name}</p>

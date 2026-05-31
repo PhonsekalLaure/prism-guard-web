@@ -15,6 +15,7 @@ import {
   FaSave,
 } from 'react-icons/fa';
 import { useState } from 'react';
+import EntityAvatar from '@components/ui/EntityAvatar';
 import { getAdminRoleLabel, getAdminRolePermissions } from '@utils/adminPermissions';
 import AdminEditForm from './AdminEditForm';
 
@@ -113,9 +114,13 @@ export default function ViewAdminModal({
         {/* Header */}
         <div className={`va-modal-header ${isPresident ? 'va-header-president' : 'va-header-default'}`}>
           <div className="va-header-inner">
-            <div className={`va-header-avatar ${isPresident ? 'va-avatar-president' : 'va-avatar-default'}`}>
-              {isPresident ? <FaUserShield className="va-avatar-icon" /> : initials}
-            </div>
+            <EntityAvatar
+              avatarUrl={admin.avatar_url || admin.avatarUrl}
+              initials={initials}
+              className={`va-header-avatar ${isPresident ? 'va-avatar-president' : 'va-avatar-default'}`}
+              alt={admin.full_name || initials}
+              fallbackContent={isPresident ? <FaUserShield className="va-avatar-icon" /> : undefined}
+            />
             <div className="va-header-info">
               <div className="va-header-badges">
                 {isPresident && (

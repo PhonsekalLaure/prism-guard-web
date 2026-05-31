@@ -1,23 +1,25 @@
 import { useState } from 'react';
 
-export default function LeaveRequestAvatar({
+export default function EntityAvatar({
   avatarUrl,
   initials = 'NA',
-  className = 'hlr-avatar',
+  className,
+  alt = '',
+  fallbackContent,
 }) {
   const [failed, setFailed] = useState(false);
   const canShowImage = Boolean(avatarUrl) && !failed;
 
   return (
-    <div className={`${className}${canShowImage ? ' has-image' : ''}`}>
+    <div className={`${className || 'entity-avatar'}${canShowImage ? ' has-image' : ''}`}>
       {canShowImage ? (
         <img
           src={avatarUrl}
-          alt=""
+          alt={alt}
           onError={() => setFailed(true)}
         />
       ) : (
-        initials
+        fallbackContent || initials
       )}
     </div>
   );

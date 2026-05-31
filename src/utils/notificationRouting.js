@@ -2,6 +2,7 @@ export const NOTIFICATION_PREFIXES = {
   serviceRequest: ['service_request_'],
   serviceReview: ['service_review_'],
   leave: ['leave_'],
+  cashAdvance: ['cash_advance_'],
   applicant: ['applicant_'],
   incident: ['incident_'],
   announcement: ['announcement_'],
@@ -22,6 +23,11 @@ export const NOTIFICATION_SECTIONS = [
     portal: 'hris',
     paths: ['/leaves'],
     prefixes: NOTIFICATION_PREFIXES.leave,
+  },
+  {
+    portal: 'hris',
+    paths: ['/cash-advance'],
+    prefixes: NOTIFICATION_PREFIXES.cashAdvance,
   },
   {
     portal: 'hris',

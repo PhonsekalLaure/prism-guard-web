@@ -282,7 +282,7 @@
 .hlr-avatar {
   width: 46px;
   height: 46px;
-  border-radius: 10px;
+  border-radius: 50%;
   background: linear-gradient(135deg, #093269 0%, #0d4a8f 100%);
   color: #fff;
   display: flex;
@@ -304,6 +304,10 @@
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.hlr-feed-body .incident-card-skeleton__icon {
+  border-radius: 50%;
 }
 
 .hlr-employee-name {
@@ -684,7 +688,7 @@
   width: 60px;
   height: 60px;
   font-size: 1.4rem;
-  border-radius: 12px;
+  border-radius: 50%;
 }
 
 .hlr-modal-emp-info h3 {
@@ -928,7 +932,7 @@
 .hlr-replacement-avatar {
   width: 40px;
   height: 40px;
-  border-radius: 8px;
+  border-radius: 50%;
   background: linear-gradient(135deg, #093269 0%, #0d4a8f 100%);
   color: #fff;
   display: flex;

@@ -741,7 +741,7 @@
 .ir-reporter-mini-avatar {
   width: 36px;
   height: 36px;
-  border-radius: 8px;
+  border-radius: 50%;
   background: linear-gradient(135deg, #093269 0%, #1a5bad 100%);
   color: #fff;
   display: flex;
@@ -806,7 +806,7 @@
 .ir-modal-reporter-avatar {
   width: 48px;
   height: 48px;
-  border-radius: 12px;
+  border-radius: 50%;
   background: linear-gradient(135deg, #093269 0%, #1a5bad 100%);
   color: #fff;
   display: flex;
