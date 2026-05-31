@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { createElement, useState } from 'react';
 import {
   FaTimes, FaUser, FaBriefcase, FaCertificate, FaMapMarkerAlt,
   FaCommentAlt, FaCheckCircle, FaFilePdf, FaFileImage,
   FaFileAlt, FaPhone, FaEnvelope, FaShieldAlt, FaIdCard,
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import EntityAvatar from '@components/ui/EntityAvatar';
+import { SkeletonBlock, SkeletonList } from '@components/ui/Skeleton';
 
 /* ─────────────────────────────────────────────────────────
    Constants & helpers
@@ -77,11 +79,11 @@ function InfoCell({ label, value, variant = '' }) {
   );
 }
 
-function Section({ icon: Icon, title, children }) {
+function Section({ icon, title, children }) {
   return (
     <div className="gdm-section">
       <h3 className="gdm-section-title">
-        <Icon className="gdm-section-icon" /> {title}
+        {createElement(icon, { className: 'gdm-section-icon' })} {title}
       </h3>
       {children}
     </div>
@@ -95,11 +97,12 @@ function PersonalTab({ guard }) {
       {/* Profile hero */}
       <div className="gdm-profile-card">
         <div className="gdm-profile-left">
-          {guard.avatar_url ? (
-            <img src={guard.avatar_url} alt={guard.name} className="gdm-profile-avatar object-cover" />
-          ) : (
-            <div className="gdm-profile-avatar">{guard.initials}</div>
-          )}
+          <EntityAvatar
+            avatarUrl={guard.avatar_url}
+            initials={guard.initials}
+            className="gdm-profile-avatar"
+            alt={guard.name}
+          />
           <div>
             <h3 className="gdm-profile-name">{guard.full_name || guard.name}</h3>
             <p className="gdm-profile-position">{guard.position || 'Security Officer'}</p>
@@ -369,20 +372,20 @@ export default function GuardDetailModal({ isOpen, onClose, guard, loading }) {
           {loading && (
             <div className="gdm-skeleton">
               <div className="gdm-sk-profile">
-                <div className="gdm-sk-avatar" />
+                <SkeletonBlock className="gdm-sk-avatar" />
                 <div className="gdm-sk-lines">
-                  <div className="gdm-sk-line xl" />
-                  <div className="gdm-sk-line md" />
-                  <div className="gdm-sk-line sm" />
+                  <SkeletonBlock className="gdm-sk-line xl" />
+                  <SkeletonBlock className="gdm-sk-line md" />
+                  <SkeletonBlock className="gdm-sk-line sm" />
                 </div>
               </div>
               <div className="gdm-sk-grid">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
+                <SkeletonList count={6}>{(i) => (
                   <div key={i} className="gdm-sk-cell">
-                    <div className="gdm-sk-line sm" />
-                    <div className="gdm-sk-line lg" />
+                    <SkeletonBlock className="gdm-sk-line sm" />
+                    <SkeletonBlock className="gdm-sk-line lg" />
                   </div>
-                ))}
+                )}</SkeletonList>
               </div>
             </div>
           )}

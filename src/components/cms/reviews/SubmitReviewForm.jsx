@@ -8,56 +8,74 @@ import serviceReviewsService from '@/services/cms/serviceReviewsService';
 import authService from '@/services/authService';
 
 const CATEGORY_OPTIONS = [
-  { value: '',                  label: 'Select a Category' },
+  { value: '', label: 'Select a Category' },
   { value: 'guard-performance', label: 'Guard Performance' },
   { value: 'incident-response', label: 'Incident Response' },
-  { value: 'communication',     label: 'Communication' },
-  { value: 'overall-service',   label: 'Overall Service' },
+  { value: 'communication', label: 'Communication' },
+  { value: 'overall-service', label: 'Overall Service' },
 ];
 
 const CATEGORY_RATINGS = [
-  { key: 'guardQuality',   label: 'Guard Quality' },
-  { key: 'punctuality',    label: 'Punctuality' },
-  { key: 'communication',  label: 'Communication' },
+  { key: 'guardQuality', label: 'Guard Quality' },
+  { key: 'punctuality', label: 'Punctuality' },
+  { key: 'communication', label: 'Communication' },
   { key: 'responsiveness', label: 'Responsiveness' },
 ];
 
 const defaultForm = {
-  overallRating:  0,
-  guardQuality:   0,
-  punctuality:    0,
-  communication:  0,
+  overallRating: 0,
+  guardQuality: 0,
+  punctuality: 0,
+  communication: 0,
   responsiveness: 0,
-  category:       '',
-  siteId:         '',
-  period:         '',
-  reviewText:     '',
+  category: '',
+  siteId: '',
+  period: '',
+  reviewText: '',
 };
 
-export default function SubmitReviewForm({ onSubmitSuccess, prefill = {} }) {
+function isValidRating(value) {
+  return Number.isInteger(Number(value)) && Number(value) >= 1 && Number(value) <= 5;
+}
+
+export default function SubmitReviewForm({
+  onSubmitSuccess,
+  prefill = {},
+  title = 'Submit a Review',
+  subtitle = 'Share your feedback on our security services',
+  submitLabel = 'Submit Review',
+  submissionType = 'ad_hoc',
+  forcedPeriod = '',
+}) {
   const [form, setForm] = useState(() => ({
     ...defaultForm,
     category: prefill.guardName ? 'guard-performance' : '',
+    siteId: prefill.siteId || '',
+    period: forcedPeriod || '',
   }));
   const [guardPrefill, setGuardPrefill] = useState(
     prefill.guardName ? prefill : null,
   );
-  const [sites, setSites]         = useState([]);
+  const [sites, setSites] = useState([]);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError]         = useState(null);
+  const [error, setError] = useState(null);
 
-  // Derive company name from stored profile
-  const profile     = authService.getProfile();
+  const profile = authService.getProfile();
   const companyName = profile?.company
     || `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim()
     || 'Your Company';
 
-  // Load client sites for dropdown
   useEffect(() => {
     serviceReviewsService.getSites()
       .then(setSites)
       .catch(() => setSites([]));
   }, []);
+
+  useEffect(() => {
+    if (forcedPeriod) {
+      setForm((prev) => ({ ...prev, period: forcedPeriod }));
+    }
+  }, [forcedPeriod]);
 
   const handleRating = (key, value) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -68,7 +86,7 @@ export default function SubmitReviewForm({ onSubmitSuccess, prefill = {} }) {
   };
 
   const handleClear = () => {
-    setForm(defaultForm);
+    setForm({ ...defaultForm, period: forcedPeriod || '' });
     setGuardPrefill(null);
     setError(null);
   };
@@ -77,10 +95,19 @@ export default function SubmitReviewForm({ onSubmitSuccess, prefill = {} }) {
     e.preventDefault();
     setError(null);
 
-    if (!form.overallRating) {
+    if (!isValidRating(form.overallRating)) {
       setError('Please select an overall rating before submitting.');
       return;
     }
+
+    const invalidCategoryRating = CATEGORY_RATINGS.find(({ key }) => (
+      form[key] && !isValidRating(form[key])
+    ));
+    if (invalidCategoryRating) {
+      setError(`${invalidCategoryRating.label} must be between 1 and 5 stars.`);
+      return;
+    }
+
     if (form.reviewText.trim().length < 50) {
       setError('Your review must be at least 50 characters.');
       return;
@@ -89,17 +116,19 @@ export default function SubmitReviewForm({ onSubmitSuccess, prefill = {} }) {
     setSubmitting(true);
     try {
       await serviceReviewsService.createServiceReview({
-        overallRating:  form.overallRating,
-        guardQuality:   form.guardQuality   || null,
-        punctuality:    form.punctuality    || null,
-        communication:  form.communication  || null,
+        overallRating: form.overallRating,
+        guardQuality: form.guardQuality || null,
+        punctuality: form.punctuality || null,
+        communication: form.communication || null,
         responsiveness: form.responsiveness || null,
-        category:       form.category,
-        siteId:         form.siteId || null,
-        period:         form.period || null,
-        reviewText:     form.reviewText.trim(),
+        category: form.category,
+        siteId: form.siteId || null,
+        reviewedEmployeeId: guardPrefill?.guardId || null,
+        period: form.period || null,
+        submissionType,
+        reviewText: form.reviewText.trim(),
       });
-      setForm(defaultForm);
+      setForm({ ...defaultForm, period: forcedPeriod || '' });
       setGuardPrefill(null);
       onSubmitSuccess?.();
     } catch (err) {
@@ -111,26 +140,21 @@ export default function SubmitReviewForm({ onSubmitSuccess, prefill = {} }) {
 
   return (
     <div className="srv-form-panel">
-      {/* Header */}
       <div className="srv-form-header">
         <h3>
           <FaPen />
-          Submit a Review
+          {title}
         </h3>
-        <p>Share your feedback on our security services</p>
+        <p>{subtitle}</p>
       </div>
 
-      {/* Error Banner */}
       {error && (
         <div className="srv-form-error" role="alert">
           {error}
         </div>
       )}
 
-      {/* Body */}
       <form className="srv-form-body" onSubmit={handleSubmit}>
-
-        {/* Guard pre-fill banner */}
         {guardPrefill && (
           <div className="srv-guard-banner">
             <div className="srv-guard-banner-icon">
@@ -142,7 +166,7 @@ export default function SubmitReviewForm({ onSubmitSuccess, prefill = {} }) {
               <p className="srv-guard-banner-meta">
                 {[guardPrefill.guardEmployeeId, guardPrefill.siteName]
                   .filter(Boolean)
-                  .join(' · ')}
+                  .join(' - ')}
               </p>
             </div>
             <button
@@ -156,7 +180,6 @@ export default function SubmitReviewForm({ onSubmitSuccess, prefill = {} }) {
           </div>
         )}
 
-        {/* Overall Rating */}
         <div>
           <label className="srv-rating-label">
             Overall Rating <span style={{ color: '#ef4444' }}>*</span>
@@ -170,7 +193,6 @@ export default function SubmitReviewForm({ onSubmitSuccess, prefill = {} }) {
           />
         </div>
 
-        {/* Category Ratings */}
         <div className="srv-cat-grid">
           {CATEGORY_RATINGS.map(({ key, label }) => (
             <div key={key} className="srv-cat-item">
@@ -185,9 +207,7 @@ export default function SubmitReviewForm({ onSubmitSuccess, prefill = {} }) {
           ))}
         </div>
 
-        {/* Dropdown + Period Fields */}
         <div className="srv-fields-grid">
-          {/* Category */}
           <div className="srv-field">
             <label className="srv-field-label">
               <FaTag className="srv-field-label-icon" />
@@ -208,7 +228,6 @@ export default function SubmitReviewForm({ onSubmitSuccess, prefill = {} }) {
             </select>
           </div>
 
-          {/* Site */}
           <div className="srv-field">
             <label className="srv-field-label">
               <FaMapMarkerAlt className="srv-field-label-icon" />
@@ -229,7 +248,6 @@ export default function SubmitReviewForm({ onSubmitSuccess, prefill = {} }) {
             </select>
           </div>
 
-          {/* Period */}
           <div className="srv-field">
             <label className="srv-field-label">
               <FaCalendar className="srv-field-label-icon" />
@@ -241,11 +259,11 @@ export default function SubmitReviewForm({ onSubmitSuccess, prefill = {} }) {
               value={form.period}
               onChange={handleChange}
               className="srv-input"
+              disabled={Boolean(forcedPeriod)}
             />
           </div>
         </div>
 
-        {/* Review Text */}
         <div className="srv-field">
           <label className="srv-field-label">
             <FaCommentAlt className="srv-field-label-icon" />
@@ -275,7 +293,6 @@ export default function SubmitReviewForm({ onSubmitSuccess, prefill = {} }) {
           </p>
         </div>
 
-        {/* Footer */}
         <div className="srv-form-footer">
           <div className="srv-submitting-as">
             <span>Submitting as:</span>
@@ -298,12 +315,12 @@ export default function SubmitReviewForm({ onSubmitSuccess, prefill = {} }) {
               {submitting ? (
                 <>
                   <FaSpinner className="srv-spinner" />
-                  Submitting…
+                  Submitting...
                 </>
               ) : (
                 <>
                   <FaPaperPlane />
-                  Submit Review
+                  {submitLabel}
                 </>
               )}
             </button>

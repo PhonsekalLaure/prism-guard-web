@@ -6,6 +6,7 @@ import {
 import ServiceRequestThread from '@components/service-requests/ServiceRequestThread';
 import ServiceRequestReplyBox from '@components/service-requests/ServiceRequestReplyBox';
 import ServiceRequestTypeDetails from '@components/service-requests/ServiceRequestTypeDetails';
+import { SkeletonBlock, SkeletonList } from '@components/ui/Skeleton';
 import serviceRequestsService from '@services/cms/serviceRequestsService';
 
 
@@ -150,50 +151,50 @@ export default function RequestDetailModal({ isOpen, request, loadingDetail = fa
             {/* Badge row */}
             <div className="sr-detail-skeleton__badges">
               {[72, 72, 108].map((w, i) => (
-                <div key={i} className="dsk-btn" style={{ width: w, height: 24, borderRadius: 20 }} />
+                <SkeletonBlock key={i} className="dsk-btn" style={{ width: w, height: 24, borderRadius: 20 }} />
               ))}
             </div>
             {/* Info grid */}
             <div className="dsk-grid cols-2">
               <div className="dsk-info-cell">
-                <div className="dsk-line sm" />
-                <div className="dsk-line md" />
+                <SkeletonBlock className="dsk-line sm" />
+                <SkeletonBlock className="dsk-line md" />
               </div>
               <div className="dsk-info-cell">
-                <div className="dsk-line sm" />
-                <div className="dsk-line md" />
+                <SkeletonBlock className="dsk-line sm" />
+                <SkeletonBlock className="dsk-line md" />
               </div>
             </div>
             {/* Description */}
             <div className="dsk-info-cell" style={{ minHeight: 72 }}>
-              <div className="dsk-line sm" />
-              <div className="dsk-line lg" />
-              <div className="dsk-line md" />
+              <SkeletonBlock className="dsk-line sm" />
+              <SkeletonBlock className="dsk-line lg" />
+              <SkeletonBlock className="dsk-line md" />
             </div>
             {/* Timeline */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-              {[0, 1, 2].map((i) => (
+              <SkeletonList count={3}>{(i) => (
                 <div key={i} className="sr-detail-skeleton__timeline-item">
-                  <div className="dsk-btn" style={{ width: 30, height: 30, borderRadius: '50%', flexShrink: 0 }} />
+                  <SkeletonBlock className="dsk-btn" style={{ width: 30, height: 30, borderRadius: '50%', flexShrink: 0 }} />
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                    <div className="dsk-line md" />
-                    <div className="dsk-line sm" />
+                    <SkeletonBlock className="dsk-line md" />
+                    <SkeletonBlock className="dsk-line sm" />
                   </div>
                 </div>
-              ))}
+              )}</SkeletonList>
             </div>
             {/* Conversation */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem' }}>
-              <div className="dsk-line" style={{ height: 13, width: '32%' }} />
+              <SkeletonBlock className="dsk-line" style={{ height: 13, width: '32%' }} />
               <div className="dsk-info-cell" style={{ minHeight: 56 }}>
-                <div className="dsk-line md" />
-                <div className="dsk-line lg" />
+                <SkeletonBlock className="dsk-line md" />
+                <SkeletonBlock className="dsk-line lg" />
               </div>
             </div>
             {/* Action buttons */}
             <div className="sr-detail-skeleton__actions">
-              <div className="dsk-btn" style={{ flex: 1, height: 38, borderRadius: 8 }} />
-              <div className="dsk-btn" style={{ flex: 1, height: 38, borderRadius: 8 }} />
+              <SkeletonBlock className="dsk-btn" style={{ flex: 1, height: 38, borderRadius: 8 }} />
+              <SkeletonBlock className="dsk-btn" style={{ flex: 1, height: 38, borderRadius: 8 }} />
             </div>
           </div>
         ) : (

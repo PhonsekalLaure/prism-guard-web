@@ -11,6 +11,7 @@ import {
   getNotificationBadgeCount,
 } from '@utils/notificationBadges';
 import { NOTIFICATION_PREFIXES } from '@utils/notificationRouting';
+import EntityAvatar from '@components/ui/EntityAvatar';
 
 const navGroups = [
   {
@@ -57,25 +58,18 @@ const bottomItems = [
 ];
 
 function SidebarAvatar({ profile }) {
-  if (profile?.avatar_url) {
-    return (
-      <img
-        src={profile.avatar_url}
-        alt={profile.first_name}
-        className="cms-sidebar-avatar cms-sidebar-avatar--img"
-      />
-    );
-  }
-
-  // Show first letter of the company name, or first letter of the user's name as fallback
   const initial = profile?.company
     ? profile.company.charAt(0).toUpperCase()
     : profile?.first_name?.charAt(0).toUpperCase() || <FaBuilding />;
 
   return (
-    <div className="cms-sidebar-avatar">
-      {initial}
-    </div>
+    <EntityAvatar
+      avatarUrl={profile?.avatar_url}
+      initials={typeof initial === 'string' ? initial : undefined}
+      className="cms-sidebar-avatar"
+      alt={profile?.company || profile?.first_name || 'Client avatar'}
+      fallbackContent={typeof initial === 'string' ? undefined : initial}
+    />
   );
 }
 
