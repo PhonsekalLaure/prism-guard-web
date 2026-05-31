@@ -37,7 +37,7 @@ const navGroups = [
       { to: '/employees', icon: FaUsers, label: 'Employees', permissions: ['employees.read'] },
       { to: '/attendance', icon: FaFingerprint, label: 'Attendance', permissions: ['attendance.read'] },
       { to: '/leaves', icon: FaCalendarAlt, label: 'Leave Requests', permissions: ['leaves.read'], notificationPrefixes: NOTIFICATION_PREFIXES.leave },
-      { to: '/cash-advance', icon: FaHandHoldingUsd, label: 'Cash Advance', permissions: ['cashadvance.read'] },
+      { to: '/cash-advance', icon: FaHandHoldingUsd, label: 'Cash Advance', permissions: ['cashadvance.read'], notificationPrefixes: NOTIFICATION_PREFIXES.cashAdvance },
       { to: '/payroll', icon: FaMoneyBillWave, label: 'Payroll', permissions: ['payroll.read'] },
       { to: '/applicants', icon: FaUserPlus, label: 'Applicants', permissions: ['applicants.read'], notificationPrefixes: NOTIFICATION_PREFIXES.applicant },
     ],
