@@ -1,131 +1,120 @@
 import {
   FaMapMarkerAlt, FaUsers, FaEnvelope, FaEye, FaUser,
-  FaChevronLeft, FaChevronRight,
+  FaSearch, FaExclamationTriangle
 } from 'react-icons/fa';
+import Pagination from '@components/ui/Pagination';
+import EmptyState from '@components/ui/EmptyState';
+import EntityAvatar from '@components/ui/EntityAvatar';
+import { EntityCardSkeleton, SkeletonList } from '@components/ui/Skeleton';
 
-const clients = [
-  {
-    initials: 'FIT',
-    initialsColor: '#093269',
-    headerBg: '#093269',
-    company: 'FEU Institute of Technology',
-    contact: 'Engr. Benson Tan',
-    status: 'ACTIVE',
-    location: 'Sampaloc, Manila',
-    guards: '8 Guards Assigned',
-    email: 'betan@feutech.com',
-  },
-  {
-    initials: 'SM',
-    initialsColor: '#dc2626',
-    headerBg: '#dc2626',
-    company: 'SM Mall of Asia',
-    contact: 'Ms. Sarah Lim',
-    status: 'ACTIVE',
-    location: 'Pasay City',
-    guards: '5 Guards Assigned',
-    email: 'salim@smmoa.com',
-  },
-  {
-    initials: 'SM',
-    initialsColor: '#7c3aed',
-    headerBg: '#7c3aed',
-    company: 'SM North EDSA',
-    contact: 'Mr. Robert Go',
-    status: 'ACTIVE',
-    location: 'Quezon City',
-    guards: '9 Guards Assigned',
-    email: 'rogo@smnrth.com',
-  },
-  {
-    initials: 'RG',
-    initialsColor: '#d97706',
-    headerBg: '#d97706',
-    company: 'Robinsons Galleria',
-    contact: 'Ms. Jennifer Sy',
-    status: 'ACTIVE',
-    location: 'Sampaloc, Manila',
-    guards: '16 Guards Assigned',
-    email: 'jensy@rob.com',
-  },
-  {
-    initials: 'AM',
-    initialsColor: '#dc2626',
-    headerBg: '#dc2626',
-    company: 'Ayala Malls Manila Bay',
-    contact: 'Mr. Jaime Zobel',
-    status: 'ACTIVE',
-    location: 'Parañaque City',
-    guards: '20 Guards Assigned',
-    email: 'jazobel@ayala.com',
-  },
-  {
-    initials: 'VH',
-    initialsColor: '#059669',
-    headerBg: '#059669',
-    company: 'Vista Heights Subdivision',
-    contact: 'Mrs. Corazon Villareal',
-    status: 'ACTIVE',
-    location: 'Parañaque City',
-    guards: '8 Guards Assigned',
-    email: 'covillareal@vista.com',
-  },
-];
+export default function ClientsGrid({
+  clients = [],
+  totalItems = 0,
+  currentPage = 1,
+  onPageChange,
+  onResetFilters,
+  onViewClient,
+  loading = false,
+}) {
+  const itemsPerPage = 6;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-export default function ClientsGrid() {
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + clients.length, totalItems);
+
+  if (loading) {
+    return (
+      <div className="clients-grid">
+        <SkeletonList count={6}>{(index) => (
+          <EntityCardSkeleton key={index} variant="client" />
+        )}</SkeletonList>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="clients-grid">
-        {clients.map((c, i) => (
-          <div key={i} className="client-card">
-            {/* Colored header */}
-            <div className="client-card-header" style={{ background: c.headerBg }}>
-              <div className="card-initials" style={{ color: c.initialsColor }}>
-                {c.initials}
-              </div>
-              <span className="status-pill">{c.status}</span>
-              <h4>{c.company}</h4>
-              <div className="contact-person">
-                <FaUser style={{ fontSize: '0.6rem' }} />
-                {c.contact}
-              </div>
-            </div>
+        {clients.length === 0 ? (
+          <EmptyState
+            icon={FaSearch}
+            title="No clients found"
+            description="We couldn't find any clients matching your current search or filter criteria. Try adjusting your settings or reset to view all clients."
+            actionLabel="Reset All Filters"
+            onAction={onResetFilters}
+          />
+        ) : (
+          clients.map((client, i) => (
+            <div key={client.id || i} className="client-card">
+              {/* Colored header */}
+              <div className="client-card-header">
+                {/* Avatar / Initials — matches employee-avatar style */}
+                <EntityAvatar
+                  avatarUrl={client.avatar_url}
+                  initials={client.initials || '??'}
+                  className="client-avatar"
+                  alt={client.company || client.initials}
+                />
 
-            {/* Body */}
-            <div className="client-card-body">
-              <div className="info-row">
-                <FaMapMarkerAlt />
-                <span>{c.location}</span>
-              </div>
-              <div className="info-row">
-                <FaUsers />
-                <span>{c.guards}</span>
-              </div>
-              <div className="info-row">
-                <FaEnvelope />
-                <span>{c.email}</span>
-              </div>
-            </div>
+                <span className={`client-badge badge-${client.status}`}>
+                  {client.status?.toUpperCase()}
+                </span>
 
-            {/* Footer */}
-            <div className="client-card-footer">
-              <button className="view-link">
-                <FaEye />
-                View Details
-              </button>
+                <h4 className="client-company">{client.company}</h4>
+                <div className="client-contact-person">
+                  <FaUser />
+                  {client.contact_person || 'No contact set'}
+                </div>
+              </div>
+
+              {/* Body */}
+              <div className="client-card-body">
+                {client.admin_action_required && (
+                  <div className="client-contract-alert">
+                    <FaExclamationTriangle />
+                    <span>{client.admin_action_message || 'Contract needs attention'}</span>
+                  </div>
+                )}
+                <div className="client-info-row">
+                  <FaEnvelope />
+                  <span>{client.contact_email || 'No email'}</span>
+                </div>
+                <div className="client-info-row">
+                  <FaMapMarkerAlt />
+                  <span>{client.contract_status || 'N/A'}</span>
+                </div>
+                <div className="client-info-row">
+                  <FaUsers />
+                  <span>{client.rate_per_guard ? `₱${Number(client.rate_per_guard).toLocaleString()}/guard` : 'Rate not set'}</span>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="client-card-footer">
+                <button
+                  className="client-view-link"
+                  onClick={() => onViewClient?.(client)}
+                >
+                  <FaEye />
+                  View Details
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
-      {/* Pagination */}
-      <div className="clients-pagination">
-        <button className="page-btn"><FaChevronLeft /></button>
-        <button className="page-btn active">1</button>
-        <button className="page-btn">2</button>
-        <button className="page-btn">3</button>
-        <button className="page-btn"><FaChevronRight /></button>
-      </div>
+      {clients.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+          startIndex={startIndex}
+          endIndex={endIndex}
+          totalItems={totalItems}
+          label="clients"
+        />
+      )}
     </>
   );
 }

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import ServiceReviewsTopbar from '@cms-components/reviews/ServiceReviewsTopbar';
 import SubmitReviewForm     from '@cms-components/reviews/SubmitReviewForm';
 import PastReviews          from '@cms-components/reviews/PastReviews';
@@ -8,7 +9,12 @@ import useNotification      from '@hooks/useNotification';
 import '@styles/cms/ServiceReviews.css';
 
 export default function ServiceReviewsPage() {
+  const location = useLocation();
+  const prefill  = location.state || {};
+
   const [showSuccess, setShowSuccess] = useState(false);
+  // Increment this to trigger a re-fetch in PastReviews after a new submission
+  const [reviewsRefreshKey, setReviewsRefreshKey] = useState(0);
   const { notification, showNotification, closeNotification } = useNotification();
 
   const handleSubmitSuccess = () => {
@@ -17,6 +23,8 @@ export default function ServiceReviewsPage() {
 
   const handleCloseSuccess = () => {
     setShowSuccess(false);
+    // Trigger PastReviews to reload so the new pending review appears
+    setReviewsRefreshKey((k) => k + 1);
     showNotification(
       'Review submitted! It will be published after moderation.',
       'success',
@@ -37,8 +45,8 @@ export default function ServiceReviewsPage() {
       <ServiceReviewsTopbar />
 
       <div className="cms-content">
-        <SubmitReviewForm onSubmitSuccess={handleSubmitSuccess} />
-        <PastReviews />
+        <SubmitReviewForm onSubmitSuccess={handleSubmitSuccess} prefill={prefill} />
+        <PastReviews refreshKey={reviewsRefreshKey} />
       </div>
 
       <ReviewSuccessModal

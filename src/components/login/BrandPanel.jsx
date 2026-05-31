@@ -10,7 +10,7 @@ const features = [
 
 export default function BrandPanel() {
   return (
-    <div className="login-brand">
+    <div className="auth-brand">
       {/* Background decorations */}
       <div className="bg-dots" />
       <div className="shape shape-1" />

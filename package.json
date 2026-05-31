@@ -7,9 +7,13 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "dev:all": "node start-dev.js",
+    "dev:all:windows": "powershell -ExecutionPolicy Bypass -File start-dev.ps1"
   },
   "dependencies": {
+    "@googlemaps/js-api-loader": "^2.0.2",
+    "@supabase/supabase-js": "^2.104.0",
     "@tailwindcss/vite": "^4.2.2",
     "axios": "^1.13.6",
     "react": "^19.2.4",

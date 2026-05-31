@@ -1,4 +1,5 @@
 import { FaFingerprint, FaClock, FaUserTimes } from 'react-icons/fa';
+import SharedStatCards from '@components/ui/StatCards';
 
 const stats = [
   {
@@ -8,6 +9,7 @@ const stats = [
     valueColor: '#093269',
     icon: FaFingerprint,
     iconColor: '#093269',
+    iconBg: 'rgba(9, 50, 105, 0.1)',
     borderColor: '#093269',
   },
   {
@@ -17,6 +19,7 @@ const stats = [
     valueColor: '#e6b215',
     icon: FaClock,
     iconColor: '#e6b215',
+    iconBg: 'rgba(230, 178, 21, 0.12)',
     borderColor: '#e6b215',
   },
   {
@@ -26,32 +29,11 @@ const stats = [
     valueColor: '#ef4444',
     icon: FaUserTimes,
     iconColor: '#ef4444',
+    iconBg: 'rgba(239, 68, 68, 0.12)',
     borderColor: '#ef4444',
   },
 ];
 
 export default function StatCards() {
-  return (
-    <div className="stat-grid three-cols">
-      {stats.map((s) => (
-        <div
-          key={s.label}
-          className="stat-card"
-          style={{ borderLeftColor: s.borderColor }}
-        >
-          <div>
-            <p className="stat-label">{s.label}</p>
-            <h3 className="stat-value" style={{ color: s.valueColor }}>{s.value}</h3>
-            <p className="stat-sub" style={{ color: '#7f8c8d' }}>{s.sub}</p>
-          </div>
-          <div
-            className="stat-icon"
-            style={{ background: `${s.iconColor}15`, color: s.iconColor }}
-          >
-            <s.icon />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
+  return <SharedStatCards cards={stats} columns={3} />;
 }
