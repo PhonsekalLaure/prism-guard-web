@@ -111,7 +111,9 @@ export default function ServiceReviewsPage() {
           )}
         </div>
 
-        <SubmitReviewForm onSubmitSuccess={handleSubmitSuccess} prefill={prefill} />
+        {(!monthlyStatus?.required || monthlyStatus?.cleared) && (
+          <SubmitReviewForm onSubmitSuccess={handleSubmitSuccess} prefill={prefill} />
+        )}
         <PastReviews refreshKey={reviewsRefreshKey} />
       </div>
 
