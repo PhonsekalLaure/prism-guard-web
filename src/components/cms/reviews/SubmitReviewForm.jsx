@@ -5,6 +5,7 @@ import {
 } from 'react-icons/fa';
 import StarRating from './StarRating';
 import serviceReviewsService from '@/services/cms/serviceReviewsService';
+import deployedGuardsService from '@/services/cms/deployedGuardsService';
 import authService from '@/services/authService';
 
 const CATEGORY_OPTIONS = [
@@ -22,6 +23,17 @@ const CATEGORY_RATINGS = [
   { key: 'responsiveness', label: 'Responsiveness' },
 ];
 
+function getCurrentMonthValue() {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Manila',
+    year: 'numeric',
+    month: '2-digit',
+  }).formatToParts(new Date());
+  const year = parts.find((part) => part.type === 'year')?.value;
+  const month = parts.find((part) => part.type === 'month')?.value;
+  return `${year}-${month}`;
+}
+
 const defaultForm = {
   overallRating: 0,
   guardQuality: 0,
@@ -30,6 +42,7 @@ const defaultForm = {
   responsiveness: 0,
   category: '',
   siteId: '',
+  reviewedEmployeeId: '',
   period: '',
   reviewText: '',
 };
@@ -51,14 +64,18 @@ export default function SubmitReviewForm({
     ...defaultForm,
     category: prefill.guardName ? 'guard-performance' : '',
     siteId: prefill.siteId || '',
+    reviewedEmployeeId: prefill.guardId || '',
     period: forcedPeriod || '',
   }));
   const [guardPrefill, setGuardPrefill] = useState(
     prefill.guardName ? prefill : null,
   );
   const [sites, setSites] = useState([]);
+  const [deployedGuards, setDeployedGuards] = useState([]);
+  const [loadingGuards, setLoadingGuards] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const currentMonth = getCurrentMonthValue();
 
   const profile = authService.getProfile();
   const companyName = profile?.company
@@ -77,12 +94,62 @@ export default function SubmitReviewForm({
     }
   }, [forcedPeriod]);
 
+  useEffect(() => {
+    if (form.category !== 'guard-performance') {
+      setDeployedGuards([]);
+      return;
+    }
+
+    let cancelled = false;
+    setLoadingGuards(true);
+    deployedGuardsService.getAllDeployedGuards(
+      1,
+      500,
+      form.siteId ? { siteId: form.siteId } : {},
+    )
+      .then((result) => {
+        if (!cancelled) setDeployedGuards(result?.data || []);
+      })
+      .catch(() => {
+        if (!cancelled) setDeployedGuards([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingGuards(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [form.category, form.siteId]);
+
   const handleRating = (key, value) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    const shouldClearGuard =
+      (name === 'category' && value !== 'guard-performance')
+      || name === 'siteId'
+      || name === 'reviewedEmployeeId';
+
+    if (shouldClearGuard) {
+      setGuardPrefill(null);
+    }
+
+    setForm((prev) => {
+      const next = { ...prev, [name]: value };
+
+      if (name === 'category' && value !== 'guard-performance') {
+        next.reviewedEmployeeId = '';
+      }
+
+      if (name === 'siteId') {
+        next.reviewedEmployeeId = '';
+      }
+
+      return next;
+    });
   };
 
   const handleClear = () => {
@@ -123,7 +190,9 @@ export default function SubmitReviewForm({
         responsiveness: form.responsiveness || null,
         category: form.category,
         siteId: form.siteId || null,
-        reviewedEmployeeId: guardPrefill?.guardId || null,
+        reviewedEmployeeId: form.category === 'guard-performance'
+          ? (form.reviewedEmployeeId || null)
+          : null,
         period: form.period || null,
         submissionType,
         reviewText: form.reviewText.trim(),
@@ -172,7 +241,10 @@ export default function SubmitReviewForm({
             <button
               type="button"
               className="srv-guard-banner-clear"
-              onClick={() => setGuardPrefill(null)}
+              onClick={() => {
+                setGuardPrefill(null);
+                setForm((prev) => ({ ...prev, reviewedEmployeeId: '' }));
+              }}
               title="Clear guard selection"
             >
               <FaTimes />
@@ -248,6 +320,34 @@ export default function SubmitReviewForm({
             </select>
           </div>
 
+          {form.category === 'guard-performance' && (
+            <div className="srv-field">
+              <label className="srv-field-label">
+                <FaShieldAlt className="srv-field-label-icon" />
+                Reviewed Guard
+              </label>
+              <select
+                name="reviewedEmployeeId"
+                value={form.reviewedEmployeeId}
+                onChange={handleChange}
+                className="srv-select"
+                disabled={loadingGuards}
+              >
+                <option value="">
+                  {loadingGuards ? 'Loading deployed guards...' : 'No specific guard'}
+                </option>
+                {deployedGuards.map((guard) => (
+                  <option key={guard.employee_id} value={guard.employee_id}>
+                    {guard.name} - {guard.employee_id_number} - {guard.site_name}
+                  </option>
+                ))}
+              </select>
+              {!loadingGuards && deployedGuards.length === 0 && (
+                <p className="srv-char-hint">No active deployed guards are available for the selected site.</p>
+              )}
+            </div>
+          )}
+
           <div className="srv-field">
             <label className="srv-field-label">
               <FaCalendar className="srv-field-label-icon" />
@@ -259,6 +359,7 @@ export default function SubmitReviewForm({
               value={form.period}
               onChange={handleChange}
               className="srv-input"
+              max={currentMonth}
               disabled={Boolean(forcedPeriod)}
             />
           </div>

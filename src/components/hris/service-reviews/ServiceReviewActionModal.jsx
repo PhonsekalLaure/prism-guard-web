@@ -15,13 +15,13 @@ const ACTION_CONFIG = {
   reject: {
     icon: FaTimesCircle,
     iconClass: 'red',
-    title: 'Reject Review',
-    description: 'Please provide a reason for rejecting this review.',
-    placeholder: 'Enter reason for rejection...',
+    title: 'Do Not Publish Review',
+    description: 'Keep this review internal and prevent it from being published publicly.',
+    placeholder: 'Enter publishing decision notes...',
     buttonClass: 'sr-review-btn-danger',
     buttonIcon: FaTimes,
-    buttonLabel: 'Reject',
-    loadingLabel: 'Rejecting...',
+    buttonLabel: 'Do Not Publish',
+    loadingLabel: 'Saving...',
   },
 };
 

@@ -77,7 +77,7 @@ export default function ServiceReviewCard({ review, index, onOpenModal }) {
                 <FaCheck /> Publish
               </button>
               <button className="sr-review-btn sr-review-btn-reject" onClick={() => onOpenModal('reject', review)} type="button">
-                <FaTimes /> Reject
+                <FaTimes /> Do Not Publish
               </button>
             </>
           )}

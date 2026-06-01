@@ -167,7 +167,7 @@ export default function ServiceReviewDetailModal({
             {review.status === 'pending' && (
               <>
                 <button className="sr-review-btn-danger" onClick={() => onOpenAction('reject', review)} type="button">
-                  <FaTimes /> Reject
+                  <FaTimes /> Do Not Publish
                 </button>
                 <button className="sr-review-btn-success" onClick={() => onOpenAction('publish', review)} type="button">
                   <FaCheck /> Publish

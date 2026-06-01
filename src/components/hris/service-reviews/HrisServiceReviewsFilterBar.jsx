@@ -1,15 +1,15 @@
-import { FaClipboardCheck, FaFilter, FaBuilding, FaTag, FaSort } from 'react-icons/fa';
+import { FaFilter, FaBuilding, FaTag, FaSort } from 'react-icons/fa';
 
 export default function HrisServiceReviewsFilterBar({ filters, clients = [], onChange }) {
   return (
-    <div className="filter-bar five-cols">
+    <div className="filter-bar four-cols">
       <div className="filter-group">
         <label className="filter-label"><FaFilter /> Status</label>
         <select className="filter-select" value={filters.status} onChange={(e) => onChange?.('status', e.target.value)}>
           <option value="all">All</option>
           <option value="pending">Pending</option>
           <option value="published">Published</option>
-          <option value="rejected">Rejected</option>
+          <option value="rejected">Not Published</option>
         </select>
       </div>
       <div className="filter-group">
@@ -29,14 +29,6 @@ export default function HrisServiceReviewsFilterBar({ filters, clients = [], onC
           <option value="incident-response">Incident Response</option>
           <option value="communication">Communication</option>
           <option value="overall-service">Overall Service</option>
-        </select>
-      </div>
-      <div className="filter-group">
-        <label className="filter-label"><FaClipboardCheck /> Submission</label>
-        <select className="filter-select" value={filters.submissionType} onChange={(e) => onChange?.('submissionType', e.target.value)}>
-          <option value="all">All Types</option>
-          <option value="monthly_required">Monthly Required</option>
-          <option value="ad_hoc">Ad Hoc</option>
         </select>
       </div>
       <div className="filter-group">

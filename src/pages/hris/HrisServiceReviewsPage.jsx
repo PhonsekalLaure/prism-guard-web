@@ -10,10 +10,9 @@ import '../../styles/hris/HrisServiceReviews.css';
 
 const PAGE_LIMIT = 8;
 const DEFAULT_FILTERS = {
-  status: 'pending',
+  status: 'all',
   clientId: 'all',
   category: 'all',
-  submissionType: 'all',
   sort: 'most_recent',
 };
 
@@ -54,7 +53,6 @@ export default function HrisServiceReviewsPage() {
         status: filters.status !== 'all' ? filters.status : undefined,
         clientId: filters.clientId !== 'all' ? filters.clientId : undefined,
         category: filters.category !== 'all' ? filters.category : undefined,
-        submissionType: filters.submissionType !== 'all' ? filters.submissionType : undefined,
         sort: filters.sort,
       });
 
@@ -128,12 +126,12 @@ export default function HrisServiceReviewsPage() {
     setActionLoadingId(id);
     try {
       await serviceReviewsService.rejectServiceReview(id, reviewNotes);
-      showNotification('Service review rejected.', 'success');
+      showNotification('Service review marked as not published.', 'success');
       await loadReviews(metadata.page || 1);
       await loadClients();
       await loadMonthlyCompliance();
     } catch (err) {
-      showNotification(err.response?.data?.error || err.message || 'Failed to reject service review', 'error');
+      showNotification(err.response?.data?.error || err.message || 'Failed to update publishing decision', 'error');
       throw err;
     } finally {
       setActionLoadingId(null);
@@ -156,27 +154,58 @@ export default function HrisServiceReviewsPage() {
       <div className="dashboard-content">
         <HrisServiceReviewsStatCards stats={stats} loading={loading} />
         <HrisServiceReviewsFilterBar filters={filters} clients={clients} onChange={handleFilterChange} />
-        {monthlyCompliance && (
-          <div className="sr-review-compliance-panel">
-            <div className="sr-review-compliance-header">
-              <div>
-                <h3>Monthly Compliance</h3>
-                <p>{monthlyCompliance.periodLabel} service review submission status</p>
+        {monthlyCompliance && (() => {
+          const total = monthlyCompliance.required;
+          const submitted = monthlyCompliance.submitted;
+          const missing = total - submitted;
+          const pct = total > 0 ? Math.round((submitted / total) * 100) : 0;
+          const CHIP_LIMIT = 5;
+          const showChips = monthlyCompliance.clients.length <= CHIP_LIMIT;
+          const visibleChips = monthlyCompliance.clients.slice(0, CHIP_LIMIT);
+          const overflow = monthlyCompliance.clients.length - CHIP_LIMIT;
+          return (
+            <div className="sr-compliance-bar">
+              <div className="sr-compliance-bar__meta">
+                <span className="sr-compliance-bar__label">Monthly Compliance</span>
+                <span className="sr-compliance-bar__sep" />
+                <span className="sr-compliance-bar__period">{monthlyCompliance.periodLabel}</span>
               </div>
-              <span>{monthlyCompliance.submitted} of {monthlyCompliance.required} submitted</span>
+              <div className="sr-compliance-bar__track">
+                <div
+                  className="sr-compliance-bar__fill"
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              <span className="sr-compliance-bar__pct">{pct}%</span>
+              <span className="sr-compliance-bar__divider" />
+              <div className="sr-compliance-bar__summary">
+                <span className="sr-compliance-chip submitted">{submitted} submitted</span>
+                {missing > 0 && (
+                  <span className="sr-compliance-chip missing">{missing} missing</span>
+                )}
+              </div>
+              {showChips && (
+                <>
+                  <span className="sr-compliance-bar__divider" />
+                  <div className="sr-compliance-bar__chips">
+                    {visibleChips.map((client) => (
+                      <span
+                        key={client.clientId}
+                        className={`sr-compliance-chip sm ${client.submitted ? 'submitted' : 'missing'}`}
+                        title={`${client.clientName}: ${client.submitted ? 'Submitted' : 'Missing'}`}
+                      >
+                        {client.clientName}
+                      </span>
+                    ))}
+                    {overflow > 0 && (
+                      <span className="sr-compliance-chip sm overflow">+{overflow} more</span>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
-            <div className="sr-review-compliance-list">
-              {monthlyCompliance.clients.slice(0, 6).map((client) => (
-                <div key={client.clientId} className="sr-review-compliance-item">
-                  <span className="sr-review-compliance-name">{client.clientName}</span>
-                  <span className={`sr-review-compliance-status ${client.submitted ? 'submitted' : 'missing'}`}>
-                    {client.submitted ? 'Submitted' : 'Missing'}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+          );
+        })()}
         <HrisServiceReviewsList
           reviews={reviews}
           metadata={metadata}

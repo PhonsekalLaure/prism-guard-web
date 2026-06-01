@@ -66,13 +66,13 @@ export default function ReviewCard({ review }) {
             <span className={`srv-status-badge ${
               status === 'Published'
                 ? 'srv-status-badge--published'
-                : status === 'Rejected'
+                : status === 'Not Published'
                   ? 'srv-status-badge--rejected'
                   : 'srv-status-badge--pending'
             }`}
             >
               {status === 'Published' && <><FaCheckCircle /> Published</>}
-              {status === 'Rejected' && <><FaTimesCircle /> Rejected</>}
+              {status === 'Not Published' && <><FaTimesCircle /> Not Published</>}
               {status === 'Pending' && <><FaHourglassHalf /> Pending</>}
             </span>
           </div>
