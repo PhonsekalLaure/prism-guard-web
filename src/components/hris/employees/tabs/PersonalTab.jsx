@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import {
   FaEdit, FaSave, FaIdCard, FaAddressBook, FaTimes,
 } from 'react-icons/fa';
@@ -14,19 +14,16 @@ export default function PersonalTab({
   employee, canEdit, isEditing, editForm, pendingFiles,
   onFile, onField, onEdit, onSave, onCancel, isSaving,
 }) {
-  const [avatarPreview, setAvatarPreview] = useState(null);
   const avatarInputRef = useRef(null);
+  const avatarFile = pendingFiles?.avatar;
+  const avatarPreview = useMemo(() => (
+    avatarFile instanceof Blob ? URL.createObjectURL(avatarFile) : null
+  ), [avatarFile]);
 
   useEffect(() => {
-    const file = pendingFiles?.avatar;
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setAvatarPreview(reader.result);
-      reader.readAsDataURL(file);
-    } else {
-      setAvatarPreview(null);
-    }
-  }, [pendingFiles?.avatar]);
+    if (!avatarPreview) return undefined;
+    return () => URL.revokeObjectURL(avatarPreview);
+  }, [avatarPreview]);
 
   const displayAvatarUrl = avatarPreview || employee.avatar_url;
 

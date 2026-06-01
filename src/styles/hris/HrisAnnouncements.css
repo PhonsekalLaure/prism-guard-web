@@ -1,4 +1,4 @@
-﻿/* =============================================
+/* =============================================
    HRIS ANNOUNCEMENTS PAGE — Premium Design
    Brand: #093269 (navy), #e6b215 (gold)
    ============================================= */
@@ -869,7 +869,7 @@
   position: fixed;
   bottom: 1.5rem;
   right: 1.5rem;
-  z-index: 1100;
+  z-index: 999;
   background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
   color: #fff;
   padding: 0.9rem 1.5rem;

@@ -17,29 +17,13 @@ import {
 import { SkeletonBlock, SkeletonList } from '@components/ui/Skeleton';
 import EntityAvatar from '@components/ui/EntityAvatar';
 import authService from '@services/authService';
+import { formatDateTime, titleCase } from '@utils/formatters';
 
 const severityIcon = {
   high: FaExclamationTriangle,
   medium: FaExclamationCircle,
   low: FaInfoCircle,
 };
-
-function titleCase(value) {
-  return String(value || '')
-    .replace(/_/g, ' ')
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-}
-
-function formatDateTime(value) {
-  if (!value) return 'N/A';
-  return new Date(value).toLocaleString('en-US', {
-    month: 'short',
-    day: '2-digit',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-}
 
 function getInitials(name) {
   return String(name || 'Unknown')

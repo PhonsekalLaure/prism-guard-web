@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { FaCheck, FaTimes, FaUser, FaPhone, FaBriefcase, FaIdCard } from 'react-icons/fa';
 
 const DOC_LABELS = {
@@ -22,11 +22,12 @@ const toProperCase = (str) => {
   return str.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 };
 
-function ReviewSection({ title, icon: Icon, children }) {
+function ReviewSection({ title, icon, children }) {
+  const SectionIcon = icon;
   return (
     <div className="ae-review-section">
       <div className="ae-review-section-header">
-        <Icon className="ae-review-section-icon" />
+        <SectionIcon className="ae-review-section-icon" />
         <span className="ae-review-section-title">{title}</span>
       </div>
       <div className="ae-review-section-body">{children}</div>
@@ -44,27 +45,14 @@ function ReviewField({ label, value, highlight }) {
 }
 
 export default function Step4Review({ data }) {
-  const [avatarPreview, setAvatarPreview] = useState(null);
+  const avatarPreview = useMemo(() => (
+    data.avatar instanceof Blob ? URL.createObjectURL(data.avatar) : null
+  ), [data.avatar]);
 
   useEffect(() => {
-    if (!data.avatar) {
-      setAvatarPreview(null);
-      return undefined;
-    }
-
-    let isActive = true;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      if (isActive) {
-        setAvatarPreview(reader.result);
-      }
-    };
-    reader.readAsDataURL(data.avatar);
-
-    return () => {
-      isActive = false;
-    };
-  }, [data.avatar]);
+    if (!avatarPreview) return undefined;
+    return () => URL.revokeObjectURL(avatarPreview);
+  }, [avatarPreview]);
 
   const isComplete = data.firstName && data.lastName && data.employeeId;
   const docsAttached = Object.keys(data.documents).filter((key) => data.documents[key]);

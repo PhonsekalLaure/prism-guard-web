@@ -1,24 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useRef } from 'react';
 import { FaSearch, FaBuilding, FaFilter } from 'react-icons/fa';
 
 export default function EmployeesFilterBar({ filters, onFilterChange, clients = [] }) {
-  const [localSearch, setLocalSearch] = useState(filters.search || '');
+  const searchTimerRef = useRef(null);
 
-  // Debounce search input
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (localSearch !== filters.search) {
-        onFilterChange({ ...filters, search: localSearch });
-      }
+  const handleSearchChange = (event) => {
+    const search = event.target.value;
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => {
+      onFilterChange({ ...filters, search });
     }, 500);
-
-    return () => clearTimeout(timer);
-  }, [localSearch, onFilterChange, filters]);
-
-  // Sync local search with props (in case filters are reset externally)
-  useEffect(() => {
-    setLocalSearch(filters.search || '');
-  }, [filters.search]);
+  };
 
   return (
     <div className="filter-bar three-cols">
@@ -30,8 +22,9 @@ export default function EmployeesFilterBar({ filters, onFilterChange, clients = 
         <input
           type="text"
           placeholder="Search by first or last name"
-          value={localSearch}
-          onChange={(e) => setLocalSearch(e.target.value)}
+          key={filters.search || ''}
+          defaultValue={filters.search || ''}
+          onChange={handleSearchChange}
           className="filter-input"
         />
       </div>

@@ -16,7 +16,7 @@ export default function EmployeesPage() {
   const [employees,    setEmployees]    = useState([]);
   const [loading,      setLoading]      = useState(true);
   const [error,        setError]        = useState(null);
-  const [refreshKey,   setRefreshKey]   = useState(0);
+  const [refreshKey] = useState(0);
   const [currentPage,  setCurrentPage]  = useState(1);
   const [totalItems,   setTotalItems]   = useState(0);
   const [clientsList,  setClientsList]  = useState([]);
