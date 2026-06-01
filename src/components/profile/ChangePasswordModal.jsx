@@ -31,7 +31,7 @@ const hiddenFields = {
   confirmPassword: false,
 };
 
-export default function ChangePasswordModal({ isOpen, onClose, variant = 'hris' }) {
+export default function ChangePasswordModal({ isOpen, onClose }) {
   const navigate = useNavigate();
   const [form, setForm] = useState(emptyForm);
   const [show, setShow] = useState(hiddenFields);
