@@ -1,18 +1,14 @@
 import { Link } from 'react-router-dom';
 import { FaExclamationTriangle, FaArrowRight } from 'react-icons/fa';
-
-const incidents = [
-  { date: 'Feb 16, 2026', type: 'Unauthorized Access', severity: 'HIGH', severityBg: '#dc2626', severityColor: '#fff', status: 'Investigating', statusBg: '#fef9c3', statusColor: '#a16207' },
-  { date: 'Feb 15, 2026', type: 'Property Damage', severity: 'MEDIUM', severityBg: '#f59e0b', severityColor: '#fff', status: 'Monitoring', statusBg: '#dbeafe', statusColor: '#1d4ed8' },
-  { date: 'Feb 14, 2026', type: 'Visitor Incident', severity: 'LOW', severityBg: '#6b7280', severityColor: '#fff', status: 'Resolved', statusBg: '#dcfce7', statusColor: '#15803d' },
-  { date: 'Feb 13, 2026', type: 'Suspicious Activity', severity: 'LOW', severityBg: '#6b7280', severityColor: '#fff', status: 'Resolved', statusBg: '#dcfce7', statusColor: '#15803d' },
-  { date: 'Feb 12, 2026', type: 'Lost Item Recovery', severity: 'MEDIUM', severityBg: '#f59e0b', severityColor: '#fff', status: 'Resolved', statusBg: '#dcfce7', statusColor: '#15803d' },
-];
+import { TableSkeletonRows } from '@components/ui/Skeleton';
 
 const thStyle = { padding: '0.65rem 1rem', textAlign: 'left', fontSize: '0.68rem', fontWeight: 600, color: '#7f8c8d', textTransform: 'uppercase', letterSpacing: '0.5px' };
 const tdStyle = { padding: '0.85rem 1rem', fontSize: '0.85rem' };
+const tableSkeletonCellStyle = { height: 14, width: '100%' };
 
-export default function RecentIncidents() {
+export default function RecentIncidents({ incidents, loading }) {
+  const rows = incidents || [];
+
   return (
     <div style={{ background: '#fff', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
       <div style={{ padding: '1rem 1.2rem', borderBottom: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -32,22 +28,31 @@ export default function RecentIncidents() {
             </tr>
           </thead>
           <tbody>
-            {incidents.map((inc, i) => (
-              <tr key={i} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                <td style={{ ...tdStyle, color: '#4b5563', fontWeight: 600 }}>{inc.date}</td>
-                <td style={{ ...tdStyle, fontWeight: 600, color: '#1a1a1a' }}>{inc.type}</td>
-                <td style={tdStyle}>
-                  <span style={{ background: inc.severityBg, color: inc.severityColor, padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.68rem', fontWeight: 700 }}>
-                    {inc.severity}
-                  </span>
-                </td>
-                <td style={tdStyle}>
-                  <span style={{ background: inc.statusBg, color: inc.statusColor, padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 600 }}>
-                    {inc.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
+            {loading
+              ? <TableSkeletonRows rows={3} columns={4} getCellStyle={() => tableSkeletonCellStyle} />
+              : rows.length === 0
+                ? (
+                  <tr>
+                    <td colSpan={4} style={{ ...tdStyle, textAlign: 'center', color: '#7f8c8d' }}>No recent incidents</td>
+                  </tr>
+                )
+                : rows.map((inc, i) => (
+                  <tr key={inc.id ?? i} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                    <td style={{ ...tdStyle, color: '#4b5563', fontWeight: 600 }}>{inc.date}</td>
+                    <td style={{ ...tdStyle, fontWeight: 600, color: '#1a1a1a' }}>{inc.type}</td>
+                    <td style={tdStyle}>
+                      <span style={{ background: inc.severityBg, color: inc.severityColor, padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.68rem', fontWeight: 700 }}>
+                        {inc.severity}
+                      </span>
+                    </td>
+                    <td style={tdStyle}>
+                      <span style={{ background: inc.statusBg, color: inc.statusColor, padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 600 }}>
+                        {inc.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+            }
           </tbody>
         </table>
       </div>

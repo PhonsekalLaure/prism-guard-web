@@ -1,3 +1,6 @@
+import { FaCoins, FaMoneyBillWave, FaReceipt, FaUsers } from 'react-icons/fa';
+import StatCards from '@components/ui/StatCards';
+
 const stats = [
   {
     label: 'Total Employees',
@@ -6,6 +9,9 @@ const stats = [
     subClass: '',
     valueColor: '#093269',
     borderColor: '#093269',
+    icon: FaUsers,
+    iconBg: 'rgba(9, 50, 105, 0.1)',
+    iconColor: '#093269',
     delay: '0s',
   },
   {
@@ -15,6 +21,9 @@ const stats = [
     subClass: 'green',
     valueColor: '#16a34a',
     borderColor: '#22c55e',
+    icon: FaMoneyBillWave,
+    iconBg: 'rgba(34, 197, 94, 0.12)',
+    iconColor: '#16a34a',
     delay: '0.05s',
   },
   {
@@ -24,6 +33,9 @@ const stats = [
     subClass: '',
     valueColor: '#dc2626',
     borderColor: '#ef4444',
+    icon: FaReceipt,
+    iconBg: 'rgba(239, 68, 68, 0.12)',
+    iconColor: '#dc2626',
     delay: '0.1s',
   },
   {
@@ -33,24 +45,13 @@ const stats = [
     subClass: '',
     valueColor: '#e6b215',
     borderColor: '#e6b215',
+    icon: FaCoins,
+    iconBg: 'rgba(230, 178, 21, 0.12)',
+    iconColor: '#b45309',
     delay: '0.15s',
   },
 ];
 
 export default function HrisPayrollStatCards() {
-  return (
-    <div className="pr-stat-grid">
-      {stats.map((s, i) => (
-        <div
-          key={i}
-          className="pr-stat-card"
-          style={{ borderLeftColor: s.borderColor, animationDelay: s.delay }}
-        >
-          <p className="pr-stat-label">{s.label}</p>
-          <p className="pr-stat-value" style={{ color: s.valueColor }}>{s.value}</p>
-          <p className={`pr-stat-sub ${s.subClass}`}>{s.sub}</p>
-        </div>
-      ))}
-    </div>
-  );
+  return <StatCards cards={stats} />;
 }

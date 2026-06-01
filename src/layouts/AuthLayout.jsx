@@ -1,24 +1,18 @@
+import BrandPanel from '@components/login/BrandPanel';
+
 /**
  * AuthLayout — full-screen split layout used for authentication pages
  * (login, forgot-password, etc.).
  *
- * Slot structure:
- *  - `brandPanel`: left decorative panel (hidden on mobile)
- *  - `children`:   right content panel
+ * It directly includes the left decorative panel and renders its children
+ * in the right content panel.
  */
-export default function AuthLayout({ brandPanel, children }) {
+export default function AuthLayout({ children }) {
   return (
-    <div className="flex min-h-screen h-screen font-[Poppins]">
-      {/* Left brand panel */}
-      {brandPanel}
+    <div className="auth-page">
+      <BrandPanel />
 
-      {/* Right content panel */}
-      <div
-        className="
-          flex-1 bg-[#ecf0f1] flex items-center justify-center
-          p-6 md:p-12 overflow-y-auto
-        "
-      >
+      <div className="auth-form-panel">
         {children}
       </div>
     </div>

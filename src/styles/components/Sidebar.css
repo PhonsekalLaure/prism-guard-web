@@ -49,15 +49,30 @@
   padding: 0.6rem 0;
 }
 
+.nav-group {
+  position: relative;
+}
+
+/* ── Group header button ── */
 .nav-group-header {
   position: relative;
-  padding: 0.3rem 1.2rem 0.2rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.45rem 1.2rem 0.45rem 1.5rem;
   margin-top: 0.35rem;
   font-size: 0.65rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1.2px;
   color: rgba(255, 255, 255, 0.4);
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  text-align: left;
+  transition: color 0.25s ease, background 0.25s ease;
 }
 
 .nav-group-header::before {
@@ -70,6 +85,108 @@
   height: 14px;
   background: #e6b215;
   border-radius: 2px;
+  opacity: 0.55;
+  transition: opacity 0.25s ease, box-shadow 0.25s ease;
+}
+
+.nav-group-header:hover,
+.nav-group.open > .nav-group-header,
+.nav-group.active > .nav-group-header {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.nav-group.open > .nav-group-header::before,
+.nav-group.active > .nav-group-header::before {
+  opacity: 1;
+  box-shadow: 0 0 8px rgba(230, 178, 21, 0.6);
+}
+
+.nav-group-header > span:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Chevron ── */
+.nav-group-chevron {
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.65rem;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.25s ease;
+  flex-shrink: 0;
+}
+
+.nav-group:hover .nav-group-chevron {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.nav-group.open .nav-group-chevron {
+  transform: rotate(180deg);
+  color: #e6b215;
+}
+
+/* ── Badge on group header ── */
+.nav-group-badge {
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.34rem;
+  border-radius: 999px;
+  background: #e6b215;
+  color: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 800;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+/* ── Animated dropdown menu (CSS Grid trick) ── */
+.nav-group-menu {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.nav-group-menu > * {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.nav-group.open > .nav-group-menu {
+  grid-template-rows: 1fr;
+}
+
+/* ── Staggered item entrance ── */
+.nav-group.open .nav-group-menu .nav-item {
+  animation: navItemSlideIn 0.28s ease both;
+}
+
+.nav-group.open .nav-group-menu .nav-item:nth-child(1) { animation-delay: 0.03s; }
+.nav-group.open .nav-group-menu .nav-item:nth-child(2) { animation-delay: 0.07s; }
+.nav-group.open .nav-group-menu .nav-item:nth-child(3) { animation-delay: 0.11s; }
+.nav-group.open .nav-group-menu .nav-item:nth-child(4) { animation-delay: 0.15s; }
+.nav-group.open .nav-group-menu .nav-item:nth-child(5) { animation-delay: 0.19s; }
+.nav-group.open .nav-group-menu .nav-item:nth-child(6) { animation-delay: 0.23s; }
+
+@keyframes navItemSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.nav-group-menu .nav-item {
+  padding-left: 1.8rem;
+}
+
+.nav-group-menu .nav-item:hover {
+  padding-left: 2.05rem;
 }
 
 .nav-divider {
@@ -121,6 +238,38 @@
   font-size: 1rem;
 }
 
+.nav-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.nav-badge {
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.36rem;
+  border-radius: 999px;
+  background: #e6b215;
+  color: #0f172a !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-left: auto;
+}
+
+.nav-badge-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: #e6b215;
+  display: inline-block;
+  margin-left: auto;
+  box-shadow: 0 0 0 3px rgba(230, 178, 21, 0.18);
+  flex-shrink: 0;
+}
+
 /* Sidebar footer */
 .sidebar-footer {
   padding: 0.8rem 0;
@@ -134,6 +283,12 @@
   gap: 0.7rem;
   padding: 0.8rem 1.2rem;
   margin: 0.3rem 0;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.sidebar-user:hover {
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .sidebar-user .user-avatar {
