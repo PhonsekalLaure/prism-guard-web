@@ -8,11 +8,12 @@ const toProperCase = (str) => {
 const formatBillingType = (value) => toProperCase(value || '').replace('-', ' ');
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-function ReviewSection({ title, icon: Icon, children }) {
+function ReviewSection({ title, icon, children }) {
+  const SectionIcon = icon;
   return (
     <div className="ae-review-section">
       <div className="ae-review-section-header">
-        <Icon className="ae-review-section-icon" />
+        <SectionIcon className="ae-review-section-icon" />
         <span className="ae-review-section-title">{title}</span>
       </div>
       <div className="ae-review-section-body">{children}</div>

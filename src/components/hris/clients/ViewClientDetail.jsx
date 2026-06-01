@@ -188,6 +188,8 @@ export default function ViewClientDetail({
           siteLongitude: selectedSite.longitude,
           tallOnly: deployFilters.tallOnly,
           experiencedOnly: deployFilters.experiencedOnly,
+          contractStartDate: deployForm.contractStartDate,
+          contractEndDate: deployForm.contractEndDate,
         });
         if (!cancelled) setDeployableEmployees(employees);
       } catch (err) {
@@ -202,7 +204,16 @@ export default function ViewClientDetail({
 
     loadDeployableEmployees();
     return () => { cancelled = true; };
-  }, [showDeployModal, deployForm.siteId, deployFilters.tallOnly, deployFilters.experiencedOnly, data?.sites, showNotification]);
+  }, [
+    showDeployModal,
+    deployForm.siteId,
+    deployForm.contractStartDate,
+    deployForm.contractEndDate,
+    deployFilters.tallOnly,
+    deployFilters.experiencedOnly,
+    data?.sites,
+    showNotification,
+  ]);
 
   useEffect(() => {
     if (!selectedEmployee?.id) return;

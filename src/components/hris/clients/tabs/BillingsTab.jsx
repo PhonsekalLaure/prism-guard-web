@@ -1,6 +1,6 @@
 import { FaHistory, FaFileInvoiceDollar } from 'react-icons/fa';
 import EmptyState from '@components/ui/EmptyState';
-import { fmtDate, fmtMoney } from './ClientInfoCell';
+import { fmtDate, fmtMoney } from './clientFormatters';
 
 export default function BillingsTab({ client }) {
   const billings = client.billings || [];

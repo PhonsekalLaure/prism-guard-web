@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { FaAddressBook, FaEdit, FaFileContract, FaSave, FaTimes } from 'react-icons/fa';
-import { InfoCell, fmtDate } from './ClientInfoCell';
+import { InfoCell } from './ClientInfoCell';
+import { fmtDate } from './clientFormatters';
 
 function EditInput({ label, value, onChange, type = 'text', placeholder, readOnly = false, disabled = false }) {
   return (

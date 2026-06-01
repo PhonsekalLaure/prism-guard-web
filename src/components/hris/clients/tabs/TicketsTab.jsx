@@ -1,6 +1,6 @@
 import { FaTicketAlt } from 'react-icons/fa';
 import EmptyState from '@components/ui/EmptyState';
-import { fmtDate } from './ClientInfoCell';
+import { fmtDate } from './clientFormatters';
 
 const priorityColor = (p) =>
   p === 'urgent' ? '#dc2626' : p === 'high' ? '#d97706' : '#2563eb';
