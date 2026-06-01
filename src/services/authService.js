@@ -284,7 +284,7 @@ async function logout() {
 
   if (token) {
     try {
-      await api.post('/logout', null, {
+      await api.post('/logout', {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
     } catch {
