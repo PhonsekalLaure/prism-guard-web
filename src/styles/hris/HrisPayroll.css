@@ -38,6 +38,35 @@
   flex-shrink: 0;
 }
 
+.pr-topbar-right--payroll {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.pr-period-inputs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.pr-run-select {
+  min-width: 280px;
+}
+
+.pr-spin {
+  animation: spin 1s linear infinite;
+}
+
+.pr-error-banner {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
 /* Period toggle pill */
 .pr-period-toggle {
   display: flex;
@@ -457,6 +486,17 @@
 .pr-badge.processing  { background: #fef9c3; color: #92400e; }
 .pr-badge.paid        { background: #16a34a; color: #fff; }
 .pr-badge.accumulating{ background: #dbeafe; color: #1e40af; }
+.pr-badge.cancelled   { background: #fee2e2; color: #991b1b; }
+
+.pr-preview-pill {
+  background: #dbeafe;
+  color: #1e40af;
+  border-radius: 999px;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
 
 /* View button */
 .pr-view-btn {
@@ -735,6 +775,31 @@
   align-items: center;
 }
 
+.pr-snapshot-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.pr-snapshot-grid div {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+
+.pr-snapshot-grid span {
+  display: block;
+  font-size: 0.72rem;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.pr-snapshot-grid strong {
+  color: #1f2937;
+  font-size: 0.9rem;
+}
+
 .pr-net-hero-amount p.label {
   font-size: 0.8rem;
   opacity: 0.8;
@@ -812,18 +877,27 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
 /* =============================================
    RESPONSIVE
    ============================================= */
 @media (max-width: 1024px) {
   .pr-stat-grid     { grid-template-columns: repeat(2, 1fr); }
   .pr-filter-bar    { grid-template-columns: 1fr; }
+  .pr-snapshot-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 768px) {
   .pr-topbar        { flex-direction: column; align-items: flex-start; }
   .pr-topbar-right  { flex-wrap: wrap; }
+  .pr-period-inputs { flex-direction: column; width: 100%; }
+  .pr-run-select    { min-width: 0; width: 100%; }
   .pr-modal-actions { flex-direction: column; }
   .pr-net-hero      { flex-direction: column; gap: 0.75rem; }
   .pr-net-hero-date { text-align: left; }
+  .pr-snapshot-grid { grid-template-columns: 1fr; }
 }

@@ -1,8 +1,8 @@
-import { FaSearch, FaBuilding, FaFilter } from 'react-icons/fa';
+import { FaFilter, FaSearch } from 'react-icons/fa';
 
-export default function HrisPayrollFilterBar() {
+export default function HrisPayrollFilterBar({ filters, onChange }) {
   return (
-    <div className="filter-bar three-cols">
+    <div className="filter-bar two-cols">
       <div className="filter-group">
         <label className="filter-label">
           <FaSearch /> Search Employee
@@ -11,30 +11,25 @@ export default function HrisPayrollFilterBar() {
           type="text"
           className="filter-input"
           placeholder="Search by employee name or ID..."
+          value={filters.search}
+          onChange={(event) => onChange({ ...filters, search: event.target.value })}
         />
       </div>
 
       <div className="filter-group">
         <label className="filter-label">
-          <FaBuilding /> Assigned Client
+          <FaFilter /> Record Status
         </label>
-        <select className="filter-select">
-          <option>All Clients</option>
-          <option>FEU Institute of Tech</option>
-          <option>SM Mall of Asia</option>
-          <option>SM North Edsa</option>
-        </select>
-      </div>
-
-      <div className="filter-group">
-        <label className="filter-label">
-          <FaFilter /> Status
-        </label>
-        <select className="filter-select">
-          <option>All Status</option>
-          <option>Processing</option>
-          <option>Ready</option>
-          <option>Paid</option>
+        <select
+          className="filter-select"
+          value={filters.status}
+          onChange={(event) => onChange({ ...filters, status: event.target.value })}
+        >
+          <option value="">All Statuses</option>
+          <option value="draft">Draft</option>
+          <option value="approved">Approved</option>
+          <option value="paid">Paid</option>
+          <option value="cancelled">Cancelled</option>
         </select>
       </div>
     </div>

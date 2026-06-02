@@ -1,78 +1,109 @@
-import { useState } from 'react';
-import { FaDownload, FaCalculator, FaLock, FaCheck, FaSpinner } from 'react-icons/fa';
+import {
+  FaCalculator,
+  FaCheck,
+  FaDownload,
+  FaMoneyBillWave,
+  FaRedo,
+  FaSpinner,
+} from 'react-icons/fa';
 
-const periods = [
-  'Current Period: Feb 1-15, 2026',
-  'Previous Period: Jan 16-31, 2026',
-  'Jan 1-15, 2026',
-];
+function formatRunLabel(run) {
+  if (!run) return 'Select payroll run';
+  return `${run.period_start} to ${run.period_end} - ${String(run.status || '').toUpperCase()}`;
+}
 
-export default function HrisPayrollTopbar({ mode, onModeChange }) {
-  const [processing, setProcessing] = useState(false);
-  const [processed, setProcessed] = useState(false);
-
-  const handleProcess = () => {
-    if (mode === 'ongoing') return;
-    setProcessing(true);
-    setTimeout(() => {
-      setProcessing(false);
-      setProcessed(true);
-      setTimeout(() => setProcessed(false), 3000);
-    }, 2000);
-  };
+export default function HrisPayrollTopbar({
+  actionLoading,
+  onApprove,
+  onCreate,
+  onExport,
+  onMarkPaid,
+  onPreview,
+  onRecalculate,
+  onSelectRun,
+  periodEnd,
+  periodStart,
+  runs,
+  selectedRun,
+  selectedRunId,
+  setPeriodEnd,
+  setPeriodStart,
+}) {
+  const isBusy = Boolean(actionLoading);
+  const canRecalculate = selectedRun?.status === 'draft';
+  const canApprove = selectedRun?.status === 'draft';
+  const canMarkPaid = selectedRun?.status === 'approved';
 
   return (
     <header className="pr-topbar">
       <div className="pr-title-group">
         <h2>Payroll Management</h2>
-        <p>Process and manage employee compensation</p>
+        <p>Calculate, review, approve, and mark cash-released salaries as paid</p>
       </div>
 
-      <div className="pr-topbar-right">
-        {/* Finalized / Ongoing toggle */}
-        <div className="pr-period-toggle">
-          <button
-            className={`pr-toggle-btn ${mode === 'finalized' ? 'active' : ''}`}
-            onClick={() => onModeChange('finalized')}
-          >
-            Finalized
-          </button>
-          <button
-            className={`pr-toggle-btn ${mode === 'ongoing' ? 'active' : ''}`}
-            onClick={() => onModeChange('ongoing')}
-          >
-            Ongoing
-          </button>
+      <div className="pr-topbar-right pr-topbar-right--payroll">
+        <div className="pr-period-inputs">
+          <input
+            type="date"
+            className="pr-period-select"
+            value={periodStart}
+            onChange={(event) => setPeriodStart(event.target.value)}
+            aria-label="Payroll period start"
+          />
+          <input
+            type="date"
+            className="pr-period-select"
+            value={periodEnd}
+            onChange={(event) => setPeriodEnd(event.target.value)}
+            aria-label="Payroll period end"
+          />
         </div>
 
-        {/* Period selector */}
-        <select className="pr-period-select">
-          {periods.map((p) => (
-            <option key={p}>{p}</option>
+        <select
+          className="pr-period-select pr-run-select"
+          value={selectedRunId || ''}
+          onChange={(event) => onSelectRun(event.target.value)}
+        >
+          <option value="">No saved run selected</option>
+          {runs.map((run) => (
+            <option key={run.id} value={run.id}>{formatRunLabel(run)}</option>
           ))}
         </select>
 
-        {/* Export */}
-        <button className="pr-export-btn">
-          <FaDownload /> Export Payroll
+        <button className="pr-export-btn" type="button" onClick={onExport} disabled={isBusy}>
+          <FaDownload /> Export
         </button>
 
-        {/* Process Payroll */}
-        <button
-          className={`pr-process-btn ${processed ? 'success' : ''}`}
-          onClick={handleProcess}
-          disabled={processing || mode === 'ongoing'}
-        >
-          {mode === 'ongoing' ? (
-            <><FaLock /> Processing Locked</>
-          ) : processing ? (
-            <><FaSpinner style={{ animation: 'spin 1s linear infinite' }} /> Processing...</>
-          ) : processed ? (
-            <><FaCheck /> Processed</>
-          ) : (
-            <><FaCalculator /> Process Payroll</>
-          )}
+        <button className="pr-export-btn" type="button" onClick={onPreview} disabled={isBusy}>
+          {actionLoading === 'preview' ? <FaSpinner className="pr-spin" /> : <FaCalculator />}
+          Preview
         </button>
+
+        <button className="pr-process-btn" type="button" onClick={onCreate} disabled={isBusy}>
+          {actionLoading === 'create' ? <FaSpinner className="pr-spin" /> : <FaMoneyBillWave />}
+          Create Draft
+        </button>
+
+        {canRecalculate && (
+          <button className="pr-export-btn" type="button" onClick={onRecalculate} disabled={isBusy}>
+            {actionLoading === 'recalculate' ? <FaSpinner className="pr-spin" /> : <FaRedo />}
+            Recalculate
+          </button>
+        )}
+
+        {canApprove && (
+          <button className="pr-process-btn" type="button" onClick={onApprove} disabled={isBusy}>
+            {actionLoading === 'approve' ? <FaSpinner className="pr-spin" /> : <FaCheck />}
+            Approve
+          </button>
+        )}
+
+        {canMarkPaid && (
+          <button className="pr-process-btn success" type="button" onClick={onMarkPaid} disabled={isBusy}>
+            {actionLoading === 'markPaid' ? <FaSpinner className="pr-spin" /> : <FaCheck />}
+            Mark Paid
+          </button>
+        )}
       </div>
     </header>
   );
