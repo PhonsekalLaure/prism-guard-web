@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ApplicantsTopbar from '@hris-components/applicants/ApplicantsTopbar';
 import ApplicantsStatCards from '@hris-components/applicants/ApplicantsStatCards';
 import ApplicantsFilterBar from '@hris-components/applicants/ApplicantsFilterBar';
@@ -9,6 +10,7 @@ import applicantService from '@services/hris/applicantService';
 import '../../styles/hris/Applicants.css';
 
 export default function ApplicantsPage() {
+  const navigate = useNavigate();
   const [reviewApplicant, setReviewApplicant] = useState(null);
   const [applicants, setApplicants] = useState([]);
   const [stats, setStats] = useState({});
@@ -17,6 +19,7 @@ export default function ApplicantsPage() {
   const [filters, setFilters] = useState({ search: '', position: 'all', status: 'all' });
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
   const displayApplicants = useMemo(
     () => applicants.map(mapApplicantForDisplay),
@@ -31,6 +34,7 @@ export default function ApplicantsPage() {
   const loadApplicants = useCallback(async () => {
     setIsLoading(true);
     try {
+      setError('');
       const [listResult, statsResult] = await Promise.all([
         applicantService.getApplicants(page, 6, filters),
         applicantService.getApplicantStats(),
@@ -38,6 +42,8 @@ export default function ApplicantsPage() {
       setApplicants(listResult.data || []);
       setPagination(listResult.metadata || { total: 0, page, limit: 6, totalPages: 1 });
       setStats(statsResult || {});
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to load applicants.');
     } finally {
       setIsLoading(false);
     }
@@ -60,9 +66,12 @@ export default function ApplicantsPage() {
   const handleScheduleInterview = async (id, payload) => {
     setIsSubmitting(true);
     try {
+      setError('');
       await applicantService.scheduleInterview(id, payload);
       await loadApplicants();
       setReviewApplicant(null);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to schedule interview.');
     } finally {
       setIsSubmitting(false);
     }
@@ -71,23 +80,23 @@ export default function ApplicantsPage() {
   const handleReject = async (id, payload) => {
     setIsSubmitting(true);
     try {
+      setError('');
       await applicantService.rejectApplicant(id, payload);
       await loadApplicants();
       setReviewApplicant(null);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to reject applicant.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleAccept = async (id, payload) => {
-    setIsSubmitting(true);
-    try {
-      await applicantService.acceptApplicant(id, payload);
-      await loadApplicants();
-      setReviewApplicant(null);
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleHire = (applicant) => {
+    navigate('/employees/new', {
+      state: {
+        sourceApplicant: applicant,
+      },
+    });
   };
 
   return (
@@ -95,6 +104,7 @@ export default function ApplicantsPage() {
       <ApplicantsTopbar />
 
       <div className="dashboard-content">
+        {error && <div className="applicants-error-banner">{error}</div>}
         <ApplicantsStatCards stats={stats} loading={isLoading} />
         <ApplicantsFilterBar filters={filters} onChange={updateFilters} />
         <ApplicantsGrid
@@ -115,8 +125,9 @@ export default function ApplicantsPage() {
         onClose={() => setReviewApplicant(null)}
         onScheduleInterview={handleScheduleInterview}
         onReject={handleReject}
-        onAccept={handleAccept}
+        onHire={handleHire}
         isSubmitting={isSubmitting}
+        actionError={error}
       />
     </>
   );

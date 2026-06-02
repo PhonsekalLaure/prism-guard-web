@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { FaCalendarCheck, FaCheck, FaTimes, FaTimesCircle, FaUserCheck } from 'react-icons/fa';
+import { FaBriefcase, FaCalendarCheck, FaCheck, FaTimes, FaTimesCircle } from 'react-icons/fa';
+import EntityAvatar from '@components/ui/EntityAvatar';
 
 function DetailCell({ label, value }) {
   return (
@@ -23,8 +24,9 @@ export default function ReviewApplicantModal({
   onClose,
   onScheduleInterview,
   onReject,
-  onAccept,
+  onHire,
   isSubmitting,
+  actionError = '',
 }) {
   const [interviewScheduledAt, setInterviewScheduledAt] = useState(() =>
     formatDateTimeLocal(applicant?.interview_scheduled_at)
@@ -42,6 +44,7 @@ export default function ReviewApplicantModal({
   if (!isOpen || !applicant) return null;
 
   const canSchedule = applicant.status !== 'rejected' && applicant.status !== 'hired';
+  const canStartHiring = applicant.status === 'interview' && passedInterview;
 
   return (
     <div className="ar-modal-overlay" onClick={(event) => event.target === event.currentTarget && onClose()}>
@@ -57,8 +60,15 @@ export default function ReviewApplicantModal({
         </div>
 
         <div className="ar-modal-body">
+          {actionError && <div className="ar-error-banner">{actionError}</div>}
+
           <div className="ar-profile-strip">
-            <div className="ar-profile-avatar">{applicant.initials}</div>
+            <EntityAvatar
+              avatarUrl={applicant.avatarUrl}
+              initials={applicant.initials}
+              name={applicant.name}
+              className="ar-profile-avatar"
+            />
             <div>
               <p className="ar-profile-name">{applicant.name}</p>
               <p className="ar-profile-sub">{applicant.position} Position</p>
@@ -181,13 +191,13 @@ export default function ReviewApplicantModal({
             >
               <FaTimesCircle /> Reject
             </button>
-            {passedInterview && applicant.status === 'interview' && (
+            {canStartHiring && (
               <button
                 className="ar-btn ar-btn-green"
                 disabled={isSubmitting}
-                onClick={() => onAccept(applicant.id, { notes, passedInterview: true })}
+                onClick={() => onHire(applicant)}
               >
-                <FaUserCheck /> Accept
+                <FaBriefcase /> Hire
               </button>
             )}
           </div>

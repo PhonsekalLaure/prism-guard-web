@@ -60,12 +60,17 @@ function isAfterDate(dateValue, maxDateValue) {
   return Boolean(dateValue && maxDateValue && String(dateValue) > String(maxDateValue));
 }
 
-export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode = false }) {
+export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode = false, initialData = null }) {
   const [currentStep,  setCurrentStep]  = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sites,        setSites]        = useState([]);
-  const [formData,     setFormData]     = useState(INITIAL_FORM);
+  const [formData,     setFormData]     = useState(() => ({ ...INITIAL_FORM(), ...(initialData || {}) }));
   const { notification, showNotification, closeNotification } = useNotification();
+
+  useEffect(() => {
+    if (!isOpen || !initialData) return;
+    setFormData((prev) => ({ ...prev, ...initialData }));
+  }, [isOpen, initialData]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -92,7 +97,7 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
   const handleClose = () => {
     setCurrentStep(1);
     setIsSubmitting(false);
-    setFormData(INITIAL_FORM);
+    setFormData(INITIAL_FORM());
     onClose();
   };
 
@@ -246,10 +251,13 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
           payload.append(key, formData[key] || '');
         }
       });
-      await employeeService.createEmployee(payload);
+      const createdEmployee = await employeeService.createEmployee(payload);
       showNotification('Employee added successfully and welcome email sent!', 'success');
-      onSaved?.();
-      setTimeout(handleClose, 1500);
+      if (onSaved) {
+        await onSaved(createdEmployee);
+      } else {
+        setTimeout(handleClose, 1500);
+      }
     } catch (err) {
       console.error(err);
       showNotification(err.response?.data?.error || 'Failed to add employee. Please check inputs.', 'error');
