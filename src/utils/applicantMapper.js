@@ -67,6 +67,7 @@ export function mapApplicantForDisplay(applicant) {
   return {
     ...applicant,
     initials: getInitials(applicant),
+    avatarUrl: applicant.profile_photo_url || null,
     name: getFullName(applicant),
     applied: `Applied ${formatDate(applicant.applied_at)}`,
     appliedDate: formatDate(applicant.applied_at),

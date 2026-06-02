@@ -7,6 +7,7 @@ import {
 import Pagination from '@components/ui/Pagination';
 import EmptyState from '@components/ui/EmptyState';
 import { EntityCardSkeleton, SkeletonList } from '@components/ui/Skeleton';
+import EntityAvatar from '@components/ui/EntityAvatar';
 
 const STATUS_LABELS = {
   pending: 'PENDING',
@@ -21,7 +22,12 @@ function ApplicantCard({ applicant, onReview }) {
       <div className="applicant-card-body">
         <div className="applicant-card-top">
           <div className="applicant-top-left">
-            <div className="applicant-avatar">{applicant.initials}</div>
+            <EntityAvatar
+              avatarUrl={applicant.avatarUrl}
+              initials={applicant.initials}
+              name={applicant.name}
+              className="applicant-avatar"
+            />
             <div>
               <p className="applicant-name">{applicant.name}</p>
               <p className="applicant-applied">{applicant.applied}</p>
