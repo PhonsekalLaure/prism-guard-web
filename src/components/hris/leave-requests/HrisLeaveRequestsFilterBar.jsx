@@ -29,6 +29,7 @@ export default function HrisLeaveRequestsFilterBar({ filters, onChange }) {
           <option value="sick">Sick Leave</option>
           <option value="emergency">Emergency Leave</option>
           <option value="maternity_paternity">Maternity / Paternity Leave</option>
+          <option value="service_incentive">Service Incentive Leave</option>
         </select>
       </div>
 
