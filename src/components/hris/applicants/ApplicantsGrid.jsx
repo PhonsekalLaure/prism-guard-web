@@ -8,6 +8,7 @@ import Pagination from '@components/ui/Pagination';
 import EmptyState from '@components/ui/EmptyState';
 import EntityAvatar from '@components/ui/EntityAvatar';
 import { EntityCardSkeleton, SkeletonList } from '@components/ui/Skeleton';
+import EntityAvatar from '@components/ui/EntityAvatar';
 
 const STATUS_LABELS = {
   pending: 'PENDING',

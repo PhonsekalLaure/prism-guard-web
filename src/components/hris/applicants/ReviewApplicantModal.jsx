@@ -24,8 +24,9 @@ export default function ReviewApplicantModal({
   onClose,
   onScheduleInterview,
   onReject,
-  onAccept,
+  onHire,
   isSubmitting,
+  actionError = '',
 }) {
   const [interviewScheduledAt, setInterviewScheduledAt] = useState(() =>
     formatDateTimeLocal(applicant?.interview_scheduled_at)
@@ -43,6 +44,7 @@ export default function ReviewApplicantModal({
   if (!isOpen || !applicant) return null;
 
   const canSchedule = applicant.status !== 'rejected' && applicant.status !== 'hired';
+  const canStartHiring = applicant.status === 'interview' && passedInterview;
 
   return (
     <div className="ar-modal-overlay" onClick={(event) => event.target === event.currentTarget && onClose()}>
@@ -58,6 +60,8 @@ export default function ReviewApplicantModal({
         </div>
 
         <div className="ar-modal-body">
+          {actionError && <div className="ar-error-banner">{actionError}</div>}
+
           <div className="ar-profile-strip">
             <EntityAvatar
               avatarUrl={applicant.avatarUrl || applicant.avatar_url}
@@ -187,13 +191,13 @@ export default function ReviewApplicantModal({
             >
               <FaTimesCircle /> Reject
             </button>
-            {passedInterview && applicant.status === 'interview' && (
+            {canStartHiring && (
               <button
                 className="ar-btn ar-btn-green"
                 disabled={isSubmitting}
-                onClick={() => onAccept(applicant.id, { notes, passedInterview: true })}
+                onClick={() => onHire(applicant)}
               >
-                <FaUserCheck /> Accept
+                <FaBriefcase /> Hire
               </button>
             )}
           </div>

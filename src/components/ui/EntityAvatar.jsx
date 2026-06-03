@@ -6,6 +6,8 @@ export default function EntityAvatar({
   className,
   alt = '',
   fallbackContent,
+  name = 'Profile',
+  className = '',
 }) {
   const [failed, setFailed] = useState(false);
   const canShowImage = Boolean(avatarUrl) && !failed;
