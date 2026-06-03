@@ -3,10 +3,8 @@ import { useState } from 'react';
 export default function EntityAvatar({
   avatarUrl,
   initials = 'NA',
-  className,
   alt = '',
   fallbackContent,
-  name = 'Profile',
   className = '',
 }) {
   const [failed, setFailed] = useState(false);
