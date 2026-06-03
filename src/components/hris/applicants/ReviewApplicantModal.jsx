@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FaCalendarCheck, FaCheck, FaTimes, FaTimesCircle, FaUserCheck } from 'react-icons/fa';
+import { FaBriefcase, FaCalendarCheck, FaCheck, FaTimes, FaTimesCircle } from 'react-icons/fa';
 import EntityAvatar from '@components/ui/EntityAvatar';
 
 function DetailCell({ label, value }) {

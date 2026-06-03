@@ -161,7 +161,7 @@
   background: #e5e7eb;
 }
 
-.applicant-avatar img {
+.applicant-avatar img,
 .entity-avatar img {
   width: 100%;
   height: 100%;
