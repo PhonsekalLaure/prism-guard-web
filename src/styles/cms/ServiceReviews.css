@@ -737,3 +737,119 @@
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
+
+.srv-submission-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.srv-submission-badge--monthly_required {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.srv-monthly-panel {
+  background: #fff;
+  border: 1px solid #facc15;
+  border-left: 4px solid #eab308;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1.5rem;
+  padding: 1.25rem;
+}
+
+.srv-monthly-panel.cleared {
+  border-color: #86efac;
+  border-left-color: #16a34a;
+}
+
+.srv-monthly-panel-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.srv-monthly-panel-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #fef9c3;
+  color: #ca8a04;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1.1rem;
+}
+
+.srv-monthly-panel.cleared .srv-monthly-panel-icon {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.srv-monthly-panel-header h3 {
+  margin: 0 0 0.25rem;
+  color: #1f2937;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.srv-monthly-panel-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.88rem;
+}
+
+.srv-monthly-status {
+  margin-left: auto;
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.srv-monthly-status.due {
+  background: #fef9c3;
+  color: #a16207;
+}
+
+.srv-monthly-status.cleared {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.srv-monthly-cleared-note {
+  margin-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #475569;
+  font-size: 0.85rem;
+}
+
+.srv-monthly-panel .srv-form-panel {
+  margin-top: 1.2rem;
+  box-shadow: none;
+  border: 1px solid #e5e7eb;
+}
+
+@media (max-width: 768px) {
+  .srv-monthly-panel-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .srv-monthly-status {
+    margin-left: 0;
+    align-self: flex-start;
+  }
+}

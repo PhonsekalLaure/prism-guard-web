@@ -4,6 +4,7 @@ import {
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
 import EmptyState from '@components/ui/EmptyState';
+import EntityAvatar from '@components/ui/EntityAvatar';
 import { EntityCardSkeleton, SkeletonList } from '@components/ui/Skeleton';
 
 export default function EmployeesGrid({ 
@@ -49,11 +50,12 @@ export default function EmployeesGrid({
               <div className="employee-card-body">
                 <div className="employee-card-header-row">
                   <div className="employee-header-left">
-                    {emp.avatar_url ? (
-                      <img src={emp.avatar_url} alt={emp.initials} className="employee-avatar min-w-[40px]" />
-                    ) : (
-                      <div className="employee-avatar">{emp.initials}</div>
-                    )}
+                    <EntityAvatar
+                      avatarUrl={emp.avatar_url}
+                      initials={emp.initials}
+                      className="employee-avatar min-w-[40px]"
+                      alt={emp.name || emp.initials}
+                    />
                     <div>
                       <h4 className="employee-name">{emp.name}</h4>
                       <p className="employee-id">{emp.employee_id_number}</p>

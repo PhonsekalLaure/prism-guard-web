@@ -122,6 +122,14 @@
   display: flex; align-items: center; justify-content: center;
   font-weight: 700; font-size: 1rem; flex-shrink: 0;
   letter-spacing: 0.02em;
+  overflow: hidden;
+}
+.admin-card-avatar.has-image { background: #e5e7eb; }
+.admin-card-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 .admin-card-avatar.super { background: linear-gradient(135deg, #e6b215, #f0c842); color: #093269; }
 .admin-card-avatar.default { background: linear-gradient(135deg, #093269, #1a4fa8); color: #fff; }
@@ -368,10 +376,18 @@
 .va-header-default { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); }
 .va-header-inner { display: flex; align-items: center; gap: 1.25rem; position: relative; }
 .va-header-avatar {
-  width: 64px; height: 64px; border-radius: 16px;
+  width: 64px; height: 64px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   font-size: 1.4rem; font-weight: 800; flex-shrink: 0;
   border: 3px solid rgba(255,255,255,0.25);
+  overflow: hidden;
+}
+.va-header-avatar.has-image { background: #e5e7eb; }
+.va-header-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 .va-avatar-president { background: linear-gradient(135deg, #e6b215, #f0c842); color: #093269; }
 .va-avatar-default { background: rgba(255,255,255,0.15); color: #fff; }

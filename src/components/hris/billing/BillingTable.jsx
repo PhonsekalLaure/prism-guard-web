@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import {
   FaEye, FaBell, FaCheck, FaChevronLeft, FaChevronRight, FaListUl,
 } from 'react-icons/fa';

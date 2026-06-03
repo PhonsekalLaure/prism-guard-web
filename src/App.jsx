@@ -20,6 +20,7 @@ import HrisLeaveRequestsPage from '@hris-pages/HrisLeaveRequestsPage';
 import HrisLeaveRequestDetailPage from '@hris-pages/HrisLeaveRequestDetailPage';
 import HrisAttendancePage from '@hris-pages/HrisAttendancePage';
 import HrisCashAdvancePage from '@hris-pages/HrisCashAdvancePage';
+import HrisCashAdvanceDetailPage from '@hris-pages/HrisCashAdvanceDetailPage';
 import HrisPayrollPage from '@hris-pages/HrisPayrollPage';
 import HrisIncidentsPage from '@hris-pages/HrisIncidentsPage';
 import HrisIncidentDetailPage from '@hris-pages/HrisIncidentDetailPage';
@@ -57,24 +58,25 @@ function App() {
           <Route path="/clients" element={<ProtectedRoute requiredPermissions={['clients.read']}><ClientsPage /></ProtectedRoute>} />
           <Route path="/clients/new" element={<ProtectedRoute requiredPermissions={['clients.write']}><AddClientPage /></ProtectedRoute>} />
           <Route path="/clients/:id" element={<ProtectedRoute requiredPermissions={['clients.read']}><ClientDetailPage /></ProtectedRoute>} />
-          <Route path="/billing" element={<BillingPage />} />
+          <Route path="/billing" element={<ProtectedRoute requiredPermissions={['billing.read']}><BillingPage /></ProtectedRoute>} />
           <Route path="/employees" element={<ProtectedRoute requiredPermissions={['employees.read']}><EmployeesPage /></ProtectedRoute>} />
           <Route path="/employees/new" element={<ProtectedRoute requiredPermissions={['employees.write']}><AddEmployeePage /></ProtectedRoute>} />
           <Route path="/employees/:id" element={<ProtectedRoute requiredPermissions={['employees.read']}><EmployeeDetailPage /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute requiredPermissions={['profile.self.read']}><ProfilePage /></ProtectedRoute>} />
           <Route path="/admin-management" element={<ProtectedRoute requiredPermissions={['admins.manage']}><AdminManagementPage /></ProtectedRoute>} />
-          <Route path="/applicants" element={<ApplicantsPage />} />
-          <Route path="/service-request" element={<HrisServiceRequestsPage />} />
-          <Route path="/service-requests/:id" element={<ServiceRequestDetailPage />} />
-          <Route path="/service-reviews" element={<HrisServiceReviewsPage />} />
-          <Route path="/leaves" element={<ProtectedRoute requiredPermissions={['employees.read']}><HrisLeaveRequestsPage /></ProtectedRoute>} />
-          <Route path="/leaves/:id" element={<ProtectedRoute requiredPermissions={['employees.read']}><HrisLeaveRequestDetailPage /></ProtectedRoute>} />
-          <Route path="/attendance" element={<ProtectedRoute requiredPermissions={['employees.read']}><HrisAttendancePage /></ProtectedRoute>} />
-          <Route path="/cash-advance" element={<HrisCashAdvancePage />} />
-          <Route path="/payroll" element={<HrisPayrollPage />} />
+          <Route path="/applicants" element={<ProtectedRoute requiredPermissions={['applicants.read']}><ApplicantsPage /></ProtectedRoute>} />
+          <Route path="/service-request" element={<ProtectedRoute requiredPermissions={['servicerequests.read']}><HrisServiceRequestsPage /></ProtectedRoute>} />
+          <Route path="/service-requests/:id" element={<ProtectedRoute requiredPermissions={['servicerequests.read']}><ServiceRequestDetailPage /></ProtectedRoute>} />
+          <Route path="/service-reviews" element={<ProtectedRoute requiredPermissions={['servicereviews.read']}><HrisServiceReviewsPage /></ProtectedRoute>} />
+          <Route path="/leaves" element={<ProtectedRoute requiredPermissions={['leaves.read']}><HrisLeaveRequestsPage /></ProtectedRoute>} />
+          <Route path="/leaves/:id" element={<ProtectedRoute requiredPermissions={['leaves.read']}><HrisLeaveRequestDetailPage /></ProtectedRoute>} />
+          <Route path="/attendance" element={<ProtectedRoute requiredPermissions={['attendance.read']}><HrisAttendancePage /></ProtectedRoute>} />
+          <Route path="/cash-advance" element={<ProtectedRoute requiredPermissions={['cashadvance.read']}><HrisCashAdvancePage /></ProtectedRoute>} />
+          <Route path="/cash-advance/:id" element={<ProtectedRoute requiredPermissions={['cashadvance.read']}><HrisCashAdvanceDetailPage /></ProtectedRoute>} />
+          <Route path="/payroll" element={<ProtectedRoute requiredPermissions={['payroll.read']}><HrisPayrollPage /></ProtectedRoute>} />
           <Route path="/incidents" element={<ProtectedRoute requiredPermissions={['incidents.read']}><HrisIncidentsPage /></ProtectedRoute>} />
           <Route path="/incidents/:id" element={<ProtectedRoute requiredPermissions={['incidents.read']}><HrisIncidentDetailPage /></ProtectedRoute>} />
-          <Route path="/notifications" element={<NotificationsPage portal="hris" />} />
+          <Route path="/notifications" element={<ProtectedRoute requiredPermissions={['notifications.read']}><NotificationsPage portal="hris" /></ProtectedRoute>} />
           <Route path="/announcements" element={<ProtectedRoute requiredPermissions={['announcements.read']}><HrisAnnouncementsPage /></ProtectedRoute>} />
         </Route>
 

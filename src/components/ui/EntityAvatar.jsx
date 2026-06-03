@@ -3,6 +3,9 @@ import { useState } from 'react';
 export default function EntityAvatar({
   avatarUrl,
   initials = 'NA',
+  className,
+  alt = '',
+  fallbackContent,
   name = 'Profile',
   className = '',
 }) {
@@ -10,15 +13,15 @@ export default function EntityAvatar({
   const canShowImage = Boolean(avatarUrl) && !failed;
 
   return (
-    <div className={`entity-avatar ${className}${canShowImage ? ' has-image' : ''}`}>
+    <div className={`${className || 'entity-avatar'}${canShowImage ? ' has-image' : ''}`}>
       {canShowImage ? (
         <img
           src={avatarUrl}
-          alt={`${name} avatar`}
+          alt={alt}
           onError={() => setFailed(true)}
         />
       ) : (
-        <span>{initials}</span>
+        fallbackContent || initials
       )}
     </div>
   );

@@ -72,6 +72,8 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
           siteLongitude: selectedSite.longitude,
           tallOnly: formData.initialDeployment.filters.tallOnly,
           experiencedOnly: formData.initialDeployment.filters.experiencedOnly,
+          contractStartDate: formData.contractStartDate,
+          contractEndDate: formData.contractEndDate,
         });
         if (!cancelled) {
           setDeployableEmployees(employees);
@@ -97,6 +99,8 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
     isOpen,
     currentStep,
     formData.sites,
+    formData.contractStartDate,
+    formData.contractEndDate,
     formData.initialDeployment.siteIndex,
     formData.initialDeployment.filters.tallOnly,
     formData.initialDeployment.filters.experiencedOnly,

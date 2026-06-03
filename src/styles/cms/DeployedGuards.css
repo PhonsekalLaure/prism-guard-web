@@ -168,6 +168,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
+  background: #093269;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -175,6 +176,17 @@
   font-size: 0.7rem;
   font-weight: 700;
   flex-shrink: 0;
+}
+
+.dg-guard-avatar-sm.has-image {
+  background: transparent;
+}
+
+.dg-guard-avatar-sm img {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
 }
 
 .dg-guard-name {
@@ -434,6 +446,17 @@
   color: #093269;
   border: 3px solid rgba(255, 255, 255, 0.3);
   flex-shrink: 0;
+  object-fit: cover;
+}
+
+.gdm-profile-avatar.has-image {
+  background: transparent;
+}
+
+.gdm-profile-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
   object-fit: cover;
 }
 

@@ -13,29 +13,13 @@ import {
 import Pagination from '@components/ui/Pagination';
 import EmptyState from '@components/ui/EmptyState';
 import { IncidentCardSkeleton, SkeletonList } from '@components/ui/Skeleton';
+import { formatDateTime, titleCase } from '@utils/formatters';
 
 const severityIcon = {
   high: FaExclamationTriangle,
   medium: FaExclamationCircle,
   low: FaInfoCircle,
 };
-
-function titleCase(value) {
-  return String(value || '')
-    .replace(/_/g, ' ')
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-}
-
-function formatDateTime(value) {
-  if (!value) return 'N/A';
-  return new Date(value).toLocaleString('en-US', {
-    month: 'short',
-    day: '2-digit',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-}
 
 function getIncidentStatusMeta(incident = {}) {
   const value = incident.status === 'resolved' ? 'resolved' : (incident.reviewStatus || incident.status || 'pending');

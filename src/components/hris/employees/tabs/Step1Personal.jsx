@@ -1,19 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import FormField from './FormField';
 import GoogleAddressAutofill from '../GoogleAddressAutofill';
 
 export default function Step1Personal({ data, onChange }) {
-  const [preview, setPreview] = useState(null);
+  const preview = useMemo(() => (
+    data.avatar instanceof Blob ? URL.createObjectURL(data.avatar) : null
+  ), [data.avatar]);
 
   useEffect(() => {
-    if (data.avatar) {
-      const reader = new FileReader();
-      reader.onloadend = () => setPreview(reader.result);
-      reader.readAsDataURL(data.avatar);
-    } else {
-      setPreview(null);
-    }
-  }, [data.avatar]);
+    if (!preview) return undefined;
+    return () => URL.revokeObjectURL(preview);
+  }, [preview]);
 
   return (
     <div className="ae-step-content">

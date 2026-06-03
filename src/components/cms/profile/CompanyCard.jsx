@@ -10,6 +10,7 @@ import {
   getPhoneDisplayValue,
   getProfileEmailLabel,
 } from '@utils/profileViewModel';
+import EntityAvatar from '@components/ui/EntityAvatar';
 
 function formatClientSince(dateStr) {
   if (!dateStr) return null;
@@ -44,17 +45,13 @@ export default function CompanyCard({ profile, onEditProfile, onChangePassword }
   return (
     <div className="cms-profile-company-card">
       <div className="cms-profile-company-card__header">
-        <div className="cms-profile-company-card__logo" style={{ overflow: 'hidden' }}>
-          {profile?.avatar_url ? (
-            <img 
-              src={profile.avatar_url} 
-              alt={profile?.company || 'Company Logo'} 
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-            />
-          ) : (
-            <FaBuilding />
-          )}
-        </div>
+        <EntityAvatar
+          avatarUrl={profile?.avatar_url}
+          initials={profile?.company?.slice(0, 2)?.toUpperCase() || 'CO'}
+          className="cms-profile-company-card__logo"
+          alt={profile?.company || 'Company Logo'}
+          fallbackContent={<FaBuilding />}
+        />
         <h3 className="cms-profile-company-card__name">
           {profile?.company || 'Not provided'}
         </h3>

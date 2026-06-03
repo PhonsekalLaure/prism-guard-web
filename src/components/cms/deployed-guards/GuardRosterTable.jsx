@@ -1,6 +1,7 @@
 import { FaUsers, FaEye } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
 import EmptyState from '@components/ui/EmptyState';
+import EntityAvatar from '@components/ui/EntityAvatar';
 import { TableSkeletonRows } from '@components/ui/Skeleton';
 
 const statusConfig = {
@@ -82,18 +83,12 @@ export default function GuardRosterTable({
                   >
                     <td>
                       <div className="dg-guard-cell">
-                        {guard.avatar_url ? (
-                          <img
-                            src={guard.avatar_url}
-                            alt={guard.name}
-                            className="dg-guard-avatar-sm"
-                            style={{ objectFit: 'cover' }}
-                          />
-                        ) : (
-                          <div className="dg-guard-avatar-sm">
-                            {guard.initials}
-                          </div>
-                        )}
+                        <EntityAvatar
+                          avatarUrl={guard.avatar_url}
+                          initials={guard.initials}
+                          className="dg-guard-avatar-sm"
+                          alt={guard.name}
+                        />
                         <div>
                           <p className="dg-guard-name">{guard.name}</p>
                           <p className="dg-guard-since">{guard.since}</p>

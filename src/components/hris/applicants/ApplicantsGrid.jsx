@@ -6,6 +6,7 @@ import {
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
 import EmptyState from '@components/ui/EmptyState';
+import EntityAvatar from '@components/ui/EntityAvatar';
 import { EntityCardSkeleton, SkeletonList } from '@components/ui/Skeleton';
 import EntityAvatar from '@components/ui/EntityAvatar';
 
@@ -23,10 +24,10 @@ function ApplicantCard({ applicant, onReview }) {
         <div className="applicant-card-top">
           <div className="applicant-top-left">
             <EntityAvatar
-              avatarUrl={applicant.avatarUrl}
+              avatarUrl={applicant.avatarUrl || applicant.avatar_url}
               initials={applicant.initials}
-              name={applicant.name}
               className="applicant-avatar"
+              alt={applicant.name || applicant.initials}
             />
             <div>
               <p className="applicant-name">{applicant.name}</p>
