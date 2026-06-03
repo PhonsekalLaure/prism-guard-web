@@ -1,5 +1,6 @@
 import { FaMoneyCheckAlt, FaHistory } from 'react-icons/fa';
 import EmptyState from '@components/ui/EmptyState';
+import { getDisplayNetPay } from '@hris-components/payroll/payrollFormatters';
 import { InfoCell } from './EmployeeEditFields';
 
 const toProperCase = (str) => {
@@ -36,7 +37,11 @@ export default function PayrollTab({ employee }) {
             </thead>
             <tbody>
               {employee.payroll_records?.length > 0 ? employee.payroll_records.map(pr => {
-                const totalDeductions = (pr.statutory_deductions || 0) + (pr.cash_advance_deduction || 0) + (pr.absences_deduction || 0);
+                const totalDeductions = pr.total_deductions ?? (
+                  (pr.statutory_deductions || 0)
+                  + (pr.cash_advance_deduction || 0)
+                  + (pr.absences_deduction || 0)
+                );
                 return (
                   <tr key={pr.id}>
                     <td className="fw-600">
@@ -46,7 +51,7 @@ export default function PayrollTab({ employee }) {
                     </td>
                     <td className="text-right text-green">{fmt(pr.basic_pay)}</td>
                     <td className="text-right text-red">{fmt(totalDeductions)}</td>
-                    <td className="text-right fw-700">{fmt(pr.net_pay)}</td>
+                    <td className="text-right fw-700">{fmt(getDisplayNetPay(pr))}</td>
                     <td>
                       <span className={`ve-pay-badge ${pr.status === 'paid' ? '' : 'bg-gray-200 text-gray-700'}`}>
                         {pr.status?.toUpperCase()}
