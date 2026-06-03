@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { FaExclamationTriangle, FaTimes } from 'react-icons/fa';
 import HrisPayrollTopbar from '@hris-components/payroll/HrisPayrollTopbar';
 import HrisPayrollStatCards from '@hris-components/payroll/HrisPayrollStatCards';
 import HrisPayrollOngoingAlert from '@hris-components/payroll/HrisPayrollOngoingAlert';
@@ -13,6 +14,7 @@ import {
 import { getDisplayNetPay } from '@hris-components/payroll/payrollFormatters';
 import payrollService from '@services/hris/payrollService';
 import '../../styles/hris/HrisPayroll.css';
+import '@styles/components/Notification.css';
 
 function comparePayrollRecords(first, second) {
   const firstName = String(first.employee_name || '').toLowerCase();
@@ -39,6 +41,27 @@ export default function HrisPayrollPage() {
   const [actionLoading, setActionLoading] = useState('');
   const [error, setError] = useState('');
   const [filters, setFilters] = useState({ search: '', status: '' });
+  const [toast, setToast] = useState(null);
+
+  useEffect(() => {
+    if (!toast) return undefined;
+    const timer = setTimeout(() => setToast(null), 3000);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
+  const handlePayrollError = useCallback((err, fallback) => {
+    const msg = getPayrollErrorMessage(err, fallback);
+    if (msg === 'A payroll run already exists for this period') {
+      setToast({
+        type: 'error',
+        title: 'Duplicate Payroll Run',
+        message: msg,
+      });
+      setError('');
+    } else {
+      setError(msg);
+    }
+  }, []);
 
   const loadRuns = useCallback(async (preferredRunId = selectedRunId) => {
     setLoadingRuns(true);
@@ -50,12 +73,12 @@ export default function HrisPayrollPage() {
       setSelectedRunId(nextSelected);
       return nextSelected;
     } catch (err) {
-      setError(getPayrollErrorMessage(err, 'Failed to load payroll runs.'));
+      handlePayrollError(err, 'Failed to load payroll runs.');
       return '';
     } finally {
       setLoadingRuns(false);
     }
-  }, [selectedRunId]);
+  }, [selectedRunId, handlePayrollError]);
 
   const loadRunDetail = useCallback(async (runId) => {
     if (!runId) {
@@ -75,11 +98,11 @@ export default function HrisPayrollPage() {
       if (matchingCutoff) setSelectedCutoffKey(matchingCutoff.key);
       setError('');
     } catch (err) {
-      setError(getPayrollErrorMessage(err, 'Failed to load payroll run.'));
+      handlePayrollError(err, 'Failed to load payroll run.');
     } finally {
       setLoadingRecords(false);
     }
-  }, [cutoffOptions]);
+  }, [cutoffOptions, handlePayrollError]);
 
   useEffect(() => {
     let cancelled = false;
@@ -142,7 +165,7 @@ export default function HrisPayrollPage() {
       setSelectedRunId('');
       setError('');
     } catch (err) {
-      setError(getPayrollErrorMessage(err, 'Failed to preview payroll.'));
+      handlePayrollError(err, 'Failed to preview payroll.');
     } finally {
       setActionLoading('');
     }
@@ -161,7 +184,7 @@ export default function HrisPayrollPage() {
       await loadRuns(run.id);
       setError('');
     } catch (err) {
-      setError(getPayrollErrorMessage(err, 'Failed to create payroll run.'));
+      handlePayrollError(err, 'Failed to create payroll run.');
     } finally {
       setActionLoading('');
     }
@@ -177,7 +200,7 @@ export default function HrisPayrollPage() {
       await loadRuns(run.id);
       setError('');
     } catch (err) {
-      setError(getPayrollErrorMessage(err, 'Failed to update payroll run.'));
+      handlePayrollError(err, 'Failed to update payroll run.');
     } finally {
       setActionLoading('');
     }
@@ -237,6 +260,26 @@ export default function HrisPayrollPage() {
           run={selectedRun}
         />
       </div>
+
+      {toast && (
+        <div className="notif-stack" aria-live="polite" aria-label="Notifications">
+          <div className={`notif notif-${toast.type} notif-enter`}>
+            <FaExclamationTriangle className="notif-icon" />
+            <div className="notif-body">
+              <span className="notif-title">{toast.title}</span>
+              <span className="notif-message">{toast.message}</span>
+            </div>
+            <button
+              className="notif-close"
+              type="button"
+              onClick={() => setToast(null)}
+              aria-label="Close notification"
+            >
+              <FaTimes />
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
