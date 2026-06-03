@@ -10,6 +10,7 @@ import PayrollBreakdownModal from './PayrollBreakdownModal';
 import {
   formatDate,
   formatHours,
+  getDisplayNetPay,
   getInitials,
   getStatusClass,
   money,
@@ -103,7 +104,7 @@ export default function HrisPayrollTable({
                     </p>
                   </td>
                   <td className="right">
-                    <p className={`pr-net-pay ${badgeClass === 'paid' ? 'paid' : ''}`}>{money(row.net_pay)}</p>
+                    <p className={`pr-net-pay ${badgeClass === 'paid' ? 'paid' : ''}`}>{money(getDisplayNetPay(row))}</p>
                   </td>
                   <td>
                     <span className={`pr-badge ${badgeClass}`}>

@@ -3,6 +3,8 @@ import {
   buildDeductions,
   buildEarnings,
   formatDate,
+  getDeductionExcess,
+  getDisplayNetPay,
   getInitials,
   money,
   numeric,
@@ -14,6 +16,7 @@ export default function PayrollBreakdownModal({ row, onClose }) {
   const earnings = buildEarnings(row);
   const deductions = buildDeductions(row);
   const snapshot = row.calculation_snapshot || {};
+  const deductionExcess = getDeductionExcess(row);
 
   return (
     <div
@@ -75,6 +78,12 @@ export default function PayrollBreakdownModal({ row, onClose }) {
                 <span style={{ color: '#7f1d1d' }}>Total Deductions</span>
                 <span>{money(row.total_deductions)}</span>
               </div>
+              {deductionExcess > 0 && (
+                <div className="pr-deduction-excess">
+                  <span>Exceeds gross pay</span>
+                  <strong>{money(deductionExcess)}</strong>
+                </div>
+              )}
             </div>
           </div>
 
@@ -100,7 +109,7 @@ export default function PayrollBreakdownModal({ row, onClose }) {
           <div className="pr-net-hero">
             <div className="pr-net-hero-amount">
               <p className="label">Net Pay</p>
-              <p className="value">{money(row.net_pay)}</p>
+              <p className="value">{money(getDisplayNetPay(row))}</p>
             </div>
             <div className="pr-net-hero-date">
               <p className="label">Payment Date</p>

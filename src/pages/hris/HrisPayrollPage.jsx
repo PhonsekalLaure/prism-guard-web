@@ -7,13 +7,27 @@ import HrisPayrollTable from '@hris-components/payroll/HrisPayrollTable';
 import {
   csvValue,
   getDefaultPayrollPeriod,
+  getPayrollCutoffOptions,
   getPayrollErrorMessage,
 } from '@hris-components/payroll/payrollPageUtils';
+import { getDisplayNetPay } from '@hris-components/payroll/payrollFormatters';
 import payrollService from '@services/hris/payrollService';
 import '../../styles/hris/HrisPayroll.css';
 
+function comparePayrollRecords(first, second) {
+  const firstName = String(first.employee_name || '').toLowerCase();
+  const secondName = String(second.employee_name || '').toLowerCase();
+  if (firstName !== secondName) return firstName.localeCompare(secondName);
+
+  const firstNumber = String(first.employee_number || first.employee_id || '').toLowerCase();
+  const secondNumber = String(second.employee_number || second.employee_id || '').toLowerCase();
+  return firstNumber.localeCompare(secondNumber);
+}
+
 export default function HrisPayrollPage() {
   const defaultPeriod = useMemo(getDefaultPayrollPeriod, []);
+  const cutoffOptions = useMemo(() => getPayrollCutoffOptions(), []);
+  const [selectedCutoffKey, setSelectedCutoffKey] = useState(defaultPeriod.key);
   const [periodStart, setPeriodStart] = useState(defaultPeriod.start);
   const [periodEnd, setPeriodEnd] = useState(defaultPeriod.end);
   const [runs, setRuns] = useState([]);
@@ -55,13 +69,17 @@ export default function HrisPayrollPage() {
       setPreview(null);
       setPeriodStart(run.period_start);
       setPeriodEnd(run.period_end);
+      const matchingCutoff = cutoffOptions.find((option) => (
+        option.periodStart === run.period_start && option.periodEnd === run.period_end
+      ));
+      if (matchingCutoff) setSelectedCutoffKey(matchingCutoff.key);
       setError('');
     } catch (err) {
       setError(getPayrollErrorMessage(err, 'Failed to load payroll run.'));
     } finally {
       setLoadingRecords(false);
     }
-  }, []);
+  }, [cutoffOptions]);
 
   useEffect(() => {
     let cancelled = false;
@@ -79,7 +97,7 @@ export default function HrisPayrollPage() {
       const haystack = `${record.employee_name || ''} ${record.employee_number || ''}`.toLowerCase();
       const matchesSearch = !search || haystack.includes(search);
       return matchesStatus && matchesSearch;
-    });
+    }).slice().sort(comparePayrollRecords);
   }, [filters.search, filters.status, preview, selectedRun]);
 
   const activeSummary = preview?.summary || selectedRun?.summary || {};
@@ -99,6 +117,17 @@ export default function HrisPayrollPage() {
       setSelectedRun(null);
       setPreview(null);
     }
+  };
+
+  const handleSelectCutoff = (cutoffKey) => {
+    const cutoff = cutoffOptions.find((option) => option.key === cutoffKey);
+    if (!cutoff || cutoff.disabled) return;
+    setSelectedCutoffKey(cutoff.key);
+    setPeriodStart(cutoff.periodStart);
+    setPeriodEnd(cutoff.periodEnd);
+    setSelectedRun(null);
+    setSelectedRunId('');
+    setPreview(null);
   };
 
   const handlePreview = async () => {
@@ -163,7 +192,7 @@ export default function HrisPayrollPage() {
         record.status || selectedRun?.status || 'draft',
         record.gross_pay || 0,
         record.total_deductions || 0,
-        record.net_pay || 0,
+        getDisplayNetPay(record),
       ]),
     ];
     const csv = rows.map((row) => row.map(csvValue).join(',')).join('\n');
@@ -187,14 +216,13 @@ export default function HrisPayrollPage() {
         onMarkPaid={() => runAction('markPaid', payrollService.markPayrollRunPaid)}
         onPreview={handlePreview}
         onRecalculate={() => runAction('recalculate', payrollService.recalculatePayrollRun)}
+        onSelectCutoff={handleSelectCutoff}
         onSelectRun={handleSelectRun}
-        periodEnd={periodEnd}
-        periodStart={periodStart}
+        cutoffOptions={cutoffOptions}
         runs={runs}
+        selectedCutoffKey={selectedCutoffKey}
         selectedRun={selectedRun}
         selectedRunId={selectedRunId}
-        setPeriodEnd={setPeriodEnd}
-        setPeriodStart={setPeriodStart}
       />
 
       <div className="dashboard-content">

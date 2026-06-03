@@ -22,6 +22,15 @@ export function numeric(value) {
   return Number(value || 0);
 }
 
+function getPayrollGrossPay(row) {
+  const grossPay = numeric(row.gross_pay);
+  if (grossPay > 0) return grossPay;
+  return numeric(row.basic_pay)
+    + numeric(row.overtime_pay)
+    + numeric(row.holiday_pay)
+    + numeric(row.night_differential_pay);
+}
+
 export function formatHours(value) {
   const hours = numeric(value);
   return Number.isInteger(hours) ? String(hours) : hours.toFixed(2);
@@ -79,4 +88,14 @@ export function buildDeductions(row) {
     numeric(row.late_undertime_deduction) > 0 && { label: 'Late / Undertime', amount: row.late_undertime_deduction },
     numeric(row.absences_deduction) > 0 && { label: 'Absences', amount: row.absences_deduction },
   ].filter(Boolean);
+}
+
+export function getDisplayNetPay(row) {
+  const grossPay = getPayrollGrossPay(row);
+  if (grossPay <= 0 && numeric(row.net_pay) > 0) return numeric(row.net_pay);
+  return Math.max(grossPay - numeric(row.total_deductions), 0);
+}
+
+export function getDeductionExcess(row) {
+  return Math.max(numeric(row.total_deductions) - getPayrollGrossPay(row), 0);
 }
