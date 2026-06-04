@@ -38,6 +38,51 @@
   flex-shrink: 0;
 }
 
+.pr-topbar-right--payroll {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.pr-selector-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 270px;
+}
+
+.pr-selector-label {
+  color: #6b7280;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.pr-run-select,
+.pr-cutoff-select {
+  width: 100%;
+}
+
+.pr-cutoff-select {
+  min-width: 0;
+}
+
+.pr-spin {
+  animation: spin 1s linear infinite;
+}
+
+.pr-error-banner {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
 /* Period toggle pill */
 .pr-period-toggle {
   display: flex;
@@ -80,6 +125,7 @@
   color: #374151;
   transition: border-color 0.2s;
   cursor: pointer;
+  min-height: 38px;
 }
 
 .pr-period-select:focus {
@@ -457,6 +503,17 @@
 .pr-badge.processing  { background: #fef9c3; color: #92400e; }
 .pr-badge.paid        { background: #16a34a; color: #fff; }
 .pr-badge.accumulating{ background: #dbeafe; color: #1e40af; }
+.pr-badge.cancelled   { background: #fee2e2; color: #991b1b; }
+
+.pr-preview-pill {
+  background: #dbeafe;
+  color: #1e40af;
+  border-radius: 999px;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
 
 /* View button */
 .pr-view-btn {
@@ -724,6 +781,24 @@
 .pr-earnings-box .pr-breakdown-total span:last-child { color: #16a34a; }
 .pr-deductions-box .pr-breakdown-total span:last-child { color: #dc2626; }
 
+.pr-deduction-excess {
+  align-items: center;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+  color: #9a3412;
+  display: flex;
+  font-size: 0.8rem;
+  justify-content: space-between;
+  margin-top: 0.75rem;
+  padding: 0.65rem 0.75rem;
+}
+
+.pr-deduction-excess strong {
+  color: #c2410c;
+  font-weight: 700;
+}
+
 /* Net pay hero box */
 .pr-net-hero {
   background: linear-gradient(90deg, #093269 0%, #0a4080 100%);
@@ -733,6 +808,31 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.pr-snapshot-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.pr-snapshot-grid div {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+
+.pr-snapshot-grid span {
+  display: block;
+  font-size: 0.72rem;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.pr-snapshot-grid strong {
+  color: #1f2937;
+  font-size: 0.9rem;
 }
 
 .pr-net-hero-amount p.label {
@@ -812,18 +912,26 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
 /* =============================================
    RESPONSIVE
    ============================================= */
 @media (max-width: 1024px) {
   .pr-stat-grid     { grid-template-columns: repeat(2, 1fr); }
   .pr-filter-bar    { grid-template-columns: 1fr; }
+  .pr-snapshot-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 768px) {
   .pr-topbar        { flex-direction: column; align-items: flex-start; }
   .pr-topbar-right  { flex-wrap: wrap; }
+  .pr-selector-field { min-width: 0; width: 100%; }
   .pr-modal-actions { flex-direction: column; }
   .pr-net-hero      { flex-direction: column; gap: 0.75rem; }
   .pr-net-hero-date { text-align: left; }
+  .pr-snapshot-grid { grid-template-columns: 1fr; }
 }
