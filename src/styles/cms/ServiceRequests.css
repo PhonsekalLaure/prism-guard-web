@@ -1,0 +1,194 @@
+@import '../service-requests/ServiceRequestsShared.css';
+
+/* =============================================
+   CMS SERVICE REQUESTS – SPECIFIC OVERRIDES
+   ============================================= */
+
+/* ── New Request button ──────────────────────── */
+.sr-btn-new {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: linear-gradient(135deg, #093269 0%, #0a4080 100%);
+  color: #fff;
+  border: none;
+  padding: 0.55rem 1.1rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(9, 50, 105, 0.25);
+}
+
+.sr-btn-new:hover {
+  background: linear-gradient(135deg, #0a4080 0%, #0c4f9e 100%);
+  box-shadow: 0 6px 20px rgba(9, 50, 105, 0.35);
+  transform: translateY(-1px);
+}
+
+/* ── Modal form input focus ──────────────────── */
+.sr-input:focus {
+  border-color: #093269;
+  box-shadow: 0 0 0 3px rgba(9, 50, 105, 0.1);
+}
+
+/* ── Submit button with glow ─────────────────── */
+.sr-btn-submit {
+  background: linear-gradient(135deg, #093269 0%, #0a4080 100%);
+  box-shadow: 0 4px 14px rgba(9, 50, 105, 0.25);
+  transition: all 0.2s;
+}
+
+.sr-btn-submit:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0a4080 0%, #0c4f9e 100%);
+  box-shadow: 0 6px 18px rgba(9, 50, 105, 0.35);
+  transform: translateY(-1px);
+}
+
+.sr-btn-submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* ── Cancel button ──────────────────────────── */
+.sr-btn-cancel {
+  transition: all 0.2s;
+}
+
+.sr-btn-cancel:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+/* ── Cancel request button ──────────────────── */
+.sr-btn-cancel-req {
+  transition: all 0.2s;
+}
+
+.sr-btn-cancel-req:hover {
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
+}
+
+/* ── Cancel confirm section ─────────────────── */
+.sr-cancel-confirm {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-left: 4px solid #fb923c;
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+  animation: srFadeInUp 0.25s ease both;
+}
+
+.sr-cancel-confirm p {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #9a3412;
+  font-weight: 600;
+}
+
+/* ── Detail modal info cells ─────────────────── */
+.sr-detail-info-cell {
+  transition: background 0.2s;
+}
+
+.sr-detail-info-cell:hover {
+  background: #f3f4f6;
+}
+
+/* ── Resolution note box ─────────────────────── */
+.sr-resolution-note-box {
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+  border-color: #86efac;
+}
+
+/* ── Timeline dot (CMS uses inline bg style) ─── */
+.sr-timeline-dot {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s;
+}
+
+.sr-timeline-item:hover .sr-timeline-dot {
+  transform: scale(1.1);
+}
+
+/* ── Thread messages ─────────────────────────── */
+.sr-thread-msg.client {
+  background: linear-gradient(135deg, #eff6ff, #f0f9ff);
+}
+
+.sr-thread-msg.admin {
+  background: linear-gradient(135deg, rgba(9,50,105,0.03), rgba(9,50,105,0.06));
+}
+
+/* ── Reply send button glow ──────────────────── */
+.sr-reply-send-btn {
+  box-shadow: 0 4px 12px rgba(9, 50, 105, 0.2);
+  transition: all 0.2s;
+}
+
+.sr-reply-send-btn:hover:not(:disabled) {
+  background: #0a4080;
+  box-shadow: 0 6px 16px rgba(9, 50, 105, 0.3);
+  transform: translateY(-1px);
+}
+
+/* ── Type pill in detail modal ───────────────── */
+.sr-type-pill {
+  letter-spacing: 0.3px;
+}
+
+/* ── Stat badge enhancements ─────────────────── */
+.sr-status-badge,
+.sr-urgency-badge {
+  letter-spacing: 0.4px;
+}
+
+/* ── Modal overlay backdrop enhancement ──────── */
+.sr-modal-overlay {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+/* ── Detail section title ─────────────────────── */
+.sr-detail-section-title {
+  padding-bottom: 0.5rem;
+  border-bottom: 1.5px solid #f3f4f6;
+}
+
+/* ── Type-specific fields accent box ─────────── */
+.sr-type-fields-box {
+  background: linear-gradient(135deg, #f0f9ff, #eff6ff);
+  border: 1px solid #bae6fd;
+  border-left: 4px solid #0ea5e9;
+  border-radius: 10px;
+  padding: 1rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  animation: srFadeInUp 0.25s ease both;
+}
+
+.sr-type-fields-label {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #0369a1;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.sr-type-fields-label svg {
+  font-size: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .sr-btn-new {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.78rem;
+  }
+}

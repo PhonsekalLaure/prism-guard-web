@@ -10,7 +10,7 @@ const features = [
 
 export default function BrandPanel() {
   return (
-    <div className="login-brand">
+    <div className="auth-brand">
       {/* Background decorations */}
       <div className="bg-dots" />
       <div className="shape shape-1" />
@@ -24,12 +24,15 @@ export default function BrandPanel() {
         <p className="tagline">HRIS & CMS</p>
 
         <div className="brand-features">
-          {features.map(({ icon: Icon, label }) => (
-            <div key={label} className="feature-pill">
-              <Icon className="icon" />
-              <span>{label}</span>
-            </div>
-          ))}
+          {features.map((feature) => {
+            const FeatureIcon = feature.icon;
+            return (
+              <div key={feature.label} className="feature-pill">
+                <FeatureIcon className="icon" />
+                <span>{feature.label}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

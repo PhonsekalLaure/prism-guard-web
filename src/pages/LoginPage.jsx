@@ -1,19 +1,33 @@
 import { useEffect } from 'react';
-import BrandPanel from '@components/login/BrandPanel';
+import { useLocation, useNavigate } from 'react-router-dom';
+import AuthLayout from '@/layouts/AuthLayout';
 import LoginForm from '@components/login/LoginForm';
 import Notification from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
-import '@styles/Login.css';
+import authService from '@services/authService';
+import '@styles/Auth.css';
 
 export default function LoginPage() {
   const { notification, showNotification, closeNotification } = useNotification();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const isAuthenticated = localStorage.getItem('isAuthenticated');
-    if (isAuthenticated === 'true') {
-      window.location.href = '/dashboard';
+    async function checkExistingSession() {
+      const result = await authService.getMe();
+      if (result) {
+        window.location.href = result.redirect;
+      }
     }
+    checkExistingSession();
   }, []);
+
+  useEffect(() => {
+    if (location.state?.message) {
+      showNotification(location.state.message, location.state.type || 'info');
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, showNotification, navigate, location.pathname]);
 
   return (
     <>
@@ -26,15 +40,11 @@ export default function LoginPage() {
         />
       )}
 
-      <div className="login-page">
-        <BrandPanel />
-
-        <div className="login-form-panel">
-          <div className="login-card">
-            <LoginForm onNotify={showNotification} />
-          </div>
+      <AuthLayout>
+        <div className="auth-card">
+          <LoginForm onNotify={showNotification} />
         </div>
-      </div>
+      </AuthLayout>
     </>
   );
 }
