@@ -11,7 +11,10 @@ import {
   getPayrollCutoffOptions,
   getPayrollErrorMessage,
 } from '@hris-components/payroll/payrollPageUtils';
-import { getDisplayNetPay } from '@hris-components/payroll/payrollFormatters';
+import {
+  buildPayrollExportRow,
+  PAYROLL_EXPORT_HEADERS,
+} from '@hris-components/payroll/payrollExport';
 import payrollService from '@services/hris/payrollService';
 import '../../styles/hris/HrisPayroll.css';
 import '@styles/components/Notification.css';
@@ -207,16 +210,10 @@ export default function HrisPayrollPage() {
   };
 
   const handleExport = () => {
+    const fallbackStatus = selectedRun?.status || 'draft';
     const rows = [
-      ['Employee', 'Employee ID', 'Status', 'Gross Pay', 'Deductions', 'Net Pay'],
-      ...records.map((record) => [
-        record.employee_name || '',
-        record.employee_number || '',
-        record.status || selectedRun?.status || 'draft',
-        record.gross_pay || 0,
-        record.total_deductions || 0,
-        getDisplayNetPay(record),
-      ]),
+      PAYROLL_EXPORT_HEADERS,
+      ...records.map((record) => buildPayrollExportRow(record, fallbackStatus)),
     ];
     const csv = rows.map((row) => row.map(csvValue).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
