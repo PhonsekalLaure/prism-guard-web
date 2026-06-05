@@ -1,138 +1,93 @@
 import {
-  FaEye, FaBell, FaCheck, FaChevronLeft, FaChevronRight, FaListUl,
+  FaEye,
+  FaFileInvoice,
+  FaListUl,
 } from 'react-icons/fa';
+import EntityAvatar from '@components/ui/EntityAvatar';
+import Pagination from '@components/ui/Pagination';
+import { SkeletonBlock, SkeletonList } from '@components/ui/Skeleton';
 
-const billingRecords = [
-  {
-    initials: 'FIT',
-    bgColor: '#093269',
-    company: 'FEU Institute of Technology',
-    tin: '123456',
-    period: 'Feb 1 – 15, 2026',
-    amountDue: '₱40,000',
-    amountPaid: '₱40,000',
-    dueDate: 'Feb 25, 2026',
-    status: 'paid',
-  },
-  {
-    initials: 'SMA',
-    bgColor: '#dc2626',
-    company: 'SM Mall of Asia',
-    tin: '234567',
-    period: 'Feb 1 – 15, 2026',
-    amountDue: '₱50,000',
-    amountPaid: '₱50,000',
-    dueDate: 'Feb 25, 2026',
-    status: 'partial',
-  },
-  {
-    initials: 'SMN',
-    bgColor: '#2563eb',
-    company: 'SM North EDSA',
-    tin: '345678',
-    period: 'Feb 1 – 15, 2026',
-    amountDue: '₱20,000',
-    amountPaid: '₱0',
-    dueDate: 'Feb 19, 2026',
-    status: 'overdue',
-  },
-  {
-    initials: 'RG',
-    bgColor: '#7c3aed',
-    company: 'Robinsons Galleria',
-    tin: '456789',
-    period: 'Feb 1 – 15, 2026',
-    amountDue: '₱31,000',
-    amountPaid: '₱31,000',
-    dueDate: 'Feb 25, 2026',
-    status: 'paid',
-  },
-  {
-    initials: 'AM',
-    bgColor: '#059669',
-    company: 'Ayala Malls Manila Bay',
-    tin: '567890',
-    period: 'Feb 1 – 15, 2026',
-    amountDue: '₱60,000',
-    amountPaid: '₱60,000',
-    dueDate: 'Feb 25, 2026',
-    status: 'paid',
-  },
-  {
-    initials: 'VH',
-    bgColor: '#d97706',
-    company: 'Vista Heights Subdivision',
-    tin: '678901',
-    period: 'Feb 1 – 15, 2026',
-    amountDue: '₱44,000',
-    amountPaid: '₱0',
-    dueDate: 'Feb 25, 2026',
-    status: 'unpaid',
-  },
-];
+function formatCurrency(value) {
+  return `PHP ${Number(value || 0).toLocaleString('en-PH', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+function formatDate(value) {
+  if (!value) return '-';
+  return new Date(`${value}T00:00:00`).toLocaleDateString('en-PH', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+function formatPeriod(record) {
+  return `${formatDate(record.period_start)} - ${formatDate(record.period_end)}`;
+}
 
 const statusConfig = {
-  paid: {
-    label: 'PAID',
-    className: 'billing-badge billing-badge--paid',
-  },
-  partial: {
-    label: 'PENDING',
-    className: 'billing-badge billing-badge--partial',
-  },
-  unpaid: {
-    label: 'UNPAID',
-    className: 'billing-badge billing-badge--unpaid',
-  },
-  overdue: {
-    label: 'OVERDUE',
-    className: 'billing-badge billing-badge--overdue',
-  },
+  paid: { label: 'PAID', className: 'billing-badge billing-badge--paid' },
+  verifying: { label: 'FOR REVIEW', className: 'billing-badge billing-badge--partial' },
+  partial: { label: 'PARTIAL', className: 'billing-badge billing-badge--partial' },
+  unpaid: { label: 'UNPAID', className: 'billing-badge billing-badge--unpaid' },
+  overdue: { label: 'OVERDUE', className: 'billing-badge billing-badge--overdue' },
 };
 
-function ActionButtons({ record, onView, onMarkPaid }) {
-  const { status } = record;
+function BillingRowsSkeleton() {
+  return (
+    <SkeletonList count={5}>{(index) => (
+      <tr className="billing-table-row" key={index}>
+        <td><SkeletonBlock height={34} width="78%" /></td>
+        <td><SkeletonBlock height={16} width="70%" /></td>
+        <td><SkeletonBlock height={16} width="60%" /></td>
+        <td><SkeletonBlock height={16} width="60%" /></td>
+        <td><SkeletonBlock height={16} width="65%" /></td>
+        <td><SkeletonBlock height={24} width={82} radius="999px" /></td>
+        <td><SkeletonBlock height={32} width="90%" /></td>
+      </tr>
+    )}</SkeletonList>
+  );
+}
 
+function ActionButtons({ record, onView }) {
   return (
     <div className="billing-actions">
       <button
         className="billing-action-btn billing-action-btn--view"
-        onClick={() => onView(record)}
+        type="button"
+        onClick={(event) => {
+          event.stopPropagation();
+          onView(record);
+        }}
       >
         <FaEye />
         View
       </button>
-      {status === 'overdue' && (
-        <button className="billing-action-btn billing-action-btn--remind">
-          <FaBell />
-          Remind
-        </button>
-      )}
-      {(status === 'unpaid' || status === 'partial') && (
-        <button
-          className="billing-action-btn billing-action-btn--pay"
-          onClick={() => onMarkPaid(record)}
-        >
-          <FaCheck />
-          {status === 'partial' ? 'Update' : 'Mark Paid'}
-        </button>
-      )}
     </div>
   );
 }
 
-export default function BillingTable({ onView, onMarkPaid }) {
+export default function BillingTable({
+  records = [],
+  metadata,
+  loading = false,
+  onView,
+  onPageChange,
+}) {
+  const startIndex = records.length > 0 ? ((metadata.page - 1) * metadata.limit) + 1 : 0;
+  const endIndex = ((metadata.page - 1) * metadata.limit) + records.length;
+
   return (
     <div className="billing-table-panel">
-      {/* Table Header */}
       <div className="billing-table-header">
         <h3 className="billing-table-title">
           <FaListUl />
-          Client Billing Records
+          Client Billing Statements
         </h3>
       </div>
 
-      {/* Table */}
       <div className="billing-table-wrapper">
         <table className="billing-table">
           <thead>
@@ -147,62 +102,53 @@ export default function BillingTable({ onView, onMarkPaid }) {
             </tr>
           </thead>
           <tbody>
-            {billingRecords.map((record, i) => {
-              const badge = statusConfig[record.status];
-              const isOverdue = record.status === 'overdue';
-              const paidColor =
-                record.amountPaid === '₱0'
-                  ? '#dc2626'
-                  : record.status === 'partial'
+            {loading && <BillingRowsSkeleton />}
+            {!loading && records.length === 0 && (
+              <tr>
+                <td colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                  <FaFileInvoice style={{ marginRight: '0.5rem' }} />
+                  No billing statements found.
+                </td>
+              </tr>
+            )}
+            {!loading && records.map((record) => {
+              const badge = statusConfig[record.status] || statusConfig.unpaid;
+              const paidColor = record.amount_paid <= 0
+                ? '#dc2626'
+                : record.status === 'verifying' || record.status === 'partial'
                   ? '#ca8a04'
                   : '#16a34a';
 
               return (
                 <tr
-                  key={i}
-                  className={`billing-table-row${isOverdue ? ' billing-table-row--overdue' : ''}`}
+                  key={record.id}
+                  className={`billing-table-row${record.status === 'overdue' ? ' billing-table-row--overdue' : ''}`}
+                  onClick={() => onView(record)}
                 >
-                  {/* Client */}
                   <td>
                     <div className="billing-client-cell">
-                      <div
+                      <EntityAvatar
+                        avatarUrl={record.avatar_url}
+                        initials={record.initials}
+                        alt={record.company}
                         className="billing-initials"
-                        style={{ background: record.bgColor }}
-                      >
-                        {record.initials}
-                      </div>
+                      />
                       <span className="billing-company-name">{record.company}</span>
                     </div>
                   </td>
-
-                  {/* Period */}
-                  <td className="billing-td-muted">{record.period}</td>
-
-                  {/* Amount Due */}
-                  <td className="billing-td-bold">{record.amountDue}</td>
-
-                  {/* Amount Paid */}
-                  <td
-                    className="billing-td-bold"
-                    style={{ color: paidColor }}
-                  >
-                    {record.amountPaid}
+                  <td className="billing-td-muted">{formatPeriod(record)}</td>
+                  <td className="billing-td-bold">{formatCurrency(record.total_amount)}</td>
+                  <td className="billing-td-bold" style={{ color: paidColor }}>
+                    {formatCurrency(record.amount_paid)}
                   </td>
-
-                  {/* Due Date */}
-                  <td className="billing-td-muted">{record.dueDate}</td>
-
-                  {/* Status */}
+                  <td className="billing-td-muted">{formatDate(record.due_date)}</td>
                   <td>
                     <span className={badge.className}>{badge.label}</span>
                   </td>
-
-                  {/* Actions */}
                   <td>
                     <ActionButtons
                       record={record}
                       onView={onView}
-                      onMarkPaid={onMarkPaid}
                     />
                   </td>
                 </tr>
@@ -212,17 +158,15 @@ export default function BillingTable({ onView, onMarkPaid }) {
         </table>
       </div>
 
-      {/* Pagination */}
-      <div className="billing-pagination">
-        <span className="billing-pagination-info">Showing 1-6 of 126 records</span>
-        <div className="billing-page-btns">
-          <button className="page-btn"><FaChevronLeft /></button>
-          <button className="page-btn active">1</button>
-          <button className="page-btn">2</button>
-          <button className="page-btn">3</button>
-          <button className="page-btn"><FaChevronRight /></button>
-        </div>
-      </div>
+      <Pagination
+        currentPage={metadata.page}
+        totalPages={metadata.totalPages}
+        onPageChange={onPageChange}
+        startIndex={startIndex}
+        endIndex={endIndex}
+        totalItems={metadata.total}
+        label="billing statements"
+      />
     </div>
   );
 }

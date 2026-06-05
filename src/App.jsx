@@ -5,6 +5,7 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from '@hris-pages/DashboardPage';
 import ClientsPage from '@hris-pages/ClientsPage';
 import BillingPage from '@hris-pages/BillingPage';
+import HrisBillingDetailPage from '@hris-pages/HrisBillingDetailPage';
 import EmployeesPage from '@hris-pages/EmployeesPage';
 import EmployeeDetailPage from '@hris-pages/EmployeeDetailPage';
 import AddEmployeePage from '@hris-pages/AddEmployeePage';
@@ -59,6 +60,7 @@ function App() {
           <Route path="/clients/new" element={<ProtectedRoute requiredPermissions={['clients.write']}><AddClientPage /></ProtectedRoute>} />
           <Route path="/clients/:id" element={<ProtectedRoute requiredPermissions={['clients.read']}><ClientDetailPage /></ProtectedRoute>} />
           <Route path="/billing" element={<ProtectedRoute requiredPermissions={['billing.read']}><BillingPage /></ProtectedRoute>} />
+          <Route path="/billing/:id" element={<ProtectedRoute requiredPermissions={['billing.read']}><HrisBillingDetailPage /></ProtectedRoute>} />
           <Route path="/employees" element={<ProtectedRoute requiredPermissions={['employees.read']}><EmployeesPage /></ProtectedRoute>} />
           <Route path="/employees/new" element={<ProtectedRoute requiredPermissions={['employees.write']}><AddEmployeePage /></ProtectedRoute>} />
           <Route path="/employees/:id" element={<ProtectedRoute requiredPermissions={['employees.read']}><EmployeeDetailPage /></ProtectedRoute>} />

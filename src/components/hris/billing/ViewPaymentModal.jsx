@@ -1,47 +1,70 @@
-import { FaTimes, FaReceipt, FaHistory, FaDownload, FaCheckCircle } from 'react-icons/fa';
+import { FaDownload, FaHistory, FaReceipt, FaTimes } from 'react-icons/fa';
+import EntityAvatar from '@components/ui/EntityAvatar';
 
-export default function ViewPaymentModal({ isOpen, onClose, record }) {
+function formatCurrency(value) {
+  return `PHP ${Number(value || 0).toLocaleString('en-PH', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+function formatDate(value) {
+  if (!value) return '-';
+  return new Date(`${value}T00:00:00`).toLocaleDateString('en-PH', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+function formatStatus(status) {
+  if (status === 'verifying') return 'FOR REVIEW';
+  return String(status || 'unpaid').toUpperCase();
+}
+
+function getBillingBadgeClass(status) {
+  if (status === 'paid') return 'billing-badge--paid';
+  if (status === 'verifying' || status === 'partial') return 'billing-badge--partial';
+  if (status === 'overdue') return 'billing-badge--overdue';
+  return 'billing-badge--unpaid';
+}
+
+export default function ViewPaymentModal({ isOpen, onClose, record, onDownload, onReview }) {
   if (!isOpen || !record) return null;
 
   const isPaid = record.status === 'paid';
+  const pendingReceipt = record.latest_receipt?.status === 'pending_review';
 
   return (
     <div className="bp-modal-overlay" onClick={onClose}>
-      <div
-        className="bp-modal-content"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Modal Header */}
+      <div className="bp-modal-content" onClick={(event) => event.stopPropagation()}>
         <div className="bp-modal-header">
           <div>
-            <h2>Payment Details</h2>
+            <h2>Billing Statement</h2>
             <p>{record.company}</p>
           </div>
-          <button className="bp-close-btn" onClick={onClose}>
+          <button className="bp-close-btn" type="button" onClick={onClose}>
             <FaTimes />
           </button>
         </div>
 
-        {/* Modal Body */}
         <div className="bp-modal-body">
-          {/* Client Info */}
           <div className="bp-client-info">
-            <div
+            <EntityAvatar
+              avatarUrl={record.avatar_url}
+              initials={record.initials}
+              alt={record.company}
               className="bp-client-initials"
-              style={{ background: record.bgColor }}
-            >
-              {record.initials}
-            </div>
+            />
             <div className="bp-client-details">
               <h3>{record.company}</h3>
-              <p>Contract #: FEU-2024-001 · 24 Guards</p>
+              <p>{record.invoice_number || `Statement ${record.statement_no || '-'}`} · {record.guard_count} guards</p>
             </div>
-            <span className={`billing-badge ${isPaid ? 'billing-badge--paid' : 'billing-badge--unpaid'}`}>
-              {isPaid ? 'PAID' : record.status.toUpperCase()}
+            <span className={`billing-badge ${getBillingBadgeClass(record.status)}`}>
+              {formatStatus(record.status)}
             </span>
           </div>
 
-          {/* Billing Summary */}
           <div className="bp-section">
             <h4 className="bp-section-title">
               <FaReceipt />
@@ -50,30 +73,29 @@ export default function ViewPaymentModal({ isOpen, onClose, record }) {
             <div className="bp-summary-grid">
               <div className="bp-summary-item">
                 <p className="bp-summary-label">Billing Period</p>
-                <p className="bp-summary-value">{record.period}</p>
+                <p className="bp-summary-value">{formatDate(record.period_start)} - {formatDate(record.period_end)}</p>
               </div>
               <div className="bp-summary-item">
                 <p className="bp-summary-label">Due Date</p>
-                <p className="bp-summary-value">{record.dueDate}</p>
+                <p className="bp-summary-value">{formatDate(record.due_date)}</p>
               </div>
               <div className="bp-summary-item">
-                <p className="bp-summary-label">Amount Due</p>
-                <p className="bp-summary-value bp-summary-value--blue">{record.amountDue}</p>
+                <p className="bp-summary-label">Rate per Guard</p>
+                <p className="bp-summary-value bp-summary-value--blue">{formatCurrency(record.rate_per_guard)}</p>
               </div>
               <div className="bp-summary-item">
-                <p className="bp-summary-label">Amount Paid</p>
+                <p className="bp-summary-label">Balance Due</p>
                 <p className={`bp-summary-value ${isPaid ? 'bp-summary-value--green' : 'bp-summary-value--red'}`}>
-                  {record.amountPaid}
+                  {formatCurrency(record.balance_due)}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Payment History */}
           <div className="bp-section">
             <h4 className="bp-section-title">
               <FaHistory />
-              Payment History
+              Receipt History
             </h4>
             <div className="bp-history-table-wrapper">
               <table className="bp-history-table">
@@ -83,20 +105,22 @@ export default function ViewPaymentModal({ isOpen, onClose, record }) {
                     <th>Amount</th>
                     <th>Method</th>
                     <th>Reference</th>
+                    <th>Status</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {isPaid ? (
+                  {record.latest_receipt ? (
                     <tr>
-                      <td>Feb 10, 2026</td>
-                      <td className="bp-history-amount">{record.amountPaid}</td>
-                      <td>Bank Transfer</td>
-                      <td className="bp-history-ref">BDO-2026-021001</td>
+                      <td>{formatDate(record.latest_receipt.payment_date)}</td>
+                      <td className="bp-history-amount">{formatCurrency(record.latest_receipt.amount)}</td>
+                      <td>{record.latest_receipt.payment_method}</td>
+                      <td className="bp-history-ref">{record.latest_receipt.reference_number}</td>
+                      <td>{record.latest_receipt.status.replace(/_/g, ' ')}</td>
                     </tr>
                   ) : (
                     <tr>
-                      <td colSpan={4} style={{ textAlign: 'center', color: '#94a3b8', padding: '1rem' }}>
-                        No payment records yet.
+                      <td colSpan={5} style={{ textAlign: 'center', color: '#94a3b8', padding: '1rem' }}>
+                        No payment receipts submitted yet.
                       </td>
                     </tr>
                   )}
@@ -105,12 +129,17 @@ export default function ViewPaymentModal({ isOpen, onClose, record }) {
             </div>
           </div>
 
-          {/* Actions */}
           <div className="bp-modal-actions">
-            <button className="bp-btn-secondary" onClick={onClose}>Close</button>
-            <button className="bp-btn-primary">
+            <button className="bp-btn-secondary" type="button" onClick={onClose}>Close</button>
+            {pendingReceipt && (
+              <button className="bp-btn-secondary" type="button" onClick={() => onReview?.(record)}>
+                <FaReceipt />
+                View Receipt
+              </button>
+            )}
+            <button className="bp-btn-primary" type="button" onClick={() => onDownload?.(record)}>
               <FaDownload />
-              Download SOA
+              Download Statement
             </button>
           </div>
         </div>

@@ -1,78 +1,95 @@
-import { FaCheckCircle, FaTimes } from 'react-icons/fa';
+import { useState } from 'react';
+import { FaCheckCircle, FaReceipt, FaTimes } from 'react-icons/fa';
 
-export default function MarkPaidModal({ isOpen, onClose, record }) {
+function formatCurrency(value) {
+  return `PHP ${Number(value || 0).toLocaleString('en-PH', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+export default function MarkPaidModal({
+  isOpen,
+  onClose,
+  record,
+  action = 'approve',
+  onConfirm,
+  busy = false,
+}) {
+  const [reviewNotes, setReviewNotes] = useState('');
+
   if (!isOpen || !record) return null;
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // TODO: handle payment submission
-    onClose();
+  const receipt = record.latest_receipt;
+  const isApprove = action === 'approve';
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    onConfirm?.(record, reviewNotes);
   };
 
   return (
     <div className="bp-modal-overlay" onClick={onClose}>
-      <div
-        className="bp-modal-content bp-modal-content--sm"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="bp-modal-content bp-modal-content--sm" onClick={(event) => event.stopPropagation()}>
         <div className="bp-markpaid-header">
-          <button className="bp-close-btn" onClick={onClose} style={{ marginLeft: 'auto' }}>
+          <button className="bp-close-btn" type="button" onClick={onClose} style={{ marginLeft: 'auto' }}>
             <FaTimes />
           </button>
         </div>
 
         <div className="bp-modal-body">
-          {/* Icon + Title */}
           <div className="bp-markpaid-hero">
             <div className="bp-markpaid-icon">
-              <FaCheckCircle />
+              {isApprove ? <FaCheckCircle /> : <FaTimes />}
             </div>
-            <h3>Confirm Payment</h3>
-            <p>Record a payment for <strong>{record.company}</strong>'s billing period.</p>
+            <h3>{isApprove ? 'Approve Receipt' : 'Reject Receipt'}</h3>
+            <p>
+              Review <strong>{record.company}</strong>'s submitted payment receipt.
+            </p>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="bp-markpaid-form">
             <div className="bp-form-group">
-              <label>Payment Amount</label>
-              <div className="bp-input-prefix-wrapper">
-                <span className="bp-input-prefix">₱</span>
-                <input type="text" placeholder="0.00" className="bp-input bp-input--prefixed" required />
-              </div>
+              <label>Submitted Amount</label>
+              <input className="bp-input" value={formatCurrency(receipt?.amount)} readOnly />
             </div>
 
             <div className="bp-form-group">
               <label>Payment Method</label>
-              <select className="bp-select" required>
-                <option>Bank Transfer</option>
-                <option>Check</option>
-                <option>Cash</option>
-                <option>GCash</option>
-              </select>
+              <input className="bp-input" value={receipt?.payment_method || ''} readOnly />
             </div>
 
             <div className="bp-form-group">
               <label>Reference Number</label>
-              <input
-                type="text"
-                placeholder="Enter reference number"
+              <input className="bp-input" value={receipt?.reference_number || ''} readOnly />
+            </div>
+
+            {receipt?.receipt_url && (
+              <a className="bp-btn-secondary" href={receipt.receipt_url} target="_blank" rel="noreferrer">
+                <FaReceipt />
+                Open Uploaded Receipt
+              </a>
+            )}
+
+            <div className="bp-form-group">
+              <label>{isApprove ? 'Review Notes' : 'Rejection Reason'}</label>
+              <textarea
                 className="bp-input"
-                required
+                rows={3}
+                value={reviewNotes}
+                onChange={(event) => setReviewNotes(event.target.value)}
+                placeholder={isApprove ? 'Optional note for the payment record' : 'Explain why this receipt is rejected'}
+                required={!isApprove}
               />
             </div>
 
-            <div className="bp-form-group">
-              <label>Date of Payment</label>
-              <input type="date" className="bp-input" required />
-            </div>
-
             <div className="bp-markpaid-actions">
-              <button type="button" className="bp-btn-secondary" onClick={onClose}>
+              <button type="button" className="bp-btn-secondary" onClick={onClose} disabled={busy}>
                 Cancel
               </button>
-              <button type="submit" className="bp-btn-confirm">
-                <FaCheckCircle />
-                Confirm Payment
+              <button type="submit" className={isApprove ? 'bp-btn-confirm' : 'bp-btn-secondary'} disabled={busy}>
+                {isApprove ? <FaCheckCircle /> : <FaTimes />}
+                {busy ? 'Saving...' : isApprove ? 'Approve Receipt' : 'Reject Receipt'}
               </button>
             </div>
           </form>

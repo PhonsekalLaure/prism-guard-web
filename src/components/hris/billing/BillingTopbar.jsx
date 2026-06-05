@@ -1,8 +1,15 @@
 import { FaBars, FaFileInvoice } from 'react-icons/fa';
 import { useOutletContext } from 'react-router-dom';
 
-export default function BillingTopbar() {
+export default function BillingTopbar({
+  cutoffOptions = [],
+  selectedCutoffKey = '',
+  onCutoffChange,
+  onGenerate,
+  generating = false,
+}) {
   const { toggleSidebar } = useOutletContext();
+  const selectedCutoff = cutoffOptions.find((option) => option.key === selectedCutoffKey);
 
   return (
     <header className="dashboard-topbar billing-topbar">
@@ -18,15 +25,29 @@ export default function BillingTopbar() {
         </div>
 
         <div className="billing-topbar-actions">
-          <select className="billing-period-select">
-            <option>Current Period: Feb 1-15, 2026</option>
-            <option>Jan 1-31, 2026</option>
-            <option>Dec 1-31, 2025</option>
-            <option>Nov 1-30, 2025</option>
-          </select>
-          <button className="btn-generate-soa">
+          <label className="billing-cutoff-label">
+            <span>Cutoff to Generate</span>
+            <select
+              className="billing-period-select"
+              value={selectedCutoffKey}
+              onChange={(event) => onCutoffChange?.(event.target.value)}
+              aria-label="Cutoff to generate"
+            >
+              {cutoffOptions.map((option) => (
+                <option key={option.key} value={option.key} disabled={option.disabled}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            className="btn-generate-soa"
+            type="button"
+            onClick={onGenerate}
+            disabled={generating || !selectedCutoff || selectedCutoff.disabled}
+          >
             <FaFileInvoice />
-            Generate all Invoice
+            {generating ? 'Generating...' : 'Generate Statements'}
           </button>
         </div>
       </div>

@@ -48,6 +48,50 @@
   box-shadow: 0 6px 18px rgba(230, 178, 21, 0.4);
 }
 
+.btn-generate-soa:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+  box-shadow: none;
+}
+
+.billing-cutoff-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.billing-cutoff-label span {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.billing-active-filter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  color: #475569;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.billing-active-filter button,
+.billing-link-button {
+  border: none;
+  background: transparent;
+  color: #093269;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 /* ─── Billing Table Panel ─── */
 .billing-table-panel {
   background: #fff;
@@ -106,6 +150,10 @@
   background: #f8fafc;
 }
 
+.billing-table-row {
+  cursor: pointer;
+}
+
 .billing-table-row--overdue {
   background: rgba(239, 68, 68, 0.03);
 }
@@ -133,10 +181,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  background: #093269;
   color: #fff;
   font-size: 0.65rem;
   font-weight: 700;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.billing-initials img,
+.bp-client-initials img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .billing-company-name {
@@ -194,6 +252,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-wrap: wrap;
   gap: 0.4rem;
 }
 
@@ -363,10 +422,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  background: #093269;
   color: #fff;
   font-size: 1rem;
   font-weight: 700;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .bp-client-details {
@@ -673,6 +734,134 @@
   background: #15803d;
 }
 
+.bp-confirm-copy {
+  color: #475569;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* â”€â”€â”€ Billing Detail Page â”€â”€â”€ */
+.billing-detail-page {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.billing-detail-back {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: none;
+  background: #f1f5f9;
+  color: #093269;
+  border-radius: 8px;
+  padding: 0.55rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+}
+
+.billing-detail-hero,
+.billing-detail-panel {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.billing-detail-hero {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.2rem 1.4rem;
+}
+
+.billing-detail-title {
+  flex: 1;
+}
+
+.billing-detail-title h1 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 1.25rem;
+}
+
+.billing-detail-title p {
+  margin: 0.2rem 0 0;
+  color: #64748b;
+  font-size: 0.84rem;
+}
+
+.billing-detail-eyebrow {
+  color: #093269 !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.billing-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.billing-detail-panel {
+  padding: 1.2rem;
+}
+
+.billing-detail-panel h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+  color: #093269;
+  font-size: 0.95rem;
+}
+
+.billing-detail-muted {
+  color: #64748b;
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.billing-detail-actions,
+.billing-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.billing-receipt-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 0.9rem 1rem;
+}
+
+.billing-receipt-card p {
+  margin: 0.2rem 0;
+  color: #475569;
+  font-size: 0.84rem;
+}
+
+.billing-review-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.billing-review-form label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #475569;
+}
+
 /* ─── Animations ─── */
 @keyframes bpFadeIn {
   from { opacity: 0; }
@@ -691,5 +880,12 @@
   }
   .billing-stat-grid {
     grid-template-columns: 1fr;
+  }
+  .billing-detail-grid {
+    grid-template-columns: 1fr;
+  }
+  .billing-detail-hero {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
