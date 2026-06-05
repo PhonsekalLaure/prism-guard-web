@@ -1,11 +1,19 @@
 import { FaCheckCircle, FaClock, FaExclamationTriangle, FaReceipt } from 'react-icons/fa';
 import StatCards from '@components/ui/StatCards';
 
-const stats = [
+function formatCurrency(value) {
+  return `PHP ${Number(value || 0).toLocaleString('en-PH', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+const cards = [
   {
     label: 'Total Due',
-    value: '₱125,500',
-    sub: '2 invoices overdue',
+    statKey: 'outstanding',
+    format: formatCurrency,
+    sub: (stats) => `${stats?.overdue || 0} overdue`,
     valueColor: '#dc2626',
     subColor: '#dc2626',
     borderColor: '#ef4444',
@@ -14,9 +22,9 @@ const stats = [
     iconColor: '#dc2626',
   },
   {
-    label: 'Paid This Month',
-    value: '₱82,500',
-    sub: 'Feb 2026',
+    label: 'Paid Statements',
+    statKey: 'paid',
+    sub: 'Approved receipts',
     valueColor: '#16a34a',
     borderColor: '#22c55e',
     icon: FaCheckCircle,
@@ -25,8 +33,8 @@ const stats = [
   },
   {
     label: 'Pending Verification',
-    value: '₱43,000',
-    sub: '1 payment reviewing',
+    statKey: 'verifying',
+    sub: 'Payments reviewing',
     valueColor: '#e6b215',
     borderColor: '#e6b215',
     icon: FaClock,
@@ -34,9 +42,10 @@ const stats = [
     iconColor: '#b45309',
   },
   {
-    label: 'Total Paid (2026)',
-    value: '₱330,000',
-    sub: 'Year to date',
+    label: 'Total Billed',
+    statKey: 'total_amount',
+    format: formatCurrency,
+    sub: (stats) => `${stats?.total || 0} statements`,
     valueColor: '#093269',
     borderColor: '#093269',
     icon: FaReceipt,
@@ -45,6 +54,6 @@ const stats = [
   },
 ];
 
-export default function BillingStatCards() {
-  return <StatCards cards={stats} />;
+export default function BillingStatCards({ stats, loading = false }) {
+  return <StatCards cards={cards} stats={stats} loading={loading} />;
 }

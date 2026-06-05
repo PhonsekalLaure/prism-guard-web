@@ -7,21 +7,46 @@ import SubmitPaymentForm from './SubmitPaymentForm';
 const TABS = [
   { key: 'invoices', label: 'Invoices', icon: FaFileInvoice },
   { key: 'history', label: 'Payment History', icon: FaHistory },
-  { key: 'submit', label: 'Submit Payment', icon: FaUpload },
+  { key: 'submit', label: 'Submit Receipt', icon: FaUpload },
 ];
 
-export default function BillingTabs() {
+export default function BillingTabs({
+  invoices,
+  metadata,
+  paymentHistory,
+  historyMetadata,
+  loading,
+  historyLoading,
+  selectedInvoice,
+  submitting,
+  onPageChange,
+  onHistoryPageChange,
+  onSelectInvoice,
+  onSubmitReceipt,
+  onViewReceipt,
+  onViewPdf,
+}) {
   const [activeTab, setActiveTab] = useState('invoices');
+
+  const handlePay = (invoice) => {
+    onSelectInvoice?.(invoice);
+    setActiveTab('submit');
+  };
+
+  const handleCancelSubmit = () => {
+    onSelectInvoice?.(null);
+    setActiveTab('invoices');
+  };
 
   return (
     <div className="cms-btabs-panel">
-      {/* Tab Bar */}
       <div className="cms-btabs-bar">
         {TABS.map((tab) => {
           const Icon = tab.icon;
           return (
             <button
               key={tab.key}
+              type="button"
               className={`cms-btab-btn${activeTab === tab.key ? ' active' : ''}`}
               onClick={() => setActiveTab(tab.key)}
             >
@@ -32,14 +57,34 @@ export default function BillingTabs() {
         })}
       </div>
 
-      {/* Tab Content */}
       <div className="cms-btabs-content">
         {activeTab === 'invoices' && (
-          <InvoicesTable onSwitchToSubmit={() => setActiveTab('submit')} />
+          <InvoicesTable
+            invoices={invoices}
+            metadata={metadata}
+            loading={loading}
+            onPageChange={onPageChange}
+            onPay={handlePay}
+            onViewReceipt={onViewReceipt}
+            onViewPdf={onViewPdf}
+          />
         )}
-        {activeTab === 'history' && <PaymentHistory />}
+        {activeTab === 'history' && (
+          <PaymentHistory
+            history={paymentHistory}
+            metadata={historyMetadata}
+            loading={historyLoading}
+            onPageChange={onHistoryPageChange}
+          />
+        )}
         {activeTab === 'submit' && (
-          <SubmitPaymentForm onCancel={() => setActiveTab('invoices')} />
+          <SubmitPaymentForm
+            key={selectedInvoice?.id || 'no-invoice'}
+            invoice={selectedInvoice}
+            submitting={submitting}
+            onCancel={handleCancelSubmit}
+            onSubmit={onSubmitReceipt}
+          />
         )}
       </div>
     </div>

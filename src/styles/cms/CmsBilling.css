@@ -203,6 +203,14 @@
   background: #e2e8f0;
 }
 
+.cms-inv-btn:disabled,
+.cms-inv-btn:disabled:hover {
+  background: #f8fafc;
+  color: #94a3b8;
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
 .cms-inv-btn--view {
   background: #f1f5f9;
   color: #475569;
@@ -406,6 +414,9 @@
 
 /* Upload Zone */
 .cms-sp-upload-zone {
+  width: 100%;
+  background: #fff;
+  color: inherit;
   border: 2px dashed #d1d5db;
   border-radius: 8px;
   padding: 2rem 1rem;

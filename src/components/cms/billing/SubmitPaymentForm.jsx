@@ -1,59 +1,71 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
-  FaInfoCircle, FaFileInvoice, FaMoneyBill, FaCalendar,
-  FaUniversity, FaHashtag, FaCamera, FaCloudUploadAlt,
+  FaCalendar,
+  FaCamera,
+  FaCloudUploadAlt,
+  FaFileInvoice,
+  FaHashtag,
+  FaInfoCircle,
+  FaMoneyBill,
   FaPaperPlane,
+  FaUniversity,
 } from 'react-icons/fa';
 
-export default function SubmitPaymentForm({ onCancel }) {
+function formatCurrency(value) {
+  return Number(value || 0).toLocaleString('en-PH', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+export default function SubmitPaymentForm({
+  invoice,
+  submitting = false,
+  onCancel,
+  onSubmit,
+}) {
+  const fileInputRef = useRef(null);
   const [form, setForm] = useState({
-    invoice: '',
-    amount: '',
+    amount: invoice ? String(invoice.balance_due || invoice.total_amount || '') : '',
     date: '',
     method: '',
     reference: '',
   });
+  const [receiptFile, setReceiptFile] = useState(null);
+  const invoiceLabel = invoice?.invoice_number || invoice?.statement_no || 'Statement pending';
 
-  const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  const handleChange = (event) => {
+    setForm((prev) => ({ ...prev, [event.target.name]: event.target.value }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onCancel?.();
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    onSubmit?.({ ...form, receiptFile });
   };
 
   return (
     <div className="cms-sp-wrapper">
-      {/* Info Banner */}
       <div className="cms-sp-info-banner">
         <FaInfoCircle className="cms-sp-info-icon" />
         <p className="cms-sp-info-text">
-          Submit your payment details and upload proof of payment. Our finance team will
-          verify within 24-48 business hours.
+          Upload the payment receipt for the selected statement. This does not process a direct online payment.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="cms-sp-form">
-        {/* Invoice Select */}
         <div className="cms-sp-field">
           <label className="cms-sp-label">
             <FaFileInvoice className="cms-sp-label-icon" />
-            Select Invoice
+            Selected Invoice
           </label>
-          <select
-            name="invoice"
-            value={form.invoice}
-            onChange={handleChange}
+          <input
             className="cms-sp-input"
+            value={invoice ? `${invoiceLabel} - PHP ${formatCurrency(invoice.balance_due)}` : 'Select an unpaid invoice'}
+            readOnly
             required
-          >
-            <option value="">Select invoice to pay...</option>
-            <option value="INV-2026-042">INV-2026-042 — ₱82,500.00 (Due Feb 28)</option>
-          </select>
+          />
         </div>
 
-        {/* Amount + Date */}
         <div className="cms-sp-grid">
           <div className="cms-sp-field">
             <label className="cms-sp-label">
@@ -61,9 +73,11 @@ export default function SubmitPaymentForm({ onCancel }) {
               Amount Paid
             </label>
             <input
-              type="text"
+              type="number"
               name="amount"
-              placeholder="₱0.00"
+              min="0"
+              step="0.01"
+              placeholder="0.00"
               value={form.amount}
               onChange={handleChange}
               className="cms-sp-input"
@@ -86,7 +100,6 @@ export default function SubmitPaymentForm({ onCancel }) {
           </div>
         </div>
 
-        {/* Payment Method */}
         <div className="cms-sp-field">
           <label className="cms-sp-label">
             <FaUniversity className="cms-sp-label-icon" />
@@ -100,15 +113,14 @@ export default function SubmitPaymentForm({ onCancel }) {
             required
           >
             <option value="">Select payment method...</option>
-            <option value="bdo">Bank Transfer (BDO)</option>
-            <option value="bpi">Bank Transfer (BPI)</option>
-            <option value="gcash">GCash</option>
-            <option value="maya">Maya</option>
-            <option value="check">Check</option>
+            <option value="Bank Transfer (BDO)">Bank Transfer (BDO)</option>
+            <option value="Bank Transfer (BPI)">Bank Transfer (BPI)</option>
+            <option value="GCash">GCash</option>
+            <option value="Maya">Maya</option>
+            <option value="Check">Check</option>
           </select>
         </div>
 
-        {/* Reference Number */}
         <div className="cms-sp-field">
           <label className="cms-sp-label">
             <FaHashtag className="cms-sp-label-icon" />
@@ -125,31 +137,37 @@ export default function SubmitPaymentForm({ onCancel }) {
           />
         </div>
 
-        {/* Upload Proof */}
         <div className="cms-sp-field">
           <label className="cms-sp-label">
             <FaCamera className="cms-sp-label-icon" />
             Upload Proof of Payment
           </label>
-          <div className="cms-sp-upload-zone">
-            <FaCloudUploadAlt className="cms-sp-upload-icon" />
-            <p className="cms-sp-upload-text">
-              Drag &amp; drop or <span className="cms-sp-upload-link">browse</span>
-            </p>
-            <p className="cms-sp-upload-hint">JPG, PNG, PDF up to 10MB</p>
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="cms-sp-actions">
-          <button type="submit" className="cms-sp-btn-submit">
-            <FaPaperPlane /> Submit Payment
-          </button>
           <button
             type="button"
-            className="cms-sp-btn-cancel"
-            onClick={onCancel}
+            className="cms-sp-upload-zone"
+            onClick={() => fileInputRef.current?.click()}
           >
+            <FaCloudUploadAlt className="cms-sp-upload-icon" />
+            <p className="cms-sp-upload-text">
+              {receiptFile ? receiptFile.name : 'Browse receipt file'}
+            </p>
+            <p className="cms-sp-upload-hint">JPG, PNG, or PDF up to 10MB</p>
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,application/pdf"
+            style={{ display: 'none' }}
+            onChange={(event) => setReceiptFile(event.target.files?.[0] || null)}
+            required
+          />
+        </div>
+
+        <div className="cms-sp-actions">
+          <button type="submit" className="cms-sp-btn-submit" disabled={submitting || !invoice}>
+            <FaPaperPlane /> {submitting ? 'Submitting...' : 'Submit Receipt'}
+          </button>
+          <button type="button" className="cms-sp-btn-cancel" onClick={onCancel} disabled={submitting}>
             Cancel
           </button>
         </div>

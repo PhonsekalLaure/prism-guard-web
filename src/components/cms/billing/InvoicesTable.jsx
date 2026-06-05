@@ -1,84 +1,116 @@
 import {
-  FaCreditCard, FaDownload, FaEye,
+  FaCreditCard,
+  FaDownload,
+  FaEye,
+  FaFileInvoice,
   FaReceipt,
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
+import { SkeletonBlock, SkeletonList } from '@components/ui/Skeleton';
 
-const invoices = [
-  {
-    id: 'INV-2026-042',
-    period: 'Feb 1-15, 2026',
-    amount: '₱82,500.00',
-    dueDate: 'Feb 28, 2026',
-    status: 'unpaid',
-  },
-  {
-    id: 'INV-2026-041',
-    period: 'Jan 16-31, 2026',
-    amount: '₱43,000.00',
-    dueDate: 'Feb 15, 2026',
-    status: 'verifying',
-  },
-  {
-    id: 'INV-2026-040',
-    period: 'Jan 1-15, 2026',
-    amount: '₱82,500.00',
-    dueDate: 'Jan 31, 2026',
-    status: 'paid',
-  },
-  {
-    id: 'INV-2025-039',
-    period: 'Dec 16-31, 2025',
-    amount: '₱82,500.00',
-    dueDate: 'Jan 15, 2026',
-    status: 'paid',
-  },
-];
+function formatCurrency(value) {
+  return `PHP ${Number(value || 0).toLocaleString('en-PH', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+function formatDate(value) {
+  if (!value) return '-';
+  return new Date(`${value}T00:00:00`).toLocaleDateString('en-PH', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+function formatPeriod(invoice) {
+  return `${formatDate(invoice.period_start)} - ${formatDate(invoice.period_end)}`;
+}
 
 const statusConfig = {
   unpaid: { label: 'Unpaid', className: 'cms-inv-badge cms-inv-badge--unpaid' },
+  partial: { label: 'Partial', className: 'cms-inv-badge cms-inv-badge--verifying' },
+  overdue: { label: 'Overdue', className: 'cms-inv-badge cms-inv-badge--unpaid' },
   verifying: { label: 'Verifying', className: 'cms-inv-badge cms-inv-badge--verifying' },
   paid: { label: 'Paid', className: 'cms-inv-badge cms-inv-badge--paid' },
 };
 
-function InvoiceActions({ status, onPay, onViewPdf }) {
-  if (status === 'unpaid') {
+function StatementButton({ invoice, onViewPdf }) {
+  const disabled = !invoice.has_statement;
+  return (
+    <button
+      className="cms-inv-btn cms-inv-btn--pdf"
+      type="button"
+      onClick={() => {
+        if (!disabled) onViewPdf(invoice, true);
+      }}
+      disabled={disabled}
+      title={disabled ? 'Statement is not available yet.' : 'Download statement PDF'}
+    >
+      <FaDownload /> {disabled ? 'Pending' : 'PDF'}
+    </button>
+  );
+}
+
+function InvoiceActions({ invoice, onPay, onViewReceipt, onViewPdf }) {
+  if (invoice.status === 'unpaid' || invoice.status === 'partial' || invoice.status === 'overdue') {
     return (
       <div className="cms-inv-actions">
-        <button className="cms-inv-btn cms-inv-btn--pay" onClick={onPay}>
+        <button className="cms-inv-btn cms-inv-btn--pay" type="button" onClick={() => onPay(invoice)}>
           <FaCreditCard /> Pay
         </button>
-        <button className="cms-inv-btn cms-inv-btn--pdf" onClick={onViewPdf}>
-          <FaDownload /> PDF
-        </button>
+        <StatementButton invoice={invoice} onViewPdf={onViewPdf} />
       </div>
     );
   }
-  if (status === 'verifying') {
+  if (invoice.status === 'verifying') {
     return (
       <div className="cms-inv-actions">
-        <button className="cms-inv-btn cms-inv-btn--view">
-          <FaEye /> View
+        <button className="cms-inv-btn cms-inv-btn--view" type="button" onClick={() => onViewReceipt(invoice)}>
+          <FaEye /> Receipt
         </button>
-        <button className="cms-inv-btn cms-inv-btn--pdf" onClick={onViewPdf}>
-          <FaDownload /> PDF
-        </button>
+        <StatementButton invoice={invoice} onViewPdf={onViewPdf} />
       </div>
     );
   }
   return (
     <div className="cms-inv-actions">
-      <button className="cms-inv-btn cms-inv-btn--receipt">
+      <button className="cms-inv-btn cms-inv-btn--receipt" type="button" onClick={() => onViewReceipt(invoice)}>
         <FaReceipt /> Receipt
       </button>
-      <button className="cms-inv-btn cms-inv-btn--pdf" onClick={onViewPdf}>
-        <FaDownload /> PDF
-      </button>
+      <StatementButton invoice={invoice} onViewPdf={onViewPdf} />
     </div>
   );
 }
 
-export default function InvoicesTable({ onSwitchToSubmit }) {
+function InvoiceRowsSkeleton() {
+  return (
+    <SkeletonList count={4}>{(index) => (
+      <tr key={index} className="cms-inv-row">
+        <td><SkeletonBlock height={16} width="80%" /></td>
+        <td><SkeletonBlock height={16} width="70%" /></td>
+        <td><SkeletonBlock height={16} width="60%" /></td>
+        <td><SkeletonBlock height={16} width="60%" /></td>
+        <td><SkeletonBlock height={24} width={82} radius="999px" /></td>
+        <td><SkeletonBlock height={32} width="90%" /></td>
+      </tr>
+    )}</SkeletonList>
+  );
+}
+
+export default function InvoicesTable({
+  invoices = [],
+  metadata,
+  loading = false,
+  onPageChange,
+  onPay,
+  onViewReceipt,
+  onViewPdf,
+}) {
+  const startIndex = invoices.length > 0 ? ((metadata.page - 1) * metadata.limit) + 1 : 0;
+  const endIndex = ((metadata.page - 1) * metadata.limit) + invoices.length;
+
   return (
     <div>
       <div className="cms-inv-table-wrapper">
@@ -94,22 +126,32 @@ export default function InvoicesTable({ onSwitchToSubmit }) {
             </tr>
           </thead>
           <tbody>
-            {invoices.map((inv) => {
-              const badge = statusConfig[inv.status];
+            {loading && <InvoiceRowsSkeleton />}
+            {!loading && invoices.length === 0 && (
+              <tr>
+                <td colSpan={6} style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                  <FaFileInvoice style={{ marginRight: '0.5rem' }} />
+                  No billing statements found.
+                </td>
+              </tr>
+            )}
+            {!loading && invoices.map((invoice) => {
+              const badge = statusConfig[invoice.status] || statusConfig.unpaid;
               return (
-                <tr key={inv.id} className="cms-inv-row">
-                  <td className="cms-inv-id">{inv.id}</td>
-                  <td className="cms-inv-muted">{inv.period}</td>
-                  <td className="cms-inv-amount">{inv.amount}</td>
-                  <td className="cms-inv-muted">{inv.dueDate}</td>
+                <tr key={invoice.id} className="cms-inv-row">
+                  <td className="cms-inv-id">{invoice.invoice_number || invoice.statement_no || 'Statement pending'}</td>
+                  <td className="cms-inv-muted">{formatPeriod(invoice)}</td>
+                  <td className="cms-inv-amount">{formatCurrency(invoice.total_amount)}</td>
+                  <td className="cms-inv-muted">{formatDate(invoice.due_date)}</td>
                   <td>
                     <span className={badge.className}>{badge.label}</span>
                   </td>
                   <td>
                     <InvoiceActions
-                      status={inv.status}
-                      onPay={onSwitchToSubmit}
-                      onViewPdf={() => {}}
+                      invoice={invoice}
+                      onPay={onPay}
+                      onViewReceipt={onViewReceipt}
+                      onViewPdf={onViewPdf}
                     />
                   </td>
                 </tr>
@@ -120,12 +162,12 @@ export default function InvoicesTable({ onSwitchToSubmit }) {
       </div>
 
       <Pagination
-        currentPage={1}
-        totalPages={1}
-        onPageChange={() => {}}
-        startIndex={0}
-        endIndex={invoices.length}
-        totalItems={invoices.length}
+        currentPage={metadata.page}
+        totalPages={metadata.totalPages}
+        onPageChange={onPageChange}
+        startIndex={startIndex}
+        endIndex={endIndex}
+        totalItems={metadata.total}
         label="invoices"
       />
     </div>
