@@ -253,7 +253,7 @@ export default function ViewClientDetail({
       contractStartDate: baseStartDate,
       contractEndDate: '',
       ratePerGuard: data.rate_per_guard || '',
-      billingType: data.billing_type || 'semi_monthly',
+      billingType: 'semi_monthly',
       contractFile: null,
     });
     setShowRenewContractDialog(true);

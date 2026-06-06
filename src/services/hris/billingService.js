@@ -48,8 +48,18 @@ async function generateStatements(payload) {
   return data;
 }
 
+async function previewStatements(payload) {
+  const { data } = await api.post('/preview', payload);
+  return data;
+}
+
 async function generateStatement(id) {
   const { data } = await api.post(`/${id}/statement/generate`);
+  return data;
+}
+
+async function previewStatement(id) {
+  const { data } = await api.post(`/${id}/statement/preview`);
   return data;
 }
 
@@ -105,6 +115,8 @@ export default {
   downloadStatement,
   generateStatement,
   generateStatements,
+  previewStatement,
+  previewStatements,
   getBilling,
   getBillings,
   getHolidays,

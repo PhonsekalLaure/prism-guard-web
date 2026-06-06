@@ -13,6 +13,7 @@ export default function ReportConfirmDialog({
   title,
   description,
   confirmLabel = 'Confirm',
+  confirmDisabled = false,
   cancelLabel = 'Cancel',
   loading = false,
   tone = 'info',
@@ -65,6 +66,7 @@ export default function ReportConfirmDialog({
             loadingLabel="Working..."
             icon={Icon}
             loading={loading}
+            disabled={confirmDisabled}
             variant={tone === 'danger' ? 'danger' : 'primary'}
             onClick={onConfirm}
           />

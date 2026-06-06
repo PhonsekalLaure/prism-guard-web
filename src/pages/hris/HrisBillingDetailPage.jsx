@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import {
   FaArrowLeft,
@@ -189,17 +189,23 @@ export default function HrisBillingDetailPage() {
   const [busyAction, setBusyAction] = useState('');
   const [reviewAction, setReviewAction] = useState(null);
   const [reviewNotes, setReviewNotes] = useState('');
+  const billingRequestRef = useRef(0);
   const { notification, showNotification, closeNotification } = useNotification();
 
   const loadBilling = useCallback(async () => {
+    const requestId = billingRequestRef.current + 1;
+    billingRequestRef.current = requestId;
     try {
       setLoading(true);
+      setBilling(null);
       const data = await billingService.getBilling(id);
+      if (requestId !== billingRequestRef.current) return;
       setBilling(data);
     } catch (error) {
+      if (requestId !== billingRequestRef.current) return;
       showNotification(getErrorMessage(error, 'Failed to load billing statement.'), 'error');
     } finally {
-      setLoading(false);
+      if (requestId === billingRequestRef.current) setLoading(false);
     }
   }, [id, showNotification]);
 

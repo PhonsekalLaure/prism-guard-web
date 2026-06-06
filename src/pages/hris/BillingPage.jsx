@@ -27,6 +27,33 @@ function formatHolidayCurrency(value) {
   })}`;
 }
 
+function formatPreviewCurrency(value) {
+  return `PHP ${Number(value || 0).toLocaleString('en-PH', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+function buildPreviewDescription(confirmGeneration) {
+  if (!confirmGeneration?.preview) return '';
+  const { cutoff, preview } = confirmGeneration;
+  const summary = preview.summary || {};
+  const parts = [
+    `Preview for ${cutoff.label}: ${summary.created || 0} new, ${summary.refreshed || 0} refreshed, ${summary.skipped || 0} skipped, ${summary.blocked || 0} blocked.`,
+    `Proposed total: ${formatPreviewCurrency(summary.total_proposed)}.`,
+  ];
+
+  if ((preview.holidays || []).length > 0) {
+    parts.push(`Includes ${preview.holidays.length} holiday${preview.holidays.length === 1 ? '' : 's'}: ${preview.holidays.map((holiday) => `${holiday.name} (${formatHolidayCurrency(holiday.rate_per_guard)} per guard)`).join(', ')}.`);
+  }
+
+  if ((preview.blocked || []).length > 0) {
+    parts.push(`Blocked paid statement${preview.blocked.length === 1 ? '' : 's'}: ${preview.blocked.map((item) => `${item.company} changes by ${formatPreviewCurrency(item.delta)}`).join(', ')}. These must be reviewed before generation can continue.`);
+  }
+
+  return parts.join(' ');
+}
+
 function resolveCutoffState(cutoffOptions, defaultPeriod, cutoffKey) {
   if (cutoffKey === ALL_CUTOFFS_KEY) {
     return { key: ALL_CUTOFFS_KEY, periodStart: '', periodEnd: '' };
@@ -80,6 +107,7 @@ export default function BillingPage() {
   const [holidayDeletingId, setHolidayDeletingId] = useState('');
   const [holidayDeleteTarget, setHolidayDeleteTarget] = useState(null);
   const skipNextFilterLoadRef = useRef(false);
+  const billingRequestRef = useRef(0);
   const { notification, showNotification, closeNotification } = useNotification();
 
   const updateCutoffParam = useCallback((cutoffKey) => {
@@ -116,6 +144,8 @@ export default function BillingPage() {
   }, [showNotification]);
 
   const loadBillings = useCallback(async (page = 1, currentFilters = filters, { silent = false } = {}) => {
+    const requestId = billingRequestRef.current + 1;
+    billingRequestRef.current = requestId;
     try {
       if (!silent) setLoading(true);
       const result = await billingService.getBillings({
@@ -126,14 +156,16 @@ export default function BillingPage() {
         periodStart: currentFilters.periodStart || undefined,
         periodEnd: currentFilters.periodEnd || undefined,
       });
+      if (requestId !== billingRequestRef.current) return;
       setRecords(result.data || []);
       setMetadata(result.metadata || { ...DEFAULT_METADATA, page });
     } catch (error) {
+      if (requestId !== billingRequestRef.current) return;
       setRecords([]);
       setMetadata({ ...DEFAULT_METADATA, page });
       showNotification(getErrorMessage(error, 'Failed to load billing statements.'), 'error');
     } finally {
-      if (!silent) setLoading(false);
+      if (!silent && requestId === billingRequestRef.current) setLoading(false);
     }
   }, [filters, showNotification]);
 
@@ -220,28 +252,13 @@ export default function BillingPage() {
 
     try {
       setCheckingGeneration(true);
-      const existing = await billingService.getBillings({
-        page: 1,
-        limit: 1,
-        periodStart: cutoff.periodStart,
-        periodEnd: cutoff.periodEnd,
+      const preview = await billingService.previewStatements({
+        period_start: cutoff.periodStart,
+        period_end: cutoff.periodEnd,
       });
-      const cutoffHolidays = await billingService.getHolidays({
-        periodStart: cutoff.periodStart,
-        periodEnd: cutoff.periodEnd,
-      });
-      const existingCount = existing.metadata?.total || 0;
-      if (existingCount > 0 || (cutoffHolidays || []).length > 0) {
-        setConfirmGeneration({
-          cutoff,
-          existingCount,
-          holidays: cutoffHolidays || [],
-        });
-        return;
-      }
-      await generateStatementsAction.execute(cutoff);
+      setConfirmGeneration({ cutoff, preview });
     } catch (error) {
-      showNotification(getErrorMessage(error, 'Failed to check existing billing statements.'), 'error');
+      showNotification(getErrorMessage(error, 'Failed to preview billing statements.'), 'error');
     } finally {
       setCheckingGeneration(false);
     }
@@ -315,6 +332,10 @@ export default function BillingPage() {
 
   const handleConfirmRegenerate = async () => {
     if (!confirmGeneration?.cutoff) return;
+    if ((confirmGeneration.preview?.blocked || []).length > 0) {
+      showNotification('Resolve blocked paid statement changes before generating billing statements.', 'error');
+      return;
+    }
     const result = await generateStatementsAction.execute(confirmGeneration.cutoff);
     if (result) setConfirmGeneration(null);
   };
@@ -371,20 +392,12 @@ export default function BillingPage() {
 
       <ReportConfirmDialog
         open={Boolean(confirmGeneration)}
-        title={confirmGeneration?.existingCount > 0 ? 'Regenerate Statements?' : 'Generate Holiday Billing?'}
-        description={confirmGeneration
-          ? [
-            confirmGeneration.existingCount > 0
-              ? `${confirmGeneration.existingCount} statement${confirmGeneration.existingCount === 1 ? '' : 's'} already exist for ${confirmGeneration.cutoff.label}. Regenerating will refresh existing statements for this period.`
-              : `Generate statements for ${confirmGeneration.cutoff.label}.`,
-            confirmGeneration.holidays.length > 0
-              ? `This cutoff includes ${confirmGeneration.holidays.length} holiday${confirmGeneration.holidays.length === 1 ? '' : 's'}: ${confirmGeneration.holidays.map((holiday) => `${holiday.name} (${formatHolidayCurrency(holiday.rate_per_guard)} per guard)`).join(', ')}.`
-              : '',
-          ].filter(Boolean).join(' ')
-          : ''}
-        confirmLabel={confirmGeneration?.existingCount > 0 ? 'Regenerate Statements' : 'Generate Statements'}
+        title={(confirmGeneration?.preview?.blocked || []).length > 0 ? 'Preview Has Blocked Statements' : 'Generate Previewed Statements?'}
+        description={buildPreviewDescription(confirmGeneration)}
+        confirmLabel="Apply Preview"
+        confirmDisabled={(confirmGeneration?.preview?.blocked || []).length > 0}
         loading={generateStatementsAction.loading}
-        tone={confirmGeneration?.existingCount > 0 ? 'warning' : 'info'}
+        tone={(confirmGeneration?.preview?.blocked || []).length > 0 ? 'danger' : ((confirmGeneration?.preview?.summary?.refreshed || 0) > 0 ? 'warning' : 'info')}
         onCancel={() => setConfirmGeneration(null)}
         onConfirm={handleConfirmRegenerate}
       />
