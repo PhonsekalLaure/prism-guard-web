@@ -1,19 +1,26 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import {
   FaArrowLeft,
+  FaBars,
   FaCheckCircle,
   FaDownload,
+  FaEye,
   FaFileInvoiceDollar,
   FaReceipt,
+  FaSpinner,
   FaTimes,
 } from 'react-icons/fa';
 import EntityAvatar from '@components/ui/EntityAvatar';
 import Notification from '@components/ui/Notification';
+import ReportActionButton from '@components/ui/ReportActionButton';
+import { SkeletonBlock } from '@components/ui/Skeleton';
 import useNotification from '@hooks/useNotification';
 import authService from '@services/authService';
 import billingService from '@services/hris/billingService';
 import { hasPermission } from '@utils/adminPermissions';
+import '../../styles/hris/Employees.css';
+import '../../styles/hris/Billing.css';
 
 function formatCurrency(value) {
   return `PHP ${Number(value || 0).toLocaleString('en-PH', {
@@ -62,26 +69,108 @@ function openExternal(url) {
   if (url) window.open(url, '_blank', 'noopener,noreferrer');
 }
 
-function downloadExternal(url, filename = 'payment-receipt') {
+function sanitizeFilenamePart(value, fallback = 'file') {
+  const normalized = String(value || fallback)
+    .trim()
+    .replace(/[^a-z0-9-_]+/gi, '-')
+    .replace(/^-+|-+$/g, '')
+    .toLowerCase();
+  return normalized || fallback;
+}
+
+function getUrlExtension(url, fallback = '') {
+  try {
+    const { pathname } = new URL(url);
+    const match = pathname.match(/\.([a-z0-9]{2,5})$/i);
+    return match ? match[1].toLowerCase() : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function ensureFilenameExtension(filename, url, fallbackExtension = 'pdf') {
+  if (/\.[a-z0-9]{2,5}$/i.test(filename)) return filename;
+  const extension = getUrlExtension(url, fallbackExtension);
+  return extension ? `${filename}.${extension}` : filename;
+}
+
+function buildStatementFallbackFilename(billing) {
+  const invoiceKey = sanitizeFilenamePart(billing?.invoice_number || billing?.statement_no || billing?.id, 'invoice');
+  const companyKey = sanitizeFilenamePart(billing?.company, 'client');
+  return `prism-guard-invoice-${invoiceKey}-${companyKey}.pdf`;
+}
+
+function buildReceiptFilename(receipt) {
+  const refKey = sanitizeFilenamePart(receipt?.reference_number || receipt?.id, 'receipt');
+  return ensureFilenameExtension(`payment-receipt-${refKey}`, receipt?.receipt_url, 'jpg');
+}
+
+async function downloadExternal(url, filename = 'download') {
   if (!url) return;
+  const resolvedUrl = await authService.getFileObjectUrl(url);
   const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.target = '_blank';
-  anchor.rel = 'noreferrer';
+  anchor.href = resolvedUrl;
   anchor.download = filename;
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
+  if (resolvedUrl.startsWith('blob:')) {
+    window.setTimeout(() => URL.revokeObjectURL(resolvedUrl), 1000);
+  }
+}
+
+function BillingDetailSkeleton() {
+  return (
+    <>
+      <section className="billing-detail-hero billing-detail-hero--skeleton">
+        <SkeletonBlock width={54} height={54} radius={12} className="billing-detail-skeleton-light" />
+        <div className="billing-detail-title">
+          <SkeletonBlock width={150} height={13} className="billing-detail-skeleton-light" />
+          <SkeletonBlock width="34%" height={24} className="billing-detail-skeleton-light" style={{ marginTop: 10 }} />
+          <SkeletonBlock width={190} height={14} className="billing-detail-skeleton-light" style={{ marginTop: 10 }} />
+        </div>
+        <SkeletonBlock width={92} height={26} radius={999} className="billing-detail-skeleton-light" />
+      </section>
+
+      <section className="billing-detail-grid">
+        {[0, 1].map((panel) => (
+          <div className="billing-detail-panel" key={panel}>
+            <SkeletonBlock width={170} height={20} style={{ marginBottom: 18 }} />
+            <div className="bp-summary-grid">
+              {[0, 1, 2, 3].map((item) => (
+                <div className="bp-summary-item" key={item}>
+                  <SkeletonBlock width="45%" height={12} />
+                  <SkeletonBlock width="62%" height={18} style={{ marginTop: 10 }} />
+                </div>
+              ))}
+            </div>
+            <div className="billing-detail-actions">
+              <SkeletonBlock width={150} height={40} radius={8} />
+              <SkeletonBlock width={150} height={40} radius={8} />
+            </div>
+          </div>
+        ))}
+      </section>
+
+      <section className="billing-detail-panel">
+        <SkeletonBlock width={150} height={20} style={{ marginBottom: 18 }} />
+        <SkeletonBlock width="100%" height={86} radius={8} />
+      </section>
+    </>
+  );
 }
 
 export default function HrisBillingDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { toggleSidebar } = useOutletContext();
+  const returnTo = location.state?.returnTo || '/billing';
   const profile = useMemo(() => authService.getProfile() || {}, []);
   const canReviewReceipts = hasPermission(profile, 'billing.write');
   const [billing, setBilling] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
+  const [busyAction, setBusyAction] = useState('');
   const [reviewAction, setReviewAction] = useState(null);
   const [reviewNotes, setReviewNotes] = useState('');
   const { notification, showNotification, closeNotification } = useNotification();
@@ -104,23 +193,41 @@ export default function HrisBillingDetailPage() {
 
   const receipts = billing?.receipts || [];
   const pendingReceipt = receipts.find((receipt) => receipt.status === 'pending_review');
+  const reviewReceipt = pendingReceipt || receipts[0] || null;
+  const isBusy = Boolean(busyAction);
 
   const handleStatement = async (download = false) => {
     if (!billing) return;
     try {
-      setBusy(true);
+      setBusyAction(download ? 'downloadInvoice' : 'viewInvoice');
       let current = billing;
       if (!current.has_statement) {
         current = await billingService.generateStatement(current.id);
         setBilling(current);
         showNotification('Billing statement generated.', 'success');
       }
-      const { url } = await billingService.getStatementUrl(current.id, download);
-      openExternal(url);
+      const { url, filename } = await billingService.getStatementUrl(current.id, download);
+      if (download) {
+        await downloadExternal(url, filename || buildStatementFallbackFilename(current));
+      } else {
+        openExternal(url);
+      }
     } catch (error) {
-      showNotification(getErrorMessage(error, 'Failed to open billing statement.'), 'error');
+      showNotification(getErrorMessage(error, download ? 'Failed to download billing statement.' : 'Failed to open billing statement.'), 'error');
     } finally {
-      setBusy(false);
+      setBusyAction('');
+    }
+  };
+
+  const handleReceiptDownload = async (receipt) => {
+    if (!receipt?.receipt_url) return;
+    try {
+      setBusyAction(`downloadReceipt:${receipt.id}`);
+      await downloadExternal(receipt.receipt_url, buildReceiptFilename(receipt));
+    } catch (error) {
+      showNotification(getErrorMessage(error, 'Failed to download payment receipt.'), 'error');
+    } finally {
+      setBusyAction('');
     }
   };
 
@@ -128,22 +235,22 @@ export default function HrisBillingDetailPage() {
     event.preventDefault();
     if (!billing || !pendingReceipt || !reviewAction) return;
     try {
-      setBusy(true);
+      setBusyAction(reviewAction === 'approve' ? 'approveReceipt' : 'rejectReceipt');
       if (reviewAction === 'approve') {
         const updated = await billingService.approveReceipt(billing.id, pendingReceipt.id, { reviewNotes });
         setBilling(updated);
-        showNotification('Payment receipt approved.', 'success');
+        showNotification('Payment approved.', 'success');
       } else {
         const updated = await billingService.rejectReceipt(billing.id, pendingReceipt.id, { reviewNotes });
         setBilling(updated);
-        showNotification('Payment receipt rejected.', 'success');
+        showNotification('Payment rejected.', 'success');
       }
       setReviewAction(null);
       setReviewNotes('');
     } catch (error) {
       showNotification(getErrorMessage(error, 'Failed to review receipt.'), 'error');
     } finally {
-      setBusy(false);
+      setBusyAction('');
     }
   };
 
@@ -158,17 +265,20 @@ export default function HrisBillingDetailPage() {
         />
       )}
 
-      <div className="billing-detail-page">
-        <button className="billing-detail-back" type="button" onClick={() => navigate('/billing')}>
-          <FaArrowLeft />
-          Back to Billing
-        </button>
-
-        {loading && (
-          <div className="billing-detail-panel">
-            <p className="billing-detail-muted">Loading billing statement...</p>
+      <header className="dashboard-topbar">
+        <div className="topbar-inner">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <button className="mobile-toggle" onClick={toggleSidebar}><FaBars /></button>
+            <button className="ep-back-btn" type="button" onClick={() => navigate(returnTo)}>
+              <FaArrowLeft /> Back to Billing
+            </button>
           </div>
-        )}
+        </div>
+      </header>
+
+      <div className="dashboard-content ep-page-body">
+      <div className="billing-detail-page ep-detail-container">
+        {loading && <BillingDetailSkeleton />}
 
         {!loading && !billing && (
           <div className="billing-detail-panel">
@@ -219,78 +329,138 @@ export default function HrisBillingDetailPage() {
                   </div>
                 </div>
                 <div className="billing-detail-actions">
-                  <button className="bp-btn-secondary" type="button" onClick={() => handleStatement(false)} disabled={busy}>
-                    <FaFileInvoiceDollar />
-                    {billing.has_statement ? 'View Invoice' : 'Generate Invoice'}
-                  </button>
-                  <button className="bp-btn-primary" type="button" onClick={() => handleStatement(true)} disabled={busy}>
-                    <FaDownload />
-                    Download Invoice
-                  </button>
+                  <ReportActionButton
+                    className="billing-file-action"
+                    label={billing.has_statement ? 'View Invoice' : 'Generate Invoice'}
+                    loadingLabel={billing.has_statement ? 'Opening...' : 'Generating...'}
+                    icon={billing.has_statement ? FaEye : FaFileInvoiceDollar}
+                    loading={busyAction === 'viewInvoice'}
+                    disabled={isBusy}
+                    variant="primary"
+                    onClick={() => handleStatement(false)}
+                  />
+                  <ReportActionButton
+                    className="billing-file-action"
+                    label="Download Invoice"
+                    loadingLabel="Downloading..."
+                    icon={FaDownload}
+                    loading={busyAction === 'downloadInvoice'}
+                    disabled={isBusy}
+                    variant="secondary"
+                    onClick={() => handleStatement(true)}
+                  />
                 </div>
               </div>
 
               <div className="billing-detail-panel">
-                <h2><FaReceipt /> Receipt Review</h2>
-                {!pendingReceipt && (
+                <h2><FaReceipt /> Payment Review</h2>
+                {!reviewReceipt && (
                   <p className="billing-detail-muted">
-                    {receipts.length ? 'No receipt is currently pending review.' : 'No payment receipt has been submitted yet.'}
+                    No payment receipt has been submitted yet.
                   </p>
                 )}
-                {pendingReceipt && (
+                {reviewReceipt && (
                   <>
                     <div className="billing-receipt-card">
-                      <p><strong>{formatCurrency(pendingReceipt.amount)}</strong></p>
-                      <p>{pendingReceipt.payment_method} - {pendingReceipt.reference_number}</p>
-                      <p>Paid {formatDate(pendingReceipt.payment_date)}</p>
+                      <p><strong>{formatCurrency(reviewReceipt.amount)}</strong></p>
+                      <p>{reviewReceipt.payment_method} - {reviewReceipt.reference_number}</p>
+                      <p>Paid {formatDate(reviewReceipt.payment_date)}</p>
+                      <p>Status: {formatStatus(reviewReceipt.status)}</p>
+                      {reviewReceipt.review_notes && (
+                        <p>Notes: {reviewReceipt.review_notes}</p>
+                      )}
                     </div>
                     <div className="billing-detail-actions">
-                      <button className="bp-btn-secondary" type="button" onClick={() => openExternal(pendingReceipt.receipt_url)}>
-                        <FaReceipt />
-                        View Receipt
-                      </button>
-                      <button className="bp-btn-secondary" type="button" onClick={() => downloadExternal(pendingReceipt.receipt_url, `receipt-${pendingReceipt.reference_number || pendingReceipt.id}`)}>
-                        <FaDownload />
-                        Download Receipt
-                      </button>
+                      <ReportActionButton
+                        className="billing-file-action"
+                        label="View Receipt"
+                        icon={FaEye}
+                        disabled={isBusy}
+                        variant="primary"
+                        onClick={() => openExternal(reviewReceipt.receipt_url)}
+                      />
+                      <ReportActionButton
+                        className="billing-file-action"
+                        label="Download Receipt"
+                        loadingLabel="Downloading..."
+                        icon={FaDownload}
+                        loading={busyAction === `downloadReceipt:${reviewReceipt.id}`}
+                        disabled={isBusy}
+                        variant="secondary"
+                        onClick={() => handleReceiptDownload(reviewReceipt)}
+                      />
                     </div>
-                    {canReviewReceipts && (
-                      <div className="billing-review-actions">
-                        <button className="bp-btn-confirm" type="button" onClick={() => setReviewAction('approve')} disabled={busy}>
-                          <FaCheckCircle />
-                          Approve Receipt
-                        </button>
-                        <button className="bp-btn-secondary" type="button" onClick={() => setReviewAction('reject')} disabled={busy}>
-                          <FaTimes />
-                          Reject Receipt
-                        </button>
-                      </div>
-                    )}
                   </>
-                )}
-                {reviewAction && (
-                  <form className="billing-review-form" onSubmit={handleReview}>
-                    <label>{reviewAction === 'approve' ? 'Review Notes' : 'Rejection Reason'}</label>
-                    <textarea
-                      className="bp-input"
-                      rows={3}
-                      value={reviewNotes}
-                      onChange={(event) => setReviewNotes(event.target.value)}
-                      required={reviewAction === 'reject'}
-                      placeholder={reviewAction === 'approve' ? 'Optional note for the payment record' : 'Explain why this receipt is rejected'}
-                    />
-                    <div className="billing-detail-actions">
-                      <button className="bp-btn-secondary" type="button" onClick={() => setReviewAction(null)} disabled={busy}>
-                        Cancel
-                      </button>
-                      <button className={reviewAction === 'approve' ? 'bp-btn-confirm' : 'bp-btn-secondary'} type="submit" disabled={busy}>
-                        {busy ? 'Saving...' : reviewAction === 'approve' ? 'Confirm Approval' : 'Confirm Rejection'}
-                      </button>
-                    </div>
-                  </form>
                 )}
               </div>
             </section>
+
+            {canReviewReceipts && pendingReceipt && (
+              <section className={`billing-detail-panel ${reviewAction ? '' : 'billing-decision-panel'}`}>
+                {!reviewAction ? (
+                  <>
+                    <div className="billing-decision-left">
+                      <p className="billing-payment-review-title">Payment Decision</p>
+                      <p className="billing-payment-review-copy">Approve or reject this submitted payment after checking the receipt.</p>
+                    </div>
+                    <div className="billing-decision-right">
+                      <div className="billing-review-actions">
+                        <ReportActionButton
+                          label="Approve Payment"
+                          icon={FaCheckCircle}
+                          disabled={isBusy}
+                          variant="success"
+                          onClick={() => setReviewAction('approve')}
+                        />
+                        <ReportActionButton
+                          label="Reject Payment"
+                          icon={FaTimes}
+                          disabled={isBusy}
+                          variant="danger"
+                          onClick={() => setReviewAction('reject')}
+                        />
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="billing-payment-review-title">
+                      {reviewAction === 'approve' ? 'Confirm Approval' : 'Confirm Rejection'}
+                    </p>
+                    <p className="billing-payment-review-copy" style={{ marginBottom: '0.75rem' }}>
+                      {reviewAction === 'approve'
+                        ? 'Add an optional note before approving this payment.'
+                        : 'Explain why this receipt is being rejected.'}
+                    </p>
+                    <form className="billing-review-form" onSubmit={handleReview}>
+                      <label>{reviewAction === 'approve' ? 'Approval Notes' : 'Rejection Reason'}</label>
+                      <textarea
+                        className="bp-input"
+                        rows={3}
+                        value={reviewNotes}
+                        onChange={(event) => setReviewNotes(event.target.value)}
+                        required={reviewAction === 'reject'}
+                        placeholder={reviewAction === 'approve' ? 'Optional note for the payment record' : 'Explain why this receipt is rejected'}
+                      />
+                      <div className="billing-detail-actions">
+                        <button className="bp-btn-secondary" type="button" onClick={() => setReviewAction(null)} disabled={isBusy}>
+                          Cancel
+                        </button>
+                        <ReportActionButton
+                          label={reviewAction === 'approve' ? 'Confirm Approval' : 'Confirm Rejection'}
+                          loadingLabel="Saving..."
+                          icon={reviewAction === 'approve' ? FaCheckCircle : FaTimes}
+                          loading={busyAction === 'approveReceipt' || busyAction === 'rejectReceipt'}
+                          disabled={isBusy}
+                          variant={reviewAction === 'approve' ? 'success' : 'danger'}
+                          type="submit"
+                        />
+                      </div>
+                    </form>
+                  </>
+                )}
+              </section>
+            )}
 
             <section className="billing-detail-panel">
               <h2><FaReceipt /> Receipt History</h2>
@@ -323,9 +493,20 @@ export default function HrisBillingDetailPage() {
                         <td>{formatStatus(receipt.status)}</td>
                         <td>
                           {receipt.receipt_url ? (
-                            <button className="billing-link-button" type="button" onClick={() => openExternal(receipt.receipt_url)}>
-                              View
-                            </button>
+                            <div className="billing-history-actions">
+                              <button className="billing-link-button billing-link-button--view" type="button" onClick={() => openExternal(receipt.receipt_url)}>
+                                <FaEye /> View
+                              </button>
+                              <button
+                                className="billing-link-button billing-link-button--download"
+                                type="button"
+                                onClick={() => handleReceiptDownload(receipt)}
+                                disabled={isBusy}
+                              >
+                                {busyAction === `downloadReceipt:${receipt.id}` ? <FaSpinner className="billing-spin" /> : <FaDownload />}
+                                Download
+                              </button>
+                            </div>
                           ) : '-'}
                         </td>
                       </tr>
@@ -336,6 +517,7 @@ export default function HrisBillingDetailPage() {
             </section>
           </>
         )}
+      </div>
       </div>
     </>
   );

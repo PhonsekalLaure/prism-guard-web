@@ -2,10 +2,16 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { FaArrowLeft, FaBars, FaCheckCircle, FaUserCheck } from 'react-icons/fa';
 import Notification from '@components/ui/Notification';
+import ReportConfirmDialog from '@components/ui/ReportConfirmDialog';
 import ViewIncidentDetail from '@hris-components/incidents/ViewIncidentDetail';
 import useNotification from '@hooks/useNotification';
+import useReportAction from '@hooks/useReportAction';
 import incidentsService from '@services/hris/incidentsService';
 import '../../styles/hris/HrisIncidents.css';
+
+function getErrorMessage(error, fallback) {
+  return error?.response?.data?.error || error?.message || fallback;
+}
 
 export default function HrisIncidentDetailPage() {
   const { id } = useParams();
@@ -14,24 +20,28 @@ export default function HrisIncidentDetailPage() {
   const [incident, setIncident] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [actionLoading, setActionLoading] = useState(false);
+  const [manualActionLoading, setManualActionLoading] = useState('');
+  const [reportActionKey, setReportActionKey] = useState('');
+  const [confirmReportAction, setConfirmReportAction] = useState(null);
   const [showResolveNotes, setShowResolveNotes] = useState(false);
   const [resolveNotes, setResolveNotes] = useState('');
   const [showManualApproveNotes, setShowManualApproveNotes] = useState(false);
   const [manualApproveNotes, setManualApproveNotes] = useState('');
   const { notification, showNotification, closeNotification } = useNotification();
 
-  const loadIncident = useCallback(async () => {
-    setLoading(true);
-    setError('');
+  const loadIncident = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) {
+      setLoading(true);
+      setError('');
+    }
     try {
       const data = await incidentsService.getIncidentById(id);
       setIncident(data);
     } catch (err) {
-      setIncident(null);
+      if (!silent) setIncident(null);
       setError(err.response?.data?.error || 'Failed to load incident report.');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [id]);
 
@@ -39,8 +49,66 @@ export default function HrisIncidentDetailPage() {
     loadIncident();
   }, [loadIncident]);
 
+  const internalReportAction = useReportAction({
+    loadingMessage: 'Generating PDF...',
+    successMessage: 'PDF generated. Review it before sending.',
+    errorFallback: 'Failed to generate formal report.',
+    showNotification,
+    getErrorMessage,
+    run: async () => {
+      setReportActionKey('internal:generate');
+      return incidentsService.generateInternalReport(id);
+    },
+    afterSuccess: () => loadIncident({ silent: true }),
+    afterSettled: async () => setReportActionKey(''),
+  });
+
+  const sendPresidentAction = useReportAction({
+    loadingMessage: 'Sending report to president...',
+    successMessage: 'Formal incident report sent to the president.',
+    errorFallback: 'Failed to send report to the president.',
+    showNotification,
+    getErrorMessage,
+    run: async () => {
+      setReportActionKey('internal:send');
+      return incidentsService.sendInternalReportToPresident(id);
+    },
+    afterSuccess: () => loadIncident({ silent: true }),
+    afterSettled: async () => setReportActionKey(''),
+  });
+
+  const clientReportAction = useReportAction({
+    loadingMessage: (_request, action) => (
+      action === 'generate' ? 'Generating client PDF...' : 'Publishing report to CMS...'
+    ),
+    errorFallback: 'Failed to update client report request.',
+    showNotification,
+    getErrorMessage,
+    run: async (request, action) => {
+      setReportActionKey(`client:${request.id}:${action}`);
+      if (action === 'generate') return incidentsService.generateClientReport(request.id);
+      return incidentsService.sendClientReport(request.id);
+    },
+    afterSuccess: async (result, _request, action) => {
+      await loadIncident({ silent: true });
+      if (action === 'generate') {
+        showNotification('Client PDF generated. Review it before publishing to CMS.', 'success');
+        return;
+      }
+      showNotification(
+        result.notificationEmailStatus === 'failed'
+          ? 'Client report published to CMS, but the notification email failed.'
+          : 'Client report published to CMS and notification email sent.',
+        result.notificationEmailStatus === 'failed' ? 'warning' : 'success'
+      );
+    },
+    afterSettled: async () => setReportActionKey(''),
+  });
+
+  const actionLoading = reportActionKey || manualActionLoading;
+
   const submitReview = async (status, reviewNotes, options = {}) => {
-    setActionLoading(true);
+    setManualActionLoading('review');
     try {
       await incidentsService.updateReview(id, status, reviewNotes, options);
       showNotification('Incident report updated.', 'success');
@@ -50,7 +118,7 @@ export default function HrisIncidentDetailPage() {
       showNotification(err.response?.data?.error || 'Failed to update incident report.', 'error');
       return false;
     } finally {
-      setActionLoading(false);
+      setManualActionLoading('');
     }
   };
 
@@ -88,7 +156,7 @@ export default function HrisIncidentDetailPage() {
   };
 
   const confirmResolve = async () => {
-    setActionLoading(true);
+    setManualActionLoading('resolve');
     try {
       await incidentsService.markResolved(id, resolveNotes.trim());
       showNotification('Incident report marked as resolved.', 'success');
@@ -97,61 +165,62 @@ export default function HrisIncidentDetailPage() {
     } catch (err) {
       showNotification(err.response?.data?.error || 'Failed to mark incident as resolved.', 'error');
     } finally {
-      setActionLoading(false);
+      setManualActionLoading('');
     }
   };
 
-  const handleGenerateReport = async () => {
-    setActionLoading(true);
-    showNotification('Generating PDF...', 'loading', 0);
-    try {
-      await incidentsService.generateInternalReport(id);
-      showNotification('PDF generated. Review it before sending.', 'success');
-      await loadIncident();
-    } catch (err) {
-      showNotification(err.response?.data?.error || 'Failed to generate formal report.', 'error');
-    } finally {
-      setActionLoading(false);
-    }
-  };
+  const handleGenerateReport = () => internalReportAction.execute();
 
-  const handleSendPresident = async () => {
-    setActionLoading(true);
-    try {
-      await incidentsService.sendInternalReportToPresident(id);
-      showNotification('Formal incident report sent to the president.', 'success');
-      await loadIncident();
-    } catch (err) {
-      showNotification(err.response?.data?.error || 'Failed to send report to the president.', 'error');
-    } finally {
-      setActionLoading(false);
-    }
+  const handleSendPresident = () => {
+    setConfirmReportAction({
+      type: 'sendPresident',
+      title: 'Send Report to President?',
+      description: 'This will send the generated internal incident report outside the HRIS workspace.',
+      confirmLabel: 'Send to President',
+      tone: 'warning',
+    });
   };
 
   const handleClientRequestAction = async (request, action) => {
-    setActionLoading(true);
+    if (action === 'generate') {
+      await clientReportAction.execute(request, action);
+      return;
+    }
+
+    if (action === 'sent') {
+      setConfirmReportAction({
+        type: 'publishClient',
+        request,
+        title: 'Publish Report to CMS?',
+        description: `This will make the generated client report available to ${request.clientName || 'the client'}.`,
+        confirmLabel: 'Publish to CMS',
+        tone: 'warning',
+      });
+      return;
+    }
+
+    setManualActionLoading(`client:${request.id}:${action}`);
     try {
-      if (action === 'generate') {
-        showNotification('Generating client PDF...', 'loading', 0);
-        await incidentsService.generateClientReport(request.id);
-        showNotification('Client PDF generated. Review it before publishing to CMS.', 'success');
-      } else if (action === 'sent') {
-        const result = await incidentsService.sendClientReport(request.id);
-        showNotification(
-          result.notificationEmailStatus === 'failed'
-            ? 'Client report published to CMS, but the notification email failed.'
-            : 'Client report published to CMS and notification email sent.',
-          result.notificationEmailStatus === 'failed' ? 'warning' : 'success'
-        );
-      } else {
-        await incidentsService.updateClientReportRequest(request.id, action);
-        showNotification('Client report request updated.', 'success');
-      }
+      await incidentsService.updateClientReportRequest(request.id, action);
+      showNotification('Client report request updated.', 'success');
       await loadIncident();
     } catch (err) {
       showNotification(err.response?.data?.error || 'Failed to update client report request.', 'error');
     } finally {
-      setActionLoading(false);
+      setManualActionLoading('');
+    }
+  };
+
+  const confirmReportDialogAction = async () => {
+    if (!confirmReportAction) return;
+    const current = confirmReportAction;
+    setConfirmReportAction(null);
+    if (current.type === 'sendPresident') {
+      await sendPresidentAction.execute();
+      return;
+    }
+    if (current.type === 'publishClient' && current.request) {
+      await clientReportAction.execute(current.request, 'sent');
     }
   };
 
@@ -209,14 +278,14 @@ export default function HrisIncidentDetailPage() {
             <div className="ir-modal-actions">
               <button
                 className="ir-modal-btn resolve"
-                disabled={actionLoading}
+                disabled={Boolean(actionLoading)}
                 onClick={confirmResolve}
               >
                 <FaCheckCircle /> Confirm Resolution
               </button>
               <button
                 className="ir-modal-btn secondary"
-                disabled={actionLoading}
+                disabled={Boolean(actionLoading)}
                 onClick={closeResolveNotes}
               >
                 Cancel
@@ -241,14 +310,14 @@ export default function HrisIncidentDetailPage() {
             <div className="ir-modal-actions">
               <button
                 className="ir-modal-btn resolve"
-                disabled={actionLoading}
+                disabled={Boolean(actionLoading)}
                 onClick={confirmManualApprove}
               >
                 <FaUserCheck /> Confirm Manual Approval
               </button>
               <button
                 className="ir-modal-btn secondary"
-                disabled={actionLoading}
+                disabled={Boolean(actionLoading)}
                 onClick={closeManualApproveNotes}
               >
                 Cancel
@@ -257,6 +326,17 @@ export default function HrisIncidentDetailPage() {
           </div>
         </div>
       )}
+
+      <ReportConfirmDialog
+        open={Boolean(confirmReportAction)}
+        title={confirmReportAction?.title || ''}
+        description={confirmReportAction?.description || ''}
+        confirmLabel={confirmReportAction?.confirmLabel || 'Confirm'}
+        loading={sendPresidentAction.loading || clientReportAction.loading}
+        tone={confirmReportAction?.tone || 'warning'}
+        onCancel={() => setConfirmReportAction(null)}
+        onConfirm={confirmReportDialogAction}
+      />
 
     </>
   );

@@ -5,6 +5,7 @@ import {
   FaListUl,
 } from 'react-icons/fa';
 import EmptyState from '@components/ui/EmptyState';
+import Pagination from '@components/ui/Pagination';
 import { TableSkeletonRows } from '@components/ui/Skeleton';
 import PayrollBreakdownModal from './PayrollBreakdownModal';
 import {
@@ -18,12 +19,19 @@ import {
 } from './payrollFormatters';
 
 export default function HrisPayrollTable({
+  currentPage = 1,
   loading,
+  onPageChange,
+  pageLimit = 10,
   records = [],
   run,
   preview,
+  totalRecords = records.length,
 }) {
   const [selectedRow, setSelectedRow] = useState(null);
+  const totalPages = Math.ceil(totalRecords / pageLimit);
+  const startIndex = (currentPage - 1) * pageLimit;
+  const endIndex = startIndex + records.length;
 
   const title = useMemo(() => {
     const source = preview || run;
@@ -55,7 +63,7 @@ export default function HrisPayrollTable({
           <tbody>
             {loading ? (
               <TableSkeletonRows rows={5} columns={8} />
-            ) : records.length === 0 ? (
+            ) : totalRecords === 0 ? (
               <tr>
                 <td colSpan="8">
                   <EmptyState
@@ -128,9 +136,16 @@ export default function HrisPayrollTable({
         </table>
       </div>
 
-      <div className="pr-pagination">
-        <p className="pr-pagination-text">Showing {records.length} payroll record{records.length === 1 ? '' : 's'}</p>
-      </div>
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={onPageChange}
+        startIndex={startIndex}
+        endIndex={endIndex}
+        totalItems={totalRecords}
+        label="payroll records"
+        disabled={loading}
+      />
 
       {selectedRow && (
         <PayrollBreakdownModal row={selectedRow} onClose={() => setSelectedRow(null)} />

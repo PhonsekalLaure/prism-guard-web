@@ -813,6 +813,23 @@
   padding: 1.2rem;
 }
 
+/* Panels inside the two-column grid stretch to full height and
+   use flex-column so the action buttons always sit at the bottom */
+.billing-detail-grid .billing-detail-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.billing-detail-grid .bp-summary-grid,
+.billing-detail-grid .billing-receipt-card {
+  flex: 1;
+}
+
+.billing-detail-grid .billing-detail-actions {
+  margin-top: auto;
+  padding-top: 1rem;
+}
+
 .billing-detail-panel h2 {
   display: flex;
   align-items: center;
@@ -832,8 +849,35 @@
 .billing-review-actions {
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 0.75rem;
   margin-top: 1rem;
+}
+
+.billing-decision-panel .billing-review-actions {
+  margin-top: 0;
+}
+
+/* Panel header row — title on left, action buttons anchored right */
+.billing-panel-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.billing-panel-header-row h2 {
+  margin: 0;
+}
+
+.billing-invoice-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
 .billing-receipt-card {
@@ -888,4 +932,199 @@
     align-items: flex-start;
     flex-direction: column;
   }
+}
+/* Billing detail page - employee detail aligned shell */
+.billing-detail-page.ep-detail-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow: hidden;
+}
+
+.billing-detail-page.ep-detail-container .billing-detail-hero {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, #093269 0%, #0a4080 100%);
+  color: #fff;
+  border: 0;
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+.billing-detail-page.ep-detail-container .billing-detail-title h1 {
+  margin: 0;
+  color: #fff;
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.billing-detail-page.ep-detail-container .billing-detail-title p {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.billing-detail-page.ep-detail-container .billing-detail-eyebrow {
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+
+.billing-detail-page.ep-detail-container .bp-client-initials {
+  border: 3px solid rgba(255, 255, 255, 0.32);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.16);
+}
+
+.billing-detail-page.ep-detail-container .billing-detail-hero .billing-badge {
+  border-width: 1px;
+  border-style: solid;
+}
+
+.billing-detail-page.ep-detail-container .billing-detail-hero .billing-badge.billing-badge--paid {
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #166534;
+}
+
+.billing-detail-page.ep-detail-container .billing-detail-hero .billing-badge.billing-badge--partial {
+  background: #fef9c3;
+  border-color: #fde047;
+  color: #854d0e;
+}
+
+.billing-detail-page.ep-detail-container .billing-detail-hero .billing-badge.billing-badge--unpaid {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #475569;
+}
+
+.billing-detail-page.ep-detail-container .billing-detail-hero .billing-badge.billing-badge--overdue {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #991b1b;
+}
+
+.billing-detail-hero--skeleton {
+  min-height: 120px;
+}
+
+.billing-detail-skeleton-light {
+  background: rgba(255, 255, 255, 0.32);
+}
+
+.billing-payment-review-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid #dbe4f0;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+/* Standalone Payment Decision panel */
+.billing-decision-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.billing-decision-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.billing-decision-right {
+  flex-shrink: 0;
+}
+
+.billing-payment-review-title {
+  margin: 0;
+  color: #0f172a;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.billing-payment-review-copy {
+  margin: 0.2rem 0 0;
+  color: #64748b;
+  font-size: 0.74rem;
+  line-height: 1.45;
+}
+
+.billing-file-action {
+  min-width: 150px;
+  box-shadow: 0 4px 12px rgba(9, 50, 105, 0.12);
+}
+
+.billing-review-actions .report-action-btn--danger,
+.billing-review-form .report-action-btn--danger {
+  box-shadow: 0 4px 12px rgba(185, 28, 28, 0.22);
+}
+
+.billing-review-actions .report-action-btn--success,
+.billing-review-form .report-action-btn--success {
+  box-shadow: 0 4px 12px rgba(21, 128, 61, 0.2);
+}
+
+.billing-history-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.billing-link-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 30px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  padding: 0.35rem 0.55rem;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.billing-link-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.billing-link-button--view {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.billing-link-button--view:hover:not(:disabled) {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  color: #fff;
+}
+
+.billing-link-button--download {
+  background: #f8fafc;
+  border-color: #d9e2ef;
+  color: #334155;
+}
+
+.billing-link-button--download:hover:not(:disabled) {
+  background: #093269;
+  border-color: #093269;
+  color: #fff;
+}
+
+.billing-spin {
+  animation: billing-spin 0.85s linear infinite;
+}
+
+@keyframes billing-spin {
+  to { transform: rotate(360deg); }
 }

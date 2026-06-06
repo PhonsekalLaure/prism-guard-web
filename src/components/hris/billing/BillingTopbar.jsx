@@ -1,5 +1,8 @@
 import { FaBars, FaFileInvoice } from 'react-icons/fa';
 import { useOutletContext } from 'react-router-dom';
+import ReportActionButton from '@components/ui/ReportActionButton';
+
+const ALL_CUTOFFS_KEY = 'all';
 
 export default function BillingTopbar({
   cutoffOptions = [],
@@ -26,13 +29,14 @@ export default function BillingTopbar({
 
         <div className="billing-topbar-actions">
           <label className="billing-cutoff-label">
-            <span>Cutoff to Generate</span>
+            <span>Billing Cutoff</span>
             <select
               className="billing-period-select"
               value={selectedCutoffKey}
               onChange={(event) => onCutoffChange?.(event.target.value)}
-              aria-label="Cutoff to generate"
+              aria-label="Billing cutoff"
             >
+              <option value={ALL_CUTOFFS_KEY}>All cutoffs</option>
               {cutoffOptions.map((option) => (
                 <option key={option.key} value={option.key} disabled={option.disabled}>
                   {option.label}
@@ -40,15 +44,16 @@ export default function BillingTopbar({
               ))}
             </select>
           </label>
-          <button
+          <ReportActionButton
             className="btn-generate-soa"
-            type="button"
+            label="Generate Statements"
+            loadingLabel="Generating..."
+            icon={FaFileInvoice}
+            loading={generating}
+            disabled={!selectedCutoff || selectedCutoff.disabled || selectedCutoffKey === ALL_CUTOFFS_KEY}
+            variant="primary"
             onClick={onGenerate}
-            disabled={generating || !selectedCutoff || selectedCutoff.disabled}
-          >
-            <FaFileInvoice />
-            {generating ? 'Generating...' : 'Generate Statements'}
-          </button>
+          />
         </div>
       </div>
     </header>

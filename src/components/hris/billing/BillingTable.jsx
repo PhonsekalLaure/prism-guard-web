@@ -27,6 +27,15 @@ function formatPeriod(record) {
   return `${formatDate(record.period_start)} - ${formatDate(record.period_end)}`;
 }
 
+function getDisplayAmountPaid(record = {}) {
+  const amountPaid = Number(record.amount_paid || 0);
+  if (amountPaid > 0) return amountPaid;
+  if (record.status === 'verifying' && record.latest_receipt?.amount) {
+    return Number(record.latest_receipt.amount || 0);
+  }
+  return amountPaid;
+}
+
 const statusConfig = {
   paid: { label: 'PAID', className: 'billing-badge billing-badge--paid' },
   verifying: { label: 'FOR REVIEW', className: 'billing-badge billing-badge--partial' },
@@ -113,7 +122,8 @@ export default function BillingTable({
             )}
             {!loading && records.map((record) => {
               const badge = statusConfig[record.status] || statusConfig.unpaid;
-              const paidColor = record.amount_paid <= 0
+              const displayAmountPaid = getDisplayAmountPaid(record);
+              const paidColor = displayAmountPaid <= 0
                 ? '#dc2626'
                 : record.status === 'verifying' || record.status === 'partial'
                   ? '#ca8a04'
@@ -139,7 +149,7 @@ export default function BillingTable({
                   <td className="billing-td-muted">{formatPeriod(record)}</td>
                   <td className="billing-td-bold">{formatCurrency(record.total_amount)}</td>
                   <td className="billing-td-bold" style={{ color: paidColor }}>
-                    {formatCurrency(record.amount_paid)}
+                    {formatCurrency(displayAmountPaid)}
                   </td>
                   <td className="billing-td-muted">{formatDate(record.due_date)}</td>
                   <td>
