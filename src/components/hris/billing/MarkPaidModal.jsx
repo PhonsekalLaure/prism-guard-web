@@ -8,6 +8,13 @@ function formatCurrency(value) {
   })}`;
 }
 
+function formatPaymentMethod(receipt) {
+  if (receipt?.payment_method === 'Other' && receipt.payment_method_other) {
+    return `Other - ${receipt.payment_method_other}`;
+  }
+  return receipt?.payment_method || '';
+}
+
 export default function MarkPaidModal({
   isOpen,
   onClose,
@@ -56,8 +63,15 @@ export default function MarkPaidModal({
 
             <div className="bp-form-group">
               <label>Payment Method</label>
-              <input className="bp-input" value={receipt?.payment_method || ''} readOnly />
+              <input className="bp-input" value={formatPaymentMethod(receipt)} readOnly />
             </div>
+
+            {receipt?.payer_notes && (
+              <div className="bp-form-group">
+                <label>Client Notes</label>
+                <textarea className="bp-input" rows={2} value={receipt.payer_notes} readOnly />
+              </div>
+            )}
 
             <div className="bp-form-group">
               <label>Reference Number</label>

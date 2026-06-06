@@ -61,6 +61,13 @@ function formatReviewer(receipt) {
   return `Reviewed by ${reviewer} on ${formatDateTime(receipt.reviewed_at)}`;
 }
 
+function formatPaymentMethod(receipt) {
+  if (receipt?.payment_method === 'Other' && receipt.payment_method_other) {
+    return `Other - ${receipt.payment_method_other}`;
+  }
+  return receipt?.payment_method || '-';
+}
+
 function getBillingBadgeClass(status) {
   if (status === 'paid') return 'billing-badge--paid';
   if (status === 'verifying' || status === 'partial') return 'billing-badge--partial';
@@ -112,18 +119,20 @@ function buildReceiptFilename(receipt) {
   return ensureFilenameExtension(`payment-receipt-${refKey}`, receipt?.receipt_url, 'jpg');
 }
 
-async function downloadExternal(url, filename = 'download') {
-  if (!url) return;
-  const resolvedUrl = await authService.getFileObjectUrl(url);
+function formatGuardCount(value) {
+  return Number(value || 0).toLocaleString('en-PH');
+}
+
+function downloadBlob(blob, filename = 'download') {
+  if (!blob) return;
+  const resolvedUrl = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = resolvedUrl;
   anchor.download = filename;
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
-  if (resolvedUrl.startsWith('blob:')) {
-    window.setTimeout(() => URL.revokeObjectURL(resolvedUrl), 1000);
-  }
+  window.setTimeout(() => URL.revokeObjectURL(resolvedUrl), 1000);
 }
 
 function BillingDetailSkeleton() {
@@ -144,7 +153,7 @@ function BillingDetailSkeleton() {
           <div className="billing-detail-panel" key={panel}>
             <SkeletonBlock width={170} height={20} style={{ marginBottom: 18 }} />
             <div className="bp-summary-grid">
-              {[0, 1, 2, 3].map((item) => (
+              {[0, 1, 2, 3, 4].map((item) => (
                 <div className="bp-summary-item" key={item}>
                   <SkeletonBlock width="45%" height={12} />
                   <SkeletonBlock width="62%" height={18} style={{ marginTop: 10 }} />
@@ -214,10 +223,11 @@ export default function HrisBillingDetailPage() {
         setBilling(current);
         showNotification('Billing statement generated.', 'success');
       }
-      const { url, filename } = await billingService.getStatementUrl(current.id, download);
       if (download) {
-        await downloadExternal(url, filename || buildStatementFallbackFilename(current));
+        const { blob, filename } = await billingService.downloadStatement(current.id);
+        downloadBlob(blob, filename || buildStatementFallbackFilename(current));
       } else {
+        const { url } = await billingService.getStatementUrl(current.id, false);
         openExternal(url);
       }
     } catch (error) {
@@ -228,10 +238,11 @@ export default function HrisBillingDetailPage() {
   };
 
   const handleReceiptDownload = async (receipt) => {
-    if (!receipt?.receipt_url) return;
+    if (!billing?.id || !receipt?.id) return;
     try {
       setBusyAction(`downloadReceipt:${receipt.id}`);
-      await downloadExternal(receipt.receipt_url, buildReceiptFilename(receipt));
+      const { blob, filename } = await billingService.downloadReceipt(billing.id, receipt.id);
+      downloadBlob(blob, filename || buildReceiptFilename(receipt));
     } catch (error) {
       showNotification(getErrorMessage(error, 'Failed to download payment receipt.'), 'error');
     } finally {
@@ -317,21 +328,30 @@ export default function HrisBillingDetailPage() {
               <div className="billing-detail-panel">
                 <h2><FaFileInvoiceDollar /> Statement Summary</h2>
                 <div className="bp-summary-grid">
-                  <div className="bp-summary-item">
+                  {/* Primary row — dominant financial figures */}
+                  <div className="bp-summary-item bp-summary-item--primary">
                     <p className="bp-summary-label">Total Amount</p>
-                    <p className="bp-summary-value bp-summary-value--blue">{formatCurrency(billing.total_amount)}</p>
+                    <p className="bp-summary-value bp-summary-value--primary bp-summary-value--blue">
+                      {formatCurrency(billing.total_amount)}
+                    </p>
                   </div>
-                  <div className="bp-summary-item">
+                  <div className="bp-summary-item bp-summary-item--primary">
                     <p className="bp-summary-label">Balance Due</p>
-                    <p className={`bp-summary-value ${billing.status === 'paid' ? 'bp-summary-value--green' : 'bp-summary-value--red'}`}>
+                    <p className={`bp-summary-value bp-summary-value--primary ${billing.status === 'paid' ? 'bp-summary-value--green' : 'bp-summary-value--red'}`}>
                       {formatCurrency(billing.balance_due)}
                     </p>
                   </div>
-                  <div className="bp-summary-item">
+
+                  {/* Secondary row — supporting context */}
+                  <div className="bp-summary-item bp-summary-item--secondary">
                     <p className="bp-summary-label">Rate per Guard</p>
                     <p className="bp-summary-value">{formatCurrency(billing.rate_per_guard)}</p>
                   </div>
-                  <div className="bp-summary-item">
+                  <div className="bp-summary-item bp-summary-item--secondary">
+                    <p className="bp-summary-label">No. of Guards</p>
+                    <p className="bp-summary-value">{formatGuardCount(billing.guard_count)}</p>
+                  </div>
+                  <div className="bp-summary-item bp-summary-item--secondary">
                     <p className="bp-summary-label">Due Date</p>
                     <p className="bp-summary-value">{formatDate(billing.due_date)}</p>
                   </div>
@@ -389,9 +409,12 @@ export default function HrisBillingDetailPage() {
                   <>
                     <div className="billing-receipt-card">
                       <p><strong>{formatCurrency(reviewReceipt.amount)}</strong></p>
-                      <p>{reviewReceipt.payment_method} - {reviewReceipt.reference_number}</p>
+                      <p>{formatPaymentMethod(reviewReceipt)} - {reviewReceipt.reference_number}</p>
                       <p>Paid {formatDate(reviewReceipt.payment_date)}</p>
                       <p>Status: {formatStatus(reviewReceipt.status)}</p>
+                      {reviewReceipt.payer_notes && (
+                        <p>Client notes: {reviewReceipt.payer_notes}</p>
+                      )}
                       {formatReviewer(reviewReceipt) && (
                         <p className="billing-review-audit">{formatReviewer(reviewReceipt)}</p>
                       )}
@@ -518,11 +541,12 @@ export default function HrisBillingDetailPage() {
                         <td>{formatDateTime(receipt.submitted_at)}</td>
                         <td>{formatDate(receipt.payment_date)}</td>
                         <td className="bp-history-amount">{formatCurrency(receipt.amount)}</td>
-                        <td>{receipt.payment_method}</td>
+                        <td>{formatPaymentMethod(receipt)}</td>
                         <td className="bp-history-ref">{receipt.reference_number}</td>
                         <td>{formatStatus(receipt.status)}</td>
                         <td className="bp-history-review">
                           {formatReviewer(receipt) || '-'}
+                          {receipt.payer_notes && <span>Client: {receipt.payer_notes}</span>}
                           {receipt.review_notes && <span>{receipt.review_notes}</span>}
                         </td>
                         <td>

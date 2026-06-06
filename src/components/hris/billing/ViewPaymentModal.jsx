@@ -29,6 +29,13 @@ function getBillingBadgeClass(status) {
   return 'billing-badge--unpaid';
 }
 
+function formatPaymentMethod(receipt) {
+  if (receipt?.payment_method === 'Other' && receipt.payment_method_other) {
+    return `Other - ${receipt.payment_method_other}`;
+  }
+  return receipt?.payment_method || '-';
+}
+
 export default function ViewPaymentModal({ isOpen, onClose, record, onDownload, onReview }) {
   if (!isOpen || !record) return null;
 
@@ -113,7 +120,7 @@ export default function ViewPaymentModal({ isOpen, onClose, record, onDownload, 
                     <tr>
                       <td>{formatDate(record.latest_receipt.payment_date)}</td>
                       <td className="bp-history-amount">{formatCurrency(record.latest_receipt.amount)}</td>
-                      <td>{record.latest_receipt.payment_method}</td>
+                      <td>{formatPaymentMethod(record.latest_receipt)}</td>
                       <td className="bp-history-ref">{record.latest_receipt.reference_number}</td>
                       <td>{record.latest_receipt.status.replace(/_/g, ' ')}</td>
                     </tr>
