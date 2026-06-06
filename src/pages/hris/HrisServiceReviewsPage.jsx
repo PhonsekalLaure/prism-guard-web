@@ -138,6 +138,22 @@ export default function HrisServiceReviewsPage() {
     }
   };
 
+  const handleUnpublish = async (id, reviewNotes = '') => {
+    setActionLoadingId(id);
+    try {
+      await serviceReviewsService.unpublishServiceReview(id, reviewNotes);
+      showNotification('Service review unpublished from the promo site.', 'success');
+      await loadReviews(metadata.page || 1);
+      await loadClients();
+      await loadMonthlyCompliance();
+    } catch (err) {
+      showNotification(err.response?.data?.error || err.message || 'Failed to unpublish service review', 'error');
+      throw err;
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
   return (
     <>
       {notification && (
@@ -214,6 +230,7 @@ export default function HrisServiceReviewsPage() {
           onPageChange={loadReviews}
           onPublish={handlePublish}
           onReject={handleReject}
+          onUnpublish={handleUnpublish}
           onResetFilters={handleResetFilters}
         />
       </div>

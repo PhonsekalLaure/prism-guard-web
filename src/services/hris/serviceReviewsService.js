@@ -40,10 +40,16 @@ async function rejectServiceReview(id, reviewNotes = '') {
   return data;
 }
 
+async function unpublishServiceReview(id, reviewNotes = '') {
+  const { data } = await api.patch(`/${id}/unpublish`, { reviewNotes });
+  return data;
+}
+
 export default {
   getClients,
   getMonthlyCompliance,
   getServiceReviews,
   publishServiceReview,
   rejectServiceReview,
+  unpublishServiceReview,
 };
