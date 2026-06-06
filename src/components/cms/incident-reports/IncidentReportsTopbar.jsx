@@ -1,10 +1,12 @@
 import { FaExclamationTriangle } from 'react-icons/fa';
+import CmsMobileSidebarToggle from '@components/cms/CmsMobileSidebarToggle';
 
 export default function IncidentReportsTopbar() {
   return (
     <header className="cir-topbar">
       <div className="cir-topbar-inner">
         <div className="cir-title-group">
+          <CmsMobileSidebarToggle />
           <div className="cir-title-icon-wrap">
             <FaExclamationTriangle />
           </div>
