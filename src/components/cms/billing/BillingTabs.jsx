@@ -1,10 +1,8 @@
-import { FaFileInvoice, FaUpload } from 'react-icons/fa';
+import { FaFileInvoice } from 'react-icons/fa';
 import InvoicesTable from './InvoicesTable';
-import SubmitPaymentForm from './SubmitPaymentForm';
 
 const TABS = [
   { key: 'invoices', label: 'Invoices', icon: FaFileInvoice },
-  { key: 'submit', label: 'Submit Receipt', icon: FaUpload },
 ];
 
 export default function BillingTabs({
@@ -13,20 +11,12 @@ export default function BillingTabs({
   loading,
   activeTab = 'invoices',
   filters,
-  selectedInvoice,
-  submitting,
   onTabChange,
   onFilterChange,
   onPageChange,
-  onSelectInvoice,
-  onSubmitReceipt,
   onViewInvoice,
+  onPayInvoice,
 }) {
-  const handleCancelSubmit = () => {
-    onSelectInvoice?.(null);
-    onTabChange?.('invoices');
-  };
-
   return (
     <div className="cms-btabs-panel">
       <div className="cms-btabs-bar">
@@ -56,6 +46,7 @@ export default function BillingTabs({
               >
                 <option value="">All statuses</option>
                 <option value="unpaid">Unpaid</option>
+                <option value="partial">Partial</option>
                 <option value="overdue">Overdue</option>
                 <option value="verifying">Verifying</option>
                 <option value="paid">Paid</option>
@@ -82,15 +73,7 @@ export default function BillingTabs({
             loading={loading}
             onPageChange={onPageChange}
             onViewInvoice={onViewInvoice}
-          />
-        )}
-        {activeTab === 'submit' && (
-          <SubmitPaymentForm
-            key={selectedInvoice?.id || 'no-invoice'}
-            invoice={selectedInvoice}
-            submitting={submitting}
-            onCancel={handleCancelSubmit}
-            onSubmit={onSubmitReceipt}
+            onPayInvoice={onPayInvoice}
           />
         )}
       </div>

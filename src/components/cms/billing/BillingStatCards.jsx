@@ -1,12 +1,6 @@
 import { FaCheckCircle, FaClock, FaExclamationTriangle, FaReceipt } from 'react-icons/fa';
 import StatCards from '@components/ui/StatCards';
-
-function formatCurrency(value) {
-  return `PHP ${Number(value || 0).toLocaleString('en-PH', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
-}
+import { formatCurrency } from './billingUi';
 
 const cards = [
   {

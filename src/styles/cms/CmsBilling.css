@@ -334,6 +334,18 @@
   transform: scale(1.03);
 }
 
+.cms-inv-btn--pay {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+}
+
+.cms-inv-btn--pay:hover {
+  background: #16a34a;
+  border-color: #16a34a;
+  color: #fff;
+  transform: scale(1.03);
+}
 /* Billing detail modal */
 .cms-bdetail-overlay {
   position: fixed;
@@ -406,6 +418,41 @@
 
 .cms-bdetail-close:hover {
   background: rgba(255, 255, 255, 0.22);
+}
+
+/* Header button group — holds Back + Close side by side */
+.cms-bdetail-header-btns {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* ← Back button — ghost white, matches header */
+.cms-bdetail-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.cms-bdetail-back-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.cms-bdetail-back-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .cms-bdetail-body {
@@ -523,6 +570,113 @@
 /* Balance Due > 0 → red tint */
 .cms-bdetail-stat--danger strong {
   color: #dc2626;
+}
+
+/* ────────────────────────────────────────────
+   PAY MODE — compact strip + inline form
+──────────────────────────────────────────── */
+
+/* Compact invoice context strip shown above the payment form */
+.cms-bdetail-pay-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1.5rem;
+  background: #f0f7ff;
+  border-bottom: 1px solid #c7d9f5;
+}
+
+.cms-bdetail-pay-identity {
+  flex: 1;
+  min-width: 0;
+}
+
+.cms-bdetail-pay-company {
+  margin: 0 0 0.15rem;
+  color: #0f172a;
+  font-size: 0.92rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cms-bdetail-pay-addr {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.74rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cms-bdetail-pay-meta {
+  display: flex;
+  gap: 0;
+  border: 1px solid #c7d9f5;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.cms-bdetail-pay-stat {
+  padding: 0.55rem 1rem;
+  background: #093269;
+  text-align: right;
+}
+
+.cms-bdetail-pay-stat--muted {
+  background: #eef5ff;
+  border-left: 1px solid #c7d9f5;
+}
+
+.cms-bdetail-pay-stat span {
+  display: block;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.15rem;
+}
+
+.cms-bdetail-pay-stat--muted span {
+  color: #4a6fa5;
+}
+
+.cms-bdetail-pay-stat strong {
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.cms-bdetail-pay-stat--muted strong {
+  color: #093269;
+  font-size: 0.88rem;
+}
+
+/* Inline payment form */
+.cms-bdetail-pay-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1.25rem 1.5rem 1.5rem;
+  overflow-y: auto;
+}
+
+/* 2-col grid: amount + date */
+.cms-bdetail-pay-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9rem;
+}
+
+/* Submit + Cancel row */
+.cms-bdetail-pay-actions {
+  display: flex;
+  gap: 0.65rem;
+  padding-top: 0.25rem;
 }
 
 /* ── Receipt section: status-tinted for quick recognition ── */
@@ -939,38 +1093,79 @@
   gap: 1rem;
 }
 
-/* Upload Zone */
+/* Upload Zone — base (both states share this) */
 .cms-sp-upload-zone {
   width: 100%;
-  background: #fff;
-  color: inherit;
+  box-sizing: border-box;
+  background: #fafafa;
   border: 2px dashed #d1d5db;
-  border-radius: 8px;
-  padding: 2rem 1rem;
+  border-radius: 10px;
+  padding: 2rem 1.25rem;
   text-align: center;
   cursor: pointer;
-  transition: border-color 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
 }
 
 .cms-sp-upload-zone:hover {
-  border-color: #e6b215;
+  border-color: #093269;
+  background: #eff6ff;
+  box-shadow: 0 0 0 3px rgba(9, 50, 105, 0.06);
 }
 
+/* Selected / file-uploaded state */
+.cms-sp-upload-zone.cms-sp-upload-zone--selected {
+  background: #f0fdf4;
+  border-color: #4ade80;
+  border-style: solid;
+  cursor: default;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.08);
+}
+
+.cms-sp-upload-zone.cms-sp-upload-zone--selected:hover {
+  background: #f0fdf4;
+  border-color: #22c55e;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
+}
+
+/* Icon */
 .cms-sp-upload-icon {
+  font-size: 2.25rem;
   color: #9ca3af;
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
+  transition: color 0.2s;
 }
 
+.cms-sp-upload-zone:hover .cms-sp-upload-icon {
+  color: #093269;
+}
+
+.cms-sp-upload-icon--check {
+  color: #16a34a;
+}
+
+.cms-sp-upload-zone.cms-sp-upload-zone--selected:hover .cms-sp-upload-icon {
+  color: #16a34a;
+}
+
+/* Text */
 .cms-sp-upload-text {
   font-size: 0.85rem;
-  color: #6b7280;
-  margin: 0 0 0.25rem;
+  font-weight: 500;
+  color: #374151;
+  margin: 0;
 }
 
-.cms-sp-upload-link {
-  color: #e6b215;
-  font-weight: 600;
+.cms-sp-upload-text--file {
+  color: #15803d;
+  font-weight: 700;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .cms-sp-upload-hint {
@@ -978,6 +1173,59 @@
   color: #9ca3af;
   margin: 0;
 }
+
+.cms-sp-upload-zone.cms-sp-upload-zone--selected .cms-sp-upload-hint {
+  color: #4b7c5e;
+}
+
+/* Change / Remove action buttons (under filename) */
+.cms-sp-upload-file-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.cms-sp-upload-change-btn,
+.cms-sp-upload-remove-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  text-decoration: none;
+  line-height: 1;
+}
+
+.cms-sp-upload-change-btn {
+  background: #eff6ff;
+  border: 1.5px solid #93c5fd;
+  color: #1d4ed8;
+}
+
+.cms-sp-upload-change-btn:hover {
+  background: #dbeafe;
+  border-color: #3b82f6;
+  color: #1e40af;
+}
+
+.cms-sp-upload-remove-btn {
+  background: #fff1f2;
+  border: 1.5px solid #fca5a5;
+  color: #dc2626;
+}
+
+.cms-sp-upload-remove-btn:hover {
+  background: #fee2e2;
+  border-color: #f87171;
+  color: #b91c1c;
+}
+
 
 /* Form Actions */
 .cms-sp-actions {
@@ -987,26 +1235,19 @@
   border-top: 1px solid #e2e8f0;
 }
 
-.cms-sp-btn-submit {
+.cms-sp-action-btn {
   flex: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  background: #e6b215;
-  color: #fff;
-  border: none;
-  padding: 0.8rem;
-  border-radius: 8px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  font-family: 'Poppins', sans-serif;
-  cursor: pointer;
-  transition: background 0.2s;
 }
 
-.cms-sp-btn-submit:hover {
+.cms-sp-action-btn.report-action-btn--primary {
+  background: #e6b215;
+  border-color: #e6b215;
+  color: #fff;
+}
+
+.cms-sp-action-btn.report-action-btn--primary:hover:not(:disabled) {
   background: #d4a012;
+  border-color: #d4a012;
 }
 
 .cms-sp-btn-cancel {

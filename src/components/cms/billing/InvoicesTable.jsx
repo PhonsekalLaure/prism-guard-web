@@ -1,25 +1,11 @@
 import {
+  FaCreditCard,
   FaEye,
   FaFileInvoice,
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
 import { SkeletonBlock, SkeletonList } from '@components/ui/Skeleton';
-
-function formatCurrency(value) {
-  return `PHP ${Number(value || 0).toLocaleString('en-PH', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
-}
-
-function formatDate(value) {
-  if (!value) return '-';
-  return new Date(`${value}T00:00:00`).toLocaleDateString('en-PH', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
+import { formatCurrency, formatDate } from './billingUi';
 
 function formatPeriod(invoice) {
   return `${formatDate(invoice.period_start)} - ${formatDate(invoice.period_end)}`;
@@ -33,12 +19,20 @@ const statusConfig = {
   paid: { label: 'Paid', className: 'cms-inv-badge cms-inv-badge--paid' },
 };
 
-function InvoiceActions({ invoice, onViewInvoice }) {
+const CAN_PAY_STATUSES = new Set(['unpaid', 'partial', 'overdue']);
+
+function InvoiceActions({ invoice, onViewInvoice, onPayInvoice }) {
+  const canPay = CAN_PAY_STATUSES.has(invoice.status);
   return (
     <div className="cms-inv-actions">
       <button className="cms-inv-btn cms-inv-btn--receipt" type="button" onClick={() => onViewInvoice?.(invoice)}>
         <FaEye /> View
       </button>
+      {canPay && (
+        <button className="cms-inv-btn cms-inv-btn--pay" type="button" onClick={() => onPayInvoice?.(invoice)}>
+          <FaCreditCard /> Pay
+        </button>
+      )}
     </div>
   );
 }
@@ -64,6 +58,7 @@ export default function InvoicesTable({
   loading = false,
   onPageChange,
   onViewInvoice,
+  onPayInvoice,
 }) {
   const startIndex = invoices.length > 0 ? ((metadata.page - 1) * metadata.limit) + 1 : 0;
   const endIndex = ((metadata.page - 1) * metadata.limit) + invoices.length;
@@ -107,6 +102,7 @@ export default function InvoicesTable({
                     <InvoiceActions
                       invoice={invoice}
                       onViewInvoice={onViewInvoice}
+                      onPayInvoice={onPayInvoice}
                     />
                   </td>
                 </tr>

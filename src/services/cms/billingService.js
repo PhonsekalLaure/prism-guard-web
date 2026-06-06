@@ -23,11 +23,6 @@ async function getStats() {
   return data;
 }
 
-async function getPaymentHistory(params = {}) {
-  const { data } = await api.get('/history', { params });
-  return data;
-}
-
 async function getBilling(id) {
   const { data } = await api.get(`/${id}`);
   return data;
@@ -74,7 +69,6 @@ export default {
   downloadStatement,
   getBilling,
   getBillings,
-  getPaymentHistory,
   getStatementUrl,
   getStats,
   submitReceipt,

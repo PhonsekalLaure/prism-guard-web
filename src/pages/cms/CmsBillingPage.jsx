@@ -45,6 +45,13 @@ function downloadBlob(blob, filename = 'download') {
   window.setTimeout(() => URL.revokeObjectURL(resolvedUrl), 1000);
 }
 
+function getTodayDateInputValue() {
+  const today = new Date();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${today.getFullYear()}-${month}-${day}`;
+}
+
 export default function CmsBillingPage() {
   const [invoices, setInvoices] = useState([]);
   const [metadata, setMetadata] = useState(DEFAULT_METADATA);
@@ -52,10 +59,10 @@ export default function CmsBillingPage() {
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('invoices');
-  const [filters, setFilters] = useState({ status: '', periodStart: '', periodEnd: '' });
-  const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [filters, setFilters] = useState({ status: '' });
   const [viewingInvoice, setViewingInvoice] = useState(null);
   const [viewingInvoiceLoading, setViewingInvoiceLoading] = useState(false);
+  const [openInPayMode, setOpenInPayMode] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const { notification, showNotification, closeNotification } = useNotification();
 
@@ -71,15 +78,13 @@ export default function CmsBillingPage() {
     }
   }, [showNotification]);
 
-  const loadInvoices = useCallback(async (page = 1, currentFilters = { status: '', periodStart: '', periodEnd: '' }) => {
+  const loadInvoices = useCallback(async (page = 1, currentFilters = { status: '' }) => {
     try {
       setLoading(true);
       const result = await billingService.getBillings({
         page,
         limit: PAGE_LIMIT,
         status: currentFilters.status || undefined,
-        periodStart: currentFilters.periodStart || undefined,
-        periodEnd: currentFilters.periodEnd || undefined,
       });
       setInvoices(result.data || []);
       setMetadata(result.metadata || { ...DEFAULT_METADATA, page });
@@ -149,6 +154,7 @@ export default function CmsBillingPage() {
 
   const handleViewInvoice = async (invoice) => {
     setViewingInvoice(invoice);
+    setOpenInPayMode(false);
     try {
       setViewingInvoiceLoading(true);
       const detail = await billingService.getBilling(invoice.id);
@@ -161,13 +167,29 @@ export default function CmsBillingPage() {
     }
   };
 
-  const handleSubmitReceipt = async ({ amount, date, method, reference, receiptFile }) => {
-    if (!selectedInvoice) {
-      showNotification('Select an invoice before submitting a receipt.', 'error');
-      return;
+  const handlePayInvoice = async (invoice) => {
+    setViewingInvoice(invoice);
+    setOpenInPayMode(true);
+    try {
+      setViewingInvoiceLoading(true);
+      const detail = await billingService.getBilling(invoice.id);
+      setViewingInvoice(detail);
+    } catch (error) {
+      showNotification(getErrorMessage(error, 'Failed to load billing statement.'), 'error');
+      setViewingInvoice(null);
+    } finally {
+      setViewingInvoiceLoading(false);
     }
+  };
+
+  const handleSubmitReceipt = async ({ amount, date, method, methodOther, reference, notes, receiptFile }) => {
+    if (!viewingInvoice) return;
     if (!receiptFile) {
       showNotification('Upload a payment receipt file.', 'error');
+      return;
+    }
+    if (date && date > getTodayDateInputValue()) {
+      showNotification('Payment date cannot be later than today.', 'error');
       return;
     }
 
@@ -175,13 +197,16 @@ export default function CmsBillingPage() {
     formData.append('amount', amount);
     formData.append('payment_date', date);
     formData.append('payment_method', method);
+    if (methodOther) formData.append('payment_method_other', methodOther);
     formData.append('reference_number', reference);
+    if (notes) formData.append('payer_notes', notes);
     formData.append('receipt', receiptFile);
 
     try {
       setSubmitting(true);
-      await billingService.submitReceipt(selectedInvoice.id, formData);
-      setSelectedInvoice(null);
+      await billingService.submitReceipt(viewingInvoice.id, formData);
+      setViewingInvoice(null);
+      setOpenInPayMode(false);
       await refresh();
       showNotification('Payment receipt submitted for review.', 'success');
     } catch (error) {
@@ -196,10 +221,9 @@ export default function CmsBillingPage() {
     loadInvoices(1, nextFilters);
   };
 
-  const handlePayFromModal = (invoice) => {
-    setSelectedInvoice(invoice);
+  const handleCloseModal = () => {
     setViewingInvoice(null);
-    setActiveTab('submit');
+    setOpenInPayMode(false);
   };
 
   return (
@@ -222,14 +246,11 @@ export default function CmsBillingPage() {
           loading={loading}
           activeTab={activeTab}
           filters={filters}
-          selectedInvoice={selectedInvoice}
-          submitting={submitting}
           onTabChange={setActiveTab}
           onFilterChange={handleFilterChange}
           onPageChange={(page) => loadInvoices(page, filters)}
-          onSelectInvoice={setSelectedInvoice}
-          onSubmitReceipt={handleSubmitReceipt}
           onViewInvoice={handleViewInvoice}
+          onPayInvoice={handlePayInvoice}
         />
       </div>
 
@@ -237,11 +258,13 @@ export default function CmsBillingPage() {
         <BillingDetailModal
           invoice={viewingInvoice}
           loading={viewingInvoiceLoading}
-          onClose={() => setViewingInvoice(null)}
+          initialPayMode={openInPayMode}
+          submitting={submitting}
+          onClose={handleCloseModal}
           onViewPdf={openStatement}
           onViewReceipt={handleViewReceipt}
           onDownloadReceipt={handleDownloadReceipt}
-          onPay={handlePayFromModal}
+          onSubmitReceipt={handleSubmitReceipt}
         />
       )}
     </>
