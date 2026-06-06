@@ -1,9 +1,6 @@
 import {
-  FaCreditCard,
-  FaDownload,
   FaEye,
   FaFileInvoice,
-  FaReceipt,
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
 import { SkeletonBlock, SkeletonList } from '@components/ui/Skeleton';
@@ -31,64 +28,17 @@ function formatPeriod(invoice) {
 const statusConfig = {
   unpaid: { label: 'Unpaid', className: 'cms-inv-badge cms-inv-badge--unpaid' },
   partial: { label: 'Partial', className: 'cms-inv-badge cms-inv-badge--verifying' },
-  overdue: { label: 'Overdue', className: 'cms-inv-badge cms-inv-badge--unpaid' },
+  overdue: { label: 'Overdue', className: 'cms-inv-badge cms-inv-badge--overdue' },
   verifying: { label: 'Verifying', className: 'cms-inv-badge cms-inv-badge--verifying' },
   paid: { label: 'Paid', className: 'cms-inv-badge cms-inv-badge--paid' },
 };
 
-function StatementButton({ invoice, onViewPdf }) {
-  const disabled = !invoice.has_statement;
+function InvoiceActions({ invoice, onViewInvoice }) {
   return (
-    <button
-      className="cms-inv-btn cms-inv-btn--pdf"
-      type="button"
-      onClick={() => {
-        if (!disabled) onViewPdf(invoice, true);
-      }}
-      disabled={disabled}
-      title={disabled ? 'Statement is not available yet.' : 'Download statement PDF'}
-    >
-      <FaDownload /> {disabled ? 'Pending' : 'PDF'}
-    </button>
-  );
-}
-
-function InvoiceActions({ invoice, onPay, onViewInvoice, onViewReceipt, onViewPdf }) {
-  const viewButton = (
+    <div className="cms-inv-actions">
     <button className="cms-inv-btn cms-inv-btn--view" type="button" onClick={() => onViewInvoice?.(invoice)}>
       <FaEye /> View
     </button>
-  );
-
-  if (invoice.status === 'unpaid' || invoice.status === 'partial' || invoice.status === 'overdue') {
-    return (
-      <div className="cms-inv-actions">
-        {viewButton}
-        <button className="cms-inv-btn cms-inv-btn--pay" type="button" onClick={() => onPay(invoice)}>
-          <FaCreditCard /> Pay
-        </button>
-        <StatementButton invoice={invoice} onViewPdf={onViewPdf} />
-      </div>
-    );
-  }
-  if (invoice.status === 'verifying') {
-    return (
-      <div className="cms-inv-actions">
-        {viewButton}
-        <button className="cms-inv-btn cms-inv-btn--receipt" type="button" onClick={() => onViewReceipt(invoice)}>
-          <FaEye /> Receipt
-        </button>
-        <StatementButton invoice={invoice} onViewPdf={onViewPdf} />
-      </div>
-    );
-  }
-  return (
-    <div className="cms-inv-actions">
-      {viewButton}
-      <button className="cms-inv-btn cms-inv-btn--receipt" type="button" onClick={() => onViewReceipt(invoice)}>
-        <FaReceipt /> Receipt
-      </button>
-      <StatementButton invoice={invoice} onViewPdf={onViewPdf} />
     </div>
   );
 }
@@ -111,18 +61,58 @@ function InvoiceRowsSkeleton() {
 export default function InvoicesTable({
   invoices = [],
   metadata,
+  filters = { status: '', periodStart: '', periodEnd: '' },
   loading = false,
   onPageChange,
-  onPay,
+  onFilterChange,
   onViewInvoice,
-  onViewReceipt,
-  onViewPdf,
 }) {
   const startIndex = invoices.length > 0 ? ((metadata.page - 1) * metadata.limit) + 1 : 0;
   const endIndex = ((metadata.page - 1) * metadata.limit) + invoices.length;
 
   return (
     <div>
+      <div className="cms-inv-filters">
+        <label>
+          <span>Status</span>
+          <select
+            value={filters.status || ''}
+            onChange={(event) => onFilterChange?.({ ...filters, status: event.target.value })}
+          >
+            <option value="">All statuses</option>
+            <option value="unpaid">Unpaid</option>
+            <option value="overdue">Overdue</option>
+            <option value="verifying">Verifying</option>
+            <option value="paid">Paid</option>
+          </select>
+        </label>
+        <label>
+          <span>Period Start</span>
+          <input
+            type="date"
+            value={filters.periodStart || ''}
+            onChange={(event) => onFilterChange?.({ ...filters, periodStart: event.target.value })}
+          />
+        </label>
+        <label>
+          <span>Period End</span>
+          <input
+            type="date"
+            value={filters.periodEnd || ''}
+            onChange={(event) => onFilterChange?.({ ...filters, periodEnd: event.target.value })}
+          />
+        </label>
+        {(filters.status || filters.periodStart || filters.periodEnd) && (
+          <button
+            className="cms-inv-filter-clear"
+            type="button"
+            onClick={() => onFilterChange?.({ status: '', periodStart: '', periodEnd: '' })}
+          >
+            Clear
+          </button>
+        )}
+      </div>
+
       <div className="cms-inv-table-wrapper">
         <table className="cms-inv-table">
           <thead>
@@ -159,10 +149,7 @@ export default function InvoicesTable({
                   <td>
                     <InvoiceActions
                       invoice={invoice}
-                      onPay={onPay}
                       onViewInvoice={onViewInvoice}
-                      onViewReceipt={onViewReceipt}
-                      onViewPdf={onViewPdf}
                     />
                   </td>
                 </tr>

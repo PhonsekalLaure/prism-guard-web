@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { FaFileInvoice, FaHistory, FaUpload } from 'react-icons/fa';
 import InvoicesTable from './InvoicesTable';
 import PaymentHistory from './PaymentHistory';
@@ -17,26 +16,23 @@ export default function BillingTabs({
   historyMetadata,
   loading,
   historyLoading,
+  activeTab = 'invoices',
+  filters,
   selectedInvoice,
   submitting,
+  onTabChange,
+  onFilterChange,
   onPageChange,
   onHistoryPageChange,
   onSelectInvoice,
   onSubmitReceipt,
   onViewInvoice,
   onViewReceipt,
-  onViewPdf,
+  onDownloadReceipt,
 }) {
-  const [activeTab, setActiveTab] = useState('invoices');
-
-  const handlePay = (invoice) => {
-    onSelectInvoice?.(invoice);
-    setActiveTab('submit');
-  };
-
   const handleCancelSubmit = () => {
     onSelectInvoice?.(null);
-    setActiveTab('invoices');
+    onTabChange?.('invoices');
   };
 
   return (
@@ -49,7 +45,7 @@ export default function BillingTabs({
               key={tab.key}
               type="button"
               className={`cms-btab-btn${activeTab === tab.key ? ' active' : ''}`}
-              onClick={() => setActiveTab(tab.key)}
+              onClick={() => onTabChange?.(tab.key)}
             >
               <Icon className="cms-btab-icon" />
               {tab.label}
@@ -63,12 +59,11 @@ export default function BillingTabs({
           <InvoicesTable
             invoices={invoices}
             metadata={metadata}
+            filters={filters}
             loading={loading}
             onPageChange={onPageChange}
-            onPay={handlePay}
+            onFilterChange={onFilterChange}
             onViewInvoice={onViewInvoice}
-            onViewReceipt={onViewReceipt}
-            onViewPdf={onViewPdf}
           />
         )}
         {activeTab === 'history' && (
@@ -77,6 +72,8 @@ export default function BillingTabs({
             metadata={historyMetadata}
             loading={historyLoading}
             onPageChange={onHistoryPageChange}
+            onViewReceipt={onViewReceipt}
+            onDownloadReceipt={onDownloadReceipt}
           />
         )}
         {activeTab === 'submit' && (

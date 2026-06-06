@@ -1,4 +1,4 @@
-import { FaBars, FaFileInvoice } from 'react-icons/fa';
+import { FaBars, FaCalendarDay, FaFileInvoice } from 'react-icons/fa';
 import { useOutletContext } from 'react-router-dom';
 import ReportActionButton from '@components/ui/ReportActionButton';
 
@@ -8,6 +8,7 @@ export default function BillingTopbar({
   cutoffOptions = [],
   selectedCutoffKey = '',
   onCutoffChange,
+  onAddHoliday,
   onGenerate,
   generating = false,
 }) {
@@ -44,6 +45,14 @@ export default function BillingTopbar({
               ))}
             </select>
           </label>
+          <ReportActionButton
+            className="btn-generate-soa btn-add-holiday"
+            label="Add Holiday"
+            icon={FaCalendarDay}
+            disabled={!selectedCutoff || selectedCutoff.disabled || selectedCutoffKey === ALL_CUTOFFS_KEY}
+            variant="secondary"
+            onClick={onAddHoliday}
+          />
           <ReportActionButton
             className="btn-generate-soa"
             label="Generate Statements"

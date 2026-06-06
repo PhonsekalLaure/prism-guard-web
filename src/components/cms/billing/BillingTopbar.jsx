@@ -1,5 +1,3 @@
-import { FaDownload } from 'react-icons/fa';
-
 export default function BillingTopbar() {
   return (
     <header className="dashboard-topbar">

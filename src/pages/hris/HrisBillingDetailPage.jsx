@@ -54,6 +54,13 @@ function formatStatus(status) {
   return String(status || 'unpaid').replace(/_/g, ' ').toUpperCase();
 }
 
+function formatReviewer(receipt) {
+  if (!receipt?.reviewed_at && !receipt?.reviewer_name) return '';
+  const reviewer = receipt.reviewer_name || 'HRIS reviewer';
+  if (!receipt.reviewed_at) return `Reviewed by ${reviewer}`;
+  return `Reviewed by ${reviewer} on ${formatDateTime(receipt.reviewed_at)}`;
+}
+
 function getBillingBadgeClass(status) {
   if (status === 'paid') return 'billing-badge--paid';
   if (status === 'verifying' || status === 'partial') return 'billing-badge--partial';
@@ -194,6 +201,7 @@ export default function HrisBillingDetailPage() {
   const receipts = billing?.receipts || [];
   const pendingReceipt = receipts.find((receipt) => receipt.status === 'pending_review');
   const reviewReceipt = pendingReceipt || receipts[0] || null;
+  const lineItems = billing?.line_items || [];
   const isBusy = Boolean(busyAction);
 
   const handleStatement = async (download = false) => {
@@ -328,6 +336,24 @@ export default function HrisBillingDetailPage() {
                     <p className="bp-summary-value">{formatDate(billing.due_date)}</p>
                   </div>
                 </div>
+                <div className="billing-line-items">
+                  <div className="billing-line-items-header">
+                    <span>Invoice Breakdown</span>
+                    <span>Amount</span>
+                  </div>
+                  {lineItems.length === 0 && (
+                    <p className="billing-detail-muted">No line items are saved for this statement yet.</p>
+                  )}
+                  {lineItems.map((item) => (
+                    <div className="billing-line-item" key={item.id || `${item.description}-${item.sort_order}`}>
+                      <div>
+                        <p className="billing-line-item-title">{item.description}</p>
+                        {item.detail && <p className="billing-line-item-detail">{item.detail}</p>}
+                      </div>
+                      <strong>{formatCurrency(item.amount)}</strong>
+                    </div>
+                  ))}
+                </div>
                 <div className="billing-detail-actions">
                   <ReportActionButton
                     className="billing-file-action"
@@ -366,6 +392,9 @@ export default function HrisBillingDetailPage() {
                       <p>{reviewReceipt.payment_method} - {reviewReceipt.reference_number}</p>
                       <p>Paid {formatDate(reviewReceipt.payment_date)}</p>
                       <p>Status: {formatStatus(reviewReceipt.status)}</p>
+                      {formatReviewer(reviewReceipt) && (
+                        <p className="billing-review-audit">{formatReviewer(reviewReceipt)}</p>
+                      )}
                       {reviewReceipt.review_notes && (
                         <p>Notes: {reviewReceipt.review_notes}</p>
                       )}
@@ -474,13 +503,14 @@ export default function HrisBillingDetailPage() {
                       <th>Method</th>
                       <th>Reference</th>
                       <th>Status</th>
+                      <th>Review</th>
                       <th>Receipt</th>
                     </tr>
                   </thead>
                   <tbody>
                     {receipts.length === 0 && (
                       <tr>
-                        <td colSpan={7} style={{ textAlign: 'center' }}>No payment receipts submitted yet.</td>
+                        <td colSpan={8} style={{ textAlign: 'center' }}>No payment receipts submitted yet.</td>
                       </tr>
                     )}
                     {receipts.map((receipt) => (
@@ -491,6 +521,10 @@ export default function HrisBillingDetailPage() {
                         <td>{receipt.payment_method}</td>
                         <td className="bp-history-ref">{receipt.reference_number}</td>
                         <td>{formatStatus(receipt.status)}</td>
+                        <td className="bp-history-review">
+                          {formatReviewer(receipt) || '-'}
+                          {receipt.review_notes && <span>{receipt.review_notes}</span>}
+                        </td>
                         <td>
                           {receipt.receipt_url ? (
                             <div className="billing-history-actions">

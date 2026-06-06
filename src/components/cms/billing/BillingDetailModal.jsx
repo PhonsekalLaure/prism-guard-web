@@ -1,4 +1,5 @@
 import {
+  FaCreditCard,
   FaDownload,
   FaEye,
   FaFileInvoice,
@@ -43,6 +44,13 @@ function formatStatus(status) {
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+function formatReviewer(receipt) {
+  if (!receipt?.reviewed_at && !receipt?.reviewer_name) return '';
+  const reviewer = receipt.reviewer_name || 'HRIS reviewer';
+  if (!receipt.reviewed_at) return `Reviewed by ${reviewer}`;
+  return `Reviewed by ${reviewer} on ${formatDateTime(receipt.reviewed_at)}`;
+}
+
 function getStatusClass(status) {
   if (status === 'paid' || status === 'approved') return 'cms-inv-badge cms-inv-badge--paid';
   if (status === 'verifying' || status === 'pending_review' || status === 'partial') {
@@ -71,11 +79,21 @@ export default function BillingDetailModal({
   onClose,
   onViewPdf,
   onViewReceipt,
+  onDownloadReceipt,
+  onPay,
 }) {
   if (!invoice && !loading) return null;
 
   const latestReceipt = invoice?.latest_receipt || invoice?.receipts?.[0] || null;
   const invoiceLabel = invoice?.invoice_number || invoice?.statement_no || 'Statement pending';
+  const canPay = ['unpaid', 'partial', 'overdue'].includes(invoice?.status);
+  const amountPaidLabel = invoice?.status === 'verifying' && latestReceipt ? 'Submitted Amount' : 'Amount Paid';
+  const amountPaidValue = invoice?.status === 'verifying' && latestReceipt ? latestReceipt.amount : invoice?.amount_paid;
+  const lineItems = invoice?.line_items || [];
+  const baseItem = lineItems[0] || null;
+  const holidayItems = lineItems.slice(1);
+  const baseAmount = baseItem?.amount ?? Number(invoice?.guard_count || 0) * Number(invoice?.rate_per_guard || 0);
+  const holidayTotal = holidayItems.reduce((sum, item) => sum + Number(item.amount || 0), 0);
 
   return (
     <div className="cms-bdetail-overlay" role="presentation" onClick={onClose}>
@@ -107,7 +125,7 @@ export default function BillingDetailModal({
                 <div className="cms-bdetail-actions">
                   <ReportActionButton
                     className="cms-bdetail-action"
-                    label="View PDF"
+                    label="View Invoice"
                     icon={FaFileInvoice}
                     disabled={!invoice.has_statement}
                     variant="primary"
@@ -115,12 +133,21 @@ export default function BillingDetailModal({
                   />
                   <ReportActionButton
                     className="cms-bdetail-action"
-                    label="Download PDF"
+                    label="Download Invoice"
                     icon={FaDownload}
                     disabled={!invoice.has_statement}
                     variant="secondary"
                     onClick={() => onViewPdf?.(invoice, true)}
                   />
+                  {canPay && (
+                    <ReportActionButton
+                      className="cms-bdetail-action"
+                      label="Pay"
+                      icon={FaCreditCard}
+                      variant="success"
+                      onClick={() => onPay?.(invoice)}
+                    />
+                  )}
                 </div>
               </section>
 
@@ -130,8 +157,8 @@ export default function BillingDetailModal({
                   <strong>{formatCurrency(invoice.total_amount)}</strong>
                 </div>
                 <div className="cms-bdetail-item">
-                  <p>Amount Paid</p>
-                  <strong>{formatCurrency(invoice.amount_paid)}</strong>
+                  <p>{amountPaidLabel}</p>
+                  <strong>{formatCurrency(amountPaidValue)}</strong>
                 </div>
                 <div className="cms-bdetail-item">
                   <p>Balance Due</p>
@@ -151,6 +178,9 @@ export default function BillingDetailModal({
                       <p className="cms-bdetail-receipt-main">{formatCurrency(latestReceipt.amount)}</p>
                       <p>{latestReceipt.payment_method || '-'} - Ref: {latestReceipt.reference_number || '-'}</p>
                       <p>Paid {formatDate(latestReceipt.payment_date)} | Submitted {formatDateTime(latestReceipt.submitted_at)}</p>
+                      {formatReviewer(latestReceipt) && (
+                        <p className="cms-bdetail-review-audit">{formatReviewer(latestReceipt)}</p>
+                      )}
                       {latestReceipt.review_notes && <p>Review notes: {latestReceipt.review_notes}</p>}
                     </div>
                     <div className="cms-bdetail-receipt-actions">
@@ -163,6 +193,14 @@ export default function BillingDetailModal({
                         variant="secondary"
                         onClick={() => onViewReceipt?.({ latest_receipt: latestReceipt })}
                       />
+                      <ReportActionButton
+                        className="cms-bdetail-action"
+                        label="Download Receipt"
+                        icon={FaDownload}
+                        disabled={!latestReceipt.receipt_url}
+                        variant="secondary"
+                        onClick={() => onDownloadReceipt?.(latestReceipt)}
+                      />
                     </div>
                   </div>
                 ) : (
@@ -170,22 +208,65 @@ export default function BillingDetailModal({
                 )}
               </section>
 
-              {invoice.line_items?.length > 0 && (
-                <section className="cms-bdetail-section">
-                  <h3><FaFileInvoice /> Statement Items</h3>
+              <section className="cms-bdetail-section">
+                <h3><FaFileInvoice /> Billing Breakdown</h3>
+                <div className="cms-bbreakdown">
+                  <div className="cms-bbreakdown-metrics">
+                    <div>
+                      <span>Agreed Rate per Guard</span>
+                      <strong>{formatCurrency(invoice.rate_per_guard)}</strong>
+                    </div>
+                    <div>
+                      <span>No. of Guards</span>
+                      <strong>{Number(invoice.guard_count || 0).toLocaleString('en-PH')}</strong>
+                    </div>
+                    <div>
+                      <span>Base Service Total</span>
+                      <strong>{formatCurrency(baseAmount)}</strong>
+                    </div>
+                    <div>
+                      <span>Holiday Total</span>
+                      <strong>{formatCurrency(holidayTotal)}</strong>
+                    </div>
+                  </div>
+
                   <div className="cms-bdetail-lines">
-                    {invoice.line_items.map((item) => (
+                    {baseItem && (
+                      <div className="cms-bdetail-line">
+                        <div>
+                          <p>Base security services</p>
+                          <span>{baseItem.detail || baseItem.description}</span>
+                        </div>
+                        <strong>{formatCurrency(baseItem.amount)}</strong>
+                      </div>
+                    )}
+                    {holidayItems.length > 0 ? holidayItems.map((item) => (
                       <div className="cms-bdetail-line" key={item.id}>
                         <div>
                           <p>{item.description}</p>
-                          <span>{item.detail}</span>
+                          <span>Holiday charge</span>
                         </div>
                         <strong>{formatCurrency(item.amount)}</strong>
                       </div>
-                    ))}
+                    )) : (
+                      <div className="cms-bdetail-line cms-bdetail-line--muted">
+                        <div>
+                          <p>No holidays added for this billing period.</p>
+                          <span>Holiday charges are shown here when applicable.</span>
+                        </div>
+                        <strong>{formatCurrency(0)}</strong>
+                      </div>
+                    )}
+                    <div className="cms-bdetail-line cms-bdetail-line--total">
+                      <div>
+                        <p>Total Billing Amount</p>
+                        <span>{formatDate(invoice.period_start)} - {formatDate(invoice.period_end)}</span>
+                      </div>
+                      <strong>{formatCurrency(invoice.total_amount)}</strong>
+                    </div>
                   </div>
-                </section>
-              )}
+                </div>
+              </section>
             </div>
           </>
         )}

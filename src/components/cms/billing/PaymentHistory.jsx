@@ -1,4 +1,4 @@
-import { FaCheck, FaClock, FaHourglassHalf } from 'react-icons/fa';
+import { FaCheck, FaClock, FaDownload, FaEye, FaHourglassHalf } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
 import { SkeletonBlock, SkeletonList } from '@components/ui/Skeleton';
 
@@ -20,6 +20,13 @@ function formatDateTime(value) {
   });
 }
 
+function formatReviewer(receipt) {
+  if (!receipt?.reviewed_at && !receipt?.reviewer_name) return '';
+  const reviewer = receipt.reviewer_name || 'HRIS reviewer';
+  if (!receipt.reviewed_at) return `Reviewed by ${reviewer}`;
+  return `Reviewed by ${reviewer} on ${formatDateTime(receipt.reviewed_at)}`;
+}
+
 function buildHistoryItems(history = []) {
   return history
     .map((receipt) => {
@@ -34,6 +41,9 @@ function buildHistoryItems(history = []) {
         amount: formatCurrency(receipt.amount),
         amountColor: approved ? '#16a34a' : rejected ? '#dc2626' : '#e6b215',
         time: formatDateTime(receipt.submitted_at),
+        review: formatReviewer(receipt),
+        reviewNotes: receipt.review_notes || '',
+        receipt,
         rowBg: approved ? '#f9fafb' : rejected ? '#fef2f2' : '#fefce8',
         rowBorder: approved ? '#e5e7eb' : rejected ? '#fecaca' : '#fde68a',
       };
@@ -60,6 +70,8 @@ export default function PaymentHistory({
   metadata,
   loading = false,
   onPageChange,
+  onViewReceipt,
+  onDownloadReceipt,
 }) {
   const historyItems = buildHistoryItems(history);
   const startIndex = history.length > 0 ? ((metadata.page - 1) * metadata.limit) + 1 : 0;
@@ -101,6 +113,22 @@ export default function PaymentHistory({
                   <FaClock className="cms-ph-clock" />
                   {item.time}
                 </p>
+                {(item.review || item.reviewNotes) && (
+                  <p className="cms-ph-review">
+                    {item.review || 'Review completed'}
+                    {item.reviewNotes && <span>{item.reviewNotes}</span>}
+                  </p>
+                )}
+                {item.receipt?.receipt_url && (
+                  <div className="cms-ph-actions">
+                    <button type="button" onClick={() => onViewReceipt?.({ latest_receipt: item.receipt })}>
+                      <FaEye /> View Receipt
+                    </button>
+                    <button type="button" onClick={() => onDownloadReceipt?.(item.receipt)}>
+                      <FaDownload /> Download Receipt
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           );

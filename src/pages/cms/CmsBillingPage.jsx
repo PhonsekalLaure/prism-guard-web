@@ -14,6 +14,37 @@ function getErrorMessage(error, fallback) {
   return error?.response?.data?.error || error?.message || fallback;
 }
 
+function sanitizeFilenamePart(value, fallback = 'file') {
+  const normalized = String(value || fallback)
+    .trim()
+    .replace(/[^a-z0-9-_]+/gi, '-')
+    .replace(/^-+|-+$/g, '')
+    .toLowerCase();
+  return normalized || fallback;
+}
+
+function buildStatementFallbackFilename(invoice) {
+  const invoiceKey = sanitizeFilenamePart(invoice?.invoice_number || invoice?.statement_no || invoice?.id, 'invoice');
+  return `prism-guard-invoice-${invoiceKey}.pdf`;
+}
+
+function buildReceiptFilename(receipt) {
+  const refKey = sanitizeFilenamePart(receipt?.reference_number || receipt?.id, 'receipt');
+  return `payment-receipt-${refKey}`;
+}
+
+function downloadBlob(blob, filename = 'download') {
+  if (!blob) return;
+  const resolvedUrl = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = resolvedUrl;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(resolvedUrl), 1000);
+}
+
 export default function CmsBillingPage() {
   const [invoices, setInvoices] = useState([]);
   const [metadata, setMetadata] = useState(DEFAULT_METADATA);
@@ -23,6 +54,8 @@ export default function CmsBillingPage() {
   const [loading, setLoading] = useState(true);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('invoices');
+  const [filters, setFilters] = useState({ status: '', periodStart: '', periodEnd: '' });
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [viewingInvoice, setViewingInvoice] = useState(null);
   const [viewingInvoiceLoading, setViewingInvoiceLoading] = useState(false);
@@ -41,10 +74,16 @@ export default function CmsBillingPage() {
     }
   }, [showNotification]);
 
-  const loadInvoices = useCallback(async (page = 1) => {
+  const loadInvoices = useCallback(async (page = 1, currentFilters = { status: '', periodStart: '', periodEnd: '' }) => {
     try {
       setLoading(true);
-      const result = await billingService.getBillings({ page, limit: PAGE_LIMIT });
+      const result = await billingService.getBillings({
+        page,
+        limit: PAGE_LIMIT,
+        status: currentFilters.status || undefined,
+        periodStart: currentFilters.periodStart || undefined,
+        periodEnd: currentFilters.periodEnd || undefined,
+      });
       setInvoices(result.data || []);
       setMetadata(result.metadata || { ...DEFAULT_METADATA, page });
     } catch (error) {
@@ -79,16 +118,22 @@ export default function CmsBillingPage() {
 
   const refresh = useCallback(async () => {
     await Promise.all([
-      loadInvoices(metadata.page),
+      loadInvoices(metadata.page, filters),
       loadPaymentHistory(historyMetadata.page),
       loadStats(),
     ]);
-  }, [historyMetadata.page, loadInvoices, loadPaymentHistory, loadStats, metadata.page]);
+  }, [filters, historyMetadata.page, loadInvoices, loadPaymentHistory, loadStats, metadata.page]);
 
   const openStatement = async (invoice, download = false) => {
     try {
-      const { url } = await billingService.getStatementUrl(invoice.id, download);
-      if (url) window.open(url, '_blank', 'noopener,noreferrer');
+      if (download) {
+        const { blob, filename } = await billingService.downloadStatement(invoice.id);
+        downloadBlob(blob, filename || buildStatementFallbackFilename(invoice));
+        return;
+      }
+      const { url } = await billingService.getStatementUrl(invoice.id, false);
+      if (!url) return;
+      window.open(url, '_blank', 'noopener,noreferrer');
     } catch (error) {
       showNotification(getErrorMessage(error, 'Failed to open statement.'), 'error');
     }
@@ -101,6 +146,25 @@ export default function CmsBillingPage() {
       return;
     }
     showNotification('No receipt is available for this statement.', 'info');
+  };
+
+  const handleDownloadReceipt = async (receiptOrInvoice) => {
+    const receipt = receiptOrInvoice?.latest_receipt || receiptOrInvoice;
+    const billingId = receipt?.billing_id || (receiptOrInvoice?.latest_receipt ? receiptOrInvoice.id : '');
+    if (!receipt?.receipt_url) {
+      showNotification('No receipt is available for this statement.', 'info');
+      return;
+    }
+    if (!billingId || !receipt.id) {
+      showNotification('Receipt download details are incomplete.', 'error');
+      return;
+    }
+    try {
+      const { blob, filename } = await billingService.downloadReceipt(billingId, receipt.id);
+      downloadBlob(blob, filename || buildReceiptFilename(receipt));
+    } catch (error) {
+      showNotification(getErrorMessage(error, 'Failed to download receipt.'), 'error');
+    }
   };
 
   const handleViewInvoice = async (invoice) => {
@@ -147,6 +211,17 @@ export default function CmsBillingPage() {
     }
   };
 
+  const handleFilterChange = (nextFilters) => {
+    setFilters(nextFilters);
+    loadInvoices(1, nextFilters);
+  };
+
+  const handlePayFromModal = (invoice) => {
+    setSelectedInvoice(invoice);
+    setViewingInvoice(null);
+    setActiveTab('submit');
+  };
+
   return (
     <>
       {notification && (
@@ -168,14 +243,19 @@ export default function CmsBillingPage() {
           historyMetadata={historyMetadata}
           loading={loading}
           historyLoading={historyLoading}
+          activeTab={activeTab}
+          filters={filters}
           selectedInvoice={selectedInvoice}
           submitting={submitting}
-          onPageChange={loadInvoices}
+          onTabChange={setActiveTab}
+          onFilterChange={handleFilterChange}
+          onPageChange={(page) => loadInvoices(page, filters)}
           onHistoryPageChange={loadPaymentHistory}
           onSelectInvoice={setSelectedInvoice}
           onSubmitReceipt={handleSubmitReceipt}
           onViewInvoice={handleViewInvoice}
           onViewReceipt={handleViewReceipt}
+          onDownloadReceipt={handleDownloadReceipt}
           onViewPdf={openStatement}
         />
       </div>
@@ -187,6 +267,8 @@ export default function CmsBillingPage() {
           onClose={() => setViewingInvoice(null)}
           onViewPdf={openStatement}
           onViewReceipt={handleViewReceipt}
+          onDownloadReceipt={handleDownloadReceipt}
+          onPay={handlePayFromModal}
         />
       )}
     </>

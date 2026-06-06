@@ -4,6 +4,7 @@ import BillingTopbar from '@hris-components/billing/BillingTopbar';
 import BillingStatCards from '@hris-components/billing/BillingStatCards';
 import BillingFilterBar from '@hris-components/billing/BillingFilterBar';
 import BillingTable from '@hris-components/billing/BillingTable';
+import BillingHolidayModal from '@hris-components/billing/BillingHolidayModal';
 import Notification from '@components/ui/Notification';
 import ReportConfirmDialog from '@components/ui/ReportConfirmDialog';
 import useNotification from '@hooks/useNotification';
@@ -17,6 +18,13 @@ const ALL_CUTOFFS_KEY = 'all';
 
 function getErrorMessage(error, fallback) {
   return error?.response?.data?.error || error?.message || fallback;
+}
+
+function formatHolidayCurrency(value) {
+  return `PHP ${Number(value || 0).toLocaleString('en-PH', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 }
 
 function resolveCutoffState(cutoffOptions, defaultPeriod, cutoffKey) {
@@ -64,7 +72,13 @@ export default function BillingPage() {
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
   const [checkingGeneration, setCheckingGeneration] = useState(false);
-  const [confirmCutoff, setConfirmCutoff] = useState(null);
+  const [confirmGeneration, setConfirmGeneration] = useState(null);
+  const [holidayModalOpen, setHolidayModalOpen] = useState(false);
+  const [holidays, setHolidays] = useState([]);
+  const [holidaysLoading, setHolidaysLoading] = useState(false);
+  const [holidaySaving, setHolidaySaving] = useState(false);
+  const [holidayDeletingId, setHolidayDeletingId] = useState('');
+  const [holidayDeleteTarget, setHolidayDeleteTarget] = useState(null);
   const skipNextFilterLoadRef = useRef(false);
   const { notification, showNotification, closeNotification } = useNotification();
 
@@ -84,6 +98,10 @@ export default function BillingPage() {
       option.periodStart === filters.periodStart && option.periodEnd === filters.periodEnd
     ))?.label || `${filters.periodStart} - ${filters.periodEnd}`;
   }, [cutoffOptions, filters.periodEnd, filters.periodStart]);
+
+  const selectedCutoff = useMemo(() => (
+    cutoffOptions.find((option) => option.key === selectedCutoffKey && !option.disabled)
+  ), [cutoffOptions, selectedCutoffKey]);
 
   const loadStats = useCallback(async ({ silent = false } = {}) => {
     try {
@@ -208,8 +226,17 @@ export default function BillingPage() {
         periodStart: cutoff.periodStart,
         periodEnd: cutoff.periodEnd,
       });
-      if ((existing.metadata?.total || 0) > 0) {
-        setConfirmCutoff(cutoff);
+      const cutoffHolidays = await billingService.getHolidays({
+        periodStart: cutoff.periodStart,
+        periodEnd: cutoff.periodEnd,
+      });
+      const existingCount = existing.metadata?.total || 0;
+      if (existingCount > 0 || (cutoffHolidays || []).length > 0) {
+        setConfirmGeneration({
+          cutoff,
+          existingCount,
+          holidays: cutoffHolidays || [],
+        });
         return;
       }
       await generateStatementsAction.execute(cutoff);
@@ -220,10 +247,76 @@ export default function BillingPage() {
     }
   };
 
+  const loadHolidays = useCallback(async (cutoff = selectedCutoff) => {
+    if (!cutoff) return;
+    try {
+      setHolidaysLoading(true);
+      const data = await billingService.getHolidays({
+        periodStart: cutoff.periodStart,
+        periodEnd: cutoff.periodEnd,
+      });
+      setHolidays(data || []);
+    } catch (error) {
+      showNotification(getErrorMessage(error, 'Failed to load billing holidays.'), 'error');
+    } finally {
+      setHolidaysLoading(false);
+    }
+  }, [selectedCutoff, showNotification]);
+
+  const openHolidayModal = async () => {
+    if (!selectedCutoff) return;
+    setHolidayModalOpen(true);
+    await loadHolidays(selectedCutoff);
+  };
+
+  const saveHoliday = async (form, onSaved) => {
+    try {
+      setHolidaySaving(true);
+      const payload = {
+        holiday_date: form.holiday_date,
+        name: form.name,
+        rate_per_guard: form.rate_per_guard,
+        notes: form.notes,
+      };
+      if (form.id) {
+        await billingService.updateHoliday(form.id, payload);
+        showNotification('Holiday updated.', 'success');
+      } else {
+        await billingService.createHoliday(payload);
+        showNotification('Holiday added.', 'success');
+      }
+      onSaved?.();
+      await loadHolidays(selectedCutoff);
+    } catch (error) {
+      showNotification(getErrorMessage(error, 'Failed to save holiday.'), 'error');
+    } finally {
+      setHolidaySaving(false);
+    }
+  };
+
+  const requestDeleteHoliday = (holiday) => {
+    setHolidayDeleteTarget(holiday);
+  };
+
+  const confirmDeleteHoliday = async () => {
+    if (!holidayDeleteTarget) return;
+    try {
+      setHolidayDeletingId(holidayDeleteTarget.id);
+      await billingService.deleteHoliday(holidayDeleteTarget.id);
+      showNotification('Holiday deleted.', 'success');
+      await loadHolidays(selectedCutoff);
+      setHolidayDeleteTarget(null);
+    } catch (error) {
+      showNotification(getErrorMessage(error, 'Failed to delete holiday.'), 'error');
+    } finally {
+      setHolidayDeletingId('');
+    }
+  };
+
   const handleConfirmRegenerate = async () => {
-    if (!confirmCutoff) return;
-    const result = await generateStatementsAction.execute(confirmCutoff);
-    if (result) setConfirmCutoff(null);
+    if (!confirmGeneration?.cutoff) return;
+    const result = await generateStatementsAction.execute(confirmGeneration.cutoff);
+    if (result) setConfirmGeneration(null);
   };
 
   const clearCutoffFilter = () => {
@@ -253,6 +346,7 @@ export default function BillingPage() {
         cutoffOptions={cutoffOptions}
         selectedCutoffKey={selectedCutoffKey}
         onCutoffChange={handleCutoffChange}
+        onAddHoliday={openHolidayModal}
         onGenerate={handleGenerate}
         generating={checkingGeneration || generateStatementsAction.loading}
       />
@@ -276,16 +370,48 @@ export default function BillingPage() {
       </div>
 
       <ReportConfirmDialog
-        open={Boolean(confirmCutoff)}
-        title="Regenerate Statements?"
-        description={confirmCutoff
-          ? `Statements already exist for ${confirmCutoff.label}. Regenerating will refresh existing statements for this period.`
+        open={Boolean(confirmGeneration)}
+        title={confirmGeneration?.existingCount > 0 ? 'Regenerate Statements?' : 'Generate Holiday Billing?'}
+        description={confirmGeneration
+          ? [
+            confirmGeneration.existingCount > 0
+              ? `${confirmGeneration.existingCount} statement${confirmGeneration.existingCount === 1 ? '' : 's'} already exist for ${confirmGeneration.cutoff.label}. Regenerating will refresh existing statements for this period.`
+              : `Generate statements for ${confirmGeneration.cutoff.label}.`,
+            confirmGeneration.holidays.length > 0
+              ? `This cutoff includes ${confirmGeneration.holidays.length} holiday${confirmGeneration.holidays.length === 1 ? '' : 's'}: ${confirmGeneration.holidays.map((holiday) => `${holiday.name} (${formatHolidayCurrency(holiday.rate_per_guard)} per guard)`).join(', ')}.`
+              : '',
+          ].filter(Boolean).join(' ')
           : ''}
-        confirmLabel="Regenerate Statements"
+        confirmLabel={confirmGeneration?.existingCount > 0 ? 'Regenerate Statements' : 'Generate Statements'}
         loading={generateStatementsAction.loading}
-        tone="warning"
-        onCancel={() => setConfirmCutoff(null)}
+        tone={confirmGeneration?.existingCount > 0 ? 'warning' : 'info'}
+        onCancel={() => setConfirmGeneration(null)}
         onConfirm={handleConfirmRegenerate}
+      />
+
+      <ReportConfirmDialog
+        open={Boolean(holidayDeleteTarget)}
+        title="Delete Holiday?"
+        description={holidayDeleteTarget
+          ? `Delete ${holidayDeleteTarget.name}? Existing statements will not change until this cutoff is regenerated.`
+          : ''}
+        confirmLabel="Delete Holiday"
+        loading={Boolean(holidayDeletingId)}
+        tone="danger"
+        onCancel={() => setHolidayDeleteTarget(null)}
+        onConfirm={confirmDeleteHoliday}
+      />
+
+      <BillingHolidayModal
+        isOpen={holidayModalOpen}
+        cutoff={selectedCutoff}
+        holidays={holidays}
+        loading={holidaysLoading}
+        saving={holidaySaving}
+        deletingId={holidayDeletingId}
+        onClose={() => setHolidayModalOpen(false)}
+        onSave={saveHoliday}
+        onDelete={requestDeleteHoliday}
       />
     </>
   );

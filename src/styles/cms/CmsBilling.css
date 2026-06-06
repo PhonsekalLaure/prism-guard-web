@@ -79,6 +79,54 @@
 /* =============================================
    INVOICES TABLE
    ============================================= */
+.cms-inv-filters {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-bottom: 1px solid #edf2f7;
+  background: #fbfdff;
+}
+
+.cms-inv-filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.cms-inv-filters span {
+  color: #64748b;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cms-inv-filters select,
+.cms-inv-filters input {
+  min-width: 150px;
+  padding: 0.58rem 0.75rem;
+  border: 1px solid #d9e2ef;
+  border-radius: 8px;
+  background: #fff;
+  color: #334155;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.78rem;
+}
+
+.cms-inv-filter-clear {
+  padding: 0.58rem 0.9rem;
+  border: 1px solid #d9e2ef;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #093269;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .cms-inv-table-wrapper {
   overflow-x: auto;
 }
@@ -149,6 +197,11 @@
 .cms-inv-badge--unpaid {
   background: #fee2e2;
   color: #dc2626;
+}
+
+.cms-inv-badge--overdue {
+  background: #fee2e2;
+  color: #991b1b;
 }
 
 .cms-inv-badge--verifying {
@@ -412,10 +465,49 @@
   font-weight: 800;
 }
 
+.cms-bdetail-review-audit {
+  color: #093269 !important;
+  font-weight: 700;
+}
+
 .cms-bdetail-muted {
   margin: 0;
   color: #64748b;
   font-size: 0.82rem;
+}
+
+.cms-bbreakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.cms-bbreakdown-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.cms-bbreakdown-metrics div {
+  padding: 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.cms-bbreakdown-metrics span {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: #64748b;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cms-bbreakdown-metrics strong {
+  color: #0f172a;
+  font-size: 0.88rem;
 }
 
 .cms-bdetail-lines {
@@ -448,6 +540,26 @@
 .cms-bdetail-line strong {
   color: #093269;
   white-space: nowrap;
+}
+
+.cms-bdetail-line--muted {
+  background: #f9fafb;
+}
+
+.cms-bdetail-line--muted p,
+.cms-bdetail-line--muted strong {
+  color: #64748b;
+}
+
+.cms-bdetail-line--total {
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+}
+
+.cms-bdetail-line--total p,
+.cms-bdetail-line--total strong {
+  color: #093269;
+  font-size: 0.9rem;
 }
 
 /* Pagination */
@@ -546,6 +658,42 @@
   font-size: 0.65rem;
 }
 
+.cms-ph-review {
+  margin: 0.45rem 0 0;
+  color: #093269;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.cms-ph-review span {
+  display: block;
+  margin-top: 0.18rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.cms-ph-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+}
+
+.cms-ph-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid #d9e2ef;
+  border-radius: 8px;
+  background: #fff;
+  color: #093269;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 /* =============================================
    SUBMIT PAYMENT FORM
    ============================================= */
@@ -625,6 +773,24 @@
   outline: none;
   border-color: #e6b215;
   box-shadow: 0 0 0 3px rgba(230, 178, 21, 0.1);
+}
+
+.cms-sp-input[readonly] {
+  background: #f8fafc;
+  color: #475569;
+}
+
+.cms-sp-help {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.72rem;
+}
+
+.cms-sp-error {
+  margin: 0;
+  color: #dc2626;
+  font-size: 0.76rem;
+  font-weight: 700;
 }
 
 .cms-sp-grid {
@@ -736,6 +902,10 @@
     grid-template-columns: 1fr;
   }
 
+  .cms-bbreakdown-metrics {
+    grid-template-columns: 1fr;
+  }
+
   .cms-bdetail-actions,
   .cms-bdetail-receipt-actions {
     justify-content: stretch;
@@ -755,5 +925,15 @@
 
   .cms-inv-actions {
     flex-direction: column;
+  }
+
+  .cms-inv-filters {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .cms-inv-filters select,
+  .cms-inv-filters input {
+    width: 100%;
   }
 }

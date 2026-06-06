@@ -18,6 +18,12 @@ function formatCurrency(value) {
   });
 }
 
+const MAX_RECEIPT_SIZE_BYTES = 10 * 1024 * 1024;
+
+function isAllowedReceiptFile(file) {
+  return file?.type?.startsWith('image/') || file?.type === 'application/pdf';
+}
+
 export default function SubmitPaymentForm({
   invoice,
   submitting = false,
@@ -32,6 +38,7 @@ export default function SubmitPaymentForm({
     reference: '',
   });
   const [receiptFile, setReceiptFile] = useState(null);
+  const [fileError, setFileError] = useState('');
   const invoiceLabel = invoice?.invoice_number || invoice?.statement_no || 'Statement pending';
 
   const handleChange = (event) => {
@@ -40,7 +47,27 @@ export default function SubmitPaymentForm({
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    if (fileError) return;
     onSubmit?.({ ...form, receiptFile });
+  };
+
+  const handleReceiptFile = (file) => {
+    setFileError('');
+    if (!file) {
+      setReceiptFile(null);
+      return;
+    }
+    if (!isAllowedReceiptFile(file)) {
+      setReceiptFile(null);
+      setFileError('Only JPG, PNG, or PDF receipts are allowed.');
+      return;
+    }
+    if (file.size > MAX_RECEIPT_SIZE_BYTES) {
+      setReceiptFile(null);
+      setFileError('Receipt file must be 10MB or smaller.');
+      return;
+    }
+    setReceiptFile(file);
   };
 
   return (
@@ -81,8 +108,12 @@ export default function SubmitPaymentForm({
               value={form.amount}
               onChange={handleChange}
               className="cms-sp-input"
+              readOnly
               required
             />
+            <p className="cms-sp-help">
+              The receipt amount must match the current balance due.
+            </p>
           </div>
           <div className="cms-sp-field">
             <label className="cms-sp-label">
@@ -153,18 +184,19 @@ export default function SubmitPaymentForm({
             </p>
             <p className="cms-sp-upload-hint">JPG, PNG, or PDF up to 10MB</p>
           </button>
+          {fileError && <p className="cms-sp-error">{fileError}</p>}
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*,application/pdf"
             style={{ display: 'none' }}
-            onChange={(event) => setReceiptFile(event.target.files?.[0] || null)}
+            onChange={(event) => handleReceiptFile(event.target.files?.[0] || null)}
             required
           />
         </div>
 
         <div className="cms-sp-actions">
-          <button type="submit" className="cms-sp-btn-submit" disabled={submitting || !invoice}>
+          <button type="submit" className="cms-sp-btn-submit" disabled={submitting || !invoice || Boolean(fileError)}>
             <FaPaperPlane /> {submitting ? 'Submitting...' : 'Submit Receipt'}
           </button>
           <button type="button" className="cms-sp-btn-cancel" onClick={onCancel} disabled={submitting}>
