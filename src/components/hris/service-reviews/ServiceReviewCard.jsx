@@ -2,6 +2,7 @@ import {
   FaCalendar,
   FaCheck,
   FaClock,
+  FaEyeSlash,
   FaEye,
   FaInfoCircle,
   FaMapMarkerAlt,
@@ -80,6 +81,11 @@ export default function ServiceReviewCard({ review, index, onOpenModal }) {
                 <FaTimes /> Do Not Publish
               </button>
             </>
+          )}
+          {review.status === 'published' && (
+            <button className="sr-review-btn sr-review-btn-reject" onClick={() => onOpenModal('unpublish', review)} type="button">
+              <FaEyeSlash /> Unpublish
+            </button>
           )}
         </div>
       </div>

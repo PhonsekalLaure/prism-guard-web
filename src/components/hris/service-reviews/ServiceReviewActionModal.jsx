@@ -1,4 +1,4 @@
-import { FaCheck, FaCheckCircle, FaTimes, FaTimesCircle } from 'react-icons/fa';
+import { FaCheck, FaCheckCircle, FaEyeSlash, FaTimes, FaTimesCircle } from 'react-icons/fa';
 
 const ACTION_CONFIG = {
   publish: {
@@ -23,6 +23,17 @@ const ACTION_CONFIG = {
     buttonLabel: 'Do Not Publish',
     loadingLabel: 'Saving...',
   },
+  unpublish: {
+    icon: FaEyeSlash,
+    iconClass: 'red',
+    title: 'Unpublish Review',
+    description: 'Remove this review from the public promo website.',
+    placeholder: 'Enter takedown notes...',
+    buttonClass: 'sr-review-btn-danger',
+    buttonIcon: FaEyeSlash,
+    buttonLabel: 'Unpublish',
+    loadingLabel: 'Unpublishing...',
+  },
 };
 
 export default function ServiceReviewActionModal({
@@ -40,7 +51,8 @@ export default function ServiceReviewActionModal({
   const Icon = config.icon;
   const ButtonIcon = config.buttonIcon;
   const loading = actionLoadingId === review.id;
-  const disabled = Boolean(actionLoadingId) || (action === 'reject' && !reviewNotes.trim());
+  const requiresNotes = action === 'reject' || action === 'unpublish';
+  const disabled = Boolean(actionLoadingId) || (requiresNotes && !reviewNotes.trim());
 
   return (
     <div className="sr-review-modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
