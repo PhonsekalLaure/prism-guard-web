@@ -48,11 +48,8 @@ function downloadBlob(blob, filename = 'download') {
 export default function CmsBillingPage() {
   const [invoices, setInvoices] = useState([]);
   const [metadata, setMetadata] = useState(DEFAULT_METADATA);
-  const [paymentHistory, setPaymentHistory] = useState([]);
-  const [historyMetadata, setHistoryMetadata] = useState(DEFAULT_METADATA);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [historyLoading, setHistoryLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('invoices');
   const [filters, setFilters] = useState({ status: '', periodStart: '', periodEnd: '' });
@@ -95,34 +92,17 @@ export default function CmsBillingPage() {
     }
   }, [showNotification]);
 
-  const loadPaymentHistory = useCallback(async (page = 1) => {
-    try {
-      setHistoryLoading(true);
-      const result = await billingService.getPaymentHistory({ page, limit: PAGE_LIMIT });
-      setPaymentHistory(result.data || []);
-      setHistoryMetadata(result.metadata || { ...DEFAULT_METADATA, page });
-    } catch (error) {
-      setPaymentHistory([]);
-      setHistoryMetadata({ ...DEFAULT_METADATA, page });
-      showNotification(getErrorMessage(error, 'Failed to load payment history.'), 'error');
-    } finally {
-      setHistoryLoading(false);
-    }
-  }, [showNotification]);
-
   useEffect(() => {
     loadStats();
     loadInvoices(1);
-    loadPaymentHistory(1);
-  }, [loadInvoices, loadPaymentHistory, loadStats]);
+  }, [loadInvoices, loadStats]);
 
   const refresh = useCallback(async () => {
     await Promise.all([
       loadInvoices(metadata.page, filters),
-      loadPaymentHistory(historyMetadata.page),
       loadStats(),
     ]);
-  }, [filters, historyMetadata.page, loadInvoices, loadPaymentHistory, loadStats, metadata.page]);
+  }, [filters, loadInvoices, loadStats, metadata.page]);
 
   const openStatement = async (invoice, download = false) => {
     try {
@@ -239,10 +219,7 @@ export default function CmsBillingPage() {
         <BillingTabs
           invoices={invoices}
           metadata={metadata}
-          paymentHistory={paymentHistory}
-          historyMetadata={historyMetadata}
           loading={loading}
-          historyLoading={historyLoading}
           activeTab={activeTab}
           filters={filters}
           selectedInvoice={selectedInvoice}
@@ -250,13 +227,9 @@ export default function CmsBillingPage() {
           onTabChange={setActiveTab}
           onFilterChange={handleFilterChange}
           onPageChange={(page) => loadInvoices(page, filters)}
-          onHistoryPageChange={loadPaymentHistory}
           onSelectInvoice={setSelectedInvoice}
           onSubmitReceipt={handleSubmitReceipt}
           onViewInvoice={handleViewInvoice}
-          onViewReceipt={handleViewReceipt}
-          onDownloadReceipt={handleDownloadReceipt}
-          onViewPdf={openStatement}
         />
       </div>
 

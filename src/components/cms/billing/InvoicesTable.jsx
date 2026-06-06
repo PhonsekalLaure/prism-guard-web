@@ -36,9 +36,9 @@ const statusConfig = {
 function InvoiceActions({ invoice, onViewInvoice }) {
   return (
     <div className="cms-inv-actions">
-    <button className="cms-inv-btn cms-inv-btn--view" type="button" onClick={() => onViewInvoice?.(invoice)}>
-      <FaEye /> View
-    </button>
+      <button className="cms-inv-btn cms-inv-btn--receipt" type="button" onClick={() => onViewInvoice?.(invoice)}>
+        <FaEye /> View
+      </button>
     </div>
   );
 }
@@ -61,10 +61,8 @@ function InvoiceRowsSkeleton() {
 export default function InvoicesTable({
   invoices = [],
   metadata,
-  filters = { status: '', periodStart: '', periodEnd: '' },
   loading = false,
   onPageChange,
-  onFilterChange,
   onViewInvoice,
 }) {
   const startIndex = invoices.length > 0 ? ((metadata.page - 1) * metadata.limit) + 1 : 0;
@@ -72,47 +70,6 @@ export default function InvoicesTable({
 
   return (
     <div>
-      <div className="cms-inv-filters">
-        <label>
-          <span>Status</span>
-          <select
-            value={filters.status || ''}
-            onChange={(event) => onFilterChange?.({ ...filters, status: event.target.value })}
-          >
-            <option value="">All statuses</option>
-            <option value="unpaid">Unpaid</option>
-            <option value="overdue">Overdue</option>
-            <option value="verifying">Verifying</option>
-            <option value="paid">Paid</option>
-          </select>
-        </label>
-        <label>
-          <span>Period Start</span>
-          <input
-            type="date"
-            value={filters.periodStart || ''}
-            onChange={(event) => onFilterChange?.({ ...filters, periodStart: event.target.value })}
-          />
-        </label>
-        <label>
-          <span>Period End</span>
-          <input
-            type="date"
-            value={filters.periodEnd || ''}
-            onChange={(event) => onFilterChange?.({ ...filters, periodEnd: event.target.value })}
-          />
-        </label>
-        {(filters.status || filters.periodStart || filters.periodEnd) && (
-          <button
-            className="cms-inv-filter-clear"
-            type="button"
-            onClick={() => onFilterChange?.({ status: '', periodStart: '', periodEnd: '' })}
-          >
-            Clear
-          </button>
-        )}
-      </div>
-
       <div className="cms-inv-table-wrapper">
         <table className="cms-inv-table">
           <thead>

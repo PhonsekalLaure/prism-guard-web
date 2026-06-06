@@ -1,21 +1,16 @@
-import { FaFileInvoice, FaHistory, FaUpload } from 'react-icons/fa';
+import { FaFileInvoice, FaUpload } from 'react-icons/fa';
 import InvoicesTable from './InvoicesTable';
-import PaymentHistory from './PaymentHistory';
 import SubmitPaymentForm from './SubmitPaymentForm';
 
 const TABS = [
   { key: 'invoices', label: 'Invoices', icon: FaFileInvoice },
-  { key: 'history', label: 'Payment History', icon: FaHistory },
   { key: 'submit', label: 'Submit Receipt', icon: FaUpload },
 ];
 
 export default function BillingTabs({
   invoices,
   metadata,
-  paymentHistory,
-  historyMetadata,
   loading,
-  historyLoading,
   activeTab = 'invoices',
   filters,
   selectedInvoice,
@@ -23,12 +18,9 @@ export default function BillingTabs({
   onTabChange,
   onFilterChange,
   onPageChange,
-  onHistoryPageChange,
   onSelectInvoice,
   onSubmitReceipt,
   onViewInvoice,
-  onViewReceipt,
-  onDownloadReceipt,
 }) {
   const handleCancelSubmit = () => {
     onSelectInvoice?.(null);
@@ -38,20 +30,48 @@ export default function BillingTabs({
   return (
     <div className="cms-btabs-panel">
       <div className="cms-btabs-bar">
-        {TABS.map((tab) => {
-          const Icon = tab.icon;
-          return (
-            <button
-              key={tab.key}
-              type="button"
-              className={`cms-btab-btn${activeTab === tab.key ? ' active' : ''}`}
-              onClick={() => onTabChange?.(tab.key)}
-            >
-              <Icon className="cms-btab-icon" />
-              {tab.label}
-            </button>
-          );
-        })}
+        <div className="cms-btabs-left">
+          {TABS.map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                className={`cms-btab-btn${activeTab === tab.key ? ' active' : ''}`}
+                onClick={() => onTabChange?.(tab.key)}
+              >
+                <Icon className="cms-btab-icon" />
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+        {activeTab === 'invoices' && (
+          <div className="cms-btabs-filters">
+            <label className="cms-btab-filter-label">
+              <span>Status</span>
+              <select
+                value={filters?.status || ''}
+                onChange={(e) => onFilterChange?.({ ...filters, status: e.target.value })}
+              >
+                <option value="">All statuses</option>
+                <option value="unpaid">Unpaid</option>
+                <option value="overdue">Overdue</option>
+                <option value="verifying">Verifying</option>
+                <option value="paid">Paid</option>
+              </select>
+            </label>
+            {filters?.status && (
+              <button
+                className="cms-inv-filter-clear"
+                type="button"
+                onClick={() => onFilterChange?.({ ...filters, status: '' })}
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="cms-btabs-content">
@@ -59,21 +79,9 @@ export default function BillingTabs({
           <InvoicesTable
             invoices={invoices}
             metadata={metadata}
-            filters={filters}
             loading={loading}
             onPageChange={onPageChange}
-            onFilterChange={onFilterChange}
             onViewInvoice={onViewInvoice}
-          />
-        )}
-        {activeTab === 'history' && (
-          <PaymentHistory
-            history={paymentHistory}
-            metadata={historyMetadata}
-            loading={historyLoading}
-            onPageChange={onHistoryPageChange}
-            onViewReceipt={onViewReceipt}
-            onDownloadReceipt={onDownloadReceipt}
           />
         )}
         {activeTab === 'submit' && (
