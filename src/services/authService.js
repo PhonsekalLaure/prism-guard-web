@@ -91,7 +91,8 @@ function getProfile() {
 
 function isCloudinaryUrl(url) {
   try {
-    return new URL(url).hostname.includes('res.cloudinary.com');
+    const hostname = new URL(url).hostname.toLowerCase();
+    return hostname === 'cloudinary.com' || hostname.endsWith('.cloudinary.com');
   } catch {
     return false;
   }
@@ -125,6 +126,10 @@ async function getFileObjectUrl(url) {
   }
 
   const requestUrl = isAbsoluteUrl(url) ? url : buildApiUrl(url);
+  if (isCloudinaryUrl(requestUrl)) {
+    return requestUrl;
+  }
+
   const token = getToken();
   const headers = {};
 
