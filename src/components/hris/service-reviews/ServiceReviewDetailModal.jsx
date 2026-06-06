@@ -2,6 +2,7 @@ import {
   FaBuilding,
   FaCheck,
   FaCheckCircle,
+  FaEyeSlash,
   FaInfoCircle,
   FaStar,
   FaTimes,
@@ -173,6 +174,11 @@ export default function ServiceReviewDetailModal({
                   <FaCheck /> Publish
                 </button>
               </>
+            )}
+            {review.status === 'published' && (
+              <button className="sr-review-btn-danger" onClick={() => onOpenAction('unpublish', review)} type="button">
+                <FaEyeSlash /> Unpublish
+              </button>
             )}
           </div>
         </div>
