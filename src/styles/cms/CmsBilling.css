@@ -19,9 +19,7 @@
   transition: background 0.2s;
 }
 
-.cms-billing-download-btn:hover {
-  background: #0a4080;
-}
+
 
 /* =============================================
    TABS PANEL
@@ -33,11 +31,51 @@
   overflow: hidden;
 }
 
-/* Tab Bar */
+/* Tab Bar — tabs on the left, filter controls anchored right */
 .cms-btabs-bar {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   border-bottom: 1px solid #e2e8f0;
   overflow-x: auto;
+}
+
+.cms-btabs-left {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.cms-btabs-filters {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0 1rem;
+  flex-shrink: 0;
+}
+
+.cms-btab-filter-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cms-btab-filter-label span {
+  color: #64748b;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.cms-btab-filter-label select {
+  padding: 0.45rem 0.65rem;
+  border: 1px solid #d9e2ef;
+  border-radius: 8px;
+  background: #fff;
+  color: #334155;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.78rem;
 }
 
 .cms-btab-btn {
@@ -217,7 +255,7 @@
 /* Action Buttons */
 .cms-inv-actions {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   flex-wrap: wrap;
   gap: 0.4rem;
 }
@@ -318,34 +356,37 @@
   box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
 }
 
+/* ── Header: dark navy gradient, top anchor of visual hierarchy ── */
 .cms-bdetail-header {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   gap: 1rem;
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #edf2f7;
+  padding: 1.5rem 1.5rem 1.4rem;
+  background: linear-gradient(135deg, #093269 0%, #0c4d9e 100%);
+  border-bottom: none;
 }
 
 .cms-bdetail-eyebrow {
-  margin: 0 0 0.35rem;
-  color: #64748b;
+  margin: 0 0 0.3rem;
+  color: rgba(255, 255, 255, 0.6);
   font-size: 0.68rem;
   font-weight: 800;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .cms-bdetail-header h2 {
   margin: 0;
-  color: #093269;
-  font-size: 1.15rem;
+  color: #fff;
+  font-size: 1.35rem;
   font-weight: 800;
 }
 
-.cms-bdetail-header p:last-child {
-  margin: 0.3rem 0 0;
-  color: #64748b;
-  font-size: 0.82rem;
+.cms-bdetail-header-sub {
+  margin: 0.35rem 0 0;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.78rem;
 }
 
 .cms-bdetail-close {
@@ -354,11 +395,17 @@
   justify-content: center;
   width: 32px;
   height: 32px;
-  border: 1px solid #e2e8f0;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 8px;
-  background: #f8fafc;
-  color: #64748b;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
   cursor: pointer;
+  transition: background 0.2s;
+}
+
+.cms-bdetail-close:hover {
+  background: rgba(255, 255, 255, 0.22);
 }
 
 .cms-bdetail-body {
@@ -368,20 +415,35 @@
   padding: 1.25rem 1.5rem 1.5rem;
 }
 
+/* ── Summary: company name + status + invoice actions ── */
 .cms-bdetail-summary {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   gap: 1rem;
-  padding: 1rem;
+  padding: 1rem 1.1rem;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 10px;
   background: #f8fafc;
 }
 
-.cms-bdetail-summary h3 {
-  margin: 0.6rem 0 0.25rem;
+.cms-bdetail-summary-identity {
+  flex: 1;
+  min-width: 0;
+}
+
+.cms-bdetail-company-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+
+.cms-bdetail-company-row h3 {
+  margin: 0;
   color: #0f172a;
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 800;
 }
 
@@ -394,46 +456,80 @@
 .cms-bdetail-actions,
 .cms-bdetail-receipt-actions {
   display: flex;
-  align-items: flex-start;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  gap: 0.55rem;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .cms-bdetail-action {
-  min-width: 132px;
+  min-width: 148px;
 }
 
-.cms-bdetail-grid {
+/* ── Stats strip: most important financial numbers ── */
+.cms-bdetail-stats {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.8rem;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #c7d9f5;
 }
 
-.cms-bdetail-item {
-  padding: 0.9rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: #fff;
+.cms-bdetail-stat {
+  padding: 0.9rem 1rem;
+  background: #eef5ff;
+  border-right: 1px solid #c7d9f5;
+  text-align: left;
 }
 
-.cms-bdetail-item p {
-  margin: 0 0 0.35rem;
-  color: #64748b;
-  font-size: 0.72rem;
-  font-weight: 700;
+.cms-bdetail-stat:last-child {
+  border-right: none;
+}
+
+.cms-bdetail-stat p {
+  margin: 0 0 0.3rem;
+  color: #4a6fa5;
+  font-size: 0.66rem;
+  font-weight: 800;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.cms-bdetail-item strong {
-  color: #0f172a;
-  font-size: 0.92rem;
+.cms-bdetail-stat strong {
+  color: #093269;
+  font-size: 1rem;
+  font-weight: 800;
 }
 
+/* Total amount — highlighted first cell */
+.cms-bdetail-stat--primary {
+  background: #093269;
+}
+
+.cms-bdetail-stat--primary p {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.cms-bdetail-stat--primary strong {
+  color: #fff;
+  font-size: 1.05rem;
+}
+
+/* Balance Due = zero → green tint */
+.cms-bdetail-stat--success strong {
+  color: #16a34a;
+}
+
+/* Balance Due > 0 → red tint */
+.cms-bdetail-stat--danger strong {
+  color: #dc2626;
+}
+
+/* ── Receipt section: status-tinted for quick recognition ── */
 .cms-bdetail-section {
-  padding: 1rem;
+  padding: 1rem 1.1rem;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 10px;
   background: #fff;
 }
 
@@ -443,8 +539,45 @@
   gap: 0.45rem;
   margin: 0 0 0.85rem;
   color: #093269;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Approved receipt → green tint */
+.cms-bdetail-receipt-section--approved {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  border-left: 4px solid #16a34a;
+}
+
+.cms-bdetail-receipt-section--approved h3 {
+  color: #15803d;
+}
+
+/* Pending review → amber tint */
+.cms-bdetail-receipt-section--pending_review,
+.cms-bdetail-receipt-section--verifying {
+  background: #fffbeb;
+  border-color: #fde68a;
+  border-left: 4px solid #d97706;
+}
+
+.cms-bdetail-receipt-section--pending_review h3,
+.cms-bdetail-receipt-section--verifying h3 {
+  color: #b45309;
+}
+
+/* Rejected → red tint */
+.cms-bdetail-receipt-section--rejected {
+  background: #fff1f2;
+  border-color: #fecdd3;
+  border-left: 4px solid #e11d48;
+}
+
+.cms-bdetail-receipt-section--rejected h3 {
+  color: #be123c;
 }
 
 .cms-bdetail-receipt {
@@ -461,13 +594,20 @@
 
 .cms-bdetail-receipt-main {
   color: #0f172a !important;
-  font-size: 1rem !important;
+  font-size: 1.1rem !important;
   font-weight: 800;
+  margin-top: 0 !important;
 }
 
 .cms-bdetail-review-audit {
   color: #093269 !important;
   font-weight: 700;
+}
+
+/* Badge centred inside the column actions */
+.cms-bdetail-badge-wrap {
+  display: flex;
+  justify-content: center;
 }
 
 .cms-bdetail-muted {

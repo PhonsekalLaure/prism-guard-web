@@ -99,11 +99,13 @@ export default function BillingDetailModal({
     <div className="cms-bdetail-overlay" role="presentation" onClick={onClose}>
       <div className="cms-bdetail-modal" role="dialog" aria-modal="true" aria-label="Billing details" onClick={(event) => event.stopPropagation()}>
         <div className="cms-bdetail-header">
-          <div>
+          <div className="cms-bdetail-header-content">
             <p className="cms-bdetail-eyebrow">Billing Statement</p>
             <h2>{loading ? 'Loading statement...' : invoiceLabel}</h2>
-            {!loading && (
-              <p>{formatDate(invoice.period_start)} - {formatDate(invoice.period_end)}</p>
+            {!loading && invoice?.period_start && (
+              <p className="cms-bdetail-header-sub">
+                Period: {formatDate(invoice.period_start)} — {formatDate(invoice.period_end)}
+              </p>
             )}
           </div>
           <button className="cms-bdetail-close" type="button" onClick={onClose} aria-label="Close billing details">
@@ -117,9 +119,11 @@ export default function BillingDetailModal({
           <>
             <div className="cms-bdetail-body">
               <section className="cms-bdetail-summary">
-                <div>
-                  <span className={getStatusClass(invoice.status)}>{formatStatus(invoice.status)}</span>
-                  <h3>{invoice.company || 'Billing Statement'}</h3>
+                <div className="cms-bdetail-summary-identity">
+                  <div className="cms-bdetail-company-row">
+                    <h3>{invoice.company || 'Billing Statement'}</h3>
+                    <span className={getStatusClass(invoice.status)}>{formatStatus(invoice.status)}</span>
+                  </div>
                   <p>{invoice.billing_address || 'No billing address provided'}</p>
                 </div>
                 <div className="cms-bdetail-actions">
@@ -142,7 +146,7 @@ export default function BillingDetailModal({
                   {canPay && (
                     <ReportActionButton
                       className="cms-bdetail-action"
-                      label="Pay"
+                      label="Pay Now"
                       icon={FaCreditCard}
                       variant="success"
                       onClick={() => onPay?.(invoice)}
@@ -151,26 +155,26 @@ export default function BillingDetailModal({
                 </div>
               </section>
 
-              <section className="cms-bdetail-grid">
-                <div className="cms-bdetail-item">
+              <section className="cms-bdetail-stats">
+                <div className="cms-bdetail-stat cms-bdetail-stat--primary">
                   <p>Total Amount</p>
                   <strong>{formatCurrency(invoice.total_amount)}</strong>
                 </div>
-                <div className="cms-bdetail-item">
+                <div className="cms-bdetail-stat">
                   <p>{amountPaidLabel}</p>
                   <strong>{formatCurrency(amountPaidValue)}</strong>
                 </div>
-                <div className="cms-bdetail-item">
+                <div className={`cms-bdetail-stat${Number(invoice.balance_due) > 0 ? ' cms-bdetail-stat--danger' : ' cms-bdetail-stat--success'}`}>
                   <p>Balance Due</p>
                   <strong>{formatCurrency(invoice.balance_due)}</strong>
                 </div>
-                <div className="cms-bdetail-item">
+                <div className="cms-bdetail-stat">
                   <p>Due Date</p>
                   <strong>{formatDate(invoice.due_date)}</strong>
                 </div>
               </section>
 
-              <section className="cms-bdetail-section">
+              <section className={`cms-bdetail-section cms-bdetail-receipt-section--${latestReceipt?.status || 'none'}`}>
                 <h3><FaReceipt /> Latest Payment Receipt</h3>
                 {latestReceipt ? (
                   <div className="cms-bdetail-receipt">
@@ -184,13 +188,15 @@ export default function BillingDetailModal({
                       {latestReceipt.review_notes && <p>Review notes: {latestReceipt.review_notes}</p>}
                     </div>
                     <div className="cms-bdetail-receipt-actions">
-                      <span className={getStatusClass(latestReceipt.status)}>{formatStatus(latestReceipt.status)}</span>
+                      <div className="cms-bdetail-badge-wrap">
+                        <span className={getStatusClass(latestReceipt.status)}>{formatStatus(latestReceipt.status)}</span>
+                      </div>
                       <ReportActionButton
                         className="cms-bdetail-action"
                         label="View Receipt"
                         icon={FaEye}
                         disabled={!latestReceipt.receipt_url}
-                        variant="secondary"
+                        variant="primary"
                         onClick={() => onViewReceipt?.({ latest_receipt: latestReceipt })}
                       />
                       <ReportActionButton
