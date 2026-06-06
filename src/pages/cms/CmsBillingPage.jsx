@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import BillingTopbar from '@cms-components/billing/BillingTopbar';
 import BillingStatCards from '@cms-components/billing/BillingStatCards';
 import BillingTabs from '@cms-components/billing/BillingTabs';
+import BillingDetailModal from '@cms-components/billing/BillingDetailModal';
 import Notification from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
 import billingService from '@services/cms/billingService';
@@ -23,6 +24,8 @@ export default function CmsBillingPage() {
   const [historyLoading, setHistoryLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [viewingInvoice, setViewingInvoice] = useState(null);
+  const [viewingInvoiceLoading, setViewingInvoiceLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const { notification, showNotification, closeNotification } = useNotification();
 
@@ -100,6 +103,20 @@ export default function CmsBillingPage() {
     showNotification('No receipt is available for this statement.', 'info');
   };
 
+  const handleViewInvoice = async (invoice) => {
+    setViewingInvoice(invoice);
+    try {
+      setViewingInvoiceLoading(true);
+      const detail = await billingService.getBilling(invoice.id);
+      setViewingInvoice(detail);
+    } catch (error) {
+      showNotification(getErrorMessage(error, 'Failed to load billing statement.'), 'error');
+      setViewingInvoice(null);
+    } finally {
+      setViewingInvoiceLoading(false);
+    }
+  };
+
   const handleSubmitReceipt = async ({ amount, date, method, reference, receiptFile }) => {
     if (!selectedInvoice) {
       showNotification('Select an invoice before submitting a receipt.', 'error');
@@ -157,10 +174,21 @@ export default function CmsBillingPage() {
           onHistoryPageChange={loadPaymentHistory}
           onSelectInvoice={setSelectedInvoice}
           onSubmitReceipt={handleSubmitReceipt}
+          onViewInvoice={handleViewInvoice}
           onViewReceipt={handleViewReceipt}
           onViewPdf={openStatement}
         />
       </div>
+
+      {(viewingInvoice || viewingInvoiceLoading) && (
+        <BillingDetailModal
+          invoice={viewingInvoice}
+          loading={viewingInvoiceLoading}
+          onClose={() => setViewingInvoice(null)}
+          onViewPdf={openStatement}
+          onViewReceipt={handleViewReceipt}
+        />
+      )}
     </>
   );
 }

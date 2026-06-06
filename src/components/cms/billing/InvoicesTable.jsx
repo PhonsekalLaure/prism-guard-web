@@ -53,10 +53,17 @@ function StatementButton({ invoice, onViewPdf }) {
   );
 }
 
-function InvoiceActions({ invoice, onPay, onViewReceipt, onViewPdf }) {
+function InvoiceActions({ invoice, onPay, onViewInvoice, onViewReceipt, onViewPdf }) {
+  const viewButton = (
+    <button className="cms-inv-btn cms-inv-btn--view" type="button" onClick={() => onViewInvoice?.(invoice)}>
+      <FaEye /> View
+    </button>
+  );
+
   if (invoice.status === 'unpaid' || invoice.status === 'partial' || invoice.status === 'overdue') {
     return (
       <div className="cms-inv-actions">
+        {viewButton}
         <button className="cms-inv-btn cms-inv-btn--pay" type="button" onClick={() => onPay(invoice)}>
           <FaCreditCard /> Pay
         </button>
@@ -67,7 +74,8 @@ function InvoiceActions({ invoice, onPay, onViewReceipt, onViewPdf }) {
   if (invoice.status === 'verifying') {
     return (
       <div className="cms-inv-actions">
-        <button className="cms-inv-btn cms-inv-btn--view" type="button" onClick={() => onViewReceipt(invoice)}>
+        {viewButton}
+        <button className="cms-inv-btn cms-inv-btn--receipt" type="button" onClick={() => onViewReceipt(invoice)}>
           <FaEye /> Receipt
         </button>
         <StatementButton invoice={invoice} onViewPdf={onViewPdf} />
@@ -76,6 +84,7 @@ function InvoiceActions({ invoice, onPay, onViewReceipt, onViewPdf }) {
   }
   return (
     <div className="cms-inv-actions">
+      {viewButton}
       <button className="cms-inv-btn cms-inv-btn--receipt" type="button" onClick={() => onViewReceipt(invoice)}>
         <FaReceipt /> Receipt
       </button>
@@ -105,6 +114,7 @@ export default function InvoicesTable({
   loading = false,
   onPageChange,
   onPay,
+  onViewInvoice,
   onViewReceipt,
   onViewPdf,
 }) {
@@ -150,6 +160,7 @@ export default function InvoicesTable({
                     <InvoiceActions
                       invoice={invoice}
                       onPay={onPay}
+                      onViewInvoice={onViewInvoice}
                       onViewReceipt={onViewReceipt}
                       onViewPdf={onViewPdf}
                     />

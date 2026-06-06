@@ -23,6 +23,7 @@ export default function BillingTabs({
   onHistoryPageChange,
   onSelectInvoice,
   onSubmitReceipt,
+  onViewInvoice,
   onViewReceipt,
   onViewPdf,
 }) {
@@ -65,6 +66,7 @@ export default function BillingTabs({
             loading={loading}
             onPageChange={onPageChange}
             onPay={handlePay}
+            onViewInvoice={onViewInvoice}
             onViewReceipt={onViewReceipt}
             onViewPdf={onViewPdf}
           />
