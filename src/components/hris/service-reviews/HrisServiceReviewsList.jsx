@@ -15,6 +15,7 @@ export default function HrisServiceReviewsList({
   onPageChange,
   onPublish,
   onReject,
+  onUnpublish,
   onResetFilters,
 }) {
   const [activeModal, setActiveModal] = useState(null);
@@ -27,7 +28,7 @@ export default function HrisServiceReviewsList({
   const pageLimit = metadata.limit || 8;
   const start = totalReviews === 0 ? 0 : (currentPage - 1) * pageLimit + 1;
   const end = Math.min(currentPage * pageLimit, totalReviews);
-  const isActionModal = activeModal === 'publish' || activeModal === 'reject';
+  const isActionModal = activeModal === 'publish' || activeModal === 'reject' || activeModal === 'unpublish';
 
   const openModal = (modalName, review = selectedReview) => {
     if (review) setSelectedReview(review);
@@ -54,6 +55,19 @@ export default function HrisServiceReviewsList({
     setActiveModal(null);
     setReviewNotes('');
   };
+
+  const handleUnpublish = async () => {
+    if (!selectedReview) return;
+    await onUnpublish?.(selectedReview.id, reviewNotes);
+    setActiveModal(null);
+    setReviewNotes('');
+  };
+
+  const confirmAction = {
+    publish: handlePublish,
+    reject: handleReject,
+    unpublish: handleUnpublish,
+  }[activeModal];
 
   if (loading && reviews.length === 0) {
     return (
@@ -129,7 +143,7 @@ export default function HrisServiceReviewsList({
           actionLoadingId={actionLoadingId}
           onClose={closeModal}
           onNotesChange={setReviewNotes}
-          onConfirm={activeModal === 'publish' ? handlePublish : handleReject}
+          onConfirm={confirmAction}
         />
       )}
     </div>
