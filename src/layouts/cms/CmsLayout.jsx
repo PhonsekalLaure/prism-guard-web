@@ -20,6 +20,7 @@ import '@styles/cms/CmsAnnouncements.css';
 export default function CmsLayout() {
   const location = useLocation();
   const [showLogout, setShowLogout] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const {
     currentRoutePrefixes,
     markCurrentRouteRead,
@@ -32,7 +33,7 @@ export default function CmsLayout() {
   const profile = authService.getProfile();
 
   const outletContext = useMemo(() => ({
-    toggleSidebar: () => {},
+    toggleSidebar: () => setSidebarOpen((current) => !current),
     refreshNotificationStats,
   }), [refreshNotificationStats]);
 
@@ -61,8 +62,12 @@ export default function CmsLayout() {
       <CmsSidebar
         profile={profile}
         onLogoutClick={() => setShowLogout(true)}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
         notificationStats={notificationStats}
       />
+      {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>}
+
       <main className="cms-main">
         <Outlet context={outletContext} />
       </main>

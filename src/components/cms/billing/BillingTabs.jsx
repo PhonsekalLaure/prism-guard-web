@@ -1,46 +1,74 @@
-import { useState } from 'react';
-import { FaFileInvoice, FaHistory, FaUpload } from 'react-icons/fa';
+import { FaFileInvoice } from 'react-icons/fa';
 import InvoicesTable from './InvoicesTable';
-import PaymentHistory from './PaymentHistory';
-import SubmitPaymentForm from './SubmitPaymentForm';
 
 const TABS = [
   { key: 'invoices', label: 'Invoices', icon: FaFileInvoice },
-  { key: 'history', label: 'Payment History', icon: FaHistory },
-  { key: 'submit', label: 'Submit Payment', icon: FaUpload },
 ];
 
-export default function BillingTabs() {
-  const [activeTab, setActiveTab] = useState('invoices');
-
+export default function BillingTabs({
+  invoices,
+  metadata,
+  loading,
+  filters,
+  onFilterChange,
+  onPageChange,
+  onViewInvoice,
+  onPayInvoice,
+}) {
   return (
     <div className="cms-btabs-panel">
-      {/* Tab Bar */}
       <div className="cms-btabs-bar">
-        {TABS.map((tab) => {
-          const Icon = tab.icon;
-          return (
-            <button
-              key={tab.key}
-              className={`cms-btab-btn${activeTab === tab.key ? ' active' : ''}`}
-              onClick={() => setActiveTab(tab.key)}
+        <div className="cms-btabs-left">
+          {TABS.map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                className="cms-btab-btn active"
+              >
+                <Icon className="cms-btab-icon" />
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+        <div className="cms-btabs-filters">
+          <label className="cms-btab-filter-label">
+            <span>Status</span>
+            <select
+              value={filters?.status || ''}
+              onChange={(e) => onFilterChange?.({ ...filters, status: e.target.value })}
             >
-              <Icon className="cms-btab-icon" />
-              {tab.label}
+              <option value="">All statuses</option>
+              <option value="unpaid">Unpaid</option>
+              <option value="partial">Partial</option>
+              <option value="overdue">Overdue</option>
+              <option value="verifying">Verifying</option>
+              <option value="paid">Paid</option>
+            </select>
+          </label>
+          {filters?.status && (
+            <button
+              className="cms-inv-filter-clear"
+              type="button"
+              onClick={() => onFilterChange?.({ ...filters, status: '' })}
+            >
+              Clear
             </button>
-          );
-        })}
+          )}
+        </div>
       </div>
 
-      {/* Tab Content */}
       <div className="cms-btabs-content">
-        {activeTab === 'invoices' && (
-          <InvoicesTable onSwitchToSubmit={() => setActiveTab('submit')} />
-        )}
-        {activeTab === 'history' && <PaymentHistory />}
-        {activeTab === 'submit' && (
-          <SubmitPaymentForm onCancel={() => setActiveTab('invoices')} />
-        )}
+        <InvoicesTable
+          invoices={invoices}
+          metadata={metadata}
+          loading={loading}
+          onPageChange={onPageChange}
+          onViewInvoice={onViewInvoice}
+          onPayInvoice={onPayInvoice}
+        />
       </div>
     </div>
   );

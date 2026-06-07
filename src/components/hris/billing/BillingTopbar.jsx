@@ -1,8 +1,19 @@
-import { FaBars, FaFileInvoice } from 'react-icons/fa';
+import { FaBars, FaCalendarDay, FaFileInvoice } from 'react-icons/fa';
 import { useOutletContext } from 'react-router-dom';
+import ReportActionButton from '@components/ui/ReportActionButton';
 
-export default function BillingTopbar() {
+const ALL_CUTOFFS_KEY = 'all';
+
+export default function BillingTopbar({
+  cutoffOptions = [],
+  selectedCutoffKey = '',
+  onCutoffChange,
+  onAddHoliday,
+  onGenerate,
+  generating = false,
+}) {
   const { toggleSidebar } = useOutletContext();
+  const selectedCutoff = cutoffOptions.find((option) => option.key === selectedCutoffKey);
 
   return (
     <header className="dashboard-topbar billing-topbar">
@@ -18,16 +29,40 @@ export default function BillingTopbar() {
         </div>
 
         <div className="billing-topbar-actions">
-          <select className="billing-period-select">
-            <option>Current Period: Feb 1-15, 2026</option>
-            <option>Jan 1-31, 2026</option>
-            <option>Dec 1-31, 2025</option>
-            <option>Nov 1-30, 2025</option>
-          </select>
-          <button className="btn-generate-soa">
-            <FaFileInvoice />
-            Generate all Invoice
-          </button>
+          <label className="billing-cutoff-label">
+            <span>Billing Cutoff</span>
+            <select
+              className="billing-period-select"
+              value={selectedCutoffKey}
+              onChange={(event) => onCutoffChange?.(event.target.value)}
+              aria-label="Billing cutoff"
+            >
+              <option value={ALL_CUTOFFS_KEY}>All cutoffs</option>
+              {cutoffOptions.map((option) => (
+                <option key={option.key} value={option.key} disabled={option.disabled}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <ReportActionButton
+            className="btn-generate-soa btn-add-holiday"
+            label="Add Holiday"
+            icon={FaCalendarDay}
+            disabled={!selectedCutoff || selectedCutoff.disabled || selectedCutoffKey === ALL_CUTOFFS_KEY}
+            variant="secondary"
+            onClick={onAddHoliday}
+          />
+          <ReportActionButton
+            className="btn-generate-soa"
+            label="Generate Statements"
+            loadingLabel="Generating..."
+            icon={FaFileInvoice}
+            loading={generating}
+            disabled={!selectedCutoff || selectedCutoff.disabled || selectedCutoffKey === ALL_CUTOFFS_KEY}
+            variant="primary"
+            onClick={onGenerate}
+          />
         </div>
       </div>
     </header>

@@ -1,29 +1,12 @@
-import { useState } from 'react';
-import { FaSearch, FaFilter, FaSort } from 'react-icons/fa';
+import { FaFilter, FaSearch } from 'react-icons/fa';
 
-
-export default function BillingFilterBar({ onFilterChange }) {
-  const [search, setSearch] = useState('');
-  const [status, setStatus] = useState('all');
-  const [sortBy, setSortBy] = useState('amount-highest');
-
-  const handleSearch = (e) => {
-    setSearch(e.target.value);
-    onFilterChange?.({ search: e.target.value, status, sortBy });
-  };
-
-  const handleStatus = (e) => {
-    setStatus(e.target.value);
-    onFilterChange?.({ search, status: e.target.value, sortBy });
-  };
-
-  const handleSort = (e) => {
-    setSortBy(e.target.value);
-    onFilterChange?.({ search, status, sortBy: e.target.value });
+export default function BillingFilterBar({ filters, onFilterChange }) {
+  const handleChange = (field, value) => {
+    onFilterChange?.({ ...filters, [field]: value });
   };
 
   return (
-    <div className="filter-bar three-cols">
+    <div className="filter-bar two-cols">
       <div className="filter-group">
         <label className="filter-label">
           <FaSearch className="filter-icon" />
@@ -31,9 +14,9 @@ export default function BillingFilterBar({ onFilterChange }) {
         </label>
         <input
           type="text"
-          placeholder="Search by client name"
-          value={search}
-          onChange={handleSearch}
+          placeholder="Search client or invoice"
+          value={filters.search}
+          onChange={(event) => handleChange('search', event.target.value)}
           className="filter-input"
         />
       </div>
@@ -43,25 +26,17 @@ export default function BillingFilterBar({ onFilterChange }) {
           <FaFilter className="filter-icon" />
           Payment Status
         </label>
-        <select value={status} onChange={handleStatus} className="filter-select">
-          <option value="all">All Clients</option>
-          <option value="paid">Paid</option>
-          <option value="partial">Partially Paid</option>
+        <select
+          value={filters.status}
+          onChange={(event) => handleChange('status', event.target.value)}
+          className="filter-select"
+        >
+          <option value="">All Statuses</option>
           <option value="unpaid">Unpaid</option>
+          <option value="partial">Partial</option>
+          <option value="verifying">For Review</option>
           <option value="overdue">Overdue</option>
-        </select>
-      </div>
-
-      <div className="filter-group">
-        <label className="filter-label">
-          <FaSort className="filter-icon" />
-          Status
-        </label>
-        <select value={sortBy} onChange={handleSort} className="filter-select">
-          <option value="amount-highest">Amount (Highest)</option>
-          <option value="amount-lowest">Amount (Lowest)</option>
-          <option value="due-nearest">Due Date (Nearest)</option>
-          <option value="name-az">Client Name (A-Z)</option>
+          <option value="paid">Paid</option>
         </select>
       </div>
     </div>

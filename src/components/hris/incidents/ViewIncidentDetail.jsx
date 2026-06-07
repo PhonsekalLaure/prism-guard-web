@@ -16,6 +16,7 @@ import {
 } from 'react-icons/fa';
 import { SkeletonBlock, SkeletonList } from '@components/ui/Skeleton';
 import EntityAvatar from '@components/ui/EntityAvatar';
+import ReportActionButton from '@components/ui/ReportActionButton';
 import authService from '@services/authService';
 import { formatDateTime, titleCase } from '@utils/formatters';
 
@@ -149,8 +150,10 @@ export default function ViewIncidentDetail({
   const aiStatus = incident.aiProcessingStatus || 'completed';
   const aiFailed = aiStatus === 'failed';
   const aiPending = aiStatus === 'pending';
+  const busy = Boolean(actionLoading);
   const summaryLabel = aiStatus === 'completed' ? 'AI-Generated Summary' : 'Processing Summary';
   const statusMeta = getIncidentStatusMeta(incident);
+  const clientActionKey = (request, action) => `client:${request.id}:${action}`;
 
   const openInternalReport = async () => {
     await authService.openFileUrl(incident.internalReportUrl);
@@ -265,13 +268,16 @@ export default function ViewIncidentDetail({
               </div>
               <div className="ir-client-request-actions">
                 {!hasPresidentDelivery && (
-                  <button
+                  <ReportActionButton
                     className="ir-mini-btn send"
-                    disabled={actionLoading || aiPending || (aiFailed && !incident.manualReviewApproved)}
+                    label="Generate Internal PDF"
+                    loadingLabel="Generating..."
+                    icon={FaFilePdf}
+                    loading={actionLoading === 'internal:generate'}
+                    disabled={busy || aiPending || (aiFailed && !incident.manualReviewApproved)}
+                    variant="primary"
                     onClick={() => onGenerateReport?.(incident)}
-                  >
-                    <FaFilePdf /> Generate Internal PDF
-                  </button>
+                  />
                 )}
                 {hasInternalReport && (
                   <button
@@ -283,14 +289,16 @@ export default function ViewIncidentDetail({
                   </button>
                 )}
                 {!hasPresidentDelivery && (
-                  <button
+                  <ReportActionButton
                     className="ir-mini-btn approve"
-                    type="button"
-                    disabled={actionLoading || !hasInternalReport || aiPending || (aiFailed && !incident.manualReviewApproved)}
+                    label="Send to President"
+                    loadingLabel="Sending..."
+                    icon={FaPaperPlane}
+                    loading={actionLoading === 'internal:send'}
+                    disabled={busy || !hasInternalReport || aiPending || (aiFailed && !incident.manualReviewApproved)}
+                    variant="primary"
                     onClick={() => onSendPresident?.(incident)}
-                  >
-                    <FaPaperPlane /> Send to President
-                  </button>
+                  />
                 )}
               </div>
             </div>
@@ -325,14 +333,14 @@ export default function ViewIncidentDetail({
                       <>
                         <button
                           className="ir-mini-btn approve"
-                          disabled={actionLoading}
+                          disabled={busy}
                           onClick={() => onClientRequestAction?.(request, 'approved')}
                         >
                           <FaCheck /> Approve
                         </button>
                         <button
                           className="ir-mini-btn reject"
-                          disabled={actionLoading}
+                          disabled={busy}
                           onClick={() => onClientRequestAction?.(request, 'rejected')}
                         >
                           <Icon /> Reject
@@ -341,13 +349,16 @@ export default function ViewIncidentDetail({
                     )}
                     {request.status === 'approved' && (
                       <>
-                        <button
+                        <ReportActionButton
                           className="ir-mini-btn send"
-                          disabled={actionLoading || aiPending || (aiFailed && !incident.manualReviewApproved)}
+                          label="Generate Client PDF"
+                          loadingLabel="Generating..."
+                          icon={FaFilePdf}
+                          loading={actionLoading === clientActionKey(request, 'generate')}
+                          disabled={busy || aiPending || (aiFailed && !incident.manualReviewApproved)}
+                          variant="primary"
                           onClick={() => onClientRequestAction?.(request, 'generate')}
-                        >
-                          <FaFilePdf /> Generate Client PDF
-                        </button>
+                        />
                         {request.clientReportUrl && (
                           <button
                             className="ir-mini-btn link"
@@ -357,13 +368,16 @@ export default function ViewIncidentDetail({
                             Open Client PDF
                           </button>
                         )}
-                        <button
+                        <ReportActionButton
                           className="ir-mini-btn approve"
-                          disabled={actionLoading || !request.clientReportUrl || aiPending || (aiFailed && !incident.manualReviewApproved)}
+                          label="Publish to CMS"
+                          loadingLabel="Publishing..."
+                          icon={FaPaperPlane}
+                          loading={actionLoading === clientActionKey(request, 'sent')}
+                          disabled={busy || !request.clientReportUrl || aiPending || (aiFailed && !incident.manualReviewApproved)}
+                          variant="primary"
                           onClick={() => onClientRequestAction?.(request, 'sent')}
-                        >
-                          <FaPaperPlane /> Publish to CMS
-                        </button>
+                        />
                       </>
                     )}
                     {request.status === 'sent' && request.clientReportUrl && (
@@ -388,14 +402,14 @@ export default function ViewIncidentDetail({
               <>
                 <button
                   className="ir-modal-btn resolve"
-                  disabled={actionLoading || aiPending}
+                  disabled={busy || aiPending}
                   onClick={() => onReview?.(incident, 'approved')}
                 >
                   <FaCheck /> {aiFailed ? 'Approve Manually' : 'Approve'}
                 </button>
                 <button
                   className="ir-modal-btn print"
-                  disabled={actionLoading}
+                  disabled={busy}
                   onClick={() => onReview?.(incident, 'rejected')}
                 >
                   <Icon /> Reject
@@ -405,7 +419,7 @@ export default function ViewIncidentDetail({
             {canResolve && (
               <button
                 className="ir-modal-btn share"
-                disabled={actionLoading}
+                disabled={busy}
                 onClick={() => onResolve?.(incident)}
               >
                 <FaCheckCircle /> Mark Resolved

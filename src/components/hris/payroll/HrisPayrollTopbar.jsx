@@ -4,9 +4,9 @@ import {
   FaDownload,
   FaMoneyBillWave,
   FaRedo,
-  FaSpinner,
 } from 'react-icons/fa';
 
+import ReportActionButton from '@components/ui/ReportActionButton';
 import { formatPayrollPeriodLabel } from './payrollPageUtils';
 
 function formatRunLabel(run) {
@@ -77,43 +77,78 @@ export default function HrisPayrollTopbar({
           </select>
         </label>
 
-        <button className="pr-export-btn" type="button" onClick={onExport} disabled={isBusy}>
-          <FaDownload /> Export
-        </button>
+        <ReportActionButton
+          className="pr-export-btn"
+          label="Export"
+          icon={FaDownload}
+          disabled={isBusy}
+          variant="secondary"
+          onClick={onExport}
+        />
 
         {showGenerationActions && (
           <>
-            <button className="pr-export-btn" type="button" onClick={onPreview} disabled={cutoffActionDisabled}>
-              {actionLoading === 'preview' ? <FaSpinner className="pr-spin" /> : <FaCalculator />}
-              Preview
-            </button>
+            <ReportActionButton
+              className="pr-export-btn"
+              label="Preview"
+              loadingLabel="Previewing..."
+              icon={FaCalculator}
+              loading={actionLoading === 'preview'}
+              disabled={cutoffActionDisabled}
+              variant="secondary"
+              onClick={onPreview}
+            />
 
-            <button className="pr-process-btn" type="button" onClick={onCreate} disabled={cutoffActionDisabled}>
-              {actionLoading === 'create' ? <FaSpinner className="pr-spin" /> : <FaMoneyBillWave />}
-              Create Draft
-            </button>
+            <ReportActionButton
+              className="pr-process-btn"
+              label="Create Draft"
+              loadingLabel="Creating..."
+              icon={FaMoneyBillWave}
+              loading={actionLoading === 'create'}
+              disabled={cutoffActionDisabled}
+              variant="primary"
+              onClick={onCreate}
+            />
           </>
         )}
 
         {canRecalculate && (
-          <button className="pr-export-btn" type="button" onClick={onRecalculate} disabled={isBusy}>
-            {actionLoading === 'recalculate' ? <FaSpinner className="pr-spin" /> : <FaRedo />}
-            Recalculate
-          </button>
+          <ReportActionButton
+            className="pr-export-btn"
+            label="Recalculate"
+            loadingLabel="Recalculating..."
+            icon={FaRedo}
+            loading={actionLoading === 'recalculate'}
+            disabled={isBusy}
+            variant="secondary"
+            onClick={onRecalculate}
+          />
         )}
 
         {canApprove && (
-          <button className="pr-process-btn" type="button" onClick={onApprove} disabled={isBusy}>
-            {actionLoading === 'approve' ? <FaSpinner className="pr-spin" /> : <FaCheck />}
-            Approve
-          </button>
+          <ReportActionButton
+            className="pr-process-btn"
+            label="Approve"
+            loadingLabel="Approving..."
+            icon={FaCheck}
+            loading={actionLoading === 'approve'}
+            disabled={isBusy}
+            variant="primary"
+            onClick={onApprove}
+          />
         )}
 
         {canMarkPaid && (
-          <button className="pr-process-btn success" type="button" onClick={onMarkPaid} disabled={isBusy}>
-            {actionLoading === 'markPaid' ? <FaSpinner className="pr-spin" /> : <FaCheck />}
-            Mark Paid
-          </button>
+          <ReportActionButton
+            className="pr-process-btn success"
+            label="Mark Paid"
+            loadingLabel="Saving..."
+            icon={FaCheck}
+            loading={actionLoading === 'markPaid'}
+            disabled={isBusy}
+            variant="success"
+            onClick={onMarkPaid}
+          />
         )}
       </div>
     </header>

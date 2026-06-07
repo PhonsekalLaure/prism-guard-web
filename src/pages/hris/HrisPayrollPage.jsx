@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { FaExclamationTriangle, FaTimes } from 'react-icons/fa';
+import Notification from '@components/ui/Notification';
 import HrisPayrollTopbar from '@hris-components/payroll/HrisPayrollTopbar';
 import HrisPayrollStatCards from '@hris-components/payroll/HrisPayrollStatCards';
 import HrisPayrollOngoingAlert from '@hris-components/payroll/HrisPayrollOngoingAlert';
 import HrisPayrollFilterBar from '@hris-components/payroll/HrisPayrollFilterBar';
 import HrisPayrollTable from '@hris-components/payroll/HrisPayrollTable';
+import useNotification from '@hooks/useNotification';
+import useReportAction from '@hooks/useReportAction';
 import {
   csvValue,
   getDefaultPayrollPeriod,
@@ -17,7 +19,8 @@ import {
 } from '@hris-components/payroll/payrollExport';
 import payrollService from '@services/hris/payrollService';
 import '../../styles/hris/HrisPayroll.css';
-import '@styles/components/Notification.css';
+
+const PAYROLL_PAGE_LIMIT = 10;
 
 function comparePayrollRecords(first, second) {
   const firstName = String(first.employee_name || '').toLowerCase();
@@ -41,33 +44,17 @@ export default function HrisPayrollPage() {
   const [preview, setPreview] = useState(null);
   const [loadingRuns, setLoadingRuns] = useState(true);
   const [loadingRecords, setLoadingRecords] = useState(false);
-  const [actionLoading, setActionLoading] = useState('');
   const [error, setError] = useState('');
   const [filters, setFilters] = useState({ search: '', status: '' });
-  const [toast, setToast] = useState(null);
-
-  useEffect(() => {
-    if (!toast) return undefined;
-    const timer = setTimeout(() => setToast(null), 3000);
-    return () => clearTimeout(timer);
-  }, [toast]);
+  const [recordsPage, setRecordsPage] = useState(1);
+  const { notification, showNotification, closeNotification } = useNotification();
 
   const handlePayrollError = useCallback((err, fallback) => {
-    const msg = getPayrollErrorMessage(err, fallback);
-    if (msg === 'A payroll run already exists for this period') {
-      setToast({
-        type: 'error',
-        title: 'Duplicate Payroll Run',
-        message: msg,
-      });
-      setError('');
-    } else {
-      setError(msg);
-    }
+    setError(getPayrollErrorMessage(err, fallback));
   }, []);
 
-  const loadRuns = useCallback(async (preferredRunId = selectedRunId) => {
-    setLoadingRuns(true);
+  const loadRuns = useCallback(async (preferredRunId = selectedRunId, { silent = false } = {}) => {
+    if (!silent) setLoadingRuns(true);
     try {
       const result = await payrollService.listPayrollRuns({ page: 1, limit: 25 });
       const nextRuns = result.data || [];
@@ -79,7 +66,7 @@ export default function HrisPayrollPage() {
       handlePayrollError(err, 'Failed to load payroll runs.');
       return '';
     } finally {
-      setLoadingRuns(false);
+      if (!silent) setLoadingRuns(false);
     }
   }, [selectedRunId, handlePayrollError]);
 
@@ -127,6 +114,12 @@ export default function HrisPayrollPage() {
   }, [filters.search, filters.status, preview, selectedRun]);
 
   const activeSummary = preview?.summary || selectedRun?.summary || {};
+  const totalRecordPages = Math.max(1, Math.ceil(records.length / PAYROLL_PAGE_LIMIT));
+  const pagedRecords = useMemo(() => {
+    const safePage = Math.min(recordsPage, totalRecordPages);
+    const start = (safePage - 1) * PAYROLL_PAGE_LIMIT;
+    return records.slice(start, start + PAYROLL_PAGE_LIMIT);
+  }, [records, recordsPage, totalRecordPages]);
   const statusLabel = preview
     ? 'Preview only'
     : selectedRun
@@ -135,7 +128,95 @@ export default function HrisPayrollPage() {
         ? 'Loading runs'
         : 'No run selected';
 
+  useEffect(() => {
+    if (recordsPage > totalRecordPages) setRecordsPage(totalRecordPages);
+  }, [recordsPage, totalRecordPages]);
+
+  const updateRunAfterSuccess = useCallback(async (run) => {
+    if (!run) return;
+    setSelectedRun(run);
+    setSelectedRunId(run.id);
+    await loadRuns(run.id, { silent: true });
+    setError('');
+  }, [loadRuns]);
+
+  const previewAction = useReportAction({
+    successMessage: 'Payroll preview ready.',
+    errorFallback: 'Failed to preview payroll.',
+    showNotification,
+    getErrorMessage: getPayrollErrorMessage,
+    run: () => payrollService.previewPayrollRun({
+      period_start: periodStart,
+      period_end: periodEnd,
+    }),
+    afterSuccess: async (nextPreview) => {
+      setPreview(nextPreview);
+      setSelectedRun(null);
+      setSelectedRunId('');
+      setRecordsPage(1);
+      setError('');
+    },
+  });
+
+  const createAction = useReportAction({
+    successMessage: 'Payroll draft created.',
+    errorFallback: 'Failed to create payroll run.',
+    showNotification,
+    getErrorMessage: getPayrollErrorMessage,
+    run: () => payrollService.createPayrollRun({
+      period_start: periodStart,
+      period_end: periodEnd,
+    }),
+    afterSuccess: async (run) => {
+      setPreview(null);
+      setRecordsPage(1);
+      await updateRunAfterSuccess(run);
+    },
+  });
+
+  const recalculateAction = useReportAction({
+    successMessage: 'Payroll recalculated.',
+    errorFallback: 'Failed to recalculate payroll.',
+    showNotification,
+    getErrorMessage: getPayrollErrorMessage,
+    run: () => payrollService.recalculatePayrollRun(selectedRunId),
+    afterSuccess: updateRunAfterSuccess,
+  });
+
+  const approveAction = useReportAction({
+    loadingMessage: 'Approving payroll...',
+    successMessage: 'Payroll run approved.',
+    errorFallback: 'Failed to approve payroll run.',
+    showNotification,
+    getErrorMessage: getPayrollErrorMessage,
+    run: () => payrollService.approvePayrollRun(selectedRunId),
+    afterSuccess: updateRunAfterSuccess,
+  });
+
+  const markPaidAction = useReportAction({
+    loadingMessage: 'Marking payroll as paid...',
+    successMessage: 'Payroll run marked as paid.',
+    errorFallback: 'Failed to mark payroll run as paid.',
+    showNotification,
+    getErrorMessage: getPayrollErrorMessage,
+    run: () => payrollService.markPayrollRunPaid(selectedRunId),
+    afterSuccess: updateRunAfterSuccess,
+  });
+
+  const actionLoading = previewAction.loading
+    ? 'preview'
+    : createAction.loading
+      ? 'create'
+      : recalculateAction.loading
+        ? 'recalculate'
+        : approveAction.loading
+          ? 'approve'
+          : markPaidAction.loading
+            ? 'markPaid'
+            : '';
+
   const handleSelectRun = (runId) => {
+    setRecordsPage(1);
     setSelectedRunId(runId);
     if (runId) {
       loadRunDetail(runId);
@@ -154,59 +235,12 @@ export default function HrisPayrollPage() {
     setSelectedRun(null);
     setSelectedRunId('');
     setPreview(null);
+    setRecordsPage(1);
   };
 
-  const handlePreview = async () => {
-    setActionLoading('preview');
-    try {
-      const nextPreview = await payrollService.previewPayrollRun({
-        period_start: periodStart,
-        period_end: periodEnd,
-      });
-      setPreview(nextPreview);
-      setSelectedRun(null);
-      setSelectedRunId('');
-      setError('');
-    } catch (err) {
-      handlePayrollError(err, 'Failed to preview payroll.');
-    } finally {
-      setActionLoading('');
-    }
-  };
-
-  const handleCreate = async () => {
-    setActionLoading('create');
-    try {
-      const run = await payrollService.createPayrollRun({
-        period_start: periodStart,
-        period_end: periodEnd,
-      });
-      setPreview(null);
-      setSelectedRun(run);
-      setSelectedRunId(run.id);
-      await loadRuns(run.id);
-      setError('');
-    } catch (err) {
-      handlePayrollError(err, 'Failed to create payroll run.');
-    } finally {
-      setActionLoading('');
-    }
-  };
-
-  const runAction = async (action, serviceCall, successRunId = selectedRunId) => {
-    if (!successRunId) return;
-    setActionLoading(action);
-    try {
-      const run = await serviceCall(successRunId);
-      setSelectedRun(run);
-      setSelectedRunId(run.id);
-      await loadRuns(run.id);
-      setError('');
-    } catch (err) {
-      handlePayrollError(err, 'Failed to update payroll run.');
-    } finally {
-      setActionLoading('');
-    }
+  const handleFilterChange = (nextFilters) => {
+    setFilters(nextFilters);
+    setRecordsPage(1);
   };
 
   const handleExport = () => {
@@ -228,14 +262,23 @@ export default function HrisPayrollPage() {
 
   return (
     <>
+      {notification && (
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          duration={notification.duration}
+          onClose={closeNotification}
+        />
+      )}
+
       <HrisPayrollTopbar
         actionLoading={actionLoading}
-        onApprove={() => runAction('approve', payrollService.approvePayrollRun)}
-        onCreate={handleCreate}
+        onApprove={approveAction.execute}
+        onCreate={createAction.execute}
         onExport={handleExport}
-        onMarkPaid={() => runAction('markPaid', payrollService.markPayrollRunPaid)}
-        onPreview={handlePreview}
-        onRecalculate={() => runAction('recalculate', payrollService.recalculatePayrollRun)}
+        onMarkPaid={markPaidAction.execute}
+        onPreview={previewAction.execute}
+        onRecalculate={recalculateAction.execute}
         onSelectCutoff={handleSelectCutoff}
         onSelectRun={handleSelectRun}
         cutoffOptions={cutoffOptions}
@@ -249,34 +292,19 @@ export default function HrisPayrollPage() {
         {error && <div className="pr-error-banner">{error}</div>}
         <HrisPayrollStatCards summary={activeSummary} statusLabel={statusLabel} />
         <HrisPayrollOngoingAlert run={selectedRun} preview={preview} />
-        <HrisPayrollFilterBar filters={filters} onChange={setFilters} />
+        <HrisPayrollFilterBar filters={filters} onChange={handleFilterChange} />
         <HrisPayrollTable
+          currentPage={recordsPage}
           loading={loadingRuns || loadingRecords}
+          onPageChange={setRecordsPage}
+          pageLimit={PAYROLL_PAGE_LIMIT}
           preview={preview}
-          records={records}
+          records={pagedRecords}
           run={selectedRun}
+          totalRecords={records.length}
         />
       </div>
 
-      {toast && (
-        <div className="notif-stack" aria-live="polite" aria-label="Notifications">
-          <div className={`notif notif-${toast.type} notif-enter`}>
-            <FaExclamationTriangle className="notif-icon" />
-            <div className="notif-body">
-              <span className="notif-title">{toast.title}</span>
-              <span className="notif-message">{toast.message}</span>
-            </div>
-            <button
-              className="notif-close"
-              type="button"
-              onClick={() => setToast(null)}
-              aria-label="Close notification"
-            >
-              <FaTimes />
-            </button>
-          </div>
-        </div>
-      )}
     </>
   );
 }
