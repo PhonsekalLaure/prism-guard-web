@@ -107,6 +107,11 @@ async function rejectReceipt(billingId, receiptId, payload = {}) {
   return data;
 }
 
+async function voidReceipt(billingId, receiptId, payload = {}) {
+  const { data } = await api.patch(`/${billingId}/receipts/${receiptId}/void`, payload);
+  return data;
+}
+
 export default {
   approveReceipt,
   createHoliday,
@@ -124,4 +129,5 @@ export default {
   getStats,
   rejectReceipt,
   updateHoliday,
+  voidReceipt,
 };
