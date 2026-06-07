@@ -1,6 +1,7 @@
 import {
   FaBuilding, FaCheck, FaClock, FaFilter, FaMapMarkerAlt,
   FaFileUpload, FaMoneyCheckAlt, FaRulerVertical, FaShieldAlt, FaUserTie,
+  FaMale, FaFemale,
 } from 'react-icons/fa';
 
 const DAY_OPTIONS = [
@@ -93,6 +94,22 @@ export default function GuardDeploymentSelector({
                 onChange={(e) => onFilterChange('experiencedOnly', e.target.checked)}
               />
               <FaShieldAlt /> Experienced (2+ yrs)
+            </label>
+            <label className={`gds-filter-pill${filters.maleOnly ? ' active' : ''}`}>
+              <input
+                type="checkbox"
+                checked={filters.maleOnly}
+                onChange={(e) => onFilterChange('maleOnly', e.target.checked)}
+              />
+              <FaMale /> Male
+            </label>
+            <label className={`gds-filter-pill${filters.femaleOnly ? ' active' : ''}`}>
+              <input
+                type="checkbox"
+                checked={filters.femaleOnly}
+                onChange={(e) => onFilterChange('femaleOnly', e.target.checked)}
+              />
+              <FaFemale /> Female
             </label>
           </div>
         </div>

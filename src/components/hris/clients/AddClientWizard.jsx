@@ -34,6 +34,8 @@ const INITIAL_FORM_DATA = {
     filters: {
       tallOnly: false,
       experiencedOnly: false,
+      maleOnly: false,
+      femaleOnly: false,
     },
   },
 };
@@ -72,6 +74,8 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
           siteLongitude: selectedSite.longitude,
           tallOnly: formData.initialDeployment.filters.tallOnly,
           experiencedOnly: formData.initialDeployment.filters.experiencedOnly,
+          maleOnly: formData.initialDeployment.filters.maleOnly,
+          femaleOnly: formData.initialDeployment.filters.femaleOnly,
           contractStartDate: formData.contractStartDate,
           contractEndDate: formData.contractEndDate,
         });
@@ -104,6 +108,8 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
     formData.initialDeployment.siteIndex,
     formData.initialDeployment.filters.tallOnly,
     formData.initialDeployment.filters.experiencedOnly,
+    formData.initialDeployment.filters.maleOnly,
+    formData.initialDeployment.filters.femaleOnly,
     showNotification,
   ]);
 

@@ -476,7 +476,7 @@ export default function ViewEmployeeDetail({
               <FaFileContract /> Renew Contract
             </button>
             <button className="ve-btn ve-btn-green" onClick={openDeployModal} disabled={!canWriteEmployees || data.status !== 'active' || !hasValidEmploymentContract}>
-              <FaMapMarkerAlt /> {hasActiveDeployment ? 'Transfer Assignment' : 'Assign Client'}
+              <FaMapMarkerAlt /> {hasActiveDeployment ? 'Update Assignment / Transfer' : 'Assign Client'}
             </button>
             {hasActiveDeployment && (
               <button className="ve-btn ve-btn-blue" onClick={() => setShowRelieveConfirm(true)} disabled={!canWriteEmployees || data.status !== 'active'}>

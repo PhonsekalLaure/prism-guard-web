@@ -97,7 +97,7 @@ export default function ViewClientDetail({
   const [loadingDeployable, setLoadingDeployable] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [isDeploying, setIsDeploying] = useState(false);
-  const [deployFilters, setDeployFilters] = useState({ tallOnly: false, experiencedOnly: false });
+  const [deployFilters, setDeployFilters] = useState({ tallOnly: false, experiencedOnly: false, maleOnly: false, femaleOnly: false });
   const [deployForm, setDeployForm] = useState({
     siteId: '',
     contractStartDate: '',
@@ -150,7 +150,7 @@ export default function ViewClientDetail({
       setShowDeployModal(false);
       setDeployableEmployees([]);
       setSelectedEmployee(null);
-      setDeployFilters({ tallOnly: false, experiencedOnly: false });
+      setDeployFilters({ tallOnly: false, experiencedOnly: false, maleOnly: false, femaleOnly: false });
       setDeployForm({
         siteId: '',
         contractStartDate: '',
@@ -188,6 +188,8 @@ export default function ViewClientDetail({
           siteLongitude: selectedSite.longitude,
           tallOnly: deployFilters.tallOnly,
           experiencedOnly: deployFilters.experiencedOnly,
+          maleOnly: deployFilters.maleOnly,
+          femaleOnly: deployFilters.femaleOnly,
           contractStartDate: deployForm.contractStartDate,
           contractEndDate: deployForm.contractEndDate,
         });
@@ -211,6 +213,8 @@ export default function ViewClientDetail({
     deployForm.contractEndDate,
     deployFilters.tallOnly,
     deployFilters.experiencedOnly,
+    deployFilters.maleOnly,
+    deployFilters.femaleOnly,
     data?.sites,
     showNotification,
   ]);
@@ -434,7 +438,7 @@ export default function ViewClientDetail({
   const openDeployModal = (siteId = '') => {
     setShowDeployModal(true);
     setSelectedEmployee(null);
-    setDeployFilters({ tallOnly: false, experiencedOnly: false });
+    setDeployFilters({ tallOnly: false, experiencedOnly: false, maleOnly: false, femaleOnly: false });
     setDeployForm({
       siteId: siteId || activeSites[0]?.id || '',
       contractStartDate: data.contract_start_date || '',

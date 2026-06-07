@@ -46,7 +46,7 @@ export default function DeployEmployeeDialog({
             <FaMapMarkerAlt />
           </div>
           <div className="dep-header-text">
-            <h3>{title || (isTransfer ? 'Transfer Assignment' : 'Assign to Client Site')}</h3>
+            <h3>{title || (isTransfer ? 'Update Assignment / Transfer' : 'Assign to Client Site')}</h3>
             <p>Deploying <strong>{employeeName}</strong></p>
           </div>
         </div>
@@ -222,8 +222,8 @@ export default function DeployEmployeeDialog({
           >
             {isDeploying ? <FaSpinner className="animate-spin" /> : <FaMapMarkerAlt />}
             {isDeploying
-              ? (submittingLabel || (isTransfer ? 'Transferring...' : 'Deploying...'))
-              : (submitLabel || (isTransfer ? 'Transfer Employee' : 'Deploy Employee'))}
+              ? (submittingLabel || (isTransfer ? 'Updating...' : 'Deploying...'))
+              : (submitLabel || (isTransfer ? 'Update Assignment' : 'Deploy Employee'))}
           </button>
         </div>
       </div>
