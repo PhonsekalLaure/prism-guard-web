@@ -6,6 +6,14 @@ import BillingDetailModal from '@cms-components/billing/BillingDetailModal';
 import Notification from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
 import billingService from '@services/cms/billingService';
+import { getTodayDateInputValue } from '@cms-components/billing/billingUi';
+import {
+  buildReceiptFilename,
+  buildStatementFallbackFilename,
+  downloadBlob,
+  getReceiptDownloadTarget,
+  openBlobInNewTab,
+} from '@cms-components/billing/billingFiles';
 
 const PAGE_LIMIT = 8;
 const DEFAULT_METADATA = { total: 0, page: 1, limit: PAGE_LIMIT, totalPages: 0 };
@@ -14,51 +22,12 @@ function getErrorMessage(error, fallback) {
   return error?.response?.data?.error || error?.message || fallback;
 }
 
-function sanitizeFilenamePart(value, fallback = 'file') {
-  const normalized = String(value || fallback)
-    .trim()
-    .replace(/[^a-z0-9-_]+/gi, '-')
-    .replace(/^-+|-+$/g, '')
-    .toLowerCase();
-  return normalized || fallback;
-}
-
-function buildStatementFallbackFilename(invoice) {
-  const invoiceKey = sanitizeFilenamePart(invoice?.invoice_number || invoice?.statement_no || invoice?.id, 'invoice');
-  return `prism-guard-invoice-${invoiceKey}.pdf`;
-}
-
-function buildReceiptFilename(receipt) {
-  const refKey = sanitizeFilenamePart(receipt?.reference_number || receipt?.id, 'receipt');
-  return `payment-receipt-${refKey}`;
-}
-
-function downloadBlob(blob, filename = 'download') {
-  if (!blob) return;
-  const resolvedUrl = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = resolvedUrl;
-  anchor.download = filename;
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  window.setTimeout(() => URL.revokeObjectURL(resolvedUrl), 1000);
-}
-
-function getTodayDateInputValue() {
-  const today = new Date();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-  return `${today.getFullYear()}-${month}-${day}`;
-}
-
 export default function CmsBillingPage() {
   const [invoices, setInvoices] = useState([]);
   const [metadata, setMetadata] = useState(DEFAULT_METADATA);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('invoices');
   const [filters, setFilters] = useState({ status: '' });
   const [viewingInvoice, setViewingInvoice] = useState(null);
   const [viewingInvoiceLoading, setViewingInvoiceLoading] = useState(false);
@@ -124,18 +93,8 @@ export default function CmsBillingPage() {
     }
   };
 
-  const handleViewReceipt = (invoice) => {
-    const url = invoice.latest_receipt?.receipt_url;
-    if (url) {
-      window.open(url, '_blank', 'noopener,noreferrer');
-      return;
-    }
-    showNotification('No receipt is available for this statement.', 'info');
-  };
-
-  const handleDownloadReceipt = async (receiptOrInvoice) => {
-    const receipt = receiptOrInvoice?.latest_receipt || receiptOrInvoice;
-    const billingId = receipt?.billing_id || (receiptOrInvoice?.latest_receipt ? receiptOrInvoice.id : '');
+  const handleReceiptFile = async (receiptOrInvoice, { view = false } = {}) => {
+    const { billingId, receipt } = getReceiptDownloadTarget(receiptOrInvoice);
     if (!receipt?.receipt_url) {
       showNotification('No receipt is available for this statement.', 'info');
       return;
@@ -146,11 +105,19 @@ export default function CmsBillingPage() {
     }
     try {
       const { blob, filename } = await billingService.downloadReceipt(billingId, receipt.id);
+      if (view) {
+        openBlobInNewTab(blob);
+        return;
+      }
       downloadBlob(blob, filename || buildReceiptFilename(receipt));
     } catch (error) {
       showNotification(getErrorMessage(error, 'Failed to download receipt.'), 'error');
     }
   };
+
+  const handleViewReceipt = (invoice) => handleReceiptFile(invoice, { view: true });
+
+  const handleDownloadReceipt = (receiptOrInvoice) => handleReceiptFile(receiptOrInvoice);
 
   const handleViewInvoice = async (invoice) => {
     setViewingInvoice(invoice);
@@ -254,9 +221,7 @@ export default function CmsBillingPage() {
           invoices={invoices}
           metadata={metadata}
           loading={loading}
-          activeTab={activeTab}
           filters={filters}
-          onTabChange={setActiveTab}
           onFilterChange={handleFilterChange}
           onPageChange={(page) => loadInvoices(page, filters)}
           onViewInvoice={handleViewInvoice}

@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import BillingTopbar from '@hris-components/billing/BillingTopbar';
 import BillingStatCards from '@hris-components/billing/BillingStatCards';
 import BillingFilterBar from '@hris-components/billing/BillingFilterBar';
+import BillingGenerationPreviewDialog from '@hris-components/billing/BillingGenerationPreviewDialog';
 import BillingTable from '@hris-components/billing/BillingTable';
 import BillingHolidayModal from '@hris-components/billing/BillingHolidayModal';
 import Notification from '@components/ui/Notification';
@@ -19,15 +20,6 @@ const ALL_CUTOFFS_KEY = 'all';
 function getErrorMessage(error, fallback) {
   return error?.response?.data?.error || error?.message || fallback;
 }
-
-function formatPreviewCurrency(value) {
-  return `PHP ${Number(value || 0).toLocaleString('en-PH', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
-}
-
-
 
 function resolveCutoffState(cutoffOptions, defaultPeriod, cutoffKey) {
   if (cutoffKey === ALL_CUTOFFS_KEY) {
@@ -241,6 +233,7 @@ export default function BillingPage() {
           .map((item) => item.client_id),
       ];
       setSelectedClients(initialChecked);
+      setExpandedClients([]);
       setConfirmGeneration({ cutoff, preview });
     } catch (error) {
       showNotification(getErrorMessage(error, 'Failed to preview billing statements.'), 'error');
@@ -296,10 +289,6 @@ export default function BillingPage() {
     }
   };
 
-  const requestDeleteHoliday = (holiday) => {
-    setHolidayDeleteTarget(holiday);
-  };
-
   const confirmDeleteHoliday = async () => {
     if (!holidayDeleteTarget) return;
     try {
@@ -332,9 +321,9 @@ export default function BillingPage() {
     );
   };
 
-  const toggleClientExpanded = (clientId, e) => {
-    e.stopPropagation();
-    e.preventDefault();
+  const toggleClientExpanded = (clientId, event) => {
+    event.stopPropagation();
+    event.preventDefault();
     setExpandedClients((prev) =>
       prev.includes(clientId)
         ? prev.filter((id) => id !== clientId)
@@ -392,243 +381,16 @@ export default function BillingPage() {
         />
       </div>
 
-      <ReportConfirmDialog
-        open={Boolean(confirmGeneration)}
-        title={
-          (confirmGeneration?.preview?.blocked || []).length > 0
-            ? 'Preview: Review and Confirm Statements'
-            : 'Generate Previewed Statements?'
-        }
-        description={
-          confirmGeneration
-            ? `Billing statement generation preview for ${confirmGeneration.cutoff.label}.`
-            : ''
-        }
-        confirmLabel="Apply Preview"
+      <BillingGenerationPreviewDialog
+        confirmGeneration={confirmGeneration}
+        expandedClients={expandedClients}
         loading={generateStatementsAction.loading}
-        tone={
-          (confirmGeneration?.preview?.blocked || []).length > 0
-            ? 'warning'
-            : (confirmGeneration?.preview?.summary?.refreshed || 0) > 0
-            ? 'warning'
-            : 'info'
-        }
-        width="min(680px, 100%)"
+        selectedClients={selectedClients}
         onCancel={() => setConfirmGeneration(null)}
         onConfirm={handleConfirmRegenerate}
-      >
-        {confirmGeneration?.preview && (
-          <div className="billing-preview-summary-container">
-            {/* Stats Row */}
-            <div className="billing-preview-stats-row">
-              <div className="preview-stat-card preview-stat-card--new">
-                <span className="stat-count">{confirmGeneration.preview.summary.created || 0}</span>
-                <span className="stat-label">New</span>
-              </div>
-              <div className="preview-stat-card preview-stat-card--refreshed">
-                <span className="stat-count">{confirmGeneration.preview.summary.refreshed || 0}</span>
-                <span className="stat-label">Updated</span>
-              </div>
-              <div className="preview-stat-card preview-stat-card--skipped">
-                <span className="stat-count">{confirmGeneration.preview.summary.skipped || 0}</span>
-                <span className="stat-label">Skipped</span>
-              </div>
-              <div className="preview-stat-card preview-stat-card--blocked">
-                <span className="stat-count">{confirmGeneration.preview.summary.blocked || 0}</span>
-                <span className="stat-label">Blocked</span>
-              </div>
-            </div>
-
-            {/* Total Proposed Amount */}
-            <div className="billing-preview-total-card">
-              <span className="total-label">Total Proposed Billing</span>
-              <span className="total-amount">
-                {formatPreviewCurrency(confirmGeneration.preview.summary.total_proposed || 0)}
-              </span>
-            </div>
-
-            {/* Holidays Alert Banner */}
-            {confirmGeneration.preview.holidays && confirmGeneration.preview.holidays.length > 0 && (
-              <div className="billing-preview-holidays-alert">
-                <div className="holidays-alert-header">
-                  <span className="holiday-icon">📅</span>
-                  <span>Includes {confirmGeneration.preview.holidays.length} holiday{confirmGeneration.preview.holidays.length > 1 ? 's' : ''} in this period</span>
-                </div>
-                <div className="holidays-list">
-                  {confirmGeneration.preview.holidays.map((h, i) => (
-                    <span key={i} className="holiday-tag">
-                      <strong>{h.name}</strong> (+{formatPreviewCurrency(h.rate_per_guard)}/guard)
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Selection Checklist */}
-            <div className="billing-preview-list">
-              {(confirmGeneration.preview.blocked || []).length > 0 && (
-                <div className="billing-preview-group billing-preview-group--blocked">
-                  <h4>Blocked Paid Statements ({(confirmGeneration.preview.blocked || []).length})</h4>
-                  <p className="group-warning-text">
-                    Checking these will force recalculation, reverting status to partial or creating client credit. Unchecked items will be skipped.
-                  </p>
-                  {confirmGeneration.preview.blocked.map((item) => (
-                    <div key={item.client_id} className="billing-preview-item-wrapper">
-                      <div className="billing-preview-item" onClick={() => toggleClientSelection(item.client_id)}>
-                        <input
-                          type="checkbox"
-                          checked={selectedClients.includes(item.client_id)}
-                          onChange={() => {}}
-                        />
-                        <span className="client-name">{item.company}</span>
-                        <div className="proposed-total-wrapper">
-                          <span className="proposed-total">
-                            {formatPreviewCurrency(item.proposed_total)}
-                            <span className={`delta-badge ${item.delta > 0 ? 'delta-badge--danger' : 'delta-badge--success'}`}>
-                              {item.delta >= 0 ? '+' : ''}{formatPreviewCurrency(item.delta)}
-                            </span>
-                          </span>
-                          <button
-                            className={`expand-details-btn ${expandedClients.includes(item.client_id) ? 'expanded' : ''}`}
-                            onClick={(e) => toggleClientExpanded(item.client_id, e)}
-                            title="View Statement Breakdown"
-                            type="button"
-                          >
-                            ▼
-                          </button>
-                        </div>
-                      </div>
-                      {expandedClients.includes(item.client_id) && (
-                        <div className="billing-preview-item-details">
-                          <div className="details-header">
-                            <span>{item.guard_count} Guards × {formatPreviewCurrency(item.rate_per_guard)}/guard</span>
-                          </div>
-                          <table className="details-table">
-                            <tbody>
-                              {(item.line_items || []).map((li, i) => (
-                                <tr key={i}>
-                                  <td>
-                                    <span className="li-desc">{li.description}</span>
-                                    {li.detail && <span className="li-detail">{li.detail}</span>}
-                                  </td>
-                                  <td className="li-amount">{formatPreviewCurrency(li.amount)}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {(confirmGeneration.preview.created || []).length > 0 && (
-                <div className="billing-preview-group">
-                  <h4>New Statements ({(confirmGeneration.preview.created || []).length})</h4>
-                  {confirmGeneration.preview.created.map((item) => (
-                    <div key={item.client_id} className="billing-preview-item-wrapper">
-                      <div className="billing-preview-item" onClick={() => toggleClientSelection(item.client_id)}>
-                        <input
-                          type="checkbox"
-                          checked={selectedClients.includes(item.client_id)}
-                          onChange={() => {}}
-                        />
-                        <span className="client-name">{item.company}</span>
-                        <div className="proposed-total-wrapper">
-                          <span className="proposed-total">{formatPreviewCurrency(item.proposed_total)}</span>
-                          <button
-                            className={`expand-details-btn ${expandedClients.includes(item.client_id) ? 'expanded' : ''}`}
-                            onClick={(e) => toggleClientExpanded(item.client_id, e)}
-                            title="View Statement Breakdown"
-                            type="button"
-                          >
-                            ▼
-                          </button>
-                        </div>
-                      </div>
-                      {expandedClients.includes(item.client_id) && (
-                        <div className="billing-preview-item-details">
-                          <div className="details-header">
-                            <span>{item.guard_count} Guards × {formatPreviewCurrency(item.rate_per_guard)}/guard</span>
-                          </div>
-                          <table className="details-table">
-                            <tbody>
-                              {(item.line_items || []).map((li, i) => (
-                                <tr key={i}>
-                                  <td>
-                                    <span className="li-desc">{li.description}</span>
-                                    {li.detail && <span className="li-detail">{li.detail}</span>}
-                                  </td>
-                                  <td className="li-amount">{formatPreviewCurrency(li.amount)}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {(confirmGeneration.preview.refreshed || []).length > 0 && (
-                <div className="billing-preview-group">
-                  <h4>Updated Statements ({(confirmGeneration.preview.refreshed || []).length})</h4>
-                  {confirmGeneration.preview.refreshed.map((item) => (
-                    <div key={item.client_id} className="billing-preview-item-wrapper">
-                      <div className="billing-preview-item" onClick={() => toggleClientSelection(item.client_id)}>
-                        <input
-                          type="checkbox"
-                          checked={selectedClients.includes(item.client_id)}
-                          onChange={() => {}}
-                        />
-                        <span className="client-name">{item.company}</span>
-                        <div className="proposed-total-wrapper">
-                          <span className="proposed-total">
-                            {formatPreviewCurrency(item.proposed_total)}
-                            <span className="delta-badge delta-badge--neutral">
-                              {item.delta >= 0 ? '+' : ''}{formatPreviewCurrency(item.delta)}
-                            </span>
-                          </span>
-                          <button
-                            className={`expand-details-btn ${expandedClients.includes(item.client_id) ? 'expanded' : ''}`}
-                            onClick={(e) => toggleClientExpanded(item.client_id, e)}
-                            title="View Statement Breakdown"
-                            type="button"
-                          >
-                            ▼
-                          </button>
-                        </div>
-                      </div>
-                      {expandedClients.includes(item.client_id) && (
-                        <div className="billing-preview-item-details">
-                          <div className="details-header">
-                            <span>{item.guard_count} Guards × {formatPreviewCurrency(item.rate_per_guard)}/guard</span>
-                          </div>
-                          <table className="details-table">
-                            <tbody>
-                              {(item.line_items || []).map((li, i) => (
-                                <tr key={i}>
-                                  <td>
-                                    <span className="li-desc">{li.description}</span>
-                                    {li.detail && <span className="li-detail">{li.detail}</span>}
-                                  </td>
-                                  <td className="li-amount">{formatPreviewCurrency(li.amount)}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </ReportConfirmDialog>
+        onExpandClient={toggleClientExpanded}
+        onToggleClient={toggleClientSelection}
+      />
 
       <ReportConfirmDialog
         open={Boolean(holidayDeleteTarget)}
@@ -652,7 +414,7 @@ export default function BillingPage() {
         deletingId={holidayDeletingId}
         onClose={() => setHolidayModalOpen(false)}
         onSave={saveHoliday}
-        onDelete={requestDeleteHoliday}
+        onDelete={setHolidayDeleteTarget}
       />
     </>
   );

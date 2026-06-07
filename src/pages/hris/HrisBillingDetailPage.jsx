@@ -223,7 +223,7 @@ export default function HrisBillingDetailPage() {
   const reviewReceipt = pendingReceipt || receipts[0] || null;
   const lineItems = billing?.line_items || [];
   const isBusy = Boolean(busyAction);
-  const canRecalculateStatement = canReviewReceipts && ['paid', 'partial'].includes(billing?.status);
+  const canRecalculateStatement = canReviewReceipts && ['paid', 'partial', 'unpaid', 'overdue'].includes(billing?.status);
 
   const handleStatement = async (download = false) => {
     if (!billing) return;
@@ -285,6 +285,21 @@ export default function HrisBillingDetailPage() {
       downloadBlob(blob, filename || buildReceiptFilename(receipt));
     } catch (error) {
       showNotification(getErrorMessage(error, 'Failed to download payment receipt.'), 'error');
+    } finally {
+      setBusyAction('');
+    }
+  };
+
+  const handleReceiptView = async (receipt) => {
+    if (!billing?.id || !receipt?.id) return;
+    try {
+      setBusyAction(`viewReceipt:${receipt.id}`);
+      const { blob } = await billingService.downloadReceipt(billing.id, receipt.id);
+      const resolvedUrl = URL.createObjectURL(blob);
+      window.open(resolvedUrl, '_blank', 'noopener,noreferrer');
+      window.setTimeout(() => URL.revokeObjectURL(resolvedUrl), 60000);
+    } catch (error) {
+      showNotification(getErrorMessage(error, 'Failed to open payment receipt.'), 'error');
     } finally {
       setBusyAction('');
     }
@@ -498,7 +513,9 @@ export default function HrisBillingDetailPage() {
                         icon={FaEye}
                         disabled={isBusy}
                         variant="primary"
-                        onClick={() => openExternal(reviewReceipt.receipt_url)}
+                        loading={busyAction === `viewReceipt:${reviewReceipt.id}`}
+                        loadingLabel="Opening..."
+                        onClick={() => handleReceiptView(reviewReceipt)}
                       />
                       <ReportActionButton
                         className="billing-file-action"
@@ -622,8 +639,14 @@ export default function HrisBillingDetailPage() {
                         <td>
                           {receipt.receipt_url ? (
                             <div className="billing-history-actions">
-                              <button className="billing-link-button billing-link-button--view" type="button" onClick={() => openExternal(receipt.receipt_url)}>
-                                <FaEye /> View
+                              <button
+                                className="billing-link-button billing-link-button--view"
+                                type="button"
+                                onClick={() => handleReceiptView(receipt)}
+                                disabled={isBusy}
+                              >
+                                {busyAction === `viewReceipt:${receipt.id}` ? <FaSpinner className="billing-spin" /> : <FaEye />}
+                                View
                               </button>
                               <button
                                 className="billing-link-button billing-link-button--download"
@@ -682,7 +705,7 @@ export default function HrisBillingDetailPage() {
                 <span className="recalc-label">Total Amount</span>
                 <div className="recalc-comparison">
                   <span className="recalc-val recalc-val--old">{formatCurrency(statementPreview.current_total)}</span>
-                  <span className="recalc-arrow">➔</span>
+                  <span className="recalc-arrow">-&gt;</span>
                   <span className="recalc-val recalc-val--new recalc-val--bold">{formatCurrency(statementPreview.proposed_total)}</span>
                 </div>
               </div>
@@ -692,7 +715,7 @@ export default function HrisBillingDetailPage() {
                 <span className="recalc-label">Balance Due</span>
                 <div className="recalc-comparison">
                   <span className="recalc-val recalc-val--old">{formatCurrency(statementPreview.current_balance_due)}</span>
-                  <span className="recalc-arrow">➔</span>
+                  <span className="recalc-arrow">-&gt;</span>
                   <span className={`recalc-val recalc-val--new recalc-val--bold ${Number(statementPreview.proposed_balance_due) > 0 ? 'recalc-val--warning' : 'recalc-val--success'}`}>
                     {formatCurrency(statementPreview.proposed_balance_due)}
                   </span>
@@ -704,7 +727,7 @@ export default function HrisBillingDetailPage() {
                 <span className="recalc-label">Statement Status</span>
                 <div className="recalc-comparison">
                   <span className="recalc-val recalc-val--old">{formatStatus(statementPreview.status)}</span>
-                  <span className="recalc-arrow">➔</span>
+                  <span className="recalc-arrow">-&gt;</span>
                   <span className={`recalc-val recalc-val--new recalc-val--bold status-${statementPreview.target_status}`}>
                     {formatStatus(statementPreview.target_status)}
                   </span>
