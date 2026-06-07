@@ -28,7 +28,9 @@ export default function BillingInvoiceDetail({
   onViewReceipt,
 }) {
   const latestReceipt = invoice?.latest_receipt || invoice?.receipts?.[0] || null;
-  const canPay = PAYABLE_STATUSES.has(invoice?.status);
+  const balanceDue = Number(invoice?.balance_due || 0);
+  const creditBalance = Math.abs(Math.min(balanceDue, 0));
+  const canPay = PAYABLE_STATUSES.has(invoice?.status) && balanceDue > 0;
   const amountPaidLabel = invoice?.status === 'verifying' && latestReceipt ? 'Submitted Amount' : 'Amount Paid';
   const amountPaidValue = invoice?.status === 'verifying' && latestReceipt ? latestReceipt.amount : invoice?.amount_paid;
   const lineItems = invoice?.line_items || [];
@@ -89,9 +91,9 @@ export default function BillingInvoiceDetail({
           <p>{amountPaidLabel}</p>
           <strong>{formatCurrency(amountPaidValue)}</strong>
         </div>
-        <div className={`cms-bdetail-stat${Number(invoice.balance_due) > 0 ? ' cms-bdetail-stat--danger' : ' cms-bdetail-stat--success'}`}>
-          <p>Balance Due</p>
-          <strong>{formatCurrency(invoice.balance_due)}</strong>
+        <div className={`cms-bdetail-stat${balanceDue > 0 ? ' cms-bdetail-stat--danger' : ' cms-bdetail-stat--success'}`}>
+          <p>{balanceDue < 0 ? 'Credit Balance' : 'Balance Due'}</p>
+          <strong>{formatCurrency(balanceDue < 0 ? creditBalance : balanceDue)}</strong>
         </div>
         <div className="cms-bdetail-stat">
           <p>Due Date</p>

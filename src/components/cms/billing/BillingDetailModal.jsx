@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { FaArrowLeft, FaTimes } from 'react-icons/fa';
 import useActionLoading from '@hooks/useActionLoading';
 import BillingDetailSkeleton from './BillingDetailSkeleton';
@@ -19,10 +19,8 @@ export default function BillingDetailModal({
 }) {
   const [payMode, setPayMode] = useState(initialPayMode);
   const { isActionLoading, runAction } = useActionLoading();
-
-  useEffect(() => {
-    setPayMode(initialPayMode);
-  }, [initialPayMode]);
+  const canPayInvoice = Number(invoice?.balance_due || 0) > 0;
+  const effectivePayMode = payMode && canPayInvoice;
 
   if (!invoice && !loading) return null;
 
@@ -40,17 +38,17 @@ export default function BillingDetailModal({
         <div className="cms-bdetail-header">
           <div className="cms-bdetail-header-content">
             <p className="cms-bdetail-eyebrow">
-              {payMode ? 'Submit Payment' : 'Billing Statement'}
+              {effectivePayMode ? 'Submit Payment' : 'Billing Statement'}
             </p>
             <h2>{loading ? 'Loading statement...' : invoiceLabel}</h2>
-            {!loading && !payMode && invoice?.period_start && (
+            {!loading && !effectivePayMode && invoice?.period_start && (
               <p className="cms-bdetail-header-sub">
                 Period: {formatDate(invoice.period_start)} - {formatDate(invoice.period_end)}
               </p>
             )}
           </div>
           <div className="cms-bdetail-header-btns">
-            {payMode && !loading && (
+            {effectivePayMode && !loading && (
               <button
                 className="cms-bdetail-back-btn"
                 type="button"
@@ -73,7 +71,7 @@ export default function BillingDetailModal({
 
         {loading ? (
           <BillingDetailSkeleton />
-        ) : payMode ? (
+        ) : effectivePayMode ? (
           <BillingPaymentForm
             invoice={invoice}
             submitting={submitting}
@@ -86,7 +84,7 @@ export default function BillingDetailModal({
             isActionLoading={isActionLoading}
             runAction={runAction}
             onDownloadReceipt={onDownloadReceipt}
-            onPay={() => setPayMode(true)}
+            onPay={() => canPayInvoice && setPayMode(true)}
             onViewPdf={onViewPdf}
             onViewReceipt={onViewReceipt}
           />

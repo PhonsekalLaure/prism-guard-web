@@ -59,8 +59,20 @@ const cards = [
     iconBg: 'rgba(202, 138, 4, 0.12)',
     borderColor: '#ca8a04',
   },
+  {
+    label: 'Credit Balance',
+    statKey: 'credit_balance',
+    format: formatCurrency,
+    sub: 'Client credits',
+    subColor: '#0f766e',
+    valueColor: '#0f766e',
+    icon: FaCoins,
+    iconColor: '#0f766e',
+    iconBg: 'rgba(20, 184, 166, 0.12)',
+    borderColor: '#14b8a6',
+  },
 ];
 
 export default function BillingStatCards({ stats, loading = false }) {
-  return <StatCards cards={cards} stats={stats} loading={loading} columns={4} />;
+  return <StatCards cards={cards} stats={stats} loading={loading} columns={5} />;
 }

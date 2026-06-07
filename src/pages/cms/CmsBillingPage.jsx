@@ -168,11 +168,21 @@ export default function CmsBillingPage() {
   };
 
   const handlePayInvoice = async (invoice) => {
+    if (Number(invoice?.balance_due || 0) <= 0) {
+      showNotification('This statement has no balance due.', 'info');
+      return;
+    }
     setViewingInvoice(invoice);
     setOpenInPayMode(true);
     try {
       setViewingInvoiceLoading(true);
       const detail = await billingService.getBilling(invoice.id);
+      if (Number(detail?.balance_due || 0) <= 0) {
+        setViewingInvoice(detail);
+        setOpenInPayMode(false);
+        showNotification('This statement has no balance due.', 'info');
+        return;
+      }
       setViewingInvoice(detail);
     } catch (error) {
       showNotification(getErrorMessage(error, 'Failed to load billing statement.'), 'error');

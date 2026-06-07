@@ -1,4 +1,4 @@
-import { FaCheckCircle, FaClock, FaExclamationTriangle, FaReceipt } from 'react-icons/fa';
+import { FaCheckCircle, FaClock, FaCoins, FaExclamationTriangle, FaReceipt } from 'react-icons/fa';
 import StatCards from '@components/ui/StatCards';
 import { formatCurrency } from './billingUi';
 
@@ -45,6 +45,17 @@ const cards = [
     icon: FaReceipt,
     iconBg: 'rgba(9, 50, 105, 0.1)',
     iconColor: '#093269',
+  },
+  {
+    label: 'Credit Balance',
+    statKey: 'credit_balance',
+    format: formatCurrency,
+    sub: 'Applied credits',
+    valueColor: '#0f766e',
+    borderColor: '#14b8a6',
+    icon: FaCoins,
+    iconBg: 'rgba(20, 184, 166, 0.12)',
+    iconColor: '#0f766e',
   },
 ];
 

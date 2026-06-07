@@ -37,6 +37,7 @@ export function formatDateTime(value) {
 export function formatStatus(status) {
   if (status === 'verifying') return 'For Review';
   if (status === 'pending_review') return 'Pending Review';
+  if (status === 'voided') return 'Voided';
   return String(status || 'unpaid')
     .replace(/_/g, ' ')
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
@@ -62,7 +63,7 @@ export function getStatusClass(status) {
   if (status === 'verifying' || status === 'pending_review' || status === 'partial') {
     return 'cms-inv-badge cms-inv-badge--verifying';
   }
-  if (status === 'overdue' || status === 'rejected') return 'cms-inv-badge cms-inv-badge--overdue';
+  if (status === 'overdue' || status === 'rejected' || status === 'voided') return 'cms-inv-badge cms-inv-badge--overdue';
   return 'cms-inv-badge cms-inv-badge--unpaid';
 }
 

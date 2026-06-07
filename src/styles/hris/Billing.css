@@ -1,4 +1,4 @@
-﻿/* =============================================
+/* =============================================
    BILLING & PAYMENTS PAGE — Custom styles
    ============================================= */
 
@@ -1434,3 +1434,537 @@
     flex-direction: column;
   }
 }
+
+/* ─── Billing Preview List and Checklist UI ─── */
+.billing-preview-list {
+  max-height: 420px;
+  overflow-y: auto;
+  margin-top: 1rem;
+  padding: 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.billing-preview-group {
+  margin-bottom: 1.25rem;
+}
+
+.billing-preview-group:last-child {
+  margin-bottom: 0;
+}
+
+.billing-preview-group h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1e293b;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 0.25rem;
+}
+
+.billing-preview-group--blocked h4 {
+  color: #b91c1c;
+}
+
+.group-warning-text {
+  margin: -0.25rem 0 0.5rem 0;
+  font-size: 0.72rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.billing-preview-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.8rem;
+}
+
+.billing-preview-item:hover {
+  background: #edf2f7;
+}
+
+.billing-preview-item input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+.billing-preview-item .client-name {
+  flex: 1;
+  font-weight: 500;
+  color: #334155;
+}
+
+.billing-preview-item .proposed-total {
+  font-weight: 600;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.delta-badge {
+  display: inline-block;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.delta-badge--neutral {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.delta-badge--success {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.delta-badge--danger {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* ─── Billing Preview Stats & Alert Summary ─── */
+.billing-preview-summary-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+  font-family: 'Poppins', sans-serif;
+}
+
+.billing-preview-stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.preview-stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem 0.4rem;
+  border-radius: 8px;
+  text-align: center;
+  border: 1px solid transparent;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.preview-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+}
+
+.preview-stat-card .stat-count {
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.preview-stat-card .stat-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 0.15rem;
+}
+
+/* Color palettes for stats cards */
+.preview-stat-card--new {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+.preview-stat-card--new .stat-count {
+  color: #15803d;
+}
+
+.preview-stat-card--refreshed {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1e40af;
+}
+.preview-stat-card--refreshed .stat-count {
+  color: #1d4ed8;
+}
+
+.preview-stat-card--skipped {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #475569;
+}
+.preview-stat-card--skipped .stat-count {
+  color: #334155;
+}
+
+.preview-stat-card--blocked {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+.preview-stat-card--blocked .stat-count {
+  color: #b91c1c;
+}
+
+/* Total Card */
+.billing-preview-total-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.25rem;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.15);
+  border: 1px solid #334155;
+}
+
+.billing-preview-total-card .total-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #94a3b8;
+  letter-spacing: 0.5px;
+}
+
+.billing-preview-total-card .total-amount {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #38bdf8;
+  font-family: 'Outfit', 'Inter', sans-serif;
+}
+
+/* Holiday Notice Alert */
+.billing-preview-holidays-alert {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  background: #faf5ff;
+  border: 1px solid #f3e8ff;
+  color: #581c87;
+  font-size: 0.8rem;
+}
+
+.holidays-alert-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  color: #6b21a8;
+}
+
+.holidays-alert-header .holiday-icon {
+  font-size: 1rem;
+}
+
+.holidays-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.holiday-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  background: #f3e8ff;
+  border: 1px solid #e9d5ff;
+  color: #6b21a8;
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+.holiday-tag strong {
+  font-weight: 700;
+  margin-right: 0.25rem;
+}
+
+/* ─── Individual Statement Recalculation Modal Styling ─── */
+.billing-recalc-preview-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  font-family: 'Poppins', sans-serif;
+}
+
+.billing-recalc-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.billing-recalc-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.billing-recalc-item:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.recalc-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+  flex: 0 0 130px;
+}
+
+.recalc-comparison {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.82rem;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.recalc-val {
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+.recalc-val--old {
+  color: #64748b;
+  text-decoration: line-through;
+  background: #f1f5f9;
+}
+
+.recalc-arrow {
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+.recalc-val--new {
+  font-weight: 500;
+}
+
+.recalc-val--bold {
+  font-weight: 700;
+}
+
+.recalc-val--warning {
+  color: #b45309;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+}
+
+.recalc-val--success {
+  color: #15803d;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.billing-recalc-receipts-notice {
+  font-size: 0.75rem;
+  color: #475569;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  text-align: center;
+}
+
+.billing-recalc-receipts-notice strong {
+  color: #1e3a8a;
+  font-weight: 700;
+}
+
+.status-paid {
+  color: #15803d;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+.status-partial {
+  color: #b45309;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+}
+.status-unpaid {
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+.status-overdue {
+  color: #7f1d1d;
+  background: #fff5f5;
+  border: 1px solid #feb2b2;
+}
+
+/* ─── Expandable Statement Details in Preview Modal ─── */
+.billing-preview-item-wrapper {
+  border-bottom: 1px solid #edf2f7;
+  transition: background-color 0.15s ease;
+}
+
+.billing-preview-item-wrapper:last-child {
+  border-bottom: none;
+}
+
+.billing-preview-item-wrapper:hover {
+  background: #f8fafc;
+}
+
+.billing-preview-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  cursor: pointer;
+  user-select: none;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.82rem;
+}
+
+.billing-preview-item input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  accent-color: #093269;
+  flex-shrink: 0;
+}
+
+.billing-preview-item .client-name {
+  flex: 1;
+  font-weight: 600;
+  color: #334155;
+}
+
+.proposed-total-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+.billing-preview-item .proposed-total {
+  font-weight: 700;
+  color: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.expand-details-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  border-radius: 6px;
+  color: #64748b;
+  font-size: 0.65rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  outline: none;
+}
+
+.expand-details-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+.expand-details-btn.expanded {
+  transform: rotate(180deg);
+  background: #eff6ff;
+  color: #1e40af;
+  border-color: #bfdbfe;
+}
+
+.billing-preview-item-details {
+  padding: 0.6rem 1rem 0.85rem 2.25rem;
+  background: #f8fafc;
+  border-top: 1px solid #edf2f7;
+  font-size: 0.76rem;
+  color: #475569;
+  animation: detailsFadeIn 0.2s ease;
+}
+
+@keyframes detailsFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.billing-preview-item-details .details-header {
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 0.4rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.details-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.details-table tr {
+  border-bottom: 1px dashed #e2e8f0;
+}
+
+.details-table tr:last-child {
+  border-bottom: none;
+}
+
+.details-table td {
+  padding: 0.35rem 0;
+  vertical-align: top;
+}
+
+.details-table td.li-amount {
+  text-align: right;
+  font-weight: 600;
+  color: #334155;
+  white-space: nowrap;
+  padding-left: 1rem;
+}
+
+.li-desc {
+  display: block;
+  font-weight: 500;
+  color: #334155;
+}
+
+.li-detail {
+  display: block;
+  font-size: 0.68rem;
+  color: #64748b;
+  margin-top: 0.1rem;
+}
+
+
+
+

@@ -223,6 +223,14 @@
   color: #1a1a1a;
 }
 
+.cms-inv-amount .cms-inv-muted {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #0f766e;
+}
+
 /* Status Badges */
 .cms-inv-badge {
   display: inline-block;

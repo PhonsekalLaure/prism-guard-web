@@ -20,13 +20,6 @@ function getErrorMessage(error, fallback) {
   return error?.response?.data?.error || error?.message || fallback;
 }
 
-function formatHolidayCurrency(value) {
-  return `PHP ${Number(value || 0).toLocaleString('en-PH', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
-}
-
 function formatPreviewCurrency(value) {
   return `PHP ${Number(value || 0).toLocaleString('en-PH', {
     minimumFractionDigits: 2,
@@ -34,25 +27,7 @@ function formatPreviewCurrency(value) {
   })}`;
 }
 
-function buildPreviewDescription(confirmGeneration) {
-  if (!confirmGeneration?.preview) return '';
-  const { cutoff, preview } = confirmGeneration;
-  const summary = preview.summary || {};
-  const parts = [
-    `Preview for ${cutoff.label}: ${summary.created || 0} new, ${summary.refreshed || 0} refreshed, ${summary.skipped || 0} skipped, ${summary.blocked || 0} blocked.`,
-    `Proposed total: ${formatPreviewCurrency(summary.total_proposed)}.`,
-  ];
 
-  if ((preview.holidays || []).length > 0) {
-    parts.push(`Includes ${preview.holidays.length} holiday${preview.holidays.length === 1 ? '' : 's'}: ${preview.holidays.map((holiday) => `${holiday.name} (${formatHolidayCurrency(holiday.rate_per_guard)} per guard)`).join(', ')}.`);
-  }
-
-  if ((preview.blocked || []).length > 0) {
-    parts.push(`Blocked paid statement${preview.blocked.length === 1 ? '' : 's'}: ${preview.blocked.map((item) => `${item.company} changes by ${formatPreviewCurrency(item.delta)}`).join(', ')}. These must be reviewed before generation can continue.`);
-  }
-
-  return parts.join(' ');
-}
 
 function resolveCutoffState(cutoffOptions, defaultPeriod, cutoffKey) {
   if (cutoffKey === ALL_CUTOFFS_KEY) {
@@ -100,6 +75,8 @@ export default function BillingPage() {
   const [statsLoading, setStatsLoading] = useState(true);
   const [checkingGeneration, setCheckingGeneration] = useState(false);
   const [confirmGeneration, setConfirmGeneration] = useState(null);
+  const [selectedClients, setSelectedClients] = useState([]);
+  const [expandedClients, setExpandedClients] = useState([]);
   const [holidayModalOpen, setHolidayModalOpen] = useState(false);
   const [holidays, setHolidays] = useState([]);
   const [holidaysLoading, setHolidaysLoading] = useState(false);
@@ -225,11 +202,12 @@ export default function BillingPage() {
     },
     errorFallback: 'Failed to generate billing statements.',
     showNotification,
-    run: (cutoff) => billingService.generateStatements({
+    run: ({ cutoff, clientIds }) => billingService.generateStatements({
       period_start: cutoff.periodStart,
       period_end: cutoff.periodEnd,
+      client_ids: clientIds,
     }),
-    afterSuccess: async (_result, cutoff) => {
+    afterSuccess: async (_result, { cutoff }) => {
       const nextFilters = {
         ...filters,
         periodStart: cutoff.periodStart,
@@ -256,6 +234,13 @@ export default function BillingPage() {
         period_start: cutoff.periodStart,
         period_end: cutoff.periodEnd,
       });
+      const initialChecked = [
+        ...(preview.created || []).map((item) => item.client_id),
+        ...(preview.refreshed || [])
+          .filter((item) => Number(item.delta || 0) !== 0)
+          .map((item) => item.client_id),
+      ];
+      setSelectedClients(initialChecked);
       setConfirmGeneration({ cutoff, preview });
     } catch (error) {
       showNotification(getErrorMessage(error, 'Failed to preview billing statements.'), 'error');
@@ -332,12 +317,29 @@ export default function BillingPage() {
 
   const handleConfirmRegenerate = async () => {
     if (!confirmGeneration?.cutoff) return;
-    if ((confirmGeneration.preview?.blocked || []).length > 0) {
-      showNotification('Resolve blocked paid statement changes before generating billing statements.', 'error');
-      return;
-    }
-    const result = await generateStatementsAction.execute(confirmGeneration.cutoff);
+    const result = await generateStatementsAction.execute({
+      cutoff: confirmGeneration.cutoff,
+      clientIds: selectedClients,
+    });
     if (result) setConfirmGeneration(null);
+  };
+
+  const toggleClientSelection = (clientId) => {
+    setSelectedClients((prev) =>
+      prev.includes(clientId)
+        ? prev.filter((id) => id !== clientId)
+        : [...prev, clientId]
+    );
+  };
+
+  const toggleClientExpanded = (clientId, e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setExpandedClients((prev) =>
+      prev.includes(clientId)
+        ? prev.filter((id) => id !== clientId)
+        : [...prev, clientId]
+    );
   };
 
   const clearCutoffFilter = () => {
@@ -392,15 +394,241 @@ export default function BillingPage() {
 
       <ReportConfirmDialog
         open={Boolean(confirmGeneration)}
-        title={(confirmGeneration?.preview?.blocked || []).length > 0 ? 'Preview Has Blocked Statements' : 'Generate Previewed Statements?'}
-        description={buildPreviewDescription(confirmGeneration)}
+        title={
+          (confirmGeneration?.preview?.blocked || []).length > 0
+            ? 'Preview: Review and Confirm Statements'
+            : 'Generate Previewed Statements?'
+        }
+        description={
+          confirmGeneration
+            ? `Billing statement generation preview for ${confirmGeneration.cutoff.label}.`
+            : ''
+        }
         confirmLabel="Apply Preview"
-        confirmDisabled={(confirmGeneration?.preview?.blocked || []).length > 0}
         loading={generateStatementsAction.loading}
-        tone={(confirmGeneration?.preview?.blocked || []).length > 0 ? 'danger' : ((confirmGeneration?.preview?.summary?.refreshed || 0) > 0 ? 'warning' : 'info')}
+        tone={
+          (confirmGeneration?.preview?.blocked || []).length > 0
+            ? 'warning'
+            : (confirmGeneration?.preview?.summary?.refreshed || 0) > 0
+            ? 'warning'
+            : 'info'
+        }
+        width="min(680px, 100%)"
         onCancel={() => setConfirmGeneration(null)}
         onConfirm={handleConfirmRegenerate}
-      />
+      >
+        {confirmGeneration?.preview && (
+          <div className="billing-preview-summary-container">
+            {/* Stats Row */}
+            <div className="billing-preview-stats-row">
+              <div className="preview-stat-card preview-stat-card--new">
+                <span className="stat-count">{confirmGeneration.preview.summary.created || 0}</span>
+                <span className="stat-label">New</span>
+              </div>
+              <div className="preview-stat-card preview-stat-card--refreshed">
+                <span className="stat-count">{confirmGeneration.preview.summary.refreshed || 0}</span>
+                <span className="stat-label">Updated</span>
+              </div>
+              <div className="preview-stat-card preview-stat-card--skipped">
+                <span className="stat-count">{confirmGeneration.preview.summary.skipped || 0}</span>
+                <span className="stat-label">Skipped</span>
+              </div>
+              <div className="preview-stat-card preview-stat-card--blocked">
+                <span className="stat-count">{confirmGeneration.preview.summary.blocked || 0}</span>
+                <span className="stat-label">Blocked</span>
+              </div>
+            </div>
+
+            {/* Total Proposed Amount */}
+            <div className="billing-preview-total-card">
+              <span className="total-label">Total Proposed Billing</span>
+              <span className="total-amount">
+                {formatPreviewCurrency(confirmGeneration.preview.summary.total_proposed || 0)}
+              </span>
+            </div>
+
+            {/* Holidays Alert Banner */}
+            {confirmGeneration.preview.holidays && confirmGeneration.preview.holidays.length > 0 && (
+              <div className="billing-preview-holidays-alert">
+                <div className="holidays-alert-header">
+                  <span className="holiday-icon">📅</span>
+                  <span>Includes {confirmGeneration.preview.holidays.length} holiday{confirmGeneration.preview.holidays.length > 1 ? 's' : ''} in this period</span>
+                </div>
+                <div className="holidays-list">
+                  {confirmGeneration.preview.holidays.map((h, i) => (
+                    <span key={i} className="holiday-tag">
+                      <strong>{h.name}</strong> (+{formatPreviewCurrency(h.rate_per_guard)}/guard)
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Selection Checklist */}
+            <div className="billing-preview-list">
+              {(confirmGeneration.preview.blocked || []).length > 0 && (
+                <div className="billing-preview-group billing-preview-group--blocked">
+                  <h4>Blocked Paid Statements ({(confirmGeneration.preview.blocked || []).length})</h4>
+                  <p className="group-warning-text">
+                    Checking these will force recalculation, reverting status to partial or creating client credit. Unchecked items will be skipped.
+                  </p>
+                  {confirmGeneration.preview.blocked.map((item) => (
+                    <div key={item.client_id} className="billing-preview-item-wrapper">
+                      <div className="billing-preview-item" onClick={() => toggleClientSelection(item.client_id)}>
+                        <input
+                          type="checkbox"
+                          checked={selectedClients.includes(item.client_id)}
+                          onChange={() => {}}
+                        />
+                        <span className="client-name">{item.company}</span>
+                        <div className="proposed-total-wrapper">
+                          <span className="proposed-total">
+                            {formatPreviewCurrency(item.proposed_total)}
+                            <span className={`delta-badge ${item.delta > 0 ? 'delta-badge--danger' : 'delta-badge--success'}`}>
+                              {item.delta >= 0 ? '+' : ''}{formatPreviewCurrency(item.delta)}
+                            </span>
+                          </span>
+                          <button
+                            className={`expand-details-btn ${expandedClients.includes(item.client_id) ? 'expanded' : ''}`}
+                            onClick={(e) => toggleClientExpanded(item.client_id, e)}
+                            title="View Statement Breakdown"
+                            type="button"
+                          >
+                            ▼
+                          </button>
+                        </div>
+                      </div>
+                      {expandedClients.includes(item.client_id) && (
+                        <div className="billing-preview-item-details">
+                          <div className="details-header">
+                            <span>{item.guard_count} Guards × {formatPreviewCurrency(item.rate_per_guard)}/guard</span>
+                          </div>
+                          <table className="details-table">
+                            <tbody>
+                              {(item.line_items || []).map((li, i) => (
+                                <tr key={i}>
+                                  <td>
+                                    <span className="li-desc">{li.description}</span>
+                                    {li.detail && <span className="li-detail">{li.detail}</span>}
+                                  </td>
+                                  <td className="li-amount">{formatPreviewCurrency(li.amount)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {(confirmGeneration.preview.created || []).length > 0 && (
+                <div className="billing-preview-group">
+                  <h4>New Statements ({(confirmGeneration.preview.created || []).length})</h4>
+                  {confirmGeneration.preview.created.map((item) => (
+                    <div key={item.client_id} className="billing-preview-item-wrapper">
+                      <div className="billing-preview-item" onClick={() => toggleClientSelection(item.client_id)}>
+                        <input
+                          type="checkbox"
+                          checked={selectedClients.includes(item.client_id)}
+                          onChange={() => {}}
+                        />
+                        <span className="client-name">{item.company}</span>
+                        <div className="proposed-total-wrapper">
+                          <span className="proposed-total">{formatPreviewCurrency(item.proposed_total)}</span>
+                          <button
+                            className={`expand-details-btn ${expandedClients.includes(item.client_id) ? 'expanded' : ''}`}
+                            onClick={(e) => toggleClientExpanded(item.client_id, e)}
+                            title="View Statement Breakdown"
+                            type="button"
+                          >
+                            ▼
+                          </button>
+                        </div>
+                      </div>
+                      {expandedClients.includes(item.client_id) && (
+                        <div className="billing-preview-item-details">
+                          <div className="details-header">
+                            <span>{item.guard_count} Guards × {formatPreviewCurrency(item.rate_per_guard)}/guard</span>
+                          </div>
+                          <table className="details-table">
+                            <tbody>
+                              {(item.line_items || []).map((li, i) => (
+                                <tr key={i}>
+                                  <td>
+                                    <span className="li-desc">{li.description}</span>
+                                    {li.detail && <span className="li-detail">{li.detail}</span>}
+                                  </td>
+                                  <td className="li-amount">{formatPreviewCurrency(li.amount)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {(confirmGeneration.preview.refreshed || []).length > 0 && (
+                <div className="billing-preview-group">
+                  <h4>Updated Statements ({(confirmGeneration.preview.refreshed || []).length})</h4>
+                  {confirmGeneration.preview.refreshed.map((item) => (
+                    <div key={item.client_id} className="billing-preview-item-wrapper">
+                      <div className="billing-preview-item" onClick={() => toggleClientSelection(item.client_id)}>
+                        <input
+                          type="checkbox"
+                          checked={selectedClients.includes(item.client_id)}
+                          onChange={() => {}}
+                        />
+                        <span className="client-name">{item.company}</span>
+                        <div className="proposed-total-wrapper">
+                          <span className="proposed-total">
+                            {formatPreviewCurrency(item.proposed_total)}
+                            <span className="delta-badge delta-badge--neutral">
+                              {item.delta >= 0 ? '+' : ''}{formatPreviewCurrency(item.delta)}
+                            </span>
+                          </span>
+                          <button
+                            className={`expand-details-btn ${expandedClients.includes(item.client_id) ? 'expanded' : ''}`}
+                            onClick={(e) => toggleClientExpanded(item.client_id, e)}
+                            title="View Statement Breakdown"
+                            type="button"
+                          >
+                            ▼
+                          </button>
+                        </div>
+                      </div>
+                      {expandedClients.includes(item.client_id) && (
+                        <div className="billing-preview-item-details">
+                          <div className="details-header">
+                            <span>{item.guard_count} Guards × {formatPreviewCurrency(item.rate_per_guard)}/guard</span>
+                          </div>
+                          <table className="details-table">
+                            <tbody>
+                              {(item.line_items || []).map((li, i) => (
+                                <tr key={i}>
+                                  <td>
+                                    <span className="li-desc">{li.description}</span>
+                                    {li.detail && <span className="li-detail">{li.detail}</span>}
+                                  </td>
+                                  <td className="li-amount">{formatPreviewCurrency(li.amount)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </ReportConfirmDialog>
 
       <ReportConfirmDialog
         open={Boolean(holidayDeleteTarget)}

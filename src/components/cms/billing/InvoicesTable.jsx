@@ -22,7 +22,7 @@ const statusConfig = {
 const CAN_PAY_STATUSES = new Set(['unpaid', 'partial', 'overdue']);
 
 function InvoiceActions({ invoice, onViewInvoice, onPayInvoice }) {
-  const canPay = CAN_PAY_STATUSES.has(invoice.status);
+  const canPay = CAN_PAY_STATUSES.has(invoice.status) && Number(invoice.balance_due || 0) > 0;
   return (
     <div className="cms-inv-actions">
       <button className="cms-inv-btn cms-inv-btn--receipt" type="button" onClick={() => onViewInvoice?.(invoice)}>
@@ -93,7 +93,12 @@ export default function InvoicesTable({
                 <tr key={invoice.id} className="cms-inv-row">
                   <td className="cms-inv-id">{invoice.invoice_number || invoice.statement_no || 'Statement pending'}</td>
                   <td className="cms-inv-muted">{formatPeriod(invoice)}</td>
-                  <td className="cms-inv-amount">{formatCurrency(invoice.total_amount)}</td>
+                  <td className="cms-inv-amount">
+                    {formatCurrency(invoice.total_amount)}
+                    {Number(invoice.balance_due || 0) < 0 && (
+                      <span className="cms-inv-muted">Credit: {formatCurrency(Math.abs(Number(invoice.balance_due || 0)))}</span>
+                    )}
+                  </td>
                   <td className="cms-inv-muted">{formatDate(invoice.due_date)}</td>
                   <td>
                     <span className={badge.className}>{badge.label}</span>

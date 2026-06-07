@@ -14,6 +14,7 @@ import {
 import EntityAvatar from '@components/ui/EntityAvatar';
 import Notification from '@components/ui/Notification';
 import ReportActionButton from '@components/ui/ReportActionButton';
+import ReportConfirmDialog from '@components/ui/ReportConfirmDialog';
 import { SkeletonBlock } from '@components/ui/Skeleton';
 import useNotification from '@hooks/useNotification';
 import authService from '@services/authService';
@@ -51,6 +52,7 @@ function formatDateTime(value) {
 
 function formatStatus(status) {
   if (status === 'verifying') return 'FOR REVIEW';
+  if (status === 'voided') return 'VOIDED';
   return String(status || 'unpaid').replace(/_/g, ' ').toUpperCase();
 }
 
@@ -189,6 +191,9 @@ export default function HrisBillingDetailPage() {
   const [busyAction, setBusyAction] = useState('');
   const [reviewAction, setReviewAction] = useState(null);
   const [reviewNotes, setReviewNotes] = useState('');
+  const [statementPreview, setStatementPreview] = useState(null);
+  const [voidTarget, setVoidTarget] = useState(null);
+  const [voidNotes, setVoidNotes] = useState('');
   const billingRequestRef = useRef(0);
   const { notification, showNotification, closeNotification } = useNotification();
 
@@ -218,6 +223,7 @@ export default function HrisBillingDetailPage() {
   const reviewReceipt = pendingReceipt || receipts[0] || null;
   const lineItems = billing?.line_items || [];
   const isBusy = Boolean(busyAction);
+  const canRecalculateStatement = canReviewReceipts && ['paid', 'partial'].includes(billing?.status);
 
   const handleStatement = async (download = false) => {
     if (!billing) return;
@@ -238,6 +244,34 @@ export default function HrisBillingDetailPage() {
       }
     } catch (error) {
       showNotification(getErrorMessage(error, download ? 'Failed to download billing statement.' : 'Failed to open billing statement.'), 'error');
+    } finally {
+      setBusyAction('');
+    }
+  };
+
+  const handlePreviewRecalculate = async () => {
+    if (!billing?.id) return;
+    try {
+      setBusyAction('previewRecalculate');
+      const preview = await billingService.previewStatement(billing.id);
+      setStatementPreview(preview);
+    } catch (error) {
+      showNotification(getErrorMessage(error, 'Failed to preview statement recalculation.'), 'error');
+    } finally {
+      setBusyAction('');
+    }
+  };
+
+  const handleApplyRecalculate = async () => {
+    if (!billing?.id) return;
+    try {
+      setBusyAction('applyRecalculate');
+      const updated = await billingService.generateStatement(billing.id);
+      setBilling(updated);
+      setStatementPreview(null);
+      showNotification('Billing statement recalculated.', 'success');
+    } catch (error) {
+      showNotification(getErrorMessage(error, 'Failed to recalculate billing statement.'), 'error');
     } finally {
       setBusyAction('');
     }
@@ -274,6 +308,23 @@ export default function HrisBillingDetailPage() {
       setReviewNotes('');
     } catch (error) {
       showNotification(getErrorMessage(error, 'Failed to review receipt.'), 'error');
+    } finally {
+      setBusyAction('');
+    }
+  };
+
+  const handleVoidReceipt = async (event) => {
+    event.preventDefault();
+    if (!billing?.id || !voidTarget?.id) return;
+    try {
+      setBusyAction(`voidReceipt:${voidTarget.id}`);
+      const updated = await billingService.voidReceipt(billing.id, voidTarget.id, { voidNotes });
+      setBilling(updated);
+      setVoidTarget(null);
+      setVoidNotes('');
+      showNotification('Payment receipt voided.', 'success');
+    } catch (error) {
+      showNotification(getErrorMessage(error, 'Failed to void payment receipt.'), 'error');
     } finally {
       setBusyAction('');
     }
@@ -401,6 +452,18 @@ export default function HrisBillingDetailPage() {
                     variant="secondary"
                     onClick={() => handleStatement(true)}
                   />
+                  {canRecalculateStatement && (
+                    <ReportActionButton
+                      className="billing-file-action"
+                      label="Recalculate Statement"
+                      loadingLabel="Checking..."
+                      icon={FaFileInvoiceDollar}
+                      loading={busyAction === 'previewRecalculate'}
+                      disabled={isBusy}
+                      variant="secondary"
+                      onClick={handlePreviewRecalculate}
+                    />
+                  )}
                 </div>
               </div>
 
@@ -534,12 +597,13 @@ export default function HrisBillingDetailPage() {
                       <th>Status</th>
                       <th>Review</th>
                       <th>Receipt</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {receipts.length === 0 && (
                       <tr>
-                        <td colSpan={8} style={{ textAlign: 'center' }}>No payment receipts submitted yet.</td>
+                        <td colSpan={9} style={{ textAlign: 'center' }}>No payment receipts submitted yet.</td>
                       </tr>
                     )}
                     {receipts.map((receipt) => (
@@ -573,6 +637,21 @@ export default function HrisBillingDetailPage() {
                             </div>
                           ) : '-'}
                         </td>
+                        <td>
+                          {canReviewReceipts && receipt.status === 'approved' ? (
+                            <button
+                              className="billing-link-button billing-link-button--download"
+                              type="button"
+                              disabled={isBusy}
+                              onClick={() => {
+                                setVoidTarget(receipt);
+                                setVoidNotes('');
+                              }}
+                            >
+                              <FaTimes /> Void
+                            </button>
+                          ) : '-'}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -583,6 +662,114 @@ export default function HrisBillingDetailPage() {
         )}
       </div>
       </div>
+
+      <ReportConfirmDialog
+        open={Boolean(statementPreview)}
+        title="Recalculate Statement?"
+        description={statementPreview ? `Recalculation preview for ${billing?.company || 'this client'}.` : ''}
+        confirmLabel="Save Recalculation"
+        loading={busyAction === 'applyRecalculate'}
+        tone={Number(statementPreview?.proposed_balance_due || 0) > 0 ? 'warning' : 'info'}
+        width="min(500px, 100%)"
+        onCancel={() => setStatementPreview(null)}
+        onConfirm={handleApplyRecalculate}
+      >
+        {statementPreview && (
+          <div className="billing-recalc-preview-container">
+            <div className="billing-recalc-grid">
+              {/* Total Amount comparison */}
+              <div className="billing-recalc-item">
+                <span className="recalc-label">Total Amount</span>
+                <div className="recalc-comparison">
+                  <span className="recalc-val recalc-val--old">{formatCurrency(statementPreview.current_total)}</span>
+                  <span className="recalc-arrow">➔</span>
+                  <span className="recalc-val recalc-val--new recalc-val--bold">{formatCurrency(statementPreview.proposed_total)}</span>
+                </div>
+              </div>
+
+              {/* Balance Due comparison */}
+              <div className="billing-recalc-item">
+                <span className="recalc-label">Balance Due</span>
+                <div className="recalc-comparison">
+                  <span className="recalc-val recalc-val--old">{formatCurrency(statementPreview.current_balance_due)}</span>
+                  <span className="recalc-arrow">➔</span>
+                  <span className={`recalc-val recalc-val--new recalc-val--bold ${Number(statementPreview.proposed_balance_due) > 0 ? 'recalc-val--warning' : 'recalc-val--success'}`}>
+                    {formatCurrency(statementPreview.proposed_balance_due)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Status comparison */}
+              <div className="billing-recalc-item">
+                <span className="recalc-label">Statement Status</span>
+                <div className="recalc-comparison">
+                  <span className="recalc-val recalc-val--old">{formatStatus(statementPreview.status)}</span>
+                  <span className="recalc-arrow">➔</span>
+                  <span className={`recalc-val recalc-val--new recalc-val--bold status-${statementPreview.target_status}`}>
+                    {formatStatus(statementPreview.target_status)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Approved receipts info notice */}
+            <div className="billing-recalc-receipts-notice">
+              <span>Paid Amount (Approved Receipts): <strong>{formatCurrency(statementPreview.amount_paid)}</strong> (remains unchanged)</span>
+            </div>
+          </div>
+        )}
+      </ReportConfirmDialog>
+
+      {voidTarget && (
+        <div className="report-confirm-overlay" onClick={() => !isBusy && setVoidTarget(null)}>
+          <section
+            className="report-confirm-card report-confirm-card--danger"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="billing-void-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <header className="report-confirm-header">
+              <span className="report-confirm-icon"><FaTimes /></span>
+              <div>
+                <h2 id="billing-void-title">Void Payment Receipt?</h2>
+                <p>{formatCurrency(voidTarget.amount)} from reference {voidTarget.reference_number || '-'} will no longer count toward this billing statement.</p>
+              </div>
+              <button className="report-confirm-close" type="button" aria-label="Close" onClick={() => setVoidTarget(null)} disabled={isBusy}>
+                <FaTimes />
+              </button>
+            </header>
+            <form className="billing-review-form" onSubmit={handleVoidReceipt} style={{ marginTop: 0 }}>
+              <div className="report-confirm-body" style={{ paddingBottom: '0.5rem' }}>
+                <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.4rem', color: '#475569' }}>Void Reason</label>
+                <textarea
+                  className="bp-input"
+                  rows={3}
+                  value={voidNotes}
+                  onChange={(event) => setVoidNotes(event.target.value)}
+                  required
+                  placeholder="Explain why this approved payment is being voided"
+                  style={{ width: '100%', resize: 'none' }}
+                />
+              </div>
+              <footer className="report-confirm-actions">
+                <button className="report-confirm-cancel" type="button" onClick={() => setVoidTarget(null)} disabled={isBusy}>
+                  Cancel
+                </button>
+                <ReportActionButton
+                  label="Void Payment"
+                  loadingLabel="Voiding..."
+                  icon={FaTimes}
+                  loading={busyAction === `voidReceipt:${voidTarget.id}`}
+                  disabled={isBusy}
+                  variant="danger"
+                  type="submit"
+                />
+              </footer>
+            </form>
+          </section>
+        </div>
+      )}
     </>
   );
 }

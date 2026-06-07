@@ -19,6 +19,8 @@ export default function ReportConfirmDialog({
   tone = 'info',
   onCancel,
   onConfirm,
+  children,
+  width,
 }) {
   if (!open) return null;
 
@@ -28,6 +30,7 @@ export default function ReportConfirmDialog({
     <div className="report-confirm-overlay" onClick={() => !loading && onCancel?.()}>
       <section
         className={`report-confirm-card report-confirm-card--${tone}`}
+        style={width ? { width } : undefined}
         role="dialog"
         aria-modal="true"
         aria-labelledby="report-confirm-title"
@@ -51,6 +54,12 @@ export default function ReportConfirmDialog({
             <FaTimes />
           </button>
         </header>
+
+        {children && (
+          <div className="report-confirm-body">
+            {children}
+          </div>
+        )}
 
         <footer className="report-confirm-actions">
           <button
