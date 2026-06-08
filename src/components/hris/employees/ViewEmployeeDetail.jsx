@@ -9,6 +9,7 @@ import authService from '@services/authService';
 import Notification from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
 import { hasPermission } from '@utils/adminPermissions';
+import { getAgeDateBounds, getRenewalDateBounds } from '@utils/hrisDateRules';
 
 // Tab fragments
 import PersonalTab    from './tabs/PersonalTab';
@@ -128,11 +129,13 @@ export default function ViewEmployeeDetail({
   if (!isOpen || !previewEmployee) return null;
   const data = employeeDetails || previewEmployee;
   const hasActiveDeployment = Array.isArray(data.deployments) && data.deployments.some((deployment) => deployment.status === 'active');
+  const { minStartDate: minRenewalStartDate, maxEndDate: maxRenewalEndDate } = getRenewalDateBounds(data?.current_contract_end_date);
   const contractNeedsRenewal = Boolean(data.employment_contract_needs_renewal);
   const hasValidEmploymentContract = data.employment_contract_valid !== false;
   const contractActionMessage = data.admin_action_message || 'Employment contract needs admin review.';
   const selectedDeploymentSite = sitesList.find((site) => site.id === deployForm.siteId);
   const selectedClientContractEndDate = selectedDeploymentSite?.client_contract_end_date || null;
+  const selectedClientContractStartDate = selectedDeploymentSite?.client_contract_start_date || null;
 
   const handleEdit   = () => { setEditForm(buildForm(data)); setPendingFiles({}); setIsEditing(true); };
   const handleCancel = () => { setIsEditing(false); setPendingFiles({}); };
@@ -140,6 +143,13 @@ export default function ViewEmployeeDetail({
   const handleClearanceFile = (type, file) => setPendingFiles(prev => ({ ...prev, [type]: file }));
 
   const handleSave = async () => {
+    const { min: minDobDate, max: maxDobDate } = getAgeDateBounds();
+
+    if (editForm.date_of_birth && (editForm.date_of_birth < minDobDate || editForm.date_of_birth > maxDobDate)) {
+      showNotification('Employee must be between 18 and 45 years old.', 'error');
+      return;
+    }
+
     if (isPastDate(editForm.license_expiry_date)) {
       showNotification('License expiry date cannot be earlier than today.', 'error');
       return;
@@ -199,16 +209,8 @@ export default function ViewEmployeeDetail({
   };
 
   const openRenewContractDialog = () => {
-    const baseStartDate = data.current_contract_end_date
-      ? (() => {
-        const nextDay = new Date(data.current_contract_end_date);
-        nextDay.setDate(nextDay.getDate() + 1);
-        return nextDay.toISOString().split('T')[0];
-      })()
-      : new Date().toISOString().split('T')[0];
-
     setRenewalForm({
-      contractStartDate: baseStartDate,
+      contractStartDate: minRenewalStartDate,
       contractEndDate: '',
       contractFile: null,
     });
@@ -220,8 +222,20 @@ export default function ViewEmployeeDetail({
       showNotification('Please set both renewal contract dates.', 'error');
       return;
     }
+    if (renewalForm.contractStartDate < minRenewalStartDate) {
+      showNotification(`Renewal contract start date must be on or after the day after the current contract ends (${minRenewalStartDate}).`, 'error');
+      return;
+    }
+    if (isAfterDate(renewalForm.contractStartDate, maxRenewalEndDate)) {
+      showNotification(`Renewal contract start date cannot be later than ${maxRenewalEndDate}.`, 'error');
+      return;
+    }
     if (isEarlierDate(renewalForm.contractStartDate, renewalForm.contractEndDate)) {
       showNotification('Renewal contract end date cannot be earlier than renewal contract start date.', 'error');
+      return;
+    }
+    if (isAfterDate(renewalForm.contractEndDate, maxRenewalEndDate)) {
+      showNotification(`Renewal contract end date cannot be later than ${maxRenewalEndDate}.`, 'error');
       return;
     }
     if (!renewalForm.contractFile) {
@@ -283,6 +297,14 @@ export default function ViewEmployeeDetail({
     if (!deployForm.siteId)                    { showNotification('Please select a client site.', 'error'); return; }
     if (!deployForm.baseSalary || Number(deployForm.baseSalary) <= 0) {
       showNotification('Please set the guard monthly base pay.', 'error');
+      return;
+    }
+    if (selectedClientContractStartDate && deployForm.contractStartDate && deployForm.contractStartDate < selectedClientContractStartDate) {
+      showNotification(`Deployment contract start date cannot be earlier than the client contract start date (${selectedClientContractStartDate}).`, 'error');
+      return;
+    }
+    if (selectedClientContractEndDate && deployForm.contractStartDate && isAfterDate(deployForm.contractStartDate, selectedClientContractEndDate)) {
+      showNotification(`Deployment contract start date cannot be later than the client contract end date (${selectedClientContractEndDate}).`, 'error');
       return;
     }
     if (isEarlierDate(deployForm.contractStartDate, deployForm.contractEndDate)) {
@@ -517,6 +539,7 @@ export default function ViewEmployeeDetail({
         onDeploy={handleDeploy}
         toggleScheduleDay={toggleScheduleDay}
         isTransfer={hasActiveDeployment}
+        clientContractStartDate={selectedClientContractStartDate}
         clientContractEndDate={selectedClientContractEndDate}
       />
 
@@ -532,6 +555,8 @@ export default function ViewEmployeeDetail({
           setShowRenewContractDialog(false);
         }}
         onSave={handleRenewContract}
+        minStartDate={minRenewalStartDate}
+        maxEndDate={maxRenewalEndDate}
       />
     </div>
   );

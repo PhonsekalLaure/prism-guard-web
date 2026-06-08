@@ -5,6 +5,8 @@ import employeeService from '@services/hris/employeeService';
 import clientService   from '@services/hris/clientService';
 import Notification    from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
+import { formatSiteLabel } from '@hris-components/shared/siteDisplay';
+import { getAgeDateBounds, getHireDateBounds } from '@utils/hrisDateRules';
 
 // Step fragments
 import Step1Personal   from './tabs/Step1Personal';
@@ -119,8 +121,8 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
       }));
       return;
     }
-    const site  = sites.find(s => s.id === siteId);
-    const label = site ? `${site.site_name} - ${site.clients?.company || 'Unknown Client'}` : '';
+    const site = sites.find(s => s.id === siteId);
+    const label = formatSiteLabel(site);
     const clientContractEndDate = site?.client_contract_end_date || null;
     setFormData(prev => ({
       ...prev,
@@ -148,6 +150,12 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
       if (!firstName || !lastName || !dob || !gender || !height || !civilStatus || !educationalLevel || !mobile || !email || !address || !emergencyName || !emergencyContact) {
         showNotification('Please fill in all required fields marked with *', 'error'); return false;
       }
+
+      const { min: minDobDate, max: maxDobDate } = getAgeDateBounds();
+      if (dob < minDobDate || dob > maxDobDate) {
+        showNotification('Employee must be between 18 and 45 years old.', 'error'); return false;
+      }
+
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         showNotification('Please enter a valid email address', 'error'); return false;
       }
@@ -160,6 +168,10 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
     } else if (currentStep === 2) {
       if (!formData.hireDate || !formData.position || !formData.employmentType) {
         showNotification('Please fill in all required employment fields', 'error'); return false;
+      }
+      const { min: minHireDate, max: maxHireDate } = getHireDateBounds();
+      if (formData.hireDate < minHireDate || formData.hireDate > maxHireDate) {
+        showNotification('Date hired must be between 1 year ago and 3 months in the future.', 'error'); return false;
       }
       if (formData.initialSiteId) {
         const selectedSite = sites.find((site) => site.id === formData.initialSiteId);
@@ -207,6 +219,12 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
       }
       if (!formData.contractEndDate) {
         showNotification('Please set the employee contract end date.', 'error');
+        setIsSubmitting(false);
+        return;
+      }
+      const { min: minHireDate, max: maxHireDate } = getHireDateBounds();
+      if (formData.hireDate < minHireDate || formData.hireDate > maxHireDate) {
+        showNotification('Date hired must be between 1 year ago and 3 months in the future.', 'error');
         setIsSubmitting(false);
         return;
       }

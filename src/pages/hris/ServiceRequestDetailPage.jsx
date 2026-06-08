@@ -173,6 +173,7 @@ export default function ServiceRequestDetailPage() {
   const selectedEmployee         = deployableEmployees.find((e) => e.id === selectedEmployeeId) || null;
   const selectedDeploymentSite   = sitesList.find((s) => s.id === deployForm.siteId);
   const selectedClientContractEndDate = selectedDeploymentSite?.client_contract_end_date || null;
+  const selectedClientContractStartDate = selectedDeploymentSite?.client_contract_start_date || null;
 
   const handleContinueAdditionalGuardDeploy = useCallback(() => {
     if (!selectedEmployee) return;
@@ -202,6 +203,8 @@ export default function ServiceRequestDetailPage() {
     if (!request || !selectedEmployee) return;
     if (!deployForm.siteId)                                         { setError('Please select a client site.'); return; }
     if (!deployForm.baseSalary || Number(deployForm.baseSalary) <= 0) { setError('Please set the guard monthly base pay.'); return; }
+    if (selectedClientContractStartDate && deployForm.contractStartDate && deployForm.contractStartDate < selectedClientContractStartDate) { setError(`Deployment contract start date cannot be earlier than the client contract start date (${selectedClientContractStartDate}).`); return; }
+    if (selectedClientContractEndDate && deployForm.contractStartDate && isAfterDate(deployForm.contractStartDate, selectedClientContractEndDate)) { setError(`Deployment contract start date cannot be later than the client contract end date (${selectedClientContractEndDate}).`); return; }
     if (isEarlierDate(deployForm.contractStartDate, deployForm.contractEndDate)) { setError('Deployment contract end date cannot be earlier than deployment contract start date.'); return; }
     if (isAfterDate(deployForm.contractEndDate, selectedClientContractEndDate))  { setError(`Deployment contract end date cannot be later than the client contract end date (${selectedClientContractEndDate}).`); return; }
     if (deployForm.daysOfWeek.length === 0)                         { setError('Please select at least one schedule day.'); return; }
@@ -241,7 +244,7 @@ export default function ServiceRequestDetailPage() {
     } finally {
       setIsDeploying(false);
     }
-  }, [request, selectedEmployee, deployForm, selectedClientContractEndDate, fetchRequest, fulfillmentMode]);
+  }, [request, selectedEmployee, deployForm, selectedClientContractStartDate, selectedClientContractEndDate, fetchRequest, fulfillmentMode]);
 
   const canMessage             = ['open', 'in_progress'].includes(request?.status);
   const messages               = request?.messages || [];
@@ -617,6 +620,7 @@ export default function ServiceRequestDetailPage() {
         onCancel={() => setShowDeployModal(false)}
         onDeploy={handleDeployAdditionalGuard}
         toggleScheduleDay={toggleScheduleDay}
+        clientContractStartDate={selectedClientContractStartDate}
         clientContractEndDate={selectedClientContractEndDate}
         title={fulfillmentMode === 'guard_replacement' ? 'Fulfill Guard Replacement' : undefined}
         submitLabel={fulfillmentMode === 'guard_replacement' ? 'Replace Guard' : 'Deploy Guard'}

@@ -4,6 +4,7 @@ import {
 } from 'react-icons/fa';
 import GoogleAddressAutofill from '../GoogleAddressAutofill';
 import { EditInput, EditSelect, InfoCell } from './EmployeeEditFields';
+import { getAgeDateBounds } from '@utils/hrisDateRules';
 import { EDUCATIONAL_LEVELS } from '@/constants/employees';
 
 export default function PersonalTab({
@@ -22,6 +23,8 @@ export default function PersonalTab({
   }, [avatarPreview]);
 
   const displayAvatarUrl = avatarPreview || employee.avatar_url;
+
+  const { min: minDob, max: maxDob } = getAgeDateBounds();
 
   return (
     <div className="ve-tab-content">
@@ -119,7 +122,14 @@ export default function PersonalTab({
           <div className="ve-section">
             <h3 className="ve-section-title"><FaIdCard className="ve-section-icon" /> Basic Information</h3>
             <div className="ve-edit-grid cols-3">
-              <EditInput  label="Date of Birth"          type="date"   value={editForm.date_of_birth}      onChange={v => onField('date_of_birth', v)} />
+              <EditInput
+                label="Date of Birth"
+                type="date"
+                value={editForm.date_of_birth}
+                onChange={v => onField('date_of_birth', v)}
+                min={minDob}
+                max={maxDob}
+              />
               <EditSelect label="Gender"                 value={editForm.gender}                            onChange={v => onField('gender', v)}        options={['Male', 'Female']} />
               <EditSelect label="Marital Status"         value={editForm.civil_status}                     onChange={v => onField('civil_status', v)}  options={['Single', 'Married', 'Widowed', 'Separated']} />
               <EditSelect label="Blood Type"             value={editForm.blood_type}                       onChange={v => onField('blood_type', v)}    options={['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']} />

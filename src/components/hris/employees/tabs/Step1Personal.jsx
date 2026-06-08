@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import FormField from './FormField';
 import GoogleAddressAutofill from '../GoogleAddressAutofill';
+import { getAgeDateBounds } from '@utils/hrisDateRules';
 import { EDUCATIONAL_LEVELS } from '@/constants/employees';
 
 export default function Step1Personal({ data, onChange }) {
@@ -12,6 +13,8 @@ export default function Step1Personal({ data, onChange }) {
     if (!preview) return undefined;
     return () => URL.revokeObjectURL(preview);
   }, [preview]);
+
+  const { min: minDob, max: maxDob } = getAgeDateBounds();
 
   return (
     <div className="ae-step-content">
@@ -53,12 +56,21 @@ export default function Step1Personal({ data, onChange }) {
         <FormField label="Last Name *"     type="text"   required value={data.lastName}     onChange={(e) => onChange('lastName',     e.target.value)} />
         <FormField label="Middle Name"     type="text"            value={data.middleName}    onChange={(e) => onChange('middleName',   e.target.value)} />
         <FormField label="Suffix"          type="text"            value={data.suffix}        onChange={(e) => onChange('suffix',       e.target.value)} />
-        <FormField label="Date of Birth *" type="date"   required value={data.dob}          onChange={(e) => onChange('dob',          e.target.value)} />
+        <FormField
+          label="Date of Birth *"
+          type="date"
+          required
+          value={data.dob}
+          min={minDob}
+          max={maxDob}
+          hint="Only ages 18 to 45 are eligible."
+          onChange={(e) => onChange('dob', e.target.value)}
+        />
         <FormField label="Gender *"        type="select" required value={data.gender}       onChange={(e) => onChange('gender',       e.target.value)}
           options={['Select gender', 'Male', 'Female']} />
         <FormField label="Height *"        type="text"   required value={data.height}       onChange={(e) => onChange('height',       e.target.value)} placeholder="e.g., 170 cm" />
         <FormField label="Marital Status *" type="select" required value={data.civilStatus} onChange={(e) => onChange('civilStatus',  e.target.value)}
-          options={['Select status', 'Single', 'Married', 'Widowed']} />
+          options={['Select status', 'Single', 'Married', 'Widowed', 'Separated']} />
         <FormField label="Citizenship *"   type="text"            value="Filipino" readOnly />
         <FormField label="Educational Attainment *" type="select" required value={data.educationalLevel} onChange={(e) => onChange('educationalLevel', e.target.value)}
           options={['Select level', ...EDUCATIONAL_LEVELS]} />

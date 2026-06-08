@@ -50,6 +50,7 @@ export default function GuardDeploymentSelector({
   toggleScheduleDay,
   selectionMode = 'single',
   emptyMessage = 'No deployable guards are currently available.',
+  clientContractStartDate = null,
   clientContractEndDate = null,
 }) {
   const isMultiSelect = selectionMode === 'multiple';
@@ -233,7 +234,12 @@ export default function GuardDeploymentSelector({
                     className="dep-input"
                     value={deploymentForm.contractStartDate}
                     onChange={(e) => onFieldChange('contractStartDate', e.target.value)}
+                    min={clientContractStartDate || undefined}
+                    max={deploymentForm.contractEndDate || clientContractEndDate || undefined}
                   />
+                  {clientContractStartDate && (
+                    <p className="ae-hint">Must be on or after client contract start date: {clientContractStartDate}</p>
+                  )}
                 </div>
                 <div>
                   <label className="dep-field-label">End Date</label>
@@ -242,6 +248,7 @@ export default function GuardDeploymentSelector({
                     className="dep-input"
                     value={deploymentForm.contractEndDate}
                     onChange={(e) => onFieldChange('contractEndDate', e.target.value)}
+                    min={deploymentForm.contractStartDate || clientContractStartDate || undefined}
                     max={clientContractEndDate || undefined}
                   />
                   {clientContractEndDate && (
