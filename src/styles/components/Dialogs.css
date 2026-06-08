@@ -293,6 +293,84 @@
   background: #fff;
 }
 
+.dep-site-select {
+  position: relative;
+}
+
+.dep-site-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 42px;
+  cursor: pointer;
+  background: #fff;
+  text-align: left;
+}
+
+.dep-site-select-value,
+.dep-site-select-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.dep-site-select-value {
+  min-width: 0;
+}
+
+.dep-site-select-placeholder,
+.dep-site-select-chevron {
+  color: #64748b;
+}
+
+.dep-site-select-chevron {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+}
+
+.dep-site-select-menu {
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  max-height: 250px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+.dep-site-select-option {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 0;
+  border-bottom: 1px solid #f1f5f9;
+  background: transparent;
+  color: #1e293b;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dep-site-select-option:hover,
+.dep-site-select-option.selected {
+  background: #f1f5f9;
+}
+
+.dep-site-select-option.placeholder {
+  color: #64748b;
+}
+
+.dep-site-option-avatar {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  border-radius: 50%;
+  font-size: 0.8rem;
+}
+
 .dep-grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;

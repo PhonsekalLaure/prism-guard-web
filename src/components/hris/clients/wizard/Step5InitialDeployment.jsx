@@ -1,5 +1,6 @@
 import { FaClock, FaMoneyCheckAlt, FaCalendarAlt, FaUserShield, FaFileUpload } from 'react-icons/fa';
 import GuardDeploymentSelector from '../GuardDeploymentSelector';
+import EntityAvatar from '@components/ui/EntityAvatar';
 
 const DAY_OPTIONS = [
   { value: 0, label: 'Sun' },
@@ -89,9 +90,12 @@ export default function Step5InitialDeployment({
               <div key={assignment.employeeId} className="ig-assignment-card">
                 {/* Card header */}
                 <div className="ig-assignment-card-header">
-                  <div className="ig-assignment-avatar">
-                    {(assignment.employeeName || 'G').charAt(0).toUpperCase()}
-                  </div>
+                  <EntityAvatar
+                    className="ig-assignment-avatar rounded-full"
+                    avatarUrl={assignment.avatarUrl || assignment.avatar_url}
+                    initials={(assignment.employeeName || 'G').charAt(0).toUpperCase()}
+                    alt={assignment.employeeName}
+                  />
                   <div className="ig-assignment-info">
                     <p className="ig-assignment-name">{assignment.employeeName || `Guard ${index + 1}`}</p>
                     <p className="ig-assignment-id">{assignment.employeeId}</p>
@@ -136,6 +140,8 @@ export default function Step5InitialDeployment({
                           className="dep-input"
                           value={assignment.contractStartDate}
                           onChange={(e) => onAssignmentField(assignment.employeeId, 'contractStartDate', e.target.value)}
+                          min={data.contractStartDate || undefined}
+                          max={assignment.contractEndDate || data.contractEndDate || undefined}
                         />
                       </div>
                       <div>
@@ -145,6 +151,7 @@ export default function Step5InitialDeployment({
                           className="dep-input"
                           value={assignment.contractEndDate}
                           onChange={(e) => onAssignmentField(assignment.employeeId, 'contractEndDate', e.target.value)}
+                          min={assignment.contractStartDate || data.contractStartDate || undefined}
                           max={data.contractEndDate || undefined}
                         />
                         {data.contractEndDate && (

@@ -1,5 +1,6 @@
 import { FaMapMarkerAlt, FaPencilAlt, FaPlus, FaShieldAlt, FaUsers, FaUserShield } from 'react-icons/fa';
 import EmptyState from '@components/ui/EmptyState';
+import { formatShiftTime, formatWorkDays, getShiftLabel, getShiftLabelColor } from '@utils/formatters';
 import SiteMap from '../SiteMap';
 
 function formatDate(dateStr) {
@@ -11,7 +12,6 @@ function getGuardInitials(name) {
   if (!name || name === 'Unknown') return '??';
   return name.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase();
 }
-
 
 export default function SitesTab({ client, onDeployGuard, onAddSite, onEditSite, onDeactivateSite, canManageSites = false }) {
   const sites = client.sites || [];
@@ -87,7 +87,12 @@ export default function SitesTab({ client, onDeployGuard, onAddSite, onEditSite,
                     </p>
                     {guards.length > 0 ? (
                       <div className="site-guard-list">
-                        {guards.map((guard) => (
+                        {guards.map((guard) => {
+                          const shiftLabel = guard.schedule
+                            ? getShiftLabel(guard.schedule.shift_start, guard.schedule.shift_end)
+                            : null;
+
+                          return (
                           <div key={guard.deployment_id} className="site-guard-item">
                             <div className="site-guard-avatar">
                               {guard.avatar_url ? (
@@ -103,9 +108,19 @@ export default function SitesTab({ client, onDeployGuard, onAddSite, onEditSite,
                                 <span>{guard.position}</span>
                                 <span>Since {formatDate(guard.start_date)}</span>
                               </p>
+                              {guard.schedule && (
+                                <p className="site-guard-meta" style={{ marginTop: '0.25rem' }}>
+                                  <span>{formatWorkDays(guard.schedule.days_of_week)}</span>
+                                  <span>{formatShiftTime(guard.schedule.shift_start)} - {formatShiftTime(guard.schedule.shift_end)}</span>
+                                  <span style={{ color: getShiftLabelColor(shiftLabel), fontWeight: 600 }}>
+                                    {shiftLabel}
+                                  </span>
+                                </p>
+                              )}
                             </div>
                           </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     ) : (
                       <p className="site-guards-empty">No active guards assigned to this site.</p>

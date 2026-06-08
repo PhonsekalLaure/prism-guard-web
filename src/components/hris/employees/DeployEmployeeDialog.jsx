@@ -1,4 +1,6 @@
-import { FaSpinner, FaMapMarkerAlt, FaCalendarAlt, FaClock, FaBuilding, FaFileUpload, FaCheck, FaMoneyCheckAlt } from 'react-icons/fa';
+import { useState, useRef, useEffect } from 'react';
+import { FaSpinner, FaMapMarkerAlt, FaCalendarAlt, FaClock, FaBuilding, FaFileUpload, FaCheck, FaMoneyCheckAlt, FaChevronDown } from 'react-icons/fa';
+import EntityAvatar from '@components/ui/EntityAvatar';
 
 const DAY_OPTIONS = [
   { value: 0, label: 'Sun' },
@@ -20,6 +22,86 @@ function SectionLabel({ icon: Icon, children }) {
   );
 }
 
+function formatSiteLabel(site) {
+  const baseLabel = `${site.clients?.company || 'Unknown Client'} - ${site.site_name}`;
+  return site.distance_km != null
+    ? `${baseLabel} (${site.distance_km.toFixed(2)} km)`
+    : baseLabel;
+}
+
+function SiteOptionContent({ site }) {
+  return (
+    <>
+      <EntityAvatar
+        avatarUrl={site?.clients?.avatar_url}
+        initials={(site?.clients?.company || 'C').charAt(0).toUpperCase()}
+        alt={site?.clients?.company}
+        className="dep-site-option-avatar"
+      />
+      <span>{site ? formatSiteLabel(site) : '- Select a site -'}</span>
+    </>
+  );
+}
+
+function SiteSelect({ sitesList, selectedSiteId, onSelect }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  const selectedSite = sitesList.find((site) => site.id === selectedSiteId);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSelect = (site) => {
+    onSelect(site);
+    setIsOpen(false);
+  };
+
+  return (
+    <div className="dep-site-select" ref={dropdownRef}>
+      <button
+        type="button"
+        className="dep-input dep-site-select-trigger"
+        onClick={() => setIsOpen((open) => !open)}
+      >
+        <span className={selectedSite ? 'dep-site-select-value' : 'dep-site-select-placeholder'}>
+          {selectedSite ? <SiteOptionContent site={selectedSite} /> : '- Select a site -'}
+        </span>
+        <FaChevronDown className="dep-site-select-chevron" />
+      </button>
+
+      {isOpen && (
+        <div className="dep-site-select-menu">
+          <button
+            type="button"
+            className="dep-site-select-option placeholder"
+            onClick={() => handleSelect(null)}
+          >
+            - Select a site -
+          </button>
+          {sitesList.map((site) => (
+            <button
+              type="button"
+              key={site.id}
+              className={`dep-site-select-option${selectedSiteId === site.id ? ' selected' : ''}`}
+              onClick={() => handleSelect(site)}
+            >
+              <SiteOptionContent site={site} />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function DeployEmployeeDialog({
   isOpen, employeeName, sitesList, deployForm, setDeployForm,
   isDeploying, onCancel, onDeploy, toggleScheduleDay, isTransfer = false,
@@ -31,11 +113,14 @@ export default function DeployEmployeeDialog({
 }) {
   if (!isOpen) return null;
 
-  const formatSiteLabel = (site) => {
-    const baseLabel = `${site.site_name} - ${site.clients?.company || 'Unknown Client'}`;
-    return site.distance_km != null
-      ? `${baseLabel} (${site.distance_km.toFixed(2)} km)`
-      : baseLabel;
+  const handleSiteSelect = (site) => {
+    setDeployForm((form) => ({
+      ...form,
+      siteId: site?.id || '',
+      contractEndDate: site?.client_contract_end_date && (!form.contractEndDate || form.contractEndDate > site.client_contract_end_date)
+        ? site.client_contract_end_date
+        : form.contractEndDate,
+    }));
   };
 
   return (
@@ -55,29 +140,11 @@ export default function DeployEmployeeDialog({
           <div>
             <SectionLabel icon={FaBuilding}>Client Site</SectionLabel>
             <label className="dep-field-label">Select Site <span className="req">*</span></label>
-            <select
-              className="dep-input"
-              value={deployForm.siteId}
-              onChange={(e) => {
-                const siteId = e.target.value;
-                const selectedSite = sitesList.find((site) => site.id === siteId);
-                const maxEndDate = selectedSite?.client_contract_end_date || null;
-                setDeployForm((f) => ({
-                  ...f,
-                  siteId,
-                  contractEndDate: maxEndDate && (!f.contractEndDate || f.contractEndDate > maxEndDate)
-                    ? maxEndDate
-                    : f.contractEndDate,
-                }));
-              }}
-            >
-              <option value="">- Select a site -</option>
-              {sitesList.map((site) => (
-                <option key={site.id} value={site.id}>
-                  {formatSiteLabel(site)}
-                </option>
-              ))}
-            </select>
+            <SiteSelect
+              sitesList={sitesList}
+              selectedSiteId={deployForm.siteId}
+              onSelect={handleSiteSelect}
+            />
           </div>
 
           <div>

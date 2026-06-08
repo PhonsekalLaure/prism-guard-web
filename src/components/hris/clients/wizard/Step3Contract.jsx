@@ -2,6 +2,15 @@ import { FaFileContract, FaFileUpload } from 'react-icons/fa';
 import FormField from './ClientFormField';
 
 export default function Step3Contract({ data, onChange }) {
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  // Reasonable bounds to prevent accidental extreme dates (e.g., 1899 or 2099)
+  const minStartDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate()).toISOString().split('T')[0];
+  const maxEndDateLimit = new Date(today.getFullYear() + 10, today.getMonth(), today.getDate()).toISOString().split('T')[0];
+  const minEndDate = data.contractStartDate || tomorrow.toISOString().split('T')[0];
+
   return (
     <div className="ae-step-content">
       <h3 className="ae-step-heading">
@@ -13,6 +22,8 @@ export default function Step3Contract({ data, onChange }) {
           type="date"
           required
           value={data.contractStartDate}
+          min={minStartDate}
+          max={data.contractEndDate || undefined}
           onChange={(e) => onChange('contractStartDate', e.target.value)}
         />
         <FormField
@@ -20,6 +31,8 @@ export default function Step3Contract({ data, onChange }) {
           type="date"
           required
           value={data.contractEndDate}
+          min={minEndDate}
+          max={maxEndDateLimit}
           onChange={(e) => onChange('contractEndDate', e.target.value)}
         />
         <FormField

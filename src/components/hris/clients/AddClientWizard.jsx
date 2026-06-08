@@ -212,6 +212,7 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
             {
               employeeId: employee.id,
               employeeName: employee.name,
+              avatarUrl: employee.avatar_url || null,
               baseSalary: employee.base_salary || '',
               contractStartDate: prev.contractStartDate || '',
               contractEndDate: prev.contractEndDate || '',

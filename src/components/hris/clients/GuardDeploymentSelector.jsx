@@ -3,6 +3,7 @@ import {
   FaFileUpload, FaMoneyCheckAlt, FaRulerVertical, FaShieldAlt, FaUserTie,
   FaMale, FaFemale,
 } from 'react-icons/fa';
+import EntityAvatar from '@components/ui/EntityAvatar';
 
 const DAY_OPTIONS = [
   { value: 0, label: 'Sun' },
@@ -152,9 +153,12 @@ export default function GuardDeploymentSelector({
                     checked={isSelected}
                     onChange={() => onToggleEmployee(employee)}
                   />
-                  <div className="gds-guard-avatar">
-                    {(employee.name || 'G').charAt(0).toUpperCase()}
-                  </div>
+                  <EntityAvatar
+                    className="gds-guard-avatar"
+                    avatarUrl={employee.avatar_url || employee.avatarUrl}
+                    initials={(employee.name || 'G').charAt(0).toUpperCase()}
+                    alt={employee.name}
+                  />
                   <div className="gds-guard-info">
                     <div className="gds-guard-row">
                       <p className="gds-guard-name">{employee.name}</p>
