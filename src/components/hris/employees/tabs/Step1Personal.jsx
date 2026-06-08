@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import FormField from './FormField';
 import GoogleAddressAutofill from '../GoogleAddressAutofill';
+import { EDUCATIONAL_LEVELS } from '@/constants/employees';
 
 export default function Step1Personal({ data, onChange }) {
   const preview = useMemo(() => (
@@ -60,7 +61,7 @@ export default function Step1Personal({ data, onChange }) {
           options={['Select status', 'Single', 'Married', 'Widowed']} />
         <FormField label="Citizenship *"   type="text"            value="Filipino" readOnly />
         <FormField label="Educational Attainment *" type="select" required value={data.educationalLevel} onChange={(e) => onChange('educationalLevel', e.target.value)}
-          options={['Select level', 'Elementary Graduate', 'High School Graduate', 'Vocational / TESDA', 'College Level', "Bachelor's Degree", "Master's Degree", 'Doctorate']} />
+          options={['Select level', ...EDUCATIONAL_LEVELS]} />
         <FormField label="Blood Type"      type="select"          value={data.bloodType}    onChange={(e) => onChange('bloodType',    e.target.value)}
           options={['Select blood type', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']} />
         <FormField label="Place of Birth"  type="text"            value={data.placeOfBirth} onChange={(e) => onChange('placeOfBirth', e.target.value)} placeholder="e.g., Manila City" />

@@ -1,10 +1,12 @@
 import {
+  FaBars,
   FaCalculator,
   FaCheck,
   FaDownload,
   FaMoneyBillWave,
   FaRedo,
 } from 'react-icons/fa';
+import { useOutletContext } from 'react-router-dom';
 
 import ReportActionButton from '@components/ui/ReportActionButton';
 import { formatPayrollPeriodLabel } from './payrollPageUtils';
@@ -30,6 +32,7 @@ export default function HrisPayrollTopbar({
   selectedRun,
   selectedRunId,
 }) {
+  const { toggleSidebar } = useOutletContext() || {};
   const isBusy = Boolean(actionLoading);
   const selectedCutoff = cutoffOptions.find((option) => option.key === selectedCutoffKey);
   const cutoffActionDisabled = isBusy || !selectedCutoff || selectedCutoff.disabled;
@@ -40,9 +43,14 @@ export default function HrisPayrollTopbar({
 
   return (
     <header className="pr-topbar">
-      <div className="pr-title-group">
-        <h2>Payroll Management</h2>
-        <p>Calculate, review, approve, and mark cash-released salaries as paid</p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <button className="mobile-toggle" onClick={toggleSidebar} type="button">
+          <FaBars />
+        </button>
+        <div className="pr-title-group">
+          <h2>Payroll Management</h2>
+          <p>Calculate, review, approve, and mark cash-released salaries as paid</p>
+        </div>
       </div>
 
       <div className="pr-topbar-right pr-topbar-right--payroll">

@@ -1,4 +1,5 @@
-import { FaDownload, FaCalendarAlt, FaSyncAlt } from 'react-icons/fa';
+import { FaBars, FaDownload, FaCalendarAlt, FaSyncAlt } from 'react-icons/fa';
+import { useOutletContext } from 'react-router-dom';
 
 function formatDisplayDate(date) {
   const parsedDate = new Date(`${date}T00:00:00`);
@@ -18,11 +19,18 @@ export default function HrisAttendanceTopbar({
   onRefresh,
   onExport,
 }) {
+  const { toggleSidebar } = useOutletContext() || {};
+
   return (
     <header className="ha-topbar">
-      <div className="ha-title-group">
-        <h2>Attendance Dashboard</h2>
-        <p>Live monitoring of guard attendance with GPS verification</p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <button className="mobile-toggle" onClick={toggleSidebar} type="button">
+          <FaBars />
+        </button>
+        <div className="ha-title-group">
+          <h2>Attendance Dashboard</h2>
+          <p>Live monitoring of guard attendance with GPS verification</p>
+        </div>
       </div>
       <div className="ha-topbar-right">
         <span className="ha-date-display">

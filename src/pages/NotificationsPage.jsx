@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useOutletContext } from 'react-router-dom';
 import {
+  FaBars,
   FaBell,
   FaCheck,
   FaClock,
@@ -155,7 +156,7 @@ function NotificationRow({ item, portal, onOpen, onMarkRead, onDismiss }) {
 export default function NotificationsPage({ portal = 'hris' }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { refreshNotificationStats } = useOutletContext() || {};
+  const { refreshNotificationStats, toggleSidebar } = useOutletContext() || {};
   const [notifications, setNotifications] = useState([]);
   const [stats, setStats] = useState({ total: 0, unread: 0, urgent: 0, by_type: {} });
   const [metadata, setMetadata] = useState(DEFAULT_METADATA);
@@ -318,10 +319,15 @@ export default function NotificationsPage({ portal = 'hris' }) {
       )}
 
       <header className="notif-topbar">
-        <div className="notif-title-group">
-          <div>
-            <h2>Notifications</h2>
-            <p>{portalLabel} activity inbox</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <button className="mobile-toggle" onClick={toggleSidebar} type="button">
+            <FaBars />
+          </button>
+          <div className="notif-title-group">
+            <div>
+              <h2>Notifications</h2>
+              <p>{portalLabel} activity inbox</p>
+            </div>
           </div>
         </div>
 

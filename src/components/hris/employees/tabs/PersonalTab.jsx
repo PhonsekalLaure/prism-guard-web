@@ -4,11 +4,7 @@ import {
 } from 'react-icons/fa';
 import GoogleAddressAutofill from '../GoogleAddressAutofill';
 import { EditInput, EditSelect, InfoCell } from './EmployeeEditFields';
-
-const EDUCATIONAL_LEVELS = [
-  'Elementary Graduate', 'High School Graduate', 'Vocational / TESDA',
-  'College Level', "Bachelor's Degree", "Master's Degree", 'Doctorate',
-];
+import { EDUCATIONAL_LEVELS } from '@/constants/employees';
 
 export default function PersonalTab({
   employee, canEdit, isEditing, editForm, pendingFiles,
