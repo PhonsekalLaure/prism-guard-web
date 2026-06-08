@@ -34,7 +34,17 @@ async function getPlaceDetails(placeId, signal) {
   return data;
 }
 
+async function reverseGeocode(latitude, longitude, signal) {
+  const { data } = await api.get('/reverse-geocode', {
+    params: { lat: latitude, lng: longitude },
+    signal,
+  });
+
+  return data;
+}
+
 export default {
   autocompleteAddress,
   getPlaceDetails,
+  reverseGeocode,
 };
