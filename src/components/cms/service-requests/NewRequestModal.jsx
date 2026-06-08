@@ -48,7 +48,9 @@ export default function NewRequestModal({ isOpen, onClose, onSuccess }) {
     deployedGuardsService.getAllDeployedGuards(
       1,
       500,
-      form.siteId ? { siteId: form.siteId } : {},
+      form.siteId
+        ? { siteId: form.siteId, deploymentType: 'regular' }
+        : { deploymentType: 'regular' },
     )
       .then((result) => {
         if (!cancelled) setDeployedGuards(result?.data || []);

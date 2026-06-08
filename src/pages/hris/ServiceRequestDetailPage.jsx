@@ -135,7 +135,10 @@ export default function ServiceRequestDetailPage() {
       const targetSite = request?.site_id
         ? availableSites.find((site) => site.id === request.site_id)
         : null;
-      const employees = await employeeService.getDeployableEmployees(getSiteCoordinatesParams(targetSite));
+      const employees = await employeeService.getDeployableEmployees({
+        ...getSiteCoordinatesParams(targetSite),
+        includeTemporaryRelievers: true,
+      });
       setDeployableEmployees(employees || []);
       setSitesList(availableSites);
       setShowGuardPicker(true);
@@ -157,7 +160,10 @@ export default function ServiceRequestDetailPage() {
       const replacementSiteId = request?.replacement_details?.site_id || request?.site_id;
       const sites = await clientService.getAllSitesList();
       const replacementSite = (sites || []).find((site) => site.id === replacementSiteId);
-      const employees = await employeeService.getDeployableEmployees(getSiteCoordinatesParams(replacementSite));
+      const employees = await employeeService.getDeployableEmployees({
+        ...getSiteCoordinatesParams(replacementSite),
+        includeTemporaryRelievers: true,
+      });
       setDeployableEmployees((employees || []).filter((emp) => (
         emp.id !== request?.replacement_details?.original_employee_id
       )));
