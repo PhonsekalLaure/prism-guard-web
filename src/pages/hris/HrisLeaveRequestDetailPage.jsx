@@ -5,17 +5,15 @@ import {
   FaBars,
   FaCheck,
   FaExternalLinkAlt,
-  FaFileUpload,
-  FaMapMarkerAlt,
   FaPaperclip,
   FaSpinner,
   FaTimes,
   FaTimesCircle,
-  FaUserShield,
 } from 'react-icons/fa';
 import Notification from '@components/ui/Notification';
 import { SkeletonBlock, SkeletonList } from '@components/ui/Skeleton';
 import EntityAvatar from '@components/ui/EntityAvatar';
+import LeaveApprovalCoverageFields from '@hris-components/leave-requests/LeaveApprovalCoverageFields';
 import useNotification from '@hooks/useNotification';
 import leaveRequestsService from '@services/hris/leaveRequestsService';
 import '../../styles/hris/HrisLeaveRequests.css';
@@ -61,24 +59,18 @@ function LeaveRequestDetailSkeleton() {
   );
 }
 
-function ReplacementGuardSkeletonList() {
-  return (
-    <div className="hlr-replacement-list">
-      <SkeletonList count={3}>{(index) => (
-        <div key={index} className="hlr-replacement-card">
-          <SkeletonBlock className="hlr-replacement-avatar" />
-          <div className="hlr-replacement-info">
-            <div className="hlr-replacement-row">
-              <SkeletonBlock height="0.9rem" width={150} />
-              <SkeletonBlock height={22} width={84} radius="999px" />
-            </div>
-            <SkeletonBlock height="0.75rem" width={180} style={{ marginTop: '0.3rem' }} />
-          </div>
-          <SkeletonBlock height="0.8rem" width={72} />
-        </div>
-      )}</SkeletonList>
-    </div>
-  );
+function getTodayDateKey() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function isPastSickAbsenceRequest(leaveRequest) {
+  return leaveRequest?.leaveType === 'sick'
+    && leaveRequest?.endDateRaw
+    && leaveRequest.endDateRaw < getTodayDateKey();
 }
 
 export default function HrisLeaveRequestDetailPage() {
@@ -141,7 +133,9 @@ export default function HrisLeaveRequestDetailPage() {
     setReviewNotes('');
     setCancelNotes('');
     setApprovalMode(true);
-    await loadReplacementGuards();
+    if (!isPastSickAbsenceRequest(leaveRequest)) {
+      await loadReplacementGuards();
+    }
   };
 
   const resetReviewInputs = () => {
@@ -163,13 +157,14 @@ export default function HrisLeaveRequestDetailPage() {
   };
 
   const handleApprove = async () => {
-    if (!selectedRelieverId || !deploymentOrderFile) return;
+    const requiresReplacementCoverage = !isPastSickAbsenceRequest(leaveRequest);
+    if (requiresReplacementCoverage && (!selectedRelieverId || !deploymentOrderFile)) return;
     setActionLoadingId('approve');
     try {
       await leaveRequestsService.approveLeaveRequest(id, {
-        relieverEmployeeId: selectedRelieverId,
+        relieverEmployeeId: requiresReplacementCoverage ? selectedRelieverId : '',
         reviewNotes: approvalNotes,
-        deploymentOrderFile,
+        deploymentOrderFile: requiresReplacementCoverage ? deploymentOrderFile : null,
       });
       showNotification('Leave request approved successfully.', 'success');
       resetReviewInputs();
@@ -226,6 +221,8 @@ export default function HrisLeaveRequestDetailPage() {
   const isApproving = actionLoadingId === 'approve';
   const isRejecting = actionLoadingId === 'reject';
   const isCancelling = actionLoadingId === 'cancel';
+  const isPastSickAbsence = isPastSickAbsenceRequest(leaveRequest);
+  const requiresReplacementCoverage = !isPastSickAbsence;
 
   return (
     <>
@@ -366,65 +363,16 @@ export default function HrisLeaveRequestDetailPage() {
                 <>
                   {approvalMode && (
                     <div className="hlr-approval-box">
-                      <div className="hlr-approval-heading">
-                        <FaUserShield />
-                        <div>
-                          <p>Replacement Guard</p>
-                          <span>Relievers are listed first, then floating guards, then guards on days off.</span>
-                        </div>
-                      </div>
-
-                      {replacementLoading ? (
-                        <ReplacementGuardSkeletonList />
-                      ) : replacementGuards.length === 0 ? (
-                        <div className="hlr-replacement-empty">
-                          No replacement guards match this leave request and site location.
-                        </div>
-                      ) : (
-                        <div className="hlr-replacement-list">
-                          {replacementGuards.map((guard) => {
-                            const isSelected = selectedRelieverId === guard.id;
-                            return (
-                              <button
-                                key={guard.id}
-                                type="button"
-                                className={`hlr-replacement-card${isSelected ? ' selected' : ''}`}
-                                onClick={() => setSelectedRelieverId(guard.id)}
-                              >
-                                <div className="hlr-replacement-avatar">
-                                  {(guard.name || 'G').charAt(0).toUpperCase()}
-                                </div>
-                                <div className="hlr-replacement-info">
-                                  <div className="hlr-replacement-row">
-                                    <p>{guard.name}</p>
-                                    <span className={`hlr-replacement-chip ${guard.availability_type}`}>
-                                      {guard.availability_label}
-                                    </span>
-                                  </div>
-                                  <span>{guard.employee_id_number} - {guard.position}</span>
-                                </div>
-                                <div className="hlr-replacement-distance">
-                                  <FaMapMarkerAlt />
-                                  {guard.distance_km == null ? 'No coords' : `${guard.distance_km} km`}
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
-
-                      <div>
-                        <span className="hlr-modal-section-label">Temporary Deployment Order</span>
-                        <label className={`hlr-upload-zone${deploymentOrderFile ? ' has-file' : ''}`}>
-                          <input
-                            type="file"
-                            accept=".pdf,image/*"
-                            onChange={(event) => setDeploymentOrderFile(event.target.files?.[0] || null)}
-                          />
-                          <FaFileUpload />
-                          <span>{deploymentOrderFile?.name || 'Upload temporary deployment order'}</span>
-                        </label>
-                      </div>
+                      {requiresReplacementCoverage ? (
+                        <LeaveApprovalCoverageFields
+                          deploymentOrderFile={deploymentOrderFile}
+                          onDeploymentOrderFileChange={setDeploymentOrderFile}
+                          onRelieverSelect={setSelectedRelieverId}
+                          replacementGuards={replacementGuards}
+                          replacementLoading={replacementLoading}
+                          selectedRelieverId={selectedRelieverId}
+                        />
+                      ) : null}
 
                       <div>
                         <span className="hlr-modal-section-label">Approval Notes (Optional)</span>
@@ -467,7 +415,7 @@ export default function HrisLeaveRequestDetailPage() {
                       <button
                         className="hlr-btn approve"
                         onClick={handleApprove}
-                        disabled={isApproving || replacementLoading || !selectedRelieverId || !deploymentOrderFile}
+                        disabled={isApproving || replacementLoading || (requiresReplacementCoverage && (!selectedRelieverId || !deploymentOrderFile))}
                         type="button"
                       >
                         {isApproving ? (

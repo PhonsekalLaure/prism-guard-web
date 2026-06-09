@@ -39,7 +39,7 @@ const INITIAL_FORM = () => ({
   tinNumber: '', sssNumber: '', pagibigNumber: '', philhealthNumber: '',
   badgeNumber: '', licenseNumber: '', licenseExpiryDate: '',
   // Step 3
-  documents: {}, avatar: null,
+  documents: {}, avatar: null, avatarUrl: '', sourceApplicantId: '',
 });
 
 function isEarlierDate(startDate, endDate) {
@@ -263,6 +263,10 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
           formData.daysOfWeek.forEach((day) => payload.append('daysOfWeek', String(day)));
         } else if (key === 'avatar') {
           if (formData.avatar) payload.append('avatar', formData.avatar);
+        } else if (key === 'avatarUrl') {
+          if (formData.avatarUrl) payload.append('avatarUrl', formData.avatarUrl);
+        } else if (key === 'sourceApplicantId') {
+          if (formData.sourceApplicantId) payload.append('sourceApplicantId', formData.sourceApplicantId);
         } else if (key === 'mobile' || key === 'emergencyContact') {
           payload.append(key, `+63${formData[key]?.replace(/\D/g, '') || ''}`);
         } else {

@@ -90,6 +90,17 @@ export default function GlobalNotificationToasts({
     }));
   }, [currentRoutePrefixes]);
 
+  useEffect(() => {
+    const clearToasts = () => setToasts([]);
+
+    window.addEventListener('notifications:bulk-clear', clearToasts);
+    window.addEventListener('notifications:bulk-read', clearToasts);
+    return () => {
+      window.removeEventListener('notifications:bulk-clear', clearToasts);
+      window.removeEventListener('notifications:bulk-read', clearToasts);
+    };
+  }, []);
+
   const markReadAndRemove = useCallback(async (item) => {
     setToasts((current) => current.filter((toast) => toast.id !== item.id));
     try {

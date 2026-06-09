@@ -36,8 +36,12 @@ export default function Step2Employment({ data, onChange, sites, onSiteChange, t
           min={minHireDate}
           max={maxHireDate}
         />
-        <FormField label="Position/Rank *"  type="select" required value={data.position}        onChange={(e) => onChange('position',        e.target.value)}
-          options={['Security Guard', 'Lady Guard', 'Security Officer I', 'Security Officer II', 'Detachment Commander']} />
+        <FormField
+          label="Position/Rank *"
+          type="text"
+          readOnly
+          value={data.position || 'Security Guard'}
+        />
         <FormField label="Employment Status *" type="select" required value={data.employmentType} onChange={(e) => onChange('employmentType', e.target.value)}
           options={[{ label: 'Regular', value: 'regular' }, { label: 'Reliever', value: 'reliever' }]} />
         <div className="ae-form-group span-2">

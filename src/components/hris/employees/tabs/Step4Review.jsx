@@ -46,13 +46,13 @@ function ReviewField({ label, value, highlight }) {
 
 export default function Step4Review({ data }) {
   const avatarPreview = useMemo(() => (
-    data.avatar instanceof Blob ? URL.createObjectURL(data.avatar) : null
-  ), [data.avatar]);
+    data.avatar instanceof Blob ? URL.createObjectURL(data.avatar) : data.avatarUrl || null
+  ), [data.avatar, data.avatarUrl]);
 
   useEffect(() => {
-    if (!avatarPreview) return undefined;
+    if (!avatarPreview || !(data.avatar instanceof Blob)) return undefined;
     return () => URL.revokeObjectURL(avatarPreview);
-  }, [avatarPreview]);
+  }, [avatarPreview, data.avatar]);
 
   const isComplete = data.firstName && data.lastName && data.employeeId;
   const docsAttached = Object.keys(data.documents).filter((key) => data.documents[key]);

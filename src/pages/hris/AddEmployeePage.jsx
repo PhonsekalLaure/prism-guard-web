@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 import { useLocation, useNavigate, useOutletContext } from 'react-router-dom';
 import { FaArrowLeft, FaBars } from 'react-icons/fa';
 import AddEmployeeWizard from '@hris-components/employees/AddEmployeeWizard';
-import applicantService from '@services/hris/applicantService';
 
 function stripPhilippinePrefix(value = '') {
   return String(value).replace(/^\+63/, '').replace(/\D/g, '').slice(0, 10);
@@ -39,6 +38,8 @@ function buildApplicantInitialData(applicant) {
     badgeNumber: applicant.badge_number || '',
     licenseNumber: applicant.license_number || '',
     licenseExpiryDate: applicant.license_expiry_date || '',
+    avatarUrl: applicant.profile_photo_url || applicant.avatarUrl || '',
+    sourceApplicantId: applicant.id || '',
   };
 }
 
@@ -50,16 +51,6 @@ export default function AddEmployeePage() {
   const initialData       = useMemo(() => buildApplicantInitialData(sourceApplicant), [sourceApplicant]);
 
   const handleSaved = async () => {
-    if (sourceApplicant?.id && sourceApplicant.status !== 'hired') {
-      try {
-        await applicantService.acceptApplicant(sourceApplicant.id, {
-          passedInterview: true,
-          notes: sourceApplicant.notes || 'Converted to employee through onboarding.',
-        });
-      } catch (err) {
-        console.error('Failed to mark source applicant as hired:', err);
-      }
-    }
     navigate('/employees');
   };
 

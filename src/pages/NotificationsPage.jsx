@@ -12,6 +12,7 @@ import {
   FaInbox,
   FaSearch,
   FaTimes,
+  FaTrash,
 } from 'react-icons/fa';
 import Notification from '@components/ui/Notification';
 import Pagination from '@components/ui/Pagination';
@@ -243,9 +244,26 @@ export default function NotificationsPage({ portal = 'hris' }) {
     try {
       const result = await notificationsService.markAllRead();
       showNotification(`${result.updated || 0} notification${result.updated === 1 ? '' : 's'} marked as read.`, 'success');
+      window.dispatchEvent(new CustomEvent('notifications:bulk-read'));
       await refreshCurrentPage();
     } catch (err) {
       showNotification(err.response?.data?.error || 'Failed to mark notifications as read.', 'error');
+    }
+  };
+
+  const handleClearAll = async () => {
+    try {
+      const result = await notificationsService.dismissAll();
+      showNotification(`${result.updated || 0} notification${result.updated === 1 ? '' : 's'} cleared.`, 'success');
+      window.dispatchEvent(new CustomEvent('notifications:bulk-clear'));
+      setMetadata((prev) => ({ ...prev, page: 1 }));
+      await Promise.all([
+        loadStats(),
+        loadNotifications(1, filters),
+        refreshNotificationStats?.(),
+      ]);
+    } catch (err) {
+      showNotification(err.response?.data?.error || 'Failed to clear notifications.', 'error');
     }
   };
 
@@ -331,15 +349,26 @@ export default function NotificationsPage({ portal = 'hris' }) {
           </div>
         </div>
 
-        <button
-          type="button"
-          className="notif-mark-all-btn"
-          onClick={handleMarkAllRead}
-          disabled={!stats.unread}
-        >
-          <FaEnvelopeOpenText />
-          Mark all read
-        </button>
+        <div className="notif-header-actions">
+          <button
+            type="button"
+            className="notif-mark-all-btn"
+            onClick={handleMarkAllRead}
+            disabled={!stats.unread}
+          >
+            <FaEnvelopeOpenText />
+            Mark all read
+          </button>
+          <button
+            type="button"
+            className="notif-clear-all-btn"
+            onClick={handleClearAll}
+            disabled={!stats.total}
+          >
+            <FaTrash />
+            Clear all
+          </button>
+        </div>
       </header>
 
       <div className={portal === 'cms' ? 'cms-content' : 'dashboard-content'}>

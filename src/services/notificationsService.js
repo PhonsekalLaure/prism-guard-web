@@ -53,8 +53,14 @@ async function dismiss(id) {
   return data;
 }
 
+async function dismissAll() {
+  const { data } = await api.patch('/dismiss-all');
+  return data;
+}
+
 export default {
   dismiss,
+  dismissAll,
   getNotifications,
   getStats,
   markAllRead,

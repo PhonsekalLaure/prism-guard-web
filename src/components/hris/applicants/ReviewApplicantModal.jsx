@@ -179,6 +179,7 @@ export default function ReviewApplicantModal({
               onClick={() => onScheduleInterview(applicant.id, {
                 interviewScheduledAt,
                 interviewNotes,
+                passedInterview,
                 notes,
               })}
             >

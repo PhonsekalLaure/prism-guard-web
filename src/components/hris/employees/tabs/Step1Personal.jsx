@@ -6,13 +6,13 @@ import { EDUCATIONAL_LEVELS } from '@/constants/employees';
 
 export default function Step1Personal({ data, onChange }) {
   const preview = useMemo(() => (
-    data.avatar instanceof Blob ? URL.createObjectURL(data.avatar) : null
-  ), [data.avatar]);
+    data.avatar instanceof Blob ? URL.createObjectURL(data.avatar) : data.avatarUrl || null
+  ), [data.avatar, data.avatarUrl]);
 
   useEffect(() => {
-    if (!preview) return undefined;
+    if (!preview || !(data.avatar instanceof Blob)) return undefined;
     return () => URL.revokeObjectURL(preview);
-  }, [preview]);
+  }, [preview, data.avatar]);
 
   const { min: minDob, max: maxDob } = getAgeDateBounds();
 
@@ -39,7 +39,7 @@ export default function Step1Personal({ data, onChange }) {
               onChange={(e) => onChange('avatar', e.target.files[0])}
             />
           </div>
-          {preview && (
+          {data.avatar instanceof Blob && preview && (
             <button
               className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] shadow-sm hover:bg-red-600"
               onClick={() => onChange('avatar', null)}
