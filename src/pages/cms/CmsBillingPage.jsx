@@ -3,6 +3,7 @@ import BillingTopbar from '@cms-components/billing/BillingTopbar';
 import BillingStatCards from '@cms-components/billing/BillingStatCards';
 import BillingTabs from '@cms-components/billing/BillingTabs';
 import BillingDetailModal from '@cms-components/billing/BillingDetailModal';
+import BillingAnnouncements from '@cms-components/billing/BillingAnnouncements';
 import Notification from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
 import billingService from '@services/cms/billingService';
@@ -14,6 +15,7 @@ import {
   getReceiptDownloadTarget,
   openBlobInNewTab,
 } from '@cms-components/billing/billingFiles';
+import '@styles/cms/CmsBilling.css';
 
 const PAGE_LIMIT = 8;
 const DEFAULT_METADATA = { total: 0, page: 1, limit: PAGE_LIMIT, totalPages: 0 };
@@ -217,16 +219,23 @@ export default function CmsBillingPage() {
       <BillingTopbar />
       <div className="cms-content">
         <BillingStatCards stats={stats} loading={statsLoading} />
-        <BillingTabs
-          invoices={invoices}
-          metadata={metadata}
-          loading={loading}
-          filters={filters}
-          onFilterChange={handleFilterChange}
-          onPageChange={(page) => loadInvoices(page, filters)}
-          onViewInvoice={handleViewInvoice}
-          onPayInvoice={handlePayInvoice}
-        />
+        <div className="cms-billing-main-layout">
+          <div className="cms-billing-main-left">
+            <BillingTabs
+              invoices={invoices}
+              metadata={metadata}
+              loading={loading}
+              filters={filters}
+              onFilterChange={handleFilterChange}
+              onPageChange={(page) => loadInvoices(page, filters)}
+              onViewInvoice={handleViewInvoice}
+              onPayInvoice={handlePayInvoice}
+            />
+          </div>
+          <div className="cms-billing-main-right">
+            <BillingAnnouncements />
+          </div>
+        </div>
       </div>
 
       {(viewingInvoice || viewingInvoiceLoading) && (
