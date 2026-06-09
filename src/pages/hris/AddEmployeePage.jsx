@@ -51,7 +51,12 @@ export default function AddEmployeePage() {
   const initialData       = useMemo(() => buildApplicantInitialData(sourceApplicant), [sourceApplicant]);
 
   const handleSaved = async () => {
-    navigate('/employees');
+    navigate('/employees', {
+      state: {
+        message: 'Employee added successfully and invitation requested.',
+        type: 'success',
+      },
+    });
   };
 
   return (

@@ -274,7 +274,7 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
         }
       });
       const createdEmployee = await employeeService.createEmployee(payload);
-      showNotification('Employee added successfully and welcome email sent!', 'success');
+      showNotification('Employee added successfully and invitation requested.', 'success');
       if (onSaved) {
         await onSaved(createdEmployee);
       } else {

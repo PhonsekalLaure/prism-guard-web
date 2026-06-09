@@ -8,6 +8,7 @@ import {
   FaInfoCircle,
   FaMapMarkerAlt,
   FaClock,
+  FaComments,
   FaPaperPlane,
   FaRobot,
   FaUserShield,
@@ -17,6 +18,8 @@ import {
 import { SkeletonBlock, SkeletonList } from '@components/ui/Skeleton';
 import EntityAvatar from '@components/ui/EntityAvatar';
 import ReportActionButton from '@components/ui/ReportActionButton';
+import ServiceRequestReplyBox from '@components/service-requests/ServiceRequestReplyBox';
+import ServiceRequestThread from '@components/service-requests/ServiceRequestThread';
 import authService from '@services/authService';
 import { formatDateTime, titleCase } from '@utils/formatters';
 
@@ -78,6 +81,11 @@ export default function ViewIncidentDetail({
   onGenerateReport,
   onSendPresident,
   onClientRequestAction,
+  messageText = '',
+  messageLoading = false,
+  messageError = null,
+  onMessageChange,
+  onSendMessage,
 }) {
   if (loading) {
     return (
@@ -151,6 +159,7 @@ export default function ViewIncidentDetail({
   const aiFailed = aiStatus === 'failed';
   const aiPending = aiStatus === 'pending';
   const busy = Boolean(actionLoading);
+  const threadClosed = incident.status === 'resolved';
   const summaryLabel = aiStatus === 'completed' ? 'AI-Generated Summary' : 'Processing Summary';
   const statusMeta = getIncidentStatusMeta(incident);
   const clientActionKey = (request, action) => `client:${request.id}:${action}`;
@@ -245,6 +254,28 @@ export default function ViewIncidentDetail({
             <div className="ir-modal-narrative">{incident.reviewNotes}</div>
           </div>
         )}
+
+        <div>
+          <p className="ir-modal-section-label"><FaComments /> Conversation</p>
+          <ServiceRequestThread
+            messages={incident.messages || []}
+            emptyText="No messages yet."
+            emptyClassName="ir-report-meta"
+          />
+          {threadClosed ? (
+            <p className="ir-report-meta">This thread is closed because the incident is resolved.</p>
+          ) : (
+            <ServiceRequestReplyBox
+              label="Message reporting guard"
+              value={messageText}
+              onChange={onMessageChange}
+              onSend={onSendMessage}
+              loading={messageLoading}
+              error={messageError}
+              placeholder="Ask for an update or send follow-up instructions..."
+            />
+          )}
+        </div>
 
         {canUseReports && (
           <div>

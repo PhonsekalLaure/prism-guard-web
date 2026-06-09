@@ -12,6 +12,10 @@ import '@styles/components/Notification.css';
 const POLL_INTERVAL_MS = 30000;
 const MAX_VISIBLE_TOASTS = 5;
 
+function isCriticalIncidentAlert(event = {}, portal) {
+  return portal === 'hris' && event.type === 'incident_report_submitted';
+}
+
 function getToastType(event = {}) {
   if (event.priority === 'urgent') return 'warning';
   if (event.priority === 'important') return 'info';
@@ -34,6 +38,7 @@ export default function GlobalNotificationToasts({
 }) {
   const navigate = useNavigate();
   const [toasts, setToasts] = useState([]);
+  const [criticalAlerts, setCriticalAlerts] = useState([]);
   const seenIdsRef = useRef(new Set());
   const loadingRef = useRef(false);
 
@@ -59,10 +64,28 @@ export default function GlobalNotificationToasts({
 
       if (freshItems.length > 0) {
         freshItems.forEach((item) => seenIdsRef.current.add(item.id));
+        const freshCriticalAlerts = freshItems.filter((item) => (
+          isCriticalIncidentAlert(item.event || {}, portal)
+        ));
+        const freshToasts = freshItems.filter((item) => (
+          !isCriticalIncidentAlert(item.event || {}, portal)
+        ));
+
+        if (freshCriticalAlerts.length > 0) {
+          setCriticalAlerts((current) => {
+            const currentIds = new Set(current.map((item) => item.id));
+            return [
+              ...current,
+              ...freshCriticalAlerts.filter((item) => !currentIds.has(item.id)),
+            ].slice(0, MAX_VISIBLE_TOASTS);
+          });
+        }
+
+        if (freshToasts.length === 0) return;
         setToasts((current) => {
           const currentIds = new Set(current.map((item) => item.id));
           const merged = [
-            ...freshItems.filter((item) => !currentIds.has(item.id)),
+            ...freshToasts.filter((item) => !currentIds.has(item.id)),
             ...current,
           ];
           return merged.slice(0, MAX_VISIBLE_TOASTS);
@@ -73,7 +96,7 @@ export default function GlobalNotificationToasts({
     } finally {
       loadingRef.current = false;
     }
-  }, [onStatsChange]);
+  }, [onStatsChange, portal]);
 
   useEffect(() => {
     loadUnreadNotifications();
@@ -92,17 +115,23 @@ export default function GlobalNotificationToasts({
 
   useEffect(() => {
     const clearToasts = () => setToasts([]);
+    const clearCriticalAlerts = () => setCriticalAlerts([]);
 
     window.addEventListener('notifications:bulk-clear', clearToasts);
+    window.addEventListener('notifications:bulk-clear', clearCriticalAlerts);
     window.addEventListener('notifications:bulk-read', clearToasts);
+    window.addEventListener('notifications:bulk-read', clearCriticalAlerts);
     return () => {
       window.removeEventListener('notifications:bulk-clear', clearToasts);
+      window.removeEventListener('notifications:bulk-clear', clearCriticalAlerts);
       window.removeEventListener('notifications:bulk-read', clearToasts);
+      window.removeEventListener('notifications:bulk-read', clearCriticalAlerts);
     };
   }, []);
 
   const markReadAndRemove = useCallback(async (item) => {
     setToasts((current) => current.filter((toast) => toast.id !== item.id));
+    setCriticalAlerts((current) => current.filter((alert) => alert.id !== item.id));
     try {
       await notificationsService.markRead(item.id);
       const stats = await notificationsService.getStats();
@@ -121,48 +150,85 @@ export default function GlobalNotificationToasts({
     navigate(route);
   }, [markReadAndRemove, navigate, portal]);
 
-  if (toasts.length === 0) return null;
+  if (toasts.length === 0 && criticalAlerts.length === 0) return null;
+
+  const activeCriticalAlert = criticalAlerts[0] || null;
 
   return (
-    <div className="notif-stack" aria-live="polite" aria-label="New notifications">
-      {toasts.map((item) => {
-        const event = item.event || {};
-        const type = getToastType(event);
-        const Icon = getToastIcon(type);
-
-        return (
-          <div
-            key={item.id}
-            className={`notif notif-${type} notif-enter notif-clickable`}
-            role="button"
-            tabIndex={0}
-            onClick={() => handleOpen(item)}
-            onKeyDown={(eventKey) => {
-              if (eventKey.key === 'Enter' || eventKey.key === ' ') {
-                eventKey.preventDefault();
-                handleOpen(item);
-              }
-            }}
-          >
-            <Icon className="notif-icon" />
-            <div className="notif-body">
-              <span className="notif-title">{event.title || 'New notification'}</span>
-              <span className="notif-message">{event.message || 'Open notifications to review details.'}</span>
+    <>
+      {activeCriticalAlert && (
+        <div className="notif-critical-overlay" role="alertdialog" aria-modal="true" aria-label="New incident report">
+          <div className="notif-critical-panel">
+            <div className="notif-critical-icon">
+              <FaExclamationTriangle />
             </div>
-            <button
-              className="notif-close"
-              type="button"
-              onClick={(clickEvent) => {
-                clickEvent.stopPropagation();
-                markReadAndRemove(item);
-              }}
-              aria-label="Close notification"
-            >
-              <FaTimes />
-            </button>
+            <div className="notif-critical-body">
+              <span className="notif-critical-kicker">Incident Alert</span>
+              <h2>{activeCriticalAlert.event?.title || 'New incident report'}</h2>
+              <p>{activeCriticalAlert.event?.message || 'Open the incident report for details.'}</p>
+            </div>
+            <div className="notif-critical-actions">
+              <button
+                type="button"
+                className="notif-critical-btn primary"
+                onClick={() => handleOpen(activeCriticalAlert)}
+              >
+                Open Incident
+              </button>
+              <button
+                type="button"
+                className="notif-critical-btn secondary"
+                onClick={() => markReadAndRemove(activeCriticalAlert)}
+              >
+                Acknowledge
+              </button>
+            </div>
           </div>
-        );
-      })}
-    </div>
+        </div>
+      )}
+
+      {toasts.length > 0 && (
+        <div className="notif-stack" aria-live="polite" aria-label="New notifications">
+          {toasts.map((item) => {
+            const event = item.event || {};
+            const type = getToastType(event);
+            const Icon = getToastIcon(type);
+
+            return (
+              <div
+                key={item.id}
+                className={`notif notif-${type} notif-enter notif-clickable`}
+                role="button"
+                tabIndex={0}
+                onClick={() => handleOpen(item)}
+                onKeyDown={(eventKey) => {
+                  if (eventKey.key === 'Enter' || eventKey.key === ' ') {
+                    eventKey.preventDefault();
+                    handleOpen(item);
+                  }
+                }}
+              >
+                <Icon className="notif-icon" />
+                <div className="notif-body">
+                  <span className="notif-title">{event.title || 'New notification'}</span>
+                  <span className="notif-message">{event.message || 'Open notifications to review details.'}</span>
+                </div>
+                <button
+                  className="notif-close"
+                  type="button"
+                  onClick={(clickEvent) => {
+                    clickEvent.stopPropagation();
+                    markReadAndRemove(item);
+                  }}
+                  aria-label="Close notification"
+                >
+                  <FaTimes />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </>
   );
 }

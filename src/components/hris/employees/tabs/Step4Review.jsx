@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { FaCheck, FaTimes, FaUser, FaPhone, FaBriefcase, FaIdCard } from 'react-icons/fa';
+import EntityAvatar from '@components/ui/EntityAvatar';
 
 const DOC_LABELS = {
   valid_id: 'Valid ID',
@@ -61,7 +62,13 @@ export default function Step4Review({ data }) {
     <div className="ae-step-content">
       <div className="ae-review-banner">
         {avatarPreview ? (
-          <div className="ae-review-banner-avatar"><img src={avatarPreview} alt="Avatar" /></div>
+          <EntityAvatar
+            className="ae-review-banner-avatar"
+            style={{ background: 'rgba(255, 255, 255, 0.2)', color: '#fff', fontSize: '1.2rem', fontWeight: 'bold' }}
+            avatarUrl={avatarPreview}
+            initials={`${data.firstName?.charAt(0) || ''}${data.lastName?.charAt(0) || ''}`.toUpperCase()}
+            alt="Avatar"
+          />
         ) : (
           <div className="ae-review-banner-icon"><FaCheck /></div>
         )}
