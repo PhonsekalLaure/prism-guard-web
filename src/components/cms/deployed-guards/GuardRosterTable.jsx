@@ -1,4 +1,4 @@
-import { FaUsers, FaEye } from 'react-icons/fa';
+import { FaUsers, FaEye, FaSun, FaMoon, FaClock, FaCheck, FaMinus } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
 import EmptyState from '@components/ui/EmptyState';
 import EntityAvatar from '@components/ui/EntityAvatar';
@@ -12,10 +12,58 @@ const statusConfig = {
   unknown: { label: 'Unknown', className: 'dg-status-badge dg-status-badge--unknown' },
 };
 
+function ShiftBadge({ shift }) {
+  if (!shift || shift === 'Unscheduled') {
+    return (
+      <span className="dg-shift-badge dg-shift-badge--unscheduled">
+        <FaMinus /> Unscheduled
+      </span>
+    );
+  }
+  const isNight = shift.toLowerCase().startsWith('night') || shift.includes('PM') || shift.includes('18:');
+  const is24 = shift === '24-Hour';
+
+  if (is24) {
+    return (
+      <span className="dg-shift-badge dg-shift-badge--24hr">
+        <FaClock /> {shift}
+      </span>
+    );
+  }
+  if (isNight) {
+    return (
+      <span className="dg-shift-badge dg-shift-badge--night">
+        <FaMoon /> {shift}
+      </span>
+    );
+  }
+  return (
+    <span className="dg-shift-badge dg-shift-badge--day">
+      <FaSun /> {shift}
+    </span>
+  );
+}
+
+function AttendanceBadge({ attendanceStatus }) {
+  if (attendanceStatus === 'on_duty') {
+    return (
+      <span className="dg-attendance-badge dg-attendance-badge--on">
+        <FaCheck /> On Duty
+      </span>
+    );
+  }
+  return (
+    <span className="dg-attendance-badge dg-attendance-badge--off">
+      <FaMinus /> Off Duty
+    </span>
+  );
+}
+
 const getGuardSkeletonCellStyle = (column) => {
   if (column === 0) return { width: '82%', height: 32 };
   if (column === 3) return { width: 78, height: 22, borderRadius: 20 };
-  if (column === 4) return { width: 64, height: 30, borderRadius: 6 };
+  if (column === 4) return { width: 84, height: 22, borderRadius: 20 };
+  if (column === 5) return { width: 64, height: 30, borderRadius: 6 };
   return { width: '60%' };
 };
 
@@ -48,6 +96,7 @@ export default function GuardRosterTable({
               <th>Guard</th>
               <th>Employee ID</th>
               <th>Shift</th>
+              <th>Attendance</th>
               <th>Status</th>
               <th>Action</th>
             </tr>
@@ -56,12 +105,12 @@ export default function GuardRosterTable({
             {loading ? (
               <TableSkeletonRows
                 rows={6}
-                columns={5}
+                columns={6}
                 getCellStyle={getGuardSkeletonCellStyle}
               />
             ) : guards.length === 0 ? (
               <tr>
-                <td colSpan={5} style={{ padding: '1.5rem' }}>
+                <td colSpan={6} style={{ padding: '1.5rem' }}>
                   <EmptyState
                     icon={FaUsers}
                     title="No deployed guards found"
@@ -96,7 +145,10 @@ export default function GuardRosterTable({
                       </div>
                     </td>
                     <td className="dg-td-mono">{guard.employee_id_number}</td>
-                    <td className="dg-td-muted">{guard.shift}</td>
+                    <td><ShiftBadge shift={guard.shift} /></td>
+                    <td onClick={(e) => e.stopPropagation()}>
+                      <AttendanceBadge attendanceStatus={guard.attendance_status} />
+                    </td>
                     <td>
                       <span className={badge.className}>{badge.label}</span>
                     </td>
