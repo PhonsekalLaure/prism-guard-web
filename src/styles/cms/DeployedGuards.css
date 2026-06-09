@@ -233,6 +233,63 @@
   color: #64748b;
 }
 
+/* ─── Shift badges ─── */
+.dg-shift-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.dg-shift-badge--day {
+  background: #fef9c3;
+  color: #92400e;
+}
+
+.dg-shift-badge--night {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+.dg-shift-badge--24hr {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.dg-shift-badge--custom,
+.dg-shift-badge--unknown {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+/* ─── Attendance badges ─── */
+.dg-att-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.dg-att-badge--on {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.dg-att-badge--off {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
 /* View button */
 .dg-view-btn {
   display: inline-flex;
