@@ -11,10 +11,20 @@ const statusConfig = {
   unknown: { label: 'Unknown', className: 'dg-status-badge dg-status-badge--unknown' },
 };
 
+/** Parse the API's shift label string → a short label and badge key */
+function parseShiftBadge(shift = '') {
+  if (!shift) return { label: 'Unscheduled', key: 'unknown' };
+  const s = shift.toLowerCase();
+  if (s.startsWith('day'))   return { label: 'Day Shift',   key: 'day' };
+  if (s.startsWith('night')) return { label: 'Night Shift', key: 'night' };
+  if (s === '24-hour')       return { label: '24-Hour',     key: '24hr' };
+  return { label: shift, key: 'custom' };
+}
+
 const getGuardSkeletonCellStyle = (column) => {
   if (column === 0) return { width: '82%', height: 32 };
-  if (column === 3) return { width: 78, height: 22, borderRadius: 20 };
-  if (column === 4) return { width: 64, height: 30, borderRadius: 6 };
+  if (column === 4) return { width: 78, height: 22, borderRadius: 20 };
+  if (column === 5) return { width: 64, height: 30, borderRadius: 6 };
   return { width: '60%' };
 };
 
@@ -47,6 +57,7 @@ export default function GuardRosterTable({
               <th>Guard</th>
               <th>Employee ID</th>
               <th>Shift</th>
+              <th>Attendance</th>
               <th>Status</th>
               <th>Action</th>
             </tr>
@@ -55,12 +66,12 @@ export default function GuardRosterTable({
             {loading ? (
               <TableSkeletonRows
                 rows={6}
-                columns={5}
+                columns={6}
                 getCellStyle={getGuardSkeletonCellStyle}
               />
             ) : guards.length === 0 ? (
               <tr>
-                <td colSpan={5} style={{ padding: '1.5rem' }}>
+                <td colSpan={6} style={{ padding: '1.5rem' }}>
                   <EmptyState
                     icon={FaUsers}
                     title="No deployed guards found"
@@ -74,6 +85,8 @@ export default function GuardRosterTable({
             ) : (
               guards.map((guard) => {
                 const badge = statusConfig[guard.status] || statusConfig.unknown;
+                const shift = parseShiftBadge(guard.shift);
+                const isOnDuty = guard.attendance_status === 'on_duty';
                 return (
                   <tr
                     key={guard.id}
@@ -101,7 +114,16 @@ export default function GuardRosterTable({
                       </div>
                     </td>
                     <td className="dg-td-mono">{guard.employee_id_number}</td>
-                    <td className="dg-td-muted">{guard.shift}</td>
+                    <td>
+                      <span className={`dg-shift-badge dg-shift-badge--${shift.key}`}>
+                        {shift.label}
+                      </span>
+                    </td>
+                    <td>
+                      <span className={`dg-att-badge ${isOnDuty ? 'dg-att-badge--on' : 'dg-att-badge--off'}`}>
+                        {isOnDuty ? 'On Duty' : 'Off Duty'}
+                      </span>
+                    </td>
                     <td>
                       <span className={badge.className}>{badge.label}</span>
                     </td>
