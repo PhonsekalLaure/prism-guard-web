@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useOutletContext } from 'react-router-dom';
+import CmsMobileSidebarToggle from '@components/cms/CmsMobileSidebarToggle';
 import {
   FaBell,
   FaCheck,
@@ -319,9 +320,12 @@ export default function NotificationsPage({ portal = 'hris' }) {
 
       <header className="notif-topbar">
         <div className="notif-title-group">
-          <div>
-            <h2>Notifications</h2>
-            <p>{portalLabel} activity inbox</p>
+          <div className="cms-topbar-title-row">
+            {portal === 'cms' && <CmsMobileSidebarToggle />}
+            <div>
+              <h2>Notifications</h2>
+              <p>{portalLabel} activity inbox</p>
+            </div>
           </div>
         </div>
 
