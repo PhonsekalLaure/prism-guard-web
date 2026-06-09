@@ -22,8 +22,267 @@
 
 
 /* =============================================
-   TABS PANEL
+   BILLING ANNOUNCEMENTS PANEL
    ============================================= */
+
+.cms-billing-ann-panel {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+/* ─── Header ─── */
+.cms-billing-ann-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.4rem;
+  border-bottom: 1px solid #ecf0f1;
+}
+
+.cms-billing-ann-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #093269;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cms-billing-ann-icon {
+  font-size: 0.85rem;
+  color: #e6b215;
+}
+
+.cms-billing-ann-view-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: none;
+  border: none;
+  color: #093269;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.cms-billing-ann-view-all:hover {
+  background: rgba(9, 50, 105, 0.06);
+}
+
+/* ─── List ─── */
+.cms-billing-ann-list {
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem;
+  gap: 0.5rem;
+}
+
+/* ─── Item card ─── */
+.cms-billing-ann-item {
+  width: 100%;
+  text-align: left;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Poppins', sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+.cms-billing-ann-item::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  border-radius: 3px 0 0 3px;
+  background: #e6b215;
+}
+
+.cms-billing-ann-item:hover {
+  border-color: #093269;
+  background: #eff6ff;
+  box-shadow: 0 3px 10px rgba(9, 50, 105, 0.08);
+  transform: translateX(2px);
+}
+
+.cms-billing-ann-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.cms-billing-ann-item-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 0.2rem;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cms-billing-ann-item-msg {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin: 0 0 0.5rem;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cms-billing-ann-item-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.25rem;
+}
+
+.cms-billing-ann-by {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.cms-billing-ann-arrow {
+  font-size: 0.62rem;
+  color: #cbd5e1;
+  flex-shrink: 0;
+}
+
+.cms-billing-ann-date {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+/* ─── Priority badges ─── */
+.cms-billing-ann-badge {
+  display: inline-block;
+  padding: 0.18rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.cms-billing-ann-badge--urgent {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.cms-billing-ann-badge--important {
+  background: #fef9c3;
+  color: #a16207;
+}
+
+.cms-billing-ann-badge--normal {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+/* ─── Empty state ─── */
+.cms-billing-ann-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1rem;
+  gap: 0.5rem;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.cms-billing-ann-empty-icon {
+  font-size: 1.8rem;
+  color: #cbd5e1;
+}
+
+.cms-billing-ann-empty p {
+  margin: 0;
+}
+
+/* ─── Skeleton ─── */
+.cms-billing-ann-skeleton {
+  padding: 0.9rem 1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.cms-billing-ann-sk-badge {
+  width: 60px;
+  height: 16px;
+  border-radius: 20px;
+  background: #e2e8f0;
+  animation: cmsAnnPulse 1.4s ease-in-out infinite;
+}
+
+.cms-billing-ann-sk-line {
+  height: 11px;
+  border-radius: 6px;
+  background: #e2e8f0;
+  width: 85%;
+  animation: cmsAnnPulse 1.4s ease-in-out infinite;
+}
+
+.cms-billing-ann-sk-line--title {
+  height: 14px;
+  width: 70%;
+}
+
+@keyframes cmsAnnPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
+}
+
+/* ─── Layout wrapper for side-by-side on wider screens ─── */
+.cms-billing-main-layout {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+
+.cms-billing-main-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.cms-billing-main-right {
+  width: 320px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 1100px) {
+  .cms-billing-main-layout {
+    flex-direction: column;
+  }
+  .cms-billing-main-right {
+    width: 100%;
+  }
+}
+
+
 .cms-btabs-panel {
   background: #fff;
   border-radius: 12px;
