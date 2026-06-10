@@ -1,6 +1,10 @@
 import { FaClock, FaMoneyCheckAlt, FaCalendarAlt, FaUserShield, FaFileUpload } from 'react-icons/fa';
 import GuardDeploymentSelector from '../GuardDeploymentSelector';
 import EntityAvatar from '@components/ui/EntityAvatar';
+import {
+  MINIMUM_MONTHLY_BASE_PAY,
+  MINIMUM_MONTHLY_BASE_PAY_HINT,
+} from '@constants/payrollRules';
 
 const DAY_OPTIONS = [
   { value: 0, label: 'Sun' },
@@ -119,13 +123,14 @@ export default function Step5InitialDeployment({
                       }}>₱</span>
                       <input
                         type="number"
-                        min="0"
+                        min={MINIMUM_MONTHLY_BASE_PAY}
                         className="dep-input"
                         style={{ paddingLeft: '1.75rem' }}
                         value={assignment.baseSalary}
                         onChange={(e) => onAssignmentField(assignment.employeeId, 'baseSalary', e.target.value)}
-                        placeholder="0.00"
+                        placeholder={String(MINIMUM_MONTHLY_BASE_PAY)}
                       />
+                      <p className="ae-hint">{MINIMUM_MONTHLY_BASE_PAY_HINT}</p>
                     </div>
                   </div>
 

@@ -10,6 +10,10 @@ import Notification from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
 import { hasPermission } from '@utils/adminPermissions';
 import { getRenewalDateBounds } from '@utils/hrisDateRules';
+import {
+  isBelowMinimumMonthlyBasePay,
+  MINIMUM_MONTHLY_BASE_PAY_MESSAGE,
+} from '@constants/payrollRules';
 
 import GeneralTab from './tabs/GeneralTab';
 import SitesTab from './tabs/SitesTab';
@@ -475,7 +479,9 @@ export default function ViewClientDetail({
   const handleDeployGuard = async () => {
     if (!deployForm.siteId) { showNotification('Please select an active site.', 'error'); return; }
     if (!selectedEmployee?.id) { showNotification('Please select a guard.', 'error'); return; }
-    if (!deployForm.baseSalary) { showNotification('Please set the guard base pay.', 'error'); return; }
+    if (isBelowMinimumMonthlyBasePay(deployForm.baseSalary)) {
+      showNotification(MINIMUM_MONTHLY_BASE_PAY_MESSAGE, 'error'); return;
+    }
 
     // Guard deployment date validation against client contract dates
     if (data.contract_start_date && deployForm.contractStartDate && deployForm.contractStartDate < data.contract_start_date) {

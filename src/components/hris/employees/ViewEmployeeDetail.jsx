@@ -10,6 +10,10 @@ import Notification from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
 import { hasPermission } from '@utils/adminPermissions';
 import { getAgeDateBounds, getRenewalDateBounds } from '@utils/hrisDateRules';
+import {
+  isBelowMinimumMonthlyBasePay,
+  MINIMUM_MONTHLY_BASE_PAY_MESSAGE,
+} from '@constants/payrollRules';
 
 // Tab fragments
 import PersonalTab    from './tabs/PersonalTab';
@@ -295,8 +299,8 @@ export default function ViewEmployeeDetail({
 
   const handleDeploy = async () => {
     if (!deployForm.siteId)                    { showNotification('Please select a client site.', 'error'); return; }
-    if (!deployForm.baseSalary || Number(deployForm.baseSalary) <= 0) {
-      showNotification('Please set the guard monthly base pay.', 'error');
+    if (isBelowMinimumMonthlyBasePay(deployForm.baseSalary)) {
+      showNotification(MINIMUM_MONTHLY_BASE_PAY_MESSAGE, 'error');
       return;
     }
     if (selectedClientContractStartDate && deployForm.contractStartDate && deployForm.contractStartDate < selectedClientContractStartDate) {

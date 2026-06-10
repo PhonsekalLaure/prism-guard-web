@@ -18,20 +18,6 @@ function formatCutoffLabel(start, end) {
   return `${range}, ${sameYear ? end.getFullYear() : `${start.getFullYear()}-${end.getFullYear()}`}`;
 }
 
-function parseLocalDate(dateValue) {
-  if (!dateValue) return null;
-  const [year, month, day] = String(dateValue).split('-').map(Number);
-  if (!year || !month || !day) return null;
-  return new Date(year, month - 1, day);
-}
-
-export function formatPayrollPeriodLabel(periodStart, periodEnd) {
-  const start = parseLocalDate(periodStart);
-  const end = parseLocalDate(periodEnd);
-  if (!start || !end) return `${periodStart || ''} to ${periodEnd || ''}`.trim();
-  return formatCutoffLabel(start, end);
-}
-
 function buildCutoff(start, end, { isCurrent = false, disabled = false } = {}) {
   const periodStart = toIsoDate(start);
   const periodEnd = toIsoDate(end);

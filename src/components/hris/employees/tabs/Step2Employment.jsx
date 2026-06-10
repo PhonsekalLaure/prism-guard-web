@@ -1,5 +1,9 @@
 import SiteSelect from '@hris-components/shared/SiteSelect';
 import { getHireDateBounds } from '@utils/hrisDateRules';
+import {
+  MINIMUM_MONTHLY_BASE_PAY,
+  MINIMUM_MONTHLY_BASE_PAY_HINT,
+} from '@constants/payrollRules';
 import FormField from './FormField';
 
 const DAY_OPTIONS = [
@@ -60,7 +64,9 @@ export default function Step2Employment({ data, onChange, sites, onSiteChange, t
           value={data.basicRate}
           onChange={(e) => onChange('basicRate', e.target.value)}
           disabled={isFloating}
-          placeholder={isFloating ? 'Select an initial site to enable base pay' : '0.00'}
+          min={MINIMUM_MONTHLY_BASE_PAY}
+          placeholder={isFloating ? 'Select an initial site to enable base pay' : String(MINIMUM_MONTHLY_BASE_PAY)}
+          hint={!isFloating ? MINIMUM_MONTHLY_BASE_PAY_HINT : undefined}
         />
         <FormField label="Pay Frequency" type="text" value="Semi-monthly" readOnly />
 

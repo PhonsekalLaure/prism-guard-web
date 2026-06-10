@@ -50,6 +50,10 @@
   min-width: 270px;
 }
 
+.pr-selector-field--cutoff {
+  min-width: 300px;
+}
+
 .pr-selector-label {
   color: #6b7280;
   font-size: 0.68rem;
@@ -505,16 +509,6 @@
 .pr-badge.accumulating{ background: #dbeafe; color: #1e40af; }
 .pr-badge.cancelled   { background: #fee2e2; color: #991b1b; }
 
-.pr-preview-pill {
-  background: #dbeafe;
-  color: #1e40af;
-  border-radius: 999px;
-  padding: 0.25rem 0.65rem;
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
 /* View button */
 .pr-view-btn {
   background: transparent;
@@ -537,6 +531,38 @@
 }
 
 .pr-view-btn:hover { color: #e6b215; border-color: #e6b215; }
+
+.pr-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.pr-pay-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+  border: 1px solid #16a34a;
+  border-radius: 6px;
+  background: #16a34a;
+  color: #fff;
+  padding: 0.35rem 0.65rem;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pr-pay-btn:hover:not(:disabled) {
+  background: #15803d;
+  border-color: #15803d;
+}
+
+.pr-pay-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
 
 /* =============================================
    PAGINATION

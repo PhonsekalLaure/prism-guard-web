@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Notification from '@components/ui/Notification';
+import ReportConfirmDialog from '@components/ui/ReportConfirmDialog';
 import HrisPayrollTopbar from '@hris-components/payroll/HrisPayrollTopbar';
 import HrisPayrollStatCards from '@hris-components/payroll/HrisPayrollStatCards';
 import HrisPayrollOngoingAlert from '@hris-components/payroll/HrisPayrollOngoingAlert';
@@ -32,6 +33,15 @@ function comparePayrollRecords(first, second) {
   return firstNumber.localeCompare(secondNumber);
 }
 
+function findActiveRunForCutoff(runs, cutoff) {
+  if (!cutoff) return null;
+  return runs.find((run) => (
+    run.status !== 'cancelled'
+    && run.period_start === cutoff.periodStart
+    && run.period_end === cutoff.periodEnd
+  )) || null;
+}
+
 export default function HrisPayrollPage() {
   const defaultPeriod = useMemo(getDefaultPayrollPeriod, []);
   const cutoffOptions = useMemo(() => getPayrollCutoffOptions(), []);
@@ -41,7 +51,7 @@ export default function HrisPayrollPage() {
   const [runs, setRuns] = useState([]);
   const [selectedRunId, setSelectedRunId] = useState('');
   const [selectedRun, setSelectedRun] = useState(null);
-  const [preview, setPreview] = useState(null);
+  const [paymentTarget, setPaymentTarget] = useState(null);
   const [loadingRuns, setLoadingRuns] = useState(true);
   const [loadingRecords, setLoadingRecords] = useState(false);
   const [error, setError] = useState('');
@@ -53,22 +63,20 @@ export default function HrisPayrollPage() {
     setError(getPayrollErrorMessage(err, fallback));
   }, []);
 
-  const loadRuns = useCallback(async (preferredRunId = selectedRunId, { silent = false } = {}) => {
+  const loadRuns = useCallback(async ({ silent = false } = {}) => {
     if (!silent) setLoadingRuns(true);
     try {
       const result = await payrollService.listPayrollRuns({ page: 1, limit: 25 });
       const nextRuns = result.data || [];
       setRuns(nextRuns);
-      const nextSelected = preferredRunId || nextRuns[0]?.id || '';
-      setSelectedRunId(nextSelected);
-      return nextSelected;
+      return nextRuns;
     } catch (err) {
       handlePayrollError(err, 'Failed to load payroll runs.');
-      return '';
+      return [];
     } finally {
       if (!silent) setLoadingRuns(false);
     }
-  }, [selectedRunId, handlePayrollError]);
+  }, [handlePayrollError]);
 
   const loadRunDetail = useCallback(async (runId) => {
     if (!runId) {
@@ -79,7 +87,6 @@ export default function HrisPayrollPage() {
     try {
       const run = await payrollService.getPayrollRunById(runId);
       setSelectedRun(run);
-      setPreview(null);
       setPeriodStart(run.period_start);
       setPeriodEnd(run.period_end);
       const matchingCutoff = cutoffOptions.find((option) => (
@@ -96,14 +103,23 @@ export default function HrisPayrollPage() {
 
   useEffect(() => {
     let cancelled = false;
-    loadRuns().then((runId) => {
-      if (!cancelled && runId) loadRunDetail(runId);
+    const selectedCutoff = cutoffOptions.find((option) => option.key === selectedCutoffKey);
+    loadRuns().then((nextRuns) => {
+      if (cancelled) return;
+      const activeRun = findActiveRunForCutoff(nextRuns, selectedCutoff);
+      if (activeRun) {
+        setSelectedRunId(activeRun.id);
+        loadRunDetail(activeRun.id);
+      } else {
+        setSelectedRunId('');
+        setSelectedRun(null);
+      }
     });
     return () => { cancelled = true; };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const records = useMemo(() => {
-    const sourceRecords = preview?.records || selectedRun?.payroll_records || [];
+    const sourceRecords = selectedRun?.payroll_records || [];
     const search = filters.search.trim().toLowerCase();
     return sourceRecords.filter((record) => {
       const matchesStatus = !filters.status || String(record.status || selectedRun?.status || 'draft') === filters.status;
@@ -111,22 +127,20 @@ export default function HrisPayrollPage() {
       const matchesSearch = !search || haystack.includes(search);
       return matchesStatus && matchesSearch;
     }).slice().sort(comparePayrollRecords);
-  }, [filters.search, filters.status, preview, selectedRun]);
+  }, [filters.search, filters.status, selectedRun]);
 
-  const activeSummary = preview?.summary || selectedRun?.summary || {};
+  const activeSummary = selectedRun?.summary || {};
   const totalRecordPages = Math.max(1, Math.ceil(records.length / PAYROLL_PAGE_LIMIT));
   const pagedRecords = useMemo(() => {
     const safePage = Math.min(recordsPage, totalRecordPages);
     const start = (safePage - 1) * PAYROLL_PAGE_LIMIT;
     return records.slice(start, start + PAYROLL_PAGE_LIMIT);
   }, [records, recordsPage, totalRecordPages]);
-  const statusLabel = preview
-    ? 'Preview only'
-    : selectedRun
-      ? String(selectedRun.status || 'draft').toUpperCase()
-      : loadingRuns
-        ? 'Loading runs'
-        : 'No run selected';
+  const statusLabel = selectedRun
+    ? String(selectedRun.status || 'draft').toUpperCase()
+    : loadingRuns
+      ? 'Loading runs'
+      : 'No run selected';
 
   useEffect(() => {
     if (recordsPage > totalRecordPages) setRecordsPage(totalRecordPages);
@@ -136,27 +150,9 @@ export default function HrisPayrollPage() {
     if (!run) return;
     setSelectedRun(run);
     setSelectedRunId(run.id);
-    await loadRuns(run.id, { silent: true });
+    await loadRuns({ silent: true });
     setError('');
   }, [loadRuns]);
-
-  const previewAction = useReportAction({
-    successMessage: 'Payroll preview ready.',
-    errorFallback: 'Failed to preview payroll.',
-    showNotification,
-    getErrorMessage: getPayrollErrorMessage,
-    run: () => payrollService.previewPayrollRun({
-      period_start: periodStart,
-      period_end: periodEnd,
-    }),
-    afterSuccess: async (nextPreview) => {
-      setPreview(nextPreview);
-      setSelectedRun(null);
-      setSelectedRunId('');
-      setRecordsPage(1);
-      setError('');
-    },
-  });
 
   const createAction = useReportAction({
     successMessage: 'Payroll draft created.',
@@ -168,7 +164,6 @@ export default function HrisPayrollPage() {
       period_end: periodEnd,
     }),
     afterSuccess: async (run) => {
-      setPreview(null);
       setRecordsPage(1);
       await updateRunAfterSuccess(run);
     },
@@ -193,38 +188,25 @@ export default function HrisPayrollPage() {
     afterSuccess: updateRunAfterSuccess,
   });
 
-  const markPaidAction = useReportAction({
-    loadingMessage: 'Marking payroll as paid...',
-    successMessage: 'Payroll run marked as paid.',
-    errorFallback: 'Failed to mark payroll run as paid.',
+  const markRecordPaidAction = useReportAction({
+    loadingMessage: 'Marking guard as paid...',
+    successMessage: 'Guard payroll record marked as paid.',
+    errorFallback: 'Failed to mark guard payroll record as paid.',
     showNotification,
     getErrorMessage: getPayrollErrorMessage,
-    run: () => payrollService.markPayrollRunPaid(selectedRunId),
+    run: ({ runId, recordId }) => payrollService.markPayrollRecordPaid(runId, recordId),
     afterSuccess: updateRunAfterSuccess,
   });
 
-  const actionLoading = previewAction.loading
-    ? 'preview'
-    : createAction.loading
-      ? 'create'
-      : recalculateAction.loading
-        ? 'recalculate'
-        : approveAction.loading
-          ? 'approve'
-          : markPaidAction.loading
-            ? 'markPaid'
-            : '';
-
-  const handleSelectRun = (runId) => {
-    setRecordsPage(1);
-    setSelectedRunId(runId);
-    if (runId) {
-      loadRunDetail(runId);
-    } else {
-      setSelectedRun(null);
-      setPreview(null);
-    }
-  };
+  const actionLoading = createAction.loading
+    ? 'create'
+    : recalculateAction.loading
+      ? 'recalculate'
+      : approveAction.loading
+        ? 'approve'
+        : markRecordPaidAction.loading
+          ? 'markRecordPaid'
+          : '';
 
   const handleSelectCutoff = (cutoffKey) => {
     const cutoff = cutoffOptions.find((option) => option.key === cutoffKey);
@@ -232,10 +214,25 @@ export default function HrisPayrollPage() {
     setSelectedCutoffKey(cutoff.key);
     setPeriodStart(cutoff.periodStart);
     setPeriodEnd(cutoff.periodEnd);
-    setSelectedRun(null);
-    setSelectedRunId('');
-    setPreview(null);
     setRecordsPage(1);
+    const activeRun = findActiveRunForCutoff(runs, cutoff);
+    if (activeRun) {
+      setSelectedRunId(activeRun.id);
+      loadRunDetail(activeRun.id);
+    } else {
+      setSelectedRun(null);
+      setSelectedRunId('');
+      setError('');
+    }
+  };
+
+  const handleConfirmRecordPaid = async () => {
+    if (!selectedRunId || !paymentTarget?.id) return;
+    const result = await markRecordPaidAction.execute({
+      runId: selectedRunId,
+      recordId: paymentTarget.id,
+    });
+    if (result) setPaymentTarget(null);
   };
 
   const handleFilterChange = (nextFilters) => {
@@ -253,7 +250,7 @@ export default function HrisPayrollPage() {
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    const source = preview || selectedRun;
+    const source = selectedRun;
     link.href = url;
     link.download = `payroll-${source?.period_start || periodStart}-${source?.period_end || periodEnd}.csv`;
     link.click();
@@ -276,35 +273,43 @@ export default function HrisPayrollPage() {
         onApprove={approveAction.execute}
         onCreate={createAction.execute}
         onExport={handleExport}
-        onMarkPaid={markPaidAction.execute}
-        onPreview={previewAction.execute}
         onRecalculate={recalculateAction.execute}
         onSelectCutoff={handleSelectCutoff}
-        onSelectRun={handleSelectRun}
         cutoffOptions={cutoffOptions}
-        runs={runs}
         selectedCutoffKey={selectedCutoffKey}
         selectedRun={selectedRun}
-        selectedRunId={selectedRunId}
       />
 
       <div className="dashboard-content">
         {error && <div className="pr-error-banner">{error}</div>}
         <HrisPayrollStatCards summary={activeSummary} statusLabel={statusLabel} />
-        <HrisPayrollOngoingAlert run={selectedRun} preview={preview} />
+        <HrisPayrollOngoingAlert run={selectedRun} />
         <HrisPayrollFilterBar filters={filters} onChange={handleFilterChange} />
         <HrisPayrollTable
           currentPage={recordsPage}
           loading={loadingRuns || loadingRecords}
+          markingRecordId={markRecordPaidAction.loading ? paymentTarget?.id : ''}
+          onMarkPaid={setPaymentTarget}
           onPageChange={setRecordsPage}
           pageLimit={PAYROLL_PAGE_LIMIT}
-          preview={preview}
           records={pagedRecords}
           run={selectedRun}
           totalRecords={records.length}
         />
       </div>
 
+      <ReportConfirmDialog
+        open={Boolean(paymentTarget)}
+        title="Mark Guard as Paid?"
+        description={paymentTarget
+          ? `${paymentTarget.employee_name || 'This guard'} will be marked paid for the selected cutoff. Any included cash advance deduction will be applied.`
+          : ''}
+        confirmLabel="Mark Paid"
+        loading={markRecordPaidAction.loading}
+        tone="warning"
+        onCancel={() => setPaymentTarget(null)}
+        onConfirm={handleConfirmRecordPaid}
+      />
     </>
   );
 }

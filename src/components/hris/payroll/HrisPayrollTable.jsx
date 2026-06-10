@@ -3,6 +3,7 @@ import {
   FaCheck,
   FaEye,
   FaListUl,
+  FaMoneyBillWave,
 } from 'react-icons/fa';
 import EmptyState from '@components/ui/EmptyState';
 import Pagination from '@components/ui/Pagination';
@@ -21,11 +22,12 @@ import {
 export default function HrisPayrollTable({
   currentPage = 1,
   loading,
+  markingRecordId = '',
+  onMarkPaid,
   onPageChange,
   pageLimit = 10,
   records = [],
   run,
-  preview,
   totalRecords = records.length,
 }) {
   const [selectedRow, setSelectedRow] = useState(null);
@@ -34,16 +36,14 @@ export default function HrisPayrollTable({
   const endIndex = startIndex + records.length;
 
   const title = useMemo(() => {
-    const source = preview || run;
-    if (!source) return 'Payroll Records';
-    return `Payroll Records - ${formatDate(source.period_start)} to ${formatDate(source.period_end)}`;
-  }, [preview, run]);
+    if (!run) return 'Payroll Records';
+    return `Payroll Records - ${formatDate(run.period_start)} to ${formatDate(run.period_end)}`;
+  }, [run]);
 
   return (
     <div className="pr-table-container">
       <div className="pr-table-header">
         <h3><FaListUl /> {title}</h3>
-        {preview && <span className="pr-preview-pill">Preview only</span>}
       </div>
 
       <div className="pr-table-wrap">
@@ -68,7 +68,7 @@ export default function HrisPayrollTable({
                 <td colSpan="8">
                   <EmptyState
                     title="No payroll records"
-                    description="Preview a cutoff period or select a saved payroll run to see records here."
+                    description="Create a draft for this cutoff to calculate its payroll records."
                   />
                 </td>
               </tr>
@@ -121,13 +121,26 @@ export default function HrisPayrollTable({
                     </span>
                   </td>
                   <td onClick={(event) => event.stopPropagation()}>
-                    <button
-                      className="pr-view-btn"
-                      type="button"
-                      onClick={() => setSelectedRow(row)}
-                    >
-                      <FaEye /> View
-                    </button>
+                    <div className="pr-row-actions">
+                      <button
+                        className="pr-view-btn"
+                        type="button"
+                        onClick={() => setSelectedRow(row)}
+                      >
+                        <FaEye /> View
+                      </button>
+                      {run?.status === 'approved' && row.status === 'approved' && (
+                        <button
+                          className="pr-pay-btn"
+                          type="button"
+                          disabled={Boolean(markingRecordId)}
+                          onClick={() => onMarkPaid?.(row)}
+                        >
+                          <FaMoneyBillWave />
+                          {markingRecordId === row.id ? 'Saving...' : 'Mark Paid'}
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               );

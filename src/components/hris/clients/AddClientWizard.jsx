@@ -4,6 +4,10 @@ import clientService from '@services/hris/clientService';
 import employeeService from '@services/hris/employeeService';
 import Notification from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
+import {
+  isBelowMinimumMonthlyBasePay,
+  MINIMUM_MONTHLY_BASE_PAY_MESSAGE,
+} from '@constants/payrollRules';
 
 import Step1ContactInfo    from './wizard/Step1ContactInfo';
 import Step2CompanyDetails from './wizard/Step2CompanyDetails';
@@ -312,8 +316,8 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
           showNotification('Please select the deployment site for the guard.', 'error'); return false;
         }
         for (const assignment of formData.initialDeployment.assignments) {
-          if (!assignment.baseSalary) {
-            showNotification(`Please set the base pay for ${assignment.employeeName || 'each selected guard'}.`, 'error'); return false;
+          if (isBelowMinimumMonthlyBasePay(assignment.baseSalary)) {
+            showNotification(`${MINIMUM_MONTHLY_BASE_PAY_MESSAGE} Guard: ${assignment.employeeName || 'selected guard'}.`, 'error'); return false;
           }
           if (!assignment.contractStartDate || !assignment.contractEndDate) {
             showNotification(`Please set the assignment contract dates for ${assignment.employeeName || 'each selected guard'}.`, 'error'); return false;

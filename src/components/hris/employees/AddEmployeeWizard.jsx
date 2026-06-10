@@ -7,6 +7,10 @@ import Notification    from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
 import { formatSiteLabel } from '@hris-components/shared/siteDisplay';
 import { getAgeDateBounds, getHireDateBounds } from '@utils/hrisDateRules';
+import {
+  isBelowMinimumMonthlyBasePay,
+  MINIMUM_MONTHLY_BASE_PAY_MESSAGE,
+} from '@constants/payrollRules';
 
 // Step fragments
 import Step1Personal   from './tabs/Step1Personal';
@@ -174,6 +178,9 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
         showNotification('Date hired must be between 1 year ago and 3 months in the future.', 'error'); return false;
       }
       if (formData.initialSiteId) {
+        if (isBelowMinimumMonthlyBasePay(formData.basicRate)) {
+          showNotification(MINIMUM_MONTHLY_BASE_PAY_MESSAGE, 'error'); return false;
+        }
         const selectedSite = sites.find((site) => site.id === formData.initialSiteId);
         const clientContractEndDate = selectedSite?.client_contract_end_date || null;
         if (!formData.deploymentStartDate || !formData.deploymentEndDate) {

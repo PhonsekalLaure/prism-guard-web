@@ -26,6 +26,10 @@ import {
   isAfterDate,
   isEarlierDate,
 } from '@utils/serviceRequestFulfillment';
+import {
+  isBelowMinimumMonthlyBasePay,
+  MINIMUM_MONTHLY_BASE_PAY_MESSAGE,
+} from '@constants/payrollRules';
 import '../../styles/hris/HrisServiceRequests.css';
 
 function timelineIcon(dotClass) {
@@ -208,7 +212,9 @@ export default function ServiceRequestDetailPage() {
   const handleDeployAdditionalGuard = useCallback(async () => {
     if (!request || !selectedEmployee) return;
     if (!deployForm.siteId)                                         { setError('Please select a client site.'); return; }
-    if (!deployForm.baseSalary || Number(deployForm.baseSalary) <= 0) { setError('Please set the guard monthly base pay.'); return; }
+    if (isBelowMinimumMonthlyBasePay(deployForm.baseSalary)) {
+      setError(MINIMUM_MONTHLY_BASE_PAY_MESSAGE); return;
+    }
     if (selectedClientContractStartDate && deployForm.contractStartDate && deployForm.contractStartDate < selectedClientContractStartDate) { setError(`Deployment contract start date cannot be earlier than the client contract start date (${selectedClientContractStartDate}).`); return; }
     if (selectedClientContractEndDate && deployForm.contractStartDate && isAfterDate(deployForm.contractStartDate, selectedClientContractEndDate)) { setError(`Deployment contract start date cannot be later than the client contract end date (${selectedClientContractEndDate}).`); return; }
     if (isEarlierDate(deployForm.contractStartDate, deployForm.contractEndDate)) { setError('Deployment contract end date cannot be earlier than deployment contract start date.'); return; }

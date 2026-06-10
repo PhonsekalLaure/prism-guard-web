@@ -20,11 +20,6 @@ async function listPayrollRuns(params = {}) {
   return data;
 }
 
-async function previewPayrollRun(payload) {
-  const { data } = await api.post('/runs/preview', payload);
-  return data;
-}
-
 async function createPayrollRun(payload) {
   const { data } = await api.post('/runs', payload);
   return data;
@@ -45,8 +40,8 @@ async function approvePayrollRun(id) {
   return data;
 }
 
-async function markPayrollRunPaid(id) {
-  const { data } = await api.post(`/runs/${id}/mark-paid`);
+async function markPayrollRecordPaid(runId, recordId) {
+  const { data } = await api.post(`/runs/${runId}/records/${recordId}/mark-paid`);
   return data;
 }
 
@@ -55,7 +50,6 @@ export default {
   createPayrollRun,
   getPayrollRunById,
   listPayrollRuns,
-  markPayrollRunPaid,
-  previewPayrollRun,
+  markPayrollRecordPaid,
   recalculatePayrollRun,
 };

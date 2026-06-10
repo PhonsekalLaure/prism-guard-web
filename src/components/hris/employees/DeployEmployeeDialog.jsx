@@ -1,5 +1,9 @@
 import { FaSpinner, FaMapMarkerAlt, FaCalendarAlt, FaClock, FaBuilding, FaFileUpload, FaCheck, FaMoneyCheckAlt } from 'react-icons/fa';
 import SiteSelect from '@hris-components/shared/SiteSelect';
+import {
+  MINIMUM_MONTHLY_BASE_PAY,
+  MINIMUM_MONTHLY_BASE_PAY_HINT,
+} from '@constants/payrollRules';
 
 const DAY_OPTIONS = [
   { value: 0, label: 'Sun' },
@@ -71,13 +75,14 @@ export default function DeployEmployeeDialog({
             <label className="dep-field-label">Monthly Base Pay <span className="req">*</span></label>
             <input
               type="number"
-              min="0"
+              min={MINIMUM_MONTHLY_BASE_PAY}
               step="0.01"
               className="dep-input"
               value={deployForm.baseSalary}
               onChange={(e) => setDeployForm((f) => ({ ...f, baseSalary: e.target.value }))}
-              placeholder="0.00"
+              placeholder={String(MINIMUM_MONTHLY_BASE_PAY)}
             />
+            <p className="ae-hint">{MINIMUM_MONTHLY_BASE_PAY_HINT}</p>
           </div>
 
           <div>
