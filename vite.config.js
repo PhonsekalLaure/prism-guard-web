@@ -27,6 +27,7 @@ export default defineConfig({
       '@utils': path.resolve(__dirname, './src/utils'),
       '@services': path.resolve(__dirname, './src/services'),
       '@hooks': path.resolve(__dirname, './src/hooks'),
+      '@constants': path.resolve(__dirname, './src/constants'),
       '@cms-components': path.resolve(__dirname, './src/components/cms'),
       '@cms-pages': path.resolve(__dirname, './src/pages/cms'),
       '@cms-layouts': path.resolve(__dirname, './src/layouts/cms')

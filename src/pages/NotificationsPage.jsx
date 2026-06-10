@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useOutletContext } from 'react-router-dom';
 import CmsMobileSidebarToggle from '@components/cms/CmsMobileSidebarToggle';
 import {
+  FaBars,
   FaBell,
   FaCheck,
   FaClock,
@@ -12,6 +13,7 @@ import {
   FaInbox,
   FaSearch,
   FaTimes,
+  FaTrash,
 } from 'react-icons/fa';
 import Notification from '@components/ui/Notification';
 import Pagination from '@components/ui/Pagination';
@@ -156,7 +158,7 @@ function NotificationRow({ item, portal, onOpen, onMarkRead, onDismiss }) {
 export default function NotificationsPage({ portal = 'hris' }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { refreshNotificationStats } = useOutletContext() || {};
+  const { refreshNotificationStats, toggleSidebar } = useOutletContext() || {};
   const [notifications, setNotifications] = useState([]);
   const [stats, setStats] = useState({ total: 0, unread: 0, urgent: 0, by_type: {} });
   const [metadata, setMetadata] = useState(DEFAULT_METADATA);
@@ -243,9 +245,26 @@ export default function NotificationsPage({ portal = 'hris' }) {
     try {
       const result = await notificationsService.markAllRead();
       showNotification(`${result.updated || 0} notification${result.updated === 1 ? '' : 's'} marked as read.`, 'success');
+      window.dispatchEvent(new CustomEvent('notifications:bulk-read'));
       await refreshCurrentPage();
     } catch (err) {
       showNotification(err.response?.data?.error || 'Failed to mark notifications as read.', 'error');
+    }
+  };
+
+  const handleClearAll = async () => {
+    try {
+      const result = await notificationsService.dismissAll();
+      showNotification(`${result.updated || 0} notification${result.updated === 1 ? '' : 's'} cleared.`, 'success');
+      window.dispatchEvent(new CustomEvent('notifications:bulk-clear'));
+      setMetadata((prev) => ({ ...prev, page: 1 }));
+      await Promise.all([
+        loadStats(),
+        loadNotifications(1, filters),
+        refreshNotificationStats?.(),
+      ]);
+    } catch (err) {
+      showNotification(err.response?.data?.error || 'Failed to clear notifications.', 'error');
     }
   };
 
@@ -319,9 +338,11 @@ export default function NotificationsPage({ portal = 'hris' }) {
       )}
 
       <header className="notif-topbar">
-        <div className="notif-title-group">
-          <div className="cms-topbar-title-row">
-            {portal === 'cms' && <CmsMobileSidebarToggle />}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <button className="mobile-toggle" onClick={toggleSidebar} type="button">
+            <FaBars />
+          </button>
+          <div className="notif-title-group">
             <div>
               <h2>Notifications</h2>
               <p>{portalLabel} activity inbox</p>
@@ -329,15 +350,26 @@ export default function NotificationsPage({ portal = 'hris' }) {
           </div>
         </div>
 
-        <button
-          type="button"
-          className="notif-mark-all-btn"
-          onClick={handleMarkAllRead}
-          disabled={!stats.unread}
-        >
-          <FaEnvelopeOpenText />
-          Mark all read
-        </button>
+        <div className="notif-header-actions">
+          <button
+            type="button"
+            className="notif-mark-all-btn"
+            onClick={handleMarkAllRead}
+            disabled={!stats.unread}
+          >
+            <FaEnvelopeOpenText />
+            Mark all read
+          </button>
+          <button
+            type="button"
+            className="notif-clear-all-btn"
+            onClick={handleClearAll}
+            disabled={!stats.total}
+          >
+            <FaTrash />
+            Clear all
+          </button>
+        </div>
       </header>
 
       <div className={portal === 'cms' ? 'cms-content' : 'dashboard-content'}>

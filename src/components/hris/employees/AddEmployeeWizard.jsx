@@ -5,6 +5,13 @@ import employeeService from '@services/hris/employeeService';
 import clientService   from '@services/hris/clientService';
 import Notification    from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
+import { formatSiteLabel } from '@hris-components/shared/siteDisplay';
+import { getAgeDateBounds, getHireDateBounds } from '@utils/hrisDateRules';
+import { getGuardHeightError } from '@utils/guardEligibility';
+import {
+  isBelowMinimumMonthlyBasePay,
+  MINIMUM_MONTHLY_BASE_PAY_MESSAGE,
+} from '@constants/payrollRules';
 
 // Step fragments
 import Step1Personal   from './tabs/Step1Personal';
@@ -37,7 +44,7 @@ const INITIAL_FORM = () => ({
   tinNumber: '', sssNumber: '', pagibigNumber: '', philhealthNumber: '',
   badgeNumber: '', licenseNumber: '', licenseExpiryDate: '',
   // Step 3
-  documents: {}, avatar: null,
+  documents: {}, avatar: null, avatarUrl: '', sourceApplicantId: '',
 });
 
 function isEarlierDate(startDate, endDate) {
@@ -119,8 +126,8 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
       }));
       return;
     }
-    const site  = sites.find(s => s.id === siteId);
-    const label = site ? `${site.site_name} - ${site.clients?.company || 'Unknown Client'}` : '';
+    const site = sites.find(s => s.id === siteId);
+    const label = formatSiteLabel(site);
     const clientContractEndDate = site?.client_contract_end_date || null;
     setFormData(prev => ({
       ...prev,
@@ -148,6 +155,16 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
       if (!firstName || !lastName || !dob || !gender || !height || !civilStatus || !educationalLevel || !mobile || !email || !address || !emergencyName || !emergencyContact) {
         showNotification('Please fill in all required fields marked with *', 'error'); return false;
       }
+
+      const { min: minDobDate, max: maxDobDate } = getAgeDateBounds();
+      if (dob < minDobDate || dob > maxDobDate) {
+        showNotification('Employee must be between 18 and 45 years old.', 'error'); return false;
+      }
+      const heightError = getGuardHeightError(gender, height);
+      if (heightError) {
+        showNotification(heightError, 'error'); return false;
+      }
+
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         showNotification('Please enter a valid email address', 'error'); return false;
       }
@@ -161,7 +178,14 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
       if (!formData.hireDate || !formData.position || !formData.employmentType) {
         showNotification('Please fill in all required employment fields', 'error'); return false;
       }
+      const { min: minHireDate, max: maxHireDate } = getHireDateBounds();
+      if (formData.hireDate < minHireDate || formData.hireDate > maxHireDate) {
+        showNotification('Date hired must be between 1 year ago and 3 months in the future.', 'error'); return false;
+      }
       if (formData.initialSiteId) {
+        if (isBelowMinimumMonthlyBasePay(formData.basicRate)) {
+          showNotification(MINIMUM_MONTHLY_BASE_PAY_MESSAGE, 'error'); return false;
+        }
         const selectedSite = sites.find((site) => site.id === formData.initialSiteId);
         const clientContractEndDate = selectedSite?.client_contract_end_date || null;
         if (!formData.deploymentStartDate || !formData.deploymentEndDate) {
@@ -210,6 +234,12 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
         setIsSubmitting(false);
         return;
       }
+      const { min: minHireDate, max: maxHireDate } = getHireDateBounds();
+      if (formData.hireDate < minHireDate || formData.hireDate > maxHireDate) {
+        showNotification('Date hired must be between 1 year ago and 3 months in the future.', 'error');
+        setIsSubmitting(false);
+        return;
+      }
       if (isEarlierDate(formData.hireDate, formData.contractEndDate)) {
         showNotification('Employment contract end date cannot be earlier than employment contract start date.', 'error');
         setIsSubmitting(false);
@@ -245,6 +275,10 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
           formData.daysOfWeek.forEach((day) => payload.append('daysOfWeek', String(day)));
         } else if (key === 'avatar') {
           if (formData.avatar) payload.append('avatar', formData.avatar);
+        } else if (key === 'avatarUrl') {
+          if (formData.avatarUrl) payload.append('avatarUrl', formData.avatarUrl);
+        } else if (key === 'sourceApplicantId') {
+          if (formData.sourceApplicantId) payload.append('sourceApplicantId', formData.sourceApplicantId);
         } else if (key === 'mobile' || key === 'emergencyContact') {
           payload.append(key, `+63${formData[key]?.replace(/\D/g, '') || ''}`);
         } else {
@@ -252,7 +286,7 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
         }
       });
       const createdEmployee = await employeeService.createEmployee(payload);
-      showNotification('Employee added successfully and welcome email sent!', 'success');
+      showNotification('Employee added successfully and invitation requested.', 'success');
       if (onSaved) {
         await onSaved(createdEmployee);
       } else {

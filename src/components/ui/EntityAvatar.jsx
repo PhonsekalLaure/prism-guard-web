@@ -6,12 +6,13 @@ export default function EntityAvatar({
   alt = '',
   fallbackContent,
   className = '',
+  style = {},
 }) {
   const [failed, setFailed] = useState(false);
   const canShowImage = Boolean(avatarUrl) && !failed;
 
   return (
-    <div className={`${className || 'entity-avatar'}${canShowImage ? ' has-image' : ''}`}>
+    <div className={`entity-avatar ${className}${canShowImage ? ' has-image' : ''}`} style={style}>
       {canShowImage ? (
         <img
           src={avatarUrl}

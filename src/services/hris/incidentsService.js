@@ -45,6 +45,11 @@ async function markResolved(id, reviewNotes) {
   return data;
 }
 
+async function sendMessage(id, message) {
+  const { data } = await api.post(`/${id}/messages`, { message });
+  return data;
+}
+
 async function generateInternalReport(id) {
   const { data } = await api.post(`/${id}/reports/internal`);
   return data;
@@ -76,6 +81,7 @@ export default {
   getStats,
   updateReview,
   markResolved,
+  sendMessage,
   generateInternalReport,
   sendInternalReportToPresident,
   updateClientReportRequest,

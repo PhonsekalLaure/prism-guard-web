@@ -1,7 +1,13 @@
 import {
   FaBuilding, FaCheck, FaClock, FaFilter, FaMapMarkerAlt,
   FaFileUpload, FaMoneyCheckAlt, FaRulerVertical, FaShieldAlt, FaUserTie,
+  FaMale, FaFemale,
 } from 'react-icons/fa';
+import EntityAvatar from '@components/ui/EntityAvatar';
+import {
+  MINIMUM_MONTHLY_BASE_PAY,
+  MINIMUM_MONTHLY_BASE_PAY_HINT,
+} from '@constants/payrollRules';
 
 const DAY_OPTIONS = [
   { value: 0, label: 'Sun' },
@@ -48,6 +54,7 @@ export default function GuardDeploymentSelector({
   toggleScheduleDay,
   selectionMode = 'single',
   emptyMessage = 'No deployable guards are currently available.',
+  clientContractStartDate = null,
   clientContractEndDate = null,
 }) {
   const isMultiSelect = selectionMode === 'multiple';
@@ -94,6 +101,22 @@ export default function GuardDeploymentSelector({
               />
               <FaShieldAlt /> Experienced (2+ yrs)
             </label>
+            <label className={`gds-filter-pill${filters.maleOnly ? ' active' : ''}`}>
+              <input
+                type="checkbox"
+                checked={filters.maleOnly}
+                onChange={(e) => onFilterChange('maleOnly', e.target.checked)}
+              />
+              <FaMale /> Male
+            </label>
+            <label className={`gds-filter-pill${filters.femaleOnly ? ' active' : ''}`}>
+              <input
+                type="checkbox"
+                checked={filters.femaleOnly}
+                onChange={(e) => onFilterChange('femaleOnly', e.target.checked)}
+              />
+              <FaFemale /> Female
+            </label>
           </div>
         </div>
       </div>
@@ -135,9 +158,12 @@ export default function GuardDeploymentSelector({
                     checked={isSelected}
                     onChange={() => onToggleEmployee(employee)}
                   />
-                  <div className="gds-guard-avatar">
-                    {(employee.name || 'G').charAt(0).toUpperCase()}
-                  </div>
+                  <EntityAvatar
+                    className="gds-guard-avatar"
+                    avatarUrl={employee.avatar_url || employee.avatarUrl}
+                    initials={(employee.name || 'G').charAt(0).toUpperCase()}
+                    alt={employee.name}
+                  />
                   <div className="gds-guard-info">
                     <div className="gds-guard-row">
                       <p className="gds-guard-name">{employee.name}</p>
@@ -190,13 +216,14 @@ export default function GuardDeploymentSelector({
                 }}>₱</span>
                 <input
                   type="number"
-                  min="0"
+                  min={MINIMUM_MONTHLY_BASE_PAY}
                   className="dep-input"
                   style={{ paddingLeft: '1.75rem' }}
                   value={deploymentForm.baseSalary}
                   onChange={(e) => onFieldChange('baseSalary', e.target.value)}
-                  placeholder="0.00"
+                  placeholder={String(MINIMUM_MONTHLY_BASE_PAY)}
                 />
+                <p className="ae-hint">{MINIMUM_MONTHLY_BASE_PAY_HINT}</p>
               </div>
             </div>
           </div>
@@ -212,7 +239,12 @@ export default function GuardDeploymentSelector({
                     className="dep-input"
                     value={deploymentForm.contractStartDate}
                     onChange={(e) => onFieldChange('contractStartDate', e.target.value)}
+                    min={clientContractStartDate || undefined}
+                    max={deploymentForm.contractEndDate || clientContractEndDate || undefined}
                   />
+                  {clientContractStartDate && (
+                    <p className="ae-hint">Must be on or after client contract start date: {clientContractStartDate}</p>
+                  )}
                 </div>
                 <div>
                   <label className="dep-field-label">End Date</label>
@@ -221,6 +253,7 @@ export default function GuardDeploymentSelector({
                     className="dep-input"
                     value={deploymentForm.contractEndDate}
                     onChange={(e) => onFieldChange('contractEndDate', e.target.value)}
+                    min={deploymentForm.contractStartDate || clientContractStartDate || undefined}
                     max={clientContractEndDate || undefined}
                   />
                   {clientContractEndDate && (

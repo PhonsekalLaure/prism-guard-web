@@ -15,7 +15,7 @@
   align-items: center;
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 950;
   box-shadow: 0 1px 6px rgba(9, 50, 105, 0.06);
 }
 
@@ -40,9 +40,18 @@
 }
 
 /* =============================================
-   MARK ALL BUTTON
+   HEADER ACTIONS
    ============================================= */
-.notif-mark-all-btn {
+.notif-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.notif-mark-all-btn,
+.notif-clear-all-btn {
   background: linear-gradient(135deg, #093269 0%, #0d4a8f 100%);
   color: #fff;
   border: none;
@@ -59,13 +68,28 @@
   box-shadow: 0 4px 12px rgba(9, 50, 105, 0.25);
 }
 
+.notif-clear-all-btn {
+  background: #fff;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  box-shadow: 0 4px 12px rgba(185, 28, 28, 0.10);
+}
+
 .notif-mark-all-btn:hover:not(:disabled) {
   background: linear-gradient(135deg, #0a3d7a 0%, #0e56a8 100%);
   box-shadow: 0 6px 16px rgba(9, 50, 105, 0.35);
   transform: translateY(-1px);
 }
 
-.notif-mark-all-btn:disabled {
+.notif-clear-all-btn:hover:not(:disabled) {
+  border-color: #f87171;
+  background: #fef2f2;
+  box-shadow: 0 6px 16px rgba(185, 28, 28, 0.16);
+  transform: translateY(-1px);
+}
+
+.notif-mark-all-btn:disabled,
+.notif-clear-all-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
@@ -319,6 +343,11 @@
     flex-direction: column;
     gap: 0.75rem;
     padding: 1rem 1.25rem;
+  }
+
+  .notif-header-actions {
+    width: 100%;
+    justify-content: flex-start;
   }
 
   .notif-row-head {

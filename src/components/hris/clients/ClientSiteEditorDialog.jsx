@@ -1,6 +1,12 @@
 import GoogleAddressAutofill from '@hris-components/employees/GoogleAddressAutofill';
-
-const MAX_GEOFENCE_RADIUS_METERS = 500;
+import SiteMap from './SiteMap';
+import {
+  MAX_GEOFENCE_RADIUS_METERS,
+  SITE_SEARCH_HINT,
+  SITE_SEARCH_PLACEHOLDER,
+  applySiteLocationChange,
+  clampGeofenceRadius,
+} from './siteLocationUtils';
 
 export default function ClientSiteEditorDialog({
   isOpen,
@@ -49,14 +55,14 @@ export default function ClientSiteEditorDialog({
                   onFieldChange('longitude', '');
                 }}
                 className="ae-input"
-                placeholder="Search for a site address..."
+                placeholder={SITE_SEARCH_PLACEHOLDER}
                 onPlaceSelected={({ formattedAddress, lat, lng }) => {
                   onFieldChange('siteAddress', formattedAddress);
                   onFieldChange('latitude', lat);
                   onFieldChange('longitude', lng);
                 }}
               />
-              <p className="ae-hint">Pick a suggested address so saved coordinates stay aligned with distance ranking and geofencing.</p>
+              <p className="ae-hint">{SITE_SEARCH_HINT}</p>
             </div>
 
             <div className="ae-form-group">
@@ -67,10 +73,20 @@ export default function ClientSiteEditorDialog({
                 value={form.geofenceRadius}
                 min="1"
                 max={MAX_GEOFENCE_RADIUS_METERS}
-                onChange={(e) => onFieldChange('geofenceRadius', e.target.value)}
+                onChange={(e) => onFieldChange('geofenceRadius', clampGeofenceRadius(e.target.value))}
               />
               <p className="ae-hint">Maximum radius: {MAX_GEOFENCE_RADIUS_METERS}m.</p>
             </div>
+          </div>
+
+          <div style={{ marginTop: '1rem' }}>
+            <SiteMap
+              latitude={form.latitude}
+              longitude={form.longitude}
+              radiusMeters={form.geofenceRadius}
+              draggable
+              onLocationChange={(location) => applySiteLocationChange(onFieldChange, location)}
+            />
           </div>
         </div>
 

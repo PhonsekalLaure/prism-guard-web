@@ -1,4 +1,9 @@
 import { FaSpinner, FaMapMarkerAlt, FaCalendarAlt, FaClock, FaBuilding, FaFileUpload, FaCheck, FaMoneyCheckAlt } from 'react-icons/fa';
+import SiteSelect from '@hris-components/shared/SiteSelect';
+import {
+  MINIMUM_MONTHLY_BASE_PAY,
+  MINIMUM_MONTHLY_BASE_PAY_HINT,
+} from '@constants/payrollRules';
 
 const DAY_OPTIONS = [
   { value: 0, label: 'Sun' },
@@ -23,6 +28,7 @@ function SectionLabel({ icon: Icon, children }) {
 export default function DeployEmployeeDialog({
   isOpen, employeeName, sitesList, deployForm, setDeployForm,
   isDeploying, onCancel, onDeploy, toggleScheduleDay, isTransfer = false,
+  clientContractStartDate = null,
   clientContractEndDate = null,
   title,
   submittingLabel,
@@ -31,11 +37,13 @@ export default function DeployEmployeeDialog({
 }) {
   if (!isOpen) return null;
 
-  const formatSiteLabel = (site) => {
-    const baseLabel = `${site.site_name} - ${site.clients?.company || 'Unknown Client'}`;
-    return site.distance_km != null
-      ? `${baseLabel} (${site.distance_km.toFixed(2)} km)`
-      : baseLabel;
+  const handleSiteSelect = (site) => {
+    setDeployForm((form) => ({
+      ...form,
+      siteId: site?.id || '',
+      contractStartDate: site?.client_contract_start_date || '',
+      contractEndDate: site?.client_contract_end_date || '',
+    }));
   };
 
   return (
@@ -46,7 +54,7 @@ export default function DeployEmployeeDialog({
             <FaMapMarkerAlt />
           </div>
           <div className="dep-header-text">
-            <h3>{title || (isTransfer ? 'Transfer Assignment' : 'Assign to Client Site')}</h3>
+            <h3>{title || (isTransfer ? 'Update Assignment / Transfer' : 'Assign to Client Site')}</h3>
             <p>Deploying <strong>{employeeName}</strong></p>
           </div>
         </div>
@@ -55,29 +63,11 @@ export default function DeployEmployeeDialog({
           <div>
             <SectionLabel icon={FaBuilding}>Client Site</SectionLabel>
             <label className="dep-field-label">Select Site <span className="req">*</span></label>
-            <select
-              className="dep-input"
-              value={deployForm.siteId}
-              onChange={(e) => {
-                const siteId = e.target.value;
-                const selectedSite = sitesList.find((site) => site.id === siteId);
-                const maxEndDate = selectedSite?.client_contract_end_date || null;
-                setDeployForm((f) => ({
-                  ...f,
-                  siteId,
-                  contractEndDate: maxEndDate && (!f.contractEndDate || f.contractEndDate > maxEndDate)
-                    ? maxEndDate
-                    : f.contractEndDate,
-                }));
-              }}
-            >
-              <option value="">- Select a site -</option>
-              {sitesList.map((site) => (
-                <option key={site.id} value={site.id}>
-                  {formatSiteLabel(site)}
-                </option>
-              ))}
-            </select>
+            <SiteSelect
+              sites={sitesList}
+              selectedSiteId={deployForm.siteId}
+              onSelect={handleSiteSelect}
+            />
           </div>
 
           <div>
@@ -85,13 +75,14 @@ export default function DeployEmployeeDialog({
             <label className="dep-field-label">Monthly Base Pay <span className="req">*</span></label>
             <input
               type="number"
-              min="0"
+              min={MINIMUM_MONTHLY_BASE_PAY}
               step="0.01"
               className="dep-input"
               value={deployForm.baseSalary}
               onChange={(e) => setDeployForm((f) => ({ ...f, baseSalary: e.target.value }))}
-              placeholder="0.00"
+              placeholder={String(MINIMUM_MONTHLY_BASE_PAY)}
             />
+            <p className="ae-hint">{MINIMUM_MONTHLY_BASE_PAY_HINT}</p>
           </div>
 
           <div>
@@ -104,7 +95,12 @@ export default function DeployEmployeeDialog({
                   className="dep-input"
                   value={deployForm.contractStartDate}
                   onChange={(e) => setDeployForm((f) => ({ ...f, contractStartDate: e.target.value }))}
+                  min={clientContractStartDate || undefined}
+                  max={deployForm.contractEndDate || clientContractEndDate || undefined}
                 />
+                {clientContractStartDate && (
+                  <p className="ae-hint">Must be on or after client contract start date: {clientContractStartDate}</p>
+                )}
               </div>
               <div>
                 <label className="dep-field-label">Deployment Contract End Date</label>
@@ -113,7 +109,7 @@ export default function DeployEmployeeDialog({
                   className="dep-input"
                   value={deployForm.contractEndDate}
                   onChange={(e) => setDeployForm((f) => ({ ...f, contractEndDate: e.target.value }))}
-                  min={deployForm.contractStartDate || undefined}
+                  min={deployForm.contractStartDate || clientContractStartDate || undefined}
                   max={clientContractEndDate || undefined}
                 />
                 {clientContractEndDate && (
@@ -222,8 +218,8 @@ export default function DeployEmployeeDialog({
           >
             {isDeploying ? <FaSpinner className="animate-spin" /> : <FaMapMarkerAlt />}
             {isDeploying
-              ? (submittingLabel || (isTransfer ? 'Transferring...' : 'Deploying...'))
-              : (submitLabel || (isTransfer ? 'Transfer Employee' : 'Deploy Employee'))}
+              ? (submittingLabel || (isTransfer ? 'Updating...' : 'Deploying...'))
+              : (submitLabel || (isTransfer ? 'Update Assignment' : 'Deploy Employee'))}
           </button>
         </div>
       </div>

@@ -1,3 +1,6 @@
+import { FaFileInvoiceDollar, FaTimes, FaFileContract } from 'react-icons/fa';
+import { PanelHeader, RenewalDocumentPanel, RenewalPeriodPanel } from '@hris-components/shared/RenewalDialogSections';
+
 export default function RenewClientContractDialog({
   isOpen,
   clientName,
@@ -7,6 +10,8 @@ export default function RenewClientContractDialog({
   onFileChange,
   onCancel,
   onSave,
+  minStartDate,
+  maxEndDate,
 }) {
   if (!isOpen) return null;
 
@@ -14,60 +19,53 @@ export default function RenewClientContractDialog({
     <div className="dlg-overlay" onClick={onCancel}>
       <div className="dlg-card dlg-card-wide" onClick={(e) => e.stopPropagation()}>
         <div className="dep-header">
+          <div className="dep-header-icon">
+            <FaFileContract />
+          </div>
           <div className="dep-header-text">
             <h3>Renew Client Contract</h3>
-            <p>Upload the renewed and define the new contract period for {clientName}.</p>
+            <p>Upload the renewed contract and define the new contract period for <strong>{clientName}</strong>.</p>
           </div>
+          <button className="dep-close-btn" onClick={onCancel} disabled={isSaving}>
+            <FaTimes />
+          </button>
         </div>
 
-        <div className="dep-body">
-          <div className="ae-form-grid">
-            <div className="ae-form-group">
-              <label>Renewal Start Date</label>
-              <input
-                type="date"
-                className="ae-input"
-                value={form.contractStartDate}
-                onChange={(e) => onFieldChange('contractStartDate', e.target.value)}
-              />
-            </div>
+        <div className="dep-body" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <RenewalPeriodPanel
+            form={form}
+            onFieldChange={onFieldChange}
+            minStartDate={minStartDate}
+            maxEndDate={maxEndDate}
+          />
 
-            <div className="ae-form-group">
-              <label>Renewal End Date</label>
-              <input
-                type="date"
-                className="ae-input"
-                value={form.contractEndDate}
-                min={form.contractStartDate || undefined}
-                onChange={(e) => onFieldChange('contractEndDate', e.target.value)}
-              />
-            </div>
-
-            <div className="ae-form-group span-2">
-              <label>Rate per Guard</label>
-              <input
-                type="number"
-                className="ae-input"
-                value={form.ratePerGuard}
-                min="1"
-                placeholder="0.00"
-                onChange={(e) => onFieldChange('ratePerGuard', e.target.value)}
-              />
-            </div>
-
-            <div className="ae-form-group span-2">
-              <label>Renewed Contract Document</label>
-              <input
-                type="file"
-                className="ae-input"
-                accept="image/*,application/pdf"
-                onChange={(e) => onFileChange(e.target.files?.[0] || null)}
-              />
-              <p className="ae-hint">
-                {form.contractFile ? `Selected: ${form.contractFile.name}` : 'Upload the newly signed client contract.'}
-              </p>
+          {/* Panel 2: Billing & Rate */}
+          <div className="gds-panel">
+            <PanelHeader icon={FaFileInvoiceDollar}>Billing & Rate</PanelHeader>
+            <div className="gds-panel-body">
+              <div>
+                <label className="dep-field-label">Rate per Guard <span className="req">*</span></label>
+                <div style={{ position: 'relative' }}>
+                  <span style={{
+                    position: 'absolute', left: '0.85rem', top: '50%',
+                    transform: 'translateY(-50%)', fontSize: '0.78rem',
+                    fontWeight: 700, color: '#64748b',
+                  }}>₱</span>
+                  <input
+                    type="number"
+                    className="dep-input"
+                    style={{ paddingLeft: '1.75rem' }}
+                    value={form.ratePerGuard}
+                    min="1"
+                    placeholder="0.00"
+                    onChange={(e) => onFieldChange('ratePerGuard', e.target.value)}
+                  />
+                </div>
+              </div>
             </div>
           </div>
+
+          <RenewalDocumentPanel file={form.contractFile} onFileChange={onFileChange} />
         </div>
 
         <div className="dlg-footer">

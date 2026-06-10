@@ -1,3 +1,9 @@
+import SiteSelect from '@hris-components/shared/SiteSelect';
+import { getHireDateBounds } from '@utils/hrisDateRules';
+import {
+  MINIMUM_MONTHLY_BASE_PAY,
+  MINIMUM_MONTHLY_BASE_PAY_HINT,
+} from '@constants/payrollRules';
 import FormField from './FormField';
 
 const DAY_OPTIONS = [
@@ -11,40 +17,46 @@ const DAY_OPTIONS = [
 ];
 
 export default function Step2Employment({ data, onChange, sites, onSiteChange, toggleScheduleDay }) {
+  const handleSelectSite = (site) => {
+    onSiteChange(site ? site.id : '');
+  };
+
   const isFloating = !data.initialSiteId;
   const selectedSite = sites.find((site) => site.id === data.initialSiteId);
   const clientContractEndDate = selectedSite?.client_contract_end_date || null;
-  const formatSiteLabel = (site) => {
-    const baseLabel = `${site.site_name} - ${site.clients?.company || 'Unknown Client'}`;
-    return site.distance_km != null
-      ? `${baseLabel} (${site.distance_km.toFixed(2)} km)`
-      : baseLabel;
-  };
+  const { min: minHireDate, max: maxHireDate } = getHireDateBounds();
 
   return (
     <div className="ae-step-content">
       <h3 className="ae-step-heading">Employment Details</h3>
       <div className="ae-form-grid">
         <FormField label="Employee ID *"    type="text"   value={data.employeeId}     readOnly />
-        <FormField label="Date Hired *"     type="date"   required value={data.hireDate}        onChange={(e) => onChange('hireDate',        e.target.value)} />
-        <FormField label="Position/Rank *"  type="select" required value={data.position}        onChange={(e) => onChange('position',        e.target.value)}
-          options={['Security Guard', 'Lady Guard', 'Security Officer I', 'Security Officer II', 'Detachment Commander']} />
+        <FormField
+          label="Date Hired *"
+          type="date"
+          required
+          value={data.hireDate}
+          onChange={(e) => onChange('hireDate', e.target.value)}
+          min={minHireDate}
+          max={maxHireDate}
+        />
+        <FormField
+          label="Position/Rank *"
+          type="text"
+          readOnly
+          value={data.position || 'Security Guard'}
+        />
         <FormField label="Employment Status *" type="select" required value={data.employmentType} onChange={(e) => onChange('employmentType', e.target.value)}
           options={[{ label: 'Regular', value: 'regular' }, { label: 'Reliever', value: 'reliever' }]} />
-        <FormField
-          label="Initial Assignment"
-          type="select"
-          span2
-          value={data.initialSiteId}
-          onChange={(e) => onSiteChange(e.target.value)}
-          options={[
-            { label: 'Floating Status (No Assignment)', value: '' },
-            ...sites.map(site => ({
-              value: site.id,
-              label: formatSiteLabel(site),
-            })),
-          ]}
-        />
+        <div className="ae-form-group span-2">
+          <label>Initial Assignment</label>
+          <SiteSelect
+            sites={sites}
+            selectedSiteId={data.initialSiteId}
+            onSelect={handleSelectSite}
+            emptyLabel="Floating Status (No Assignment)"
+          />
+        </div>
         <FormField
           label="Basic Rate (Monthly)"
           type="number"
@@ -52,7 +64,9 @@ export default function Step2Employment({ data, onChange, sites, onSiteChange, t
           value={data.basicRate}
           onChange={(e) => onChange('basicRate', e.target.value)}
           disabled={isFloating}
-          placeholder={isFloating ? 'Select an initial site to enable base pay' : '0.00'}
+          min={MINIMUM_MONTHLY_BASE_PAY}
+          placeholder={isFloating ? 'Select an initial site to enable base pay' : String(MINIMUM_MONTHLY_BASE_PAY)}
+          hint={!isFloating ? MINIMUM_MONTHLY_BASE_PAY_HINT : undefined}
         />
         <FormField label="Pay Frequency" type="text" value="Semi-monthly" readOnly />
 

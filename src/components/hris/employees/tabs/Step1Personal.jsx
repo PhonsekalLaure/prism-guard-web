@@ -1,16 +1,20 @@
 import { useEffect, useMemo } from 'react';
 import FormField from './FormField';
 import GoogleAddressAutofill from '../GoogleAddressAutofill';
+import { getAgeDateBounds } from '@utils/hrisDateRules';
+import { EDUCATIONAL_LEVELS } from '@/constants/employees';
 
 export default function Step1Personal({ data, onChange }) {
   const preview = useMemo(() => (
-    data.avatar instanceof Blob ? URL.createObjectURL(data.avatar) : null
-  ), [data.avatar]);
+    data.avatar instanceof Blob ? URL.createObjectURL(data.avatar) : data.avatarUrl || null
+  ), [data.avatar, data.avatarUrl]);
 
   useEffect(() => {
-    if (!preview) return undefined;
+    if (!preview || !(data.avatar instanceof Blob)) return undefined;
     return () => URL.revokeObjectURL(preview);
-  }, [preview]);
+  }, [preview, data.avatar]);
+
+  const { min: minDob, max: maxDob } = getAgeDateBounds();
 
   return (
     <div className="ae-step-content">
@@ -35,7 +39,7 @@ export default function Step1Personal({ data, onChange }) {
               onChange={(e) => onChange('avatar', e.target.files[0])}
             />
           </div>
-          {preview && (
+          {data.avatar instanceof Blob && preview && (
             <button
               className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] shadow-sm hover:bg-red-600"
               onClick={() => onChange('avatar', null)}
@@ -52,15 +56,24 @@ export default function Step1Personal({ data, onChange }) {
         <FormField label="Last Name *"     type="text"   required value={data.lastName}     onChange={(e) => onChange('lastName',     e.target.value)} />
         <FormField label="Middle Name"     type="text"            value={data.middleName}    onChange={(e) => onChange('middleName',   e.target.value)} />
         <FormField label="Suffix"          type="text"            value={data.suffix}        onChange={(e) => onChange('suffix',       e.target.value)} />
-        <FormField label="Date of Birth *" type="date"   required value={data.dob}          onChange={(e) => onChange('dob',          e.target.value)} />
+        <FormField
+          label="Date of Birth *"
+          type="date"
+          required
+          value={data.dob}
+          min={minDob}
+          max={maxDob}
+          hint="Only ages 18 to 45 are eligible."
+          onChange={(e) => onChange('dob', e.target.value)}
+        />
         <FormField label="Gender *"        type="select" required value={data.gender}       onChange={(e) => onChange('gender',       e.target.value)}
           options={['Select gender', 'Male', 'Female']} />
         <FormField label="Height *"        type="text"   required value={data.height}       onChange={(e) => onChange('height',       e.target.value)} placeholder="e.g., 170 cm" />
         <FormField label="Marital Status *" type="select" required value={data.civilStatus} onChange={(e) => onChange('civilStatus',  e.target.value)}
-          options={['Select status', 'Single', 'Married', 'Widowed']} />
+          options={['Select status', 'Single', 'Married', 'Widowed', 'Separated']} />
         <FormField label="Citizenship *"   type="text"            value="Filipino" readOnly />
         <FormField label="Educational Attainment *" type="select" required value={data.educationalLevel} onChange={(e) => onChange('educationalLevel', e.target.value)}
-          options={['Select level', 'Elementary Graduate', 'High School Graduate', 'Vocational / TESDA', 'College Level', "Bachelor's Degree", "Master's Degree", 'Doctorate']} />
+          options={['Select level', ...EDUCATIONAL_LEVELS]} />
         <FormField label="Blood Type"      type="select"          value={data.bloodType}    onChange={(e) => onChange('bloodType',    e.target.value)}
           options={['Select blood type', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']} />
         <FormField label="Place of Birth"  type="text"            value={data.placeOfBirth} onChange={(e) => onChange('placeOfBirth', e.target.value)} placeholder="e.g., Manila City" />

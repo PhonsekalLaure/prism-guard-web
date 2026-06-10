@@ -1,3 +1,6 @@
+import { FaTimes, FaFileContract } from 'react-icons/fa';
+import { RenewalDocumentPanel, RenewalPeriodPanel } from '@hris-components/shared/RenewalDialogSections';
+
 export default function RenewEmployeeContractDialog({
   isOpen,
   employeeName,
@@ -7,6 +10,8 @@ export default function RenewEmployeeContractDialog({
   onFileChange,
   onCancel,
   onSave,
+  minStartDate,
+  maxEndDate,
 }) {
   if (!isOpen) return null;
 
@@ -14,48 +19,26 @@ export default function RenewEmployeeContractDialog({
     <div className="dlg-overlay" onClick={onCancel}>
       <div className="dlg-card dlg-card-wide" onClick={(e) => e.stopPropagation()}>
         <div className="dep-header">
+          <div className="dep-header-icon">
+            <FaFileContract />
+          </div>
           <div className="dep-header-text">
             <h3>Renew Employment Contract</h3>
-            <p>Upload the renewed employment contract and define the new contract period for {employeeName}.</p>
+            <p>Upload the renewed employment contract and define the new contract period for <strong>{employeeName}</strong>.</p>
           </div>
+          <button className="dep-close-btn" onClick={onCancel} disabled={isSaving}>
+            <FaTimes />
+          </button>
         </div>
 
-        <div className="dep-body">
-          <div className="ae-form-grid">
-            <div className="ae-form-group">
-              <label>Renewal Start Date</label>
-              <input
-                type="date"
-                className="ae-input"
-                value={form.contractStartDate}
-                onChange={(e) => onFieldChange('contractStartDate', e.target.value)}
-              />
-            </div>
-
-            <div className="ae-form-group">
-              <label>Renewal End Date</label>
-              <input
-                type="date"
-                className="ae-input"
-                value={form.contractEndDate}
-                min={form.contractStartDate || undefined}
-                onChange={(e) => onFieldChange('contractEndDate', e.target.value)}
-              />
-            </div>
-
-            <div className="ae-form-group span-2">
-              <label>Renewed Contract Document</label>
-              <input
-                type="file"
-                className="ae-input"
-                accept="image/*,application/pdf"
-                onChange={(e) => onFileChange(e.target.files?.[0] || null)}
-              />
-              <p className="ae-hint">
-                {form.contractFile ? `Selected: ${form.contractFile.name}` : 'Upload the newly signed employment contract.'}
-              </p>
-            </div>
-          </div>
+        <div className="dep-body" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <RenewalPeriodPanel
+            form={form}
+            onFieldChange={onFieldChange}
+            minStartDate={minStartDate}
+            maxEndDate={maxEndDate}
+          />
+          <RenewalDocumentPanel file={form.contractFile} onFileChange={onFileChange} />
         </div>
 
         <div className="dlg-footer">

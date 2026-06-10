@@ -9,6 +9,11 @@ import authService from '@services/authService';
 import Notification from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
 import { hasPermission } from '@utils/adminPermissions';
+import { getRenewalDateBounds } from '@utils/hrisDateRules';
+import {
+  isBelowMinimumMonthlyBasePay,
+  MINIMUM_MONTHLY_BASE_PAY_MESSAGE,
+} from '@constants/payrollRules';
 
 import GeneralTab from './tabs/GeneralTab';
 import SitesTab from './tabs/SitesTab';
@@ -97,7 +102,7 @@ export default function ViewClientDetail({
   const [loadingDeployable, setLoadingDeployable] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [isDeploying, setIsDeploying] = useState(false);
-  const [deployFilters, setDeployFilters] = useState({ tallOnly: false, experiencedOnly: false });
+  const [deployFilters, setDeployFilters] = useState({ tallOnly: false, experiencedOnly: false, maleOnly: false, femaleOnly: false });
   const [deployForm, setDeployForm] = useState({
     siteId: '',
     contractStartDate: '',
@@ -150,7 +155,7 @@ export default function ViewClientDetail({
       setShowDeployModal(false);
       setDeployableEmployees([]);
       setSelectedEmployee(null);
-      setDeployFilters({ tallOnly: false, experiencedOnly: false });
+      setDeployFilters({ tallOnly: false, experiencedOnly: false, maleOnly: false, femaleOnly: false });
       setDeployForm({
         siteId: '',
         contractStartDate: '',
@@ -166,6 +171,8 @@ export default function ViewClientDetail({
 
   const data = clientDetails || previewClient || null;
   const activeSites = (data?.sites || []).filter((site) => site.is_active);
+
+  const { minStartDate: minRenewalStartDate, maxEndDate: maxRenewalEndDate } = getRenewalDateBounds(data?.contract_end_date);
 
   useEffect(() => {
     if (!showDeployModal || !deployForm.siteId) return;
@@ -188,6 +195,8 @@ export default function ViewClientDetail({
           siteLongitude: selectedSite.longitude,
           tallOnly: deployFilters.tallOnly,
           experiencedOnly: deployFilters.experiencedOnly,
+          maleOnly: deployFilters.maleOnly,
+          femaleOnly: deployFilters.femaleOnly,
           contractStartDate: deployForm.contractStartDate,
           contractEndDate: deployForm.contractEndDate,
         });
@@ -211,6 +220,8 @@ export default function ViewClientDetail({
     deployForm.contractEndDate,
     deployFilters.tallOnly,
     deployFilters.experiencedOnly,
+    deployFilters.maleOnly,
+    deployFilters.femaleOnly,
     data?.sites,
     showNotification,
   ]);
@@ -241,16 +252,8 @@ export default function ViewClientDetail({
   const handleContractField = (key, value) => setContractForm((cur) => ({ ...cur, [key]: value }));
 
   const openRenewContractDialog = () => {
-    const baseStartDate = data.contract_end_date
-      ? (() => {
-        const nextDay = new Date(data.contract_end_date);
-        nextDay.setDate(nextDay.getDate() + 1);
-        return nextDay.toISOString().split('T')[0];
-      })()
-      : new Date().toISOString().split('T')[0];
-
     setContractForm({
-      contractStartDate: baseStartDate,
+      contractStartDate: minRenewalStartDate,
       contractEndDate: '',
       ratePerGuard: data.rate_per_guard || '',
       billingType: 'semi_monthly',
@@ -358,8 +361,20 @@ export default function ViewClientDetail({
       showNotification('Please set both renewal contract dates.', 'error');
       return;
     }
+    if (contractForm.contractStartDate < minRenewalStartDate) {
+      showNotification(`Renewal contract start date must be on or after the day after the current contract ends (${minRenewalStartDate}).`, 'error');
+      return;
+    }
+    if (isAfterDate(contractForm.contractStartDate, maxRenewalEndDate)) {
+      showNotification(`Renewal contract start date cannot be later than ${maxRenewalEndDate}.`, 'error');
+      return;
+    }
     if (new Date(contractForm.contractEndDate) <= new Date(contractForm.contractStartDate)) {
       showNotification('Renewal contract end date must be after renewal contract start date.', 'error');
+      return;
+    }
+    if (isAfterDate(contractForm.contractEndDate, maxRenewalEndDate)) {
+      showNotification(`Renewal contract end date cannot be later than ${maxRenewalEndDate}.`, 'error');
       return;
     }
     if (!contractForm.contractFile) {
@@ -434,7 +449,7 @@ export default function ViewClientDetail({
   const openDeployModal = (siteId = '') => {
     setShowDeployModal(true);
     setSelectedEmployee(null);
-    setDeployFilters({ tallOnly: false, experiencedOnly: false });
+    setDeployFilters({ tallOnly: false, experiencedOnly: false, maleOnly: false, femaleOnly: false });
     setDeployForm({
       siteId: siteId || activeSites[0]?.id || '',
       contractStartDate: data.contract_start_date || '',
@@ -464,10 +479,24 @@ export default function ViewClientDetail({
   const handleDeployGuard = async () => {
     if (!deployForm.siteId) { showNotification('Please select an active site.', 'error'); return; }
     if (!selectedEmployee?.id) { showNotification('Please select a guard.', 'error'); return; }
-    if (!deployForm.baseSalary) { showNotification('Please set the guard base pay.', 'error'); return; }
+    if (isBelowMinimumMonthlyBasePay(deployForm.baseSalary)) {
+      showNotification(MINIMUM_MONTHLY_BASE_PAY_MESSAGE, 'error'); return;
+    }
+
+    // Guard deployment date validation against client contract dates
+    if (data.contract_start_date && deployForm.contractStartDate && deployForm.contractStartDate < data.contract_start_date) {
+      showNotification(`Deployment contract start date cannot be earlier than the client contract start date (${data.contract_start_date}).`, 'error'); return;
+    }
+    if (data.contract_end_date && deployForm.contractStartDate && isAfterDate(deployForm.contractStartDate, data.contract_end_date)) {
+      showNotification(`Deployment contract start date cannot be later than the client contract end date (${data.contract_end_date}).`, 'error'); return;
+    }
+    if (deployForm.contractStartDate && deployForm.contractEndDate && isAfterDate(deployForm.contractStartDate, deployForm.contractEndDate)) {
+      showNotification('Deployment contract start date cannot be later than the end date.', 'error'); return;
+    }
     if (isAfterDate(deployForm.contractEndDate, data.contract_end_date)) {
       showNotification(`Deployment contract end date cannot be later than the client contract end date (${data.contract_end_date}).`, 'error'); return;
     }
+
     if (deployForm.daysOfWeek.length === 0) { showNotification('Please select at least one schedule day.', 'error'); return; }
     if (!deployForm.shiftStart || !deployForm.shiftEnd) { showNotification('Please set both shift start and end time.', 'error'); return; }
     if (!deployForm.deploymentOrderFile) { showNotification('Please upload the deployment order document.', 'error'); return; }
@@ -687,6 +716,7 @@ export default function ViewClientDetail({
                 deploymentForm={deployForm}
                 onFieldChange={(field, value) => setDeployForm((cur) => ({ ...cur, [field]: value }))}
                 toggleScheduleDay={toggleScheduleDay}
+                clientContractStartDate={data.contract_start_date || null}
                 clientContractEndDate={data.contract_end_date || null}
                 emptyMessage="No deployable guards match the selected site and filters."
               />
@@ -735,6 +765,8 @@ export default function ViewClientDetail({
           setShowRenewContractDialog(false);
         }}
         onSave={handleRenewContract}
+        minStartDate={minRenewalStartDate}
+        maxEndDate={maxRenewalEndDate}
       />
 
       <DeactivateClientSiteDialog

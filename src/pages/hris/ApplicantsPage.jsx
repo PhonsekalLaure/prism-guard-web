@@ -9,6 +9,33 @@ import ReviewApplicantModal from '@hris-components/applicants/ReviewApplicantMod
 import applicantService from '@services/hris/applicantService';
 import '../../styles/hris/Applicants.css';
 
+function buildHireNavigationApplicant(applicant) {
+  if (!applicant) return null;
+
+  const sourceApplicant = { ...applicant };
+  [
+    'tags',
+    'initials',
+    'name',
+    'applied',
+    'appliedDate',
+    'interviewDate',
+    'physical',
+    'age',
+    'height',
+    'license',
+    'phone',
+    'position',
+  ].forEach((key) => {
+    delete sourceApplicant[key];
+  });
+
+  return {
+    ...sourceApplicant,
+    profile_photo_url: applicant.profile_photo_url || applicant.avatarUrl || null,
+  };
+}
+
 export default function ApplicantsPage() {
   const navigate = useNavigate();
   const [reviewApplicant, setReviewApplicant] = useState(null);
@@ -94,7 +121,7 @@ export default function ApplicantsPage() {
   const handleHire = (applicant) => {
     navigate('/employees/new', {
       state: {
-        sourceApplicant: applicant,
+        sourceApplicant: buildHireNavigationApplicant(applicant),
       },
     });
   };

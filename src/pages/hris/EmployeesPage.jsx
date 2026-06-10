@@ -1,16 +1,20 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import EmployeesTopbar from '@hris-components/employees/EmployeesTopbar';
 import EmployeesStatCards from '@hris-components/employees/EmployeesStatCards';
 import EmployeesFilterBar from '@hris-components/employees/EmployeesFilterBar';
 import EmployeesGrid from '@hris-components/employees/EmployeesGrid';
+import Notification from '@components/ui/Notification';
+import useNotification from '@hooks/useNotification';
 import employeeService from '@services/hris/employeeService';
 import clientService from '@services/hris/clientService';
 import authService from '@services/authService';
 import { hasPermission } from '@utils/adminPermissions';
 
 export default function EmployeesPage() {
+  const location = useLocation();
   const navigate = useNavigate();
+  const { notification, showNotification, closeNotification } = useNotification();
   const profile = authService.getProfile() || {};
   const canWriteEmployees = hasPermission(profile, 'employees.write');
   const [employees,    setEmployees]    = useState([]);
@@ -23,6 +27,13 @@ export default function EmployeesPage() {
   const itemsPerPage = 6;
 
   const [filters, setFilters] = useState({ search: '', status: 'all', client: 'all' });
+
+  useEffect(() => {
+    if (!location.state?.message) return;
+
+    showNotification(location.state.message, location.state.type || 'info');
+    navigate(location.pathname, { replace: true, state: {} });
+  }, [location.pathname, location.state, navigate, showNotification]);
 
   useEffect(() => {
     clientService.getClientsList()
@@ -52,6 +63,15 @@ export default function EmployeesPage() {
 
   return (
     <>
+      {notification && (
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          duration={notification.duration}
+          onClose={closeNotification}
+        />
+      )}
+
       <EmployeesTopbar canAddEmployee={canWriteEmployees} />
 
       <div className="dashboard-content">

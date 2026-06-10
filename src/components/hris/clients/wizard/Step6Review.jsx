@@ -1,4 +1,5 @@
 import { FaCheck, FaAddressCard, FaBuilding, FaFileContract, FaMapMarkerAlt, FaUserShield } from 'react-icons/fa';
+import EntityAvatar from '@components/ui/EntityAvatar';
 
 const toProperCase = (str) => {
   if (!str) return '';
@@ -129,9 +130,12 @@ export default function Step6Review({ data }) {
             <div key={assignment.employeeId} className="ig-assignment-card">
               {/* Card header strip */}
               <div className="ig-assignment-card-header">
-                <div className="ig-assignment-avatar">
-                  {(assignment.employeeName || 'G').charAt(0).toUpperCase()}
-                </div>
+                <EntityAvatar
+                  className="ig-assignment-avatar rounded-full"
+                  avatarUrl={assignment.avatarUrl || assignment.avatar_url}
+                  initials={(assignment.employeeName || 'G').charAt(0).toUpperCase()}
+                  alt={assignment.employeeName}
+                />
                 <div className="ig-assignment-info">
                   <p className="ig-assignment-name">{assignment.employeeName || `Guard ${index + 1}`}</p>
                   <p className="ig-assignment-id">{assignment.employeeId}</p>

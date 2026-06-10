@@ -72,7 +72,10 @@ export function EntityCardSkeleton({ variant = 'employee' }) {
     return (
       <div className="client-card entity-card-skeleton entity-card-skeleton--client">
         <div className="client-card-header entity-card-skeleton__client-header">
-          <SkeletonBlock className="entity-card-skeleton__avatar entity-card-skeleton__avatar--square entity-card-skeleton__light" />
+          <SkeletonBlock 
+            className="entity-card-skeleton__avatar entity-card-skeleton__avatar--square entity-card-skeleton__light" 
+            style={{ marginBottom: '0.55rem' }}
+          />
           <div className="entity-card-skeleton__lines">
             <SkeletonBlock className="entity-card-skeleton__line entity-card-skeleton__line--long entity-card-skeleton__light" />
             <SkeletonBlock className="entity-card-skeleton__line entity-card-skeleton__line--short entity-card-skeleton__light" />

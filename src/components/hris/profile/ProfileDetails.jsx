@@ -41,7 +41,7 @@ export default function ProfileDetails({ profile, loading, isEditing, canEdit = 
 
   if (loading) {
     return (
-      <div className="pf-details-card detail-skeleton">
+      <div className="pf-details-card detail-skeleton" style={{ padding: '2rem' }}>
         <div className="pf-section">
           <div className="dsk-line md" style={{ height: '20px', marginBottom: '1.25rem' }} />
           <div className="pf-form-grid">
@@ -57,7 +57,7 @@ export default function ProfileDetails({ profile, loading, isEditing, canEdit = 
         <div className="pf-section">
           <div className="dsk-line md" style={{ height: '20px', marginBottom: '1.25rem' }} />
           <div className="pf-form-grid">
-            {[1, 2, 3, 4].map((i) => (
+            {[1, 2, 3].map((i) => (
               <div key={i} className="pf-field">
                 <div className="dsk-line sm" style={{ marginBottom: '0.4rem' }} />
                 <div className="dsk-line lg" style={{ height: '42px', width: '100%', borderRadius: '8px' }} />

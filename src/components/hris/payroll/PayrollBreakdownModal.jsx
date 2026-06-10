@@ -104,6 +104,26 @@ export default function PayrollBreakdownModal({ row, onClose }) {
               <span>Late / Undertime</span>
               <strong>{numeric(snapshot.late_minutes) + numeric(snapshot.undertime_minutes)} min</strong>
             </div>
+            <div>
+              <span>Effective Daily Rate</span>
+              <strong>{money(snapshot.daily_rate)}</strong>
+            </div>
+            <div>
+              <span>Rate Basis</span>
+              <strong>{snapshot.daily_rate_floor_applied ? 'Minimum floor applied' : 'Contractual rate'}</strong>
+            </div>
+            <div>
+              <span>Contribution Basis</span>
+              <strong>{money(snapshot.statutory_contribution_salary)}</strong>
+            </div>
+            <div>
+              <span>Night Premium</span>
+              <strong>
+                {snapshot.night_premium_start && snapshot.night_premium_end
+                  ? `${snapshot.night_premium_start.slice(0, 5)}-${snapshot.night_premium_end.slice(0, 5)}`
+                  : 'Legacy policy'}
+              </strong>
+            </div>
           </div>
 
           <div className="pr-net-hero">

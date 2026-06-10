@@ -27,6 +27,9 @@ export default function HrisIncidentDetailPage() {
   const [resolveNotes, setResolveNotes] = useState('');
   const [showManualApproveNotes, setShowManualApproveNotes] = useState(false);
   const [manualApproveNotes, setManualApproveNotes] = useState('');
+  const [messageText, setMessageText] = useState('');
+  const [messageLoading, setMessageLoading] = useState(false);
+  const [messageError, setMessageError] = useState(null);
   const { notification, showNotification, closeNotification } = useNotification();
 
   const loadIncident = useCallback(async ({ silent = false } = {}) => {
@@ -169,6 +172,25 @@ export default function HrisIncidentDetailPage() {
     }
   };
 
+  const handleSendMessage = async () => {
+    if (!messageText.trim()) {
+      setMessageError('Message is required.');
+      return;
+    }
+
+    try {
+      setMessageError(null);
+      setMessageLoading(true);
+      await incidentsService.sendMessage(id, messageText.trim());
+      setMessageText('');
+      await loadIncident({ silent: true });
+    } catch (err) {
+      setMessageError(err.response?.data?.error || 'Failed to send incident message.');
+    } finally {
+      setMessageLoading(false);
+    }
+  };
+
   const handleGenerateReport = () => internalReportAction.execute();
 
   const handleSendPresident = () => {
@@ -260,6 +282,11 @@ export default function HrisIncidentDetailPage() {
           onGenerateReport={handleGenerateReport}
           onSendPresident={handleSendPresident}
           onClientRequestAction={handleClientRequestAction}
+          messageText={messageText}
+          messageLoading={messageLoading}
+          messageError={messageError}
+          onMessageChange={setMessageText}
+          onSendMessage={handleSendMessage}
         />
       </div>
 

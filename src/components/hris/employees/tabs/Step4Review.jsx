@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { FaCheck, FaTimes, FaUser, FaPhone, FaBriefcase, FaIdCard } from 'react-icons/fa';
+import EntityAvatar from '@components/ui/EntityAvatar';
 
 const DOC_LABELS = {
   valid_id: 'Valid ID',
@@ -46,13 +47,13 @@ function ReviewField({ label, value, highlight }) {
 
 export default function Step4Review({ data }) {
   const avatarPreview = useMemo(() => (
-    data.avatar instanceof Blob ? URL.createObjectURL(data.avatar) : null
-  ), [data.avatar]);
+    data.avatar instanceof Blob ? URL.createObjectURL(data.avatar) : data.avatarUrl || null
+  ), [data.avatar, data.avatarUrl]);
 
   useEffect(() => {
-    if (!avatarPreview) return undefined;
+    if (!avatarPreview || !(data.avatar instanceof Blob)) return undefined;
     return () => URL.revokeObjectURL(avatarPreview);
-  }, [avatarPreview]);
+  }, [avatarPreview, data.avatar]);
 
   const isComplete = data.firstName && data.lastName && data.employeeId;
   const docsAttached = Object.keys(data.documents).filter((key) => data.documents[key]);
@@ -61,7 +62,13 @@ export default function Step4Review({ data }) {
     <div className="ae-step-content">
       <div className="ae-review-banner">
         {avatarPreview ? (
-          <div className="ae-review-banner-avatar"><img src={avatarPreview} alt="Avatar" /></div>
+          <EntityAvatar
+            className="ae-review-banner-avatar"
+            style={{ background: 'rgba(255, 255, 255, 0.2)', color: '#fff', fontSize: '1.2rem', fontWeight: 'bold' }}
+            avatarUrl={avatarPreview}
+            initials={`${data.firstName?.charAt(0) || ''}${data.lastName?.charAt(0) || ''}`.toUpperCase()}
+            alt="Avatar"
+          />
         ) : (
           <div className="ae-review-banner-icon"><FaCheck /></div>
         )}

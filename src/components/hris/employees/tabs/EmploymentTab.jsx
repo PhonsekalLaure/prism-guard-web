@@ -1,4 +1,5 @@
 import { FaBriefcase } from 'react-icons/fa';
+import { formatShiftTime, formatWorkDays, getShiftLabel, getShiftLabelColor } from '@utils/formatters';
 import { EditInput, EditSelect, InfoCell } from './EmployeeEditFields';
 
 const POSITIONS = [
@@ -48,6 +49,12 @@ export default function EmploymentTab({ employee, isEditing, editForm, onField }
     ? employee.deployments
     : (employee.deployments ? [employee.deployments] : []);
   const activeDeployment = deployments.find((deployment) => deployment.status === 'active');
+  const activeSchedule = Array.isArray(activeDeployment?.schedules)
+    ? activeDeployment.schedules.find((s) => s.is_active)
+    : (activeDeployment?.schedules?.is_active ? activeDeployment.schedules : null);
+  const shiftLabel = activeSchedule
+    ? getShiftLabel(activeSchedule.shift_start, activeSchedule.shift_end)
+    : null;
 
   return (
     <div className="ve-tab-content">
@@ -67,9 +74,16 @@ export default function EmploymentTab({ employee, isEditing, editForm, onField }
           />
           <InfoCell label="Contract Start Date" value={formatDate(employee.current_contract_start_date)} />
           <InfoCell label="Contract End Date"   value={formatDate(employee.current_contract_end_date)} />
-          <InfoCell label="Assigned Company" value={`${employee.current_company} - ${employee.current_site}`}                span2 />
+          <InfoCell label="Assigned Company" value={`${employee.current_company} - ${employee.current_site}`} />
           <InfoCell label="Deployment Start Date" value={formatDate(activeDeployment?.start_date)} />
           <InfoCell label="Deployment End Date"   value={formatDate(activeDeployment?.end_date)} />
+          {activeSchedule && (
+            <>
+              <InfoCell label="Work Days" value={formatWorkDays(activeSchedule.days_of_week)} />
+              <InfoCell label="Shift Hours" value={`${formatShiftTime(activeSchedule.shift_start)} - ${formatShiftTime(activeSchedule.shift_end)}`} />
+              <InfoCell label="Shift Type" value={shiftLabel} valueColor={getShiftLabelColor(shiftLabel)} />
+            </>
+          )}
         </div>
 
         {/* Editable fields */}

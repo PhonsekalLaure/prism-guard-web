@@ -4,6 +4,10 @@ import clientService from '@services/hris/clientService';
 import employeeService from '@services/hris/employeeService';
 import Notification from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
+import {
+  isBelowMinimumMonthlyBasePay,
+  MINIMUM_MONTHLY_BASE_PAY_MESSAGE,
+} from '@constants/payrollRules';
 
 import Step1ContactInfo    from './wizard/Step1ContactInfo';
 import Step2CompanyDetails from './wizard/Step2CompanyDetails';
@@ -34,6 +38,8 @@ const INITIAL_FORM_DATA = {
     filters: {
       tallOnly: false,
       experiencedOnly: false,
+      maleOnly: false,
+      femaleOnly: false,
     },
   },
 };
@@ -72,6 +78,8 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
           siteLongitude: selectedSite.longitude,
           tallOnly: formData.initialDeployment.filters.tallOnly,
           experiencedOnly: formData.initialDeployment.filters.experiencedOnly,
+          maleOnly: formData.initialDeployment.filters.maleOnly,
+          femaleOnly: formData.initialDeployment.filters.femaleOnly,
           contractStartDate: formData.contractStartDate,
           contractEndDate: formData.contractEndDate,
         });
@@ -104,6 +112,8 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
     formData.initialDeployment.siteIndex,
     formData.initialDeployment.filters.tallOnly,
     formData.initialDeployment.filters.experiencedOnly,
+    formData.initialDeployment.filters.maleOnly,
+    formData.initialDeployment.filters.femaleOnly,
     showNotification,
   ]);
 
@@ -206,6 +216,7 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
             {
               employeeId: employee.id,
               employeeName: employee.name,
+              avatarUrl: employee.avatar_url || null,
               baseSalary: employee.base_salary || '',
               contractStartDate: prev.contractStartDate || '',
               contractEndDate: prev.contractEndDate || '',
@@ -305,8 +316,8 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
           showNotification('Please select the deployment site for the guard.', 'error'); return false;
         }
         for (const assignment of formData.initialDeployment.assignments) {
-          if (!assignment.baseSalary) {
-            showNotification(`Please set the base pay for ${assignment.employeeName || 'each selected guard'}.`, 'error'); return false;
+          if (isBelowMinimumMonthlyBasePay(assignment.baseSalary)) {
+            showNotification(`${MINIMUM_MONTHLY_BASE_PAY_MESSAGE} Guard: ${assignment.employeeName || 'selected guard'}.`, 'error'); return false;
           }
           if (!assignment.contractStartDate || !assignment.contractEndDate) {
             showNotification(`Please set the assignment contract dates for ${assignment.employeeName || 'each selected guard'}.`, 'error'); return false;

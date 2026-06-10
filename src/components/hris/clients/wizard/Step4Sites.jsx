@@ -2,8 +2,13 @@ import { FaMapMarkerAlt } from 'react-icons/fa';
 import FormField from './ClientFormField';
 import GoogleAddressAutofill from '@hris-components/employees/GoogleAddressAutofill';
 import SiteMap from '../SiteMap';
-
-const MAX_GEOFENCE_RADIUS_METERS = 500;
+import {
+  MAX_GEOFENCE_RADIUS_METERS,
+  SITE_SEARCH_HINT,
+  SITE_SEARCH_PLACEHOLDER,
+  applySiteLocationChange,
+  clampGeofenceRadius,
+} from '../siteLocationUtils';
 
 export default function Step4Sites({ data, onAddSite, onUpdateSite, onRemoveSite }) {
   return (
@@ -51,14 +56,14 @@ export default function Step4Sites({ data, onAddSite, onUpdateSite, onRemoveSite
                         onUpdateSite(index, 'longitude', '');
                       }}
                       className="ae-input"
-                      placeholder="Search for a site address..."
+                      placeholder={SITE_SEARCH_PLACEHOLDER}
                       onPlaceSelected={({ formattedAddress, lat, lng }) => {
                         onUpdateSite(index, 'siteAddress', formattedAddress);
                         onUpdateSite(index, 'latitude', lat);
                         onUpdateSite(index, 'longitude', lng);
                       }}
                     />
-                    <p className="ae-hint">Select a suggested address so coordinates are saved automatically for geofencing.</p>
+                    <p className="ae-hint">{SITE_SEARCH_HINT}</p>
                   </>
                 )}
               />
@@ -69,7 +74,7 @@ export default function Step4Sites({ data, onAddSite, onUpdateSite, onRemoveSite
                 min="1"
                 max={MAX_GEOFENCE_RADIUS_METERS}
                 hint={`Maximum radius: ${MAX_GEOFENCE_RADIUS_METERS}m.`}
-                onChange={(e) => onUpdateSite(index, 'geofenceRadius', e.target.value)}
+                onChange={(e) => onUpdateSite(index, 'geofenceRadius', clampGeofenceRadius(e.target.value))}
               />
             </div>
             
@@ -78,6 +83,11 @@ export default function Step4Sites({ data, onAddSite, onUpdateSite, onRemoveSite
                 latitude={site.latitude} 
                 longitude={site.longitude} 
                 radiusMeters={site.geofenceRadius} 
+                draggable
+                onLocationChange={(location) => applySiteLocationChange(
+                  (field, value) => onUpdateSite(index, field, value),
+                  location
+                )}
               />
             </div>
           </div>
