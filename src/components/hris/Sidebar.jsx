@@ -5,6 +5,7 @@ import {
   FaUsers, FaFingerprint, FaCalendarAlt, FaHandHoldingUsd, FaMoneyBillWave,
   FaUserPlus, FaExclamationTriangle, FaBullhorn, FaUserShield, FaSignOutAlt,
   FaBell, FaChevronDown,
+  FaImages,
 } from 'react-icons/fa';
 import logo from '@assets/logo.png';
 import authService from '@services/authService';
@@ -48,6 +49,7 @@ const navGroups = [
       { to: '/notifications', icon: FaBell, label: 'Notifications', permissions: ['notifications.read'], notificationUncategorized: true },
       { to: '/incidents', icon: FaExclamationTriangle, label: 'Incidents', permissions: ['incidents.read'], notificationPrefixes: NOTIFICATION_PREFIXES.incident },
       { to: '/announcements', icon: FaBullhorn, label: 'Announcements', permissions: ['announcements.read'], notificationPrefixes: NOTIFICATION_PREFIXES.announcement },
+      { to: '/promo-carousel', icon: FaImages, label: 'Promo Carousel', permissions: ['promocarousel.read'] },
     ],
   },
 ];

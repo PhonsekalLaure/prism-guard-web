@@ -26,6 +26,7 @@ import HrisPayrollPage from '@hris-pages/HrisPayrollPage';
 import HrisIncidentsPage from '@hris-pages/HrisIncidentsPage';
 import HrisIncidentDetailPage from '@hris-pages/HrisIncidentDetailPage';
 import HrisAnnouncementsPage from '@hris-pages/HrisAnnouncementsPage';
+import PromoCarouselPage from '@hris-pages/PromoCarouselPage';
 import CmsLayout from '@cms-layouts/CmsLayout';
 import CmsDashboardPage from '@cms-pages/CmsDashboardPage';
 import DeployedGuardsPage from '@cms-pages/DeployedGuardsPage';
@@ -80,6 +81,7 @@ function App() {
           <Route path="/incidents/:id" element={<ProtectedRoute requiredPermissions={['incidents.read']}><HrisIncidentDetailPage /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute requiredPermissions={['notifications.read']}><NotificationsPage portal="hris" /></ProtectedRoute>} />
           <Route path="/announcements" element={<ProtectedRoute requiredPermissions={['announcements.read']}><HrisAnnouncementsPage /></ProtectedRoute>} />
+          <Route path="/promo-carousel" element={<ProtectedRoute requiredPermissions={['promocarousel.read']}><PromoCarouselPage /></ProtectedRoute>} />
         </Route>
 
         {/* CMS routes — client only */}

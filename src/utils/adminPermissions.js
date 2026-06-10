@@ -36,6 +36,8 @@ export const ADMIN_ROLE_PERMISSIONS = {
     'applicants.write',
     'notifications.read',
     'notifications.write',
+    'promocarousel.read',
+    'promocarousel.write',
   ],
   operations_manager: [
     'clients.read',
@@ -102,6 +104,8 @@ export const ADMIN_ROLE_PERMISSIONS = {
     'notifications.write',
     'announcements.read',
     'announcements.write',
+    'promocarousel.read',
+    'promocarousel.write',
     'profile.self.read',
     'profile.self.write',
   ],
