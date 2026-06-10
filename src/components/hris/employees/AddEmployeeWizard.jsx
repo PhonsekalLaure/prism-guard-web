@@ -7,6 +7,7 @@ import Notification    from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
 import { formatSiteLabel } from '@hris-components/shared/siteDisplay';
 import { getAgeDateBounds, getHireDateBounds } from '@utils/hrisDateRules';
+import { getGuardHeightError } from '@utils/guardEligibility';
 import {
   isBelowMinimumMonthlyBasePay,
   MINIMUM_MONTHLY_BASE_PAY_MESSAGE,
@@ -158,6 +159,10 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
       const { min: minDobDate, max: maxDobDate } = getAgeDateBounds();
       if (dob < minDobDate || dob > maxDobDate) {
         showNotification('Employee must be between 18 and 45 years old.', 'error'); return false;
+      }
+      const heightError = getGuardHeightError(gender, height);
+      if (heightError) {
+        showNotification(heightError, 'error'); return false;
       }
 
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {

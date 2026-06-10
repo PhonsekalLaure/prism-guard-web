@@ -1,11 +1,19 @@
 export function toDateInputValue(date) {
-  return date.toISOString().split('T')[0];
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 export function getAgeDateBounds({ minAge = 18, maxAge = 45 } = {}) {
   const today = new Date();
+  const oldestAllowedBirthDate = new Date(
+    today.getFullYear() - maxAge - 1,
+    today.getMonth(),
+    today.getDate() + 1
+  );
   return {
-    min: toDateInputValue(new Date(today.getFullYear() - maxAge, today.getMonth(), today.getDate())),
+    min: toDateInputValue(oldestAllowedBirthDate),
     max: toDateInputValue(new Date(today.getFullYear() - minAge, today.getMonth(), today.getDate())),
   };
 }

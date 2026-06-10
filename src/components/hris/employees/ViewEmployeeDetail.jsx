@@ -10,6 +10,7 @@ import Notification from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
 import { hasPermission } from '@utils/adminPermissions';
 import { getAgeDateBounds, getRenewalDateBounds } from '@utils/hrisDateRules';
+import { getGuardHeightError } from '@utils/guardEligibility';
 import {
   isBelowMinimumMonthlyBasePay,
   MINIMUM_MONTHLY_BASE_PAY_MESSAGE,
@@ -148,10 +149,26 @@ export default function ViewEmployeeDetail({
 
   const handleSave = async () => {
     const { min: minDobDate, max: maxDobDate } = getAgeDateBounds();
+    const eligibilityChanged = (
+      editForm.date_of_birth !== (data.date_of_birth || '')
+      || editForm.gender !== (data.gender || '')
+      || String(editForm.height_cm) !== String(data.height_cm ?? '')
+    );
 
-    if (editForm.date_of_birth && (editForm.date_of_birth < minDobDate || editForm.date_of_birth > maxDobDate)) {
+    if (
+      eligibilityChanged
+      && editForm.date_of_birth
+      && (editForm.date_of_birth < minDobDate || editForm.date_of_birth > maxDobDate)
+    ) {
       showNotification('Employee must be between 18 and 45 years old.', 'error');
       return;
+    }
+    if (eligibilityChanged) {
+      const heightError = getGuardHeightError(editForm.gender, editForm.height_cm);
+      if (heightError) {
+        showNotification(heightError, 'error');
+        return;
+      }
     }
 
     if (isPastDate(editForm.license_expiry_date)) {
