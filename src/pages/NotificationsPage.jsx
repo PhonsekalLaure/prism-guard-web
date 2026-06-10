@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useOutletContext } from 'react-router-dom';
+import CmsMobileSidebarToggle from '@components/cms/CmsMobileSidebarToggle';
 import {
   FaBars,
   FaBell,
