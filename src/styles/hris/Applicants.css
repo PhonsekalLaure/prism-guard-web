@@ -583,6 +583,21 @@
   margin: 0;
 }
 
+.ar-credential-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #093269;
+  text-decoration: none;
+}
+
+.ar-credential-link:hover {
+  color: #0f5132;
+}
+
 .ar-credential-badge {
   display: inline-flex;
   align-items: center;

@@ -35,6 +35,7 @@ function buildApplicantInitialData(applicant) {
     emergencyContact: stripPhilippinePrefix(applicant.emergency_contact_number),
     emergencyRelationship: applicant.emergency_contact_relationship || '',
     position: normalizePosition(applicant.position_applied),
+    employmentType: (applicant.employment_type || 'Regular').toLowerCase(),
     badgeNumber: applicant.badge_number || '',
     licenseNumber: applicant.license_number || '',
     licenseExpiryDate: applicant.license_expiry_date || '',

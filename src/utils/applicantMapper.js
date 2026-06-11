@@ -43,10 +43,10 @@ function buildTags(applicant) {
   const tags = [];
   const age = calculateAge(applicant.date_of_birth);
 
-  if (applicant.has_security_license) {
+  if (applicant.license_number && applicant.license_photo_url) {
     tags.push({ label: 'License Declared', color: 'tag-green', icon: FaCheckCircle });
   } else {
-    tags.push({ label: 'No License Yet', color: 'tag-yellow', icon: FaClock });
+    tags.push({ label: 'License Incomplete', color: 'tag-yellow', icon: FaClock });
   }
 
   if (Number(applicant.years_experience) > 0) {
@@ -74,6 +74,7 @@ export function mapApplicantForDisplay(applicant) {
     interviewDate: applicant.interview_scheduled_at ? formatDate(applicant.interview_scheduled_at) : null,
     status: applicant.status || 'pending',
     position: applicant.position_applied || 'Security Guard',
+    employmentType: applicant.employment_type || 'Regular',
     phone: formatPhone(applicant.phone_number),
     email: applicant.email,
     license: applicant.license_number || 'Not declared',

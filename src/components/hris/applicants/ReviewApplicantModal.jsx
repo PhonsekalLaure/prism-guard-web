@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FaBriefcase, FaCalendarCheck, FaCheck, FaTimes, FaTimesCircle } from 'react-icons/fa';
+import { FaBriefcase, FaCalendarCheck, FaCheck, FaExternalLinkAlt, FaTimes, FaTimesCircle } from 'react-icons/fa';
 import EntityAvatar from '@components/ui/EntityAvatar';
 
 function DetailCell({ label, value }) {
@@ -89,9 +89,7 @@ export default function ReviewApplicantModal({
             <DetailCell label="Education" value={applicant.educational_level} />
             <DetailCell label="Civil Status" value={applicant.civil_status} />
             <DetailCell label="Experience" value={applicant.years_experience != null ? `${applicant.years_experience} year(s)` : 'No prior experience'} />
-            <DetailCell label="Available From" value={applicant.availability_date} />
-            <DetailCell label="Preferred Shift" value={applicant.preferred_shift} />
-            <DetailCell label="Emergency Contact" value={applicant.emergency_contact_name} />
+            <DetailCell label="Employment Type" value={applicant.employmentType || applicant.employment_type} />
           </div>
 
           <div>
@@ -101,6 +99,11 @@ export default function ReviewApplicantModal({
                 <div>
                   <p className="ar-credential-name">Security License</p>
                   <p className="ar-credential-sub">{applicant.license}</p>
+                  {applicant.license_photo_url && (
+                    <a className="ar-credential-link" href={applicant.license_photo_url} target="_blank" rel="noreferrer">
+                      View license photo <FaExternalLinkAlt />
+                    </a>
+                  )}
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <span className="ar-credential-badge"><FaCheck /> DECLARED</span>
