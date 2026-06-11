@@ -2,7 +2,8 @@ import { createElement, useState } from 'react';
 import {
   FaTimes, FaUser, FaBriefcase, FaCertificate, FaMapMarkerAlt,
   FaCommentAlt, FaCheckCircle, FaFilePdf, FaFileImage,
-  FaFileAlt, FaPhone, FaEnvelope, FaShieldAlt, FaIdCard,
+  FaFileAlt, FaPhone, FaShieldAlt, FaIdCard,
+  FaUserFriends,
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import EntityAvatar from '@components/ui/EntityAvatar';
@@ -117,23 +118,6 @@ function PersonalTab({ guard }) {
             </div>
           </div>
         </div>
-
-        <div className="gdm-profile-quick">
-          <div className="gdm-quick-item">
-            <FaPhone className="gdm-quick-icon" />
-            <div>
-              <p className="gdm-quick-label">Mobile</p>
-              <p className="gdm-quick-value">{guard.phone_number || 'N/A'}</p>
-            </div>
-          </div>
-          <div className="gdm-quick-item">
-            <FaEnvelope className="gdm-quick-icon" />
-            <div>
-              <p className="gdm-quick-label">Email</p>
-              <p className="gdm-quick-value">{guard.contact_email || 'N/A'}</p>
-            </div>
-          </div>
-        </div>
       </div>
 
       <Section icon={FaIdCard} title="Basic Information">
@@ -158,9 +142,28 @@ function PersonalTab({ guard }) {
           <p className="gdm-address-label">Residential Address</p>
           <p className="gdm-address-text">{guard.residential_address || 'N/A'}</p>
         </div>
-        <div className="gdm-info-grid gdm-info-grid--3">
-          <InfoCell label="Emergency Contact"        value={guard.emergency_contact_name} />
-          <InfoCell label="Emergency Number"         value={guard.emergency_contact_number} />
+      </Section>
+
+      {/* Emergency Contact Card */}
+      <Section icon={FaUserFriends} title="Emergency Contact">
+        <div className="gdm-emergency-card">
+          <div className="gdm-emergency-avatar">
+            <FaUserFriends className="gdm-emergency-avatar-icon" />
+          </div>
+          <div className="gdm-emergency-info">
+            <p className="gdm-emergency-name">
+              {guard.emergency_contact_name || 'Not provided'}
+            </p>
+            <p className="gdm-emergency-relation">Emergency Contact / Relation</p>
+            {guard.emergency_contact_number && (
+              <a href={`tel:${guard.emergency_contact_number}`} className="gdm-emergency-phone">
+                <FaPhone /> {guard.emergency_contact_number}
+              </a>
+            )}
+            {!guard.emergency_contact_number && (
+              <p className="gdm-emergency-phone gdm-emergency-phone--empty">No phone number on file</p>
+            )}
+          </div>
         </div>
       </Section>
     </div>
@@ -208,50 +211,70 @@ function ComplianceTab({ guard }) {
     existingMap.deployment_order = { clearance_type: 'deployment_order', document_url: guard.deployment_order_url };
   }
 
-  const displayTypes = Object.keys(DOC_LABELS).filter((t) => !!existingMap[t]);
+  // Show ALL required document types, both uploaded and missing
+  const allTypes = Object.keys(DOC_LABELS);
+  const uploadedTypes = allTypes.filter((t) => !!existingMap[t]);
+  const missingTypes = allTypes.filter((t) => !existingMap[t]);
+
+  function DocCard({ type }) {
+    const c = existingMap[type];
+    const hasDoc = !!c?.document_url;
+    const isPdf = hasDoc && (c.document_url.toLowerCase().includes('.pdf') || c.document_url.toLowerCase().includes('/pdf'));
+    return (
+      <div className={`gdm-doc-card ${hasDoc ? 'has-doc' : 'no-doc'}`}>
+        <div className="gdm-doc-icon-wrap">
+          <div className={`gdm-doc-icon ${isPdf ? 'pdf' : hasDoc ? 'img' : 'empty'}`}>
+            {isPdf ? <FaFilePdf /> : hasDoc ? <FaFileImage /> : <FaFileAlt />}
+          </div>
+        </div>
+        <div className="gdm-doc-info">
+          <p className="gdm-doc-title">{DOC_LABELS[type] || type}</p>
+          <p className="gdm-doc-sub">
+            {isPdf ? 'PDF Document' : hasDoc ? 'Image File' : 'Not yet uploaded'}
+          </p>
+          {c?.expiry_date && (
+            <p className="gdm-doc-expiry">
+              <FaCheckCircle /> Valid until {fmtDate(c.expiry_date)}
+            </p>
+          )}
+        </div>
+        {hasDoc ? (
+          <a
+            href={c.document_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`gdm-doc-view-btn ${isPdf ? 'pdf' : 'img'}`}
+          >
+            {isPdf ? <FaFilePdf /> : <FaFileImage />}
+            <span>View</span>
+          </a>
+        ) : (
+          <span className="gdm-doc-missing-badge">Missing</span>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="gdm-tab-content">
-      <Section icon={FaCertificate} title="Requirements & Clearances">
-        {displayTypes.length > 0 ? (
-          <div className="gdm-doc-grid">
-            {displayTypes.map((type) => {
-              const c = existingMap[type];
-              const hasDoc = !!c?.document_url;
-              const isPdf = hasDoc && (c.document_url.toLowerCase().includes('.pdf') || c.document_url.toLowerCase().includes('/pdf'));
-
-              return (
-                <div key={type} className={`gdm-doc-card ${hasDoc ? 'has-doc' : 'no-doc'}`}>
-                  <div className="gdm-doc-icon-wrap">
-                    <div className={`gdm-doc-icon ${isPdf ? 'pdf' : hasDoc ? 'img' : 'empty'}`}>
-                      {isPdf ? <FaFilePdf /> : hasDoc ? <FaFileImage /> : <FaFileAlt />}
-                    </div>
-                  </div>
-                  <div className="gdm-doc-info">
-                    <p className="gdm-doc-title">{DOC_LABELS[type] || type}</p>
-                    <p className="gdm-doc-sub">{isPdf ? 'PDF Document' : hasDoc ? 'Image File' : 'Not yet uploaded'}</p>
-                    {c?.expiry_date && (
-                      <p className="gdm-doc-expiry">
-                        <FaCheckCircle /> Valid until {fmtDate(c.expiry_date)}
-                      </p>
-                    )}
-                  </div>
-                  {hasDoc && (
-                    <a
-                      href={c.document_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`gdm-doc-view-btn ${isPdf ? 'pdf' : 'img'}`}
-                    >
-                      {isPdf ? <FaFilePdf /> : <FaFileImage />}
-                      <span>View</span>
-                    </a>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        ) : (
+      <Section icon={FaCertificate} title="Requirements &amp; Clearances">
+        {uploadedTypes.length > 0 && (
+          <>
+            <p className="gdm-compliance-group-label">Uploaded Documents</p>
+            <div className="gdm-doc-grid">
+              {uploadedTypes.map((type) => <DocCard key={type} type={type} />)}
+            </div>
+          </>
+        )}
+        {missingTypes.length > 0 && (
+          <>
+            <p className="gdm-compliance-group-label gdm-compliance-group-label--missing">Missing Documents</p>
+            <div className="gdm-doc-grid">
+              {missingTypes.map((type) => <DocCard key={type} type={type} />)}
+            </div>
+          </>
+        )}
+        {uploadedTypes.length === 0 && missingTypes.length === 0 && (
           <div className="gdm-doc-empty">
             <FaFileAlt className="gdm-doc-empty-icon" />
             <p className="gdm-doc-empty-text">No clearances on file.</p>
