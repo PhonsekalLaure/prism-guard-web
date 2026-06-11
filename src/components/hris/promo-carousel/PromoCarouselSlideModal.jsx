@@ -83,9 +83,11 @@ export default function PromoCarouselSlideModal({
 
         <form className="pc-form" onSubmit={submit}>
           <label className="pc-image-field">
-            <span>{previewUrl ? <img src={previewUrl} alt="Slide preview" /> : <FaImage />}</span>
+            <span className="pc-image-preview">
+              {previewUrl ? <img src={previewUrl} alt="Slide preview" /> : <FaImage />}
+            </span>
             <strong>{previewUrl ? 'Replace image' : 'Choose image'}</strong>
-            <small>Image files up to 10 MB</small>
+            <small>Recommended: 1920 x 1080 (16:9), up to 10 MB</small>
             <input type="file" accept="image/*" onChange={selectImage} />
           </label>
 
