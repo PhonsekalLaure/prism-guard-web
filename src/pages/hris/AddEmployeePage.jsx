@@ -7,6 +7,11 @@ function stripPhilippinePrefix(value = '') {
   return String(value).replace(/^\+63/, '').replace(/\D/g, '').slice(0, 10);
 }
 
+function normalizePosition(position = '') {
+  if (position === 'Security Officer') return 'Security Officer I';
+  return position || 'Security Guard';
+}
+
 function buildApplicantInitialData(applicant) {
   if (!applicant) return null;
 
