@@ -336,7 +336,7 @@ export default function ViewEmployeeDetail({
       showNotification(`Deployment contract end date cannot be later than the client contract end date (${selectedClientContractEndDate}).`, 'error');
       return;
     }
-    if (deployForm.daysOfWeek.length === 0)    { showNotification('Please select at least one schedule day.', 'error'); return; }
+    if (deployForm.daysOfWeek.length < 6)    { showNotification('Please select at least 6 schedule days.', 'error'); return; }
     if (!deployForm.shiftStart || !deployForm.shiftEnd) { showNotification('Please set both shift start and shift end time.', 'error'); return; }
     if (!hasActiveDeployment && !deployForm.deploymentOrderFile) { showNotification('Please upload the deployment order document.', 'error'); return; }
     setIsDeploying(true);

@@ -36,10 +36,12 @@ export default function Step3Contract({ data, onChange }) {
           onChange={(e) => onChange('contractEndDate', e.target.value)}
         />
         <FormField
-          label="Rate per Guard"
+          label="Rate per Guard *"
           type="number"
           placeholder="0.00"
           prefix="PHP"
+          min="0.01"
+          required
           value={data.ratePerGuard}
           onChange={(e) => onChange('ratePerGuard', e.target.value)}
         />

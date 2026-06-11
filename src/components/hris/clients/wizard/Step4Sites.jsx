@@ -4,6 +4,7 @@ import GoogleAddressAutofill from '@hris-components/employees/GoogleAddressAutof
 import SiteMap from '../SiteMap';
 import {
   MAX_GEOFENCE_RADIUS_METERS,
+  MIN_GEOFENCE_RADIUS_METERS,
   SITE_SEARCH_HINT,
   SITE_SEARCH_PLACEHOLDER,
   applySiteLocationChange,
@@ -71,9 +72,9 @@ export default function Step4Sites({ data, onAddSite, onUpdateSite, onRemoveSite
                 label="Geofence Radius (m)"
                 type="number"
                 value={site.geofenceRadius}
-                min="1"
+                min={MIN_GEOFENCE_RADIUS_METERS}
                 max={MAX_GEOFENCE_RADIUS_METERS}
-                hint={`Maximum radius: ${MAX_GEOFENCE_RADIUS_METERS}m.`}
+                hint={`Minimum radius: ${MIN_GEOFENCE_RADIUS_METERS}m. Maximum radius: ${MAX_GEOFENCE_RADIUS_METERS}m.`}
                 onChange={(e) => onUpdateSite(index, 'geofenceRadius', clampGeofenceRadius(e.target.value))}
               />
             </div>

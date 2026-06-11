@@ -130,8 +130,8 @@ export default function Step5InitialDeployment({
                         onChange={(e) => onAssignmentField(assignment.employeeId, 'baseSalary', e.target.value)}
                         placeholder={String(MINIMUM_MONTHLY_BASE_PAY)}
                       />
-                      <p className="ae-hint">{MINIMUM_MONTHLY_BASE_PAY_HINT}</p>
                     </div>
+                    <p className="ae-hint">{MINIMUM_MONTHLY_BASE_PAY_HINT}</p>
                   </div>
 
                   {/* Contract Period */}

@@ -301,6 +301,11 @@ export default function ViewClientDetail({
   };
 
   const handleSaveSite = async () => {
+    if (siteForm.geofenceRadius === '' || Number(siteForm.geofenceRadius) < 20) {
+      showNotification('Minimum geofence radius is 20m.', 'error');
+      return;
+    }
+
     setIsSaving(true);
     try {
       const payload = {
@@ -497,7 +502,7 @@ export default function ViewClientDetail({
       showNotification(`Deployment contract end date cannot be later than the client contract end date (${data.contract_end_date}).`, 'error'); return;
     }
 
-    if (deployForm.daysOfWeek.length === 0) { showNotification('Please select at least one schedule day.', 'error'); return; }
+    if (deployForm.daysOfWeek.length < 6) { showNotification('Please select at least 6 schedule days.', 'error'); return; }
     if (!deployForm.shiftStart || !deployForm.shiftEnd) { showNotification('Please set both shift start and end time.', 'error'); return; }
     if (!deployForm.deploymentOrderFile) { showNotification('Please upload the deployment order document.', 'error'); return; }
 

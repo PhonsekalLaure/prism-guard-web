@@ -2,6 +2,7 @@ import GoogleAddressAutofill from '@hris-components/employees/GoogleAddressAutof
 import SiteMap from './SiteMap';
 import {
   MAX_GEOFENCE_RADIUS_METERS,
+  MIN_GEOFENCE_RADIUS_METERS,
   SITE_SEARCH_HINT,
   SITE_SEARCH_PLACEHOLDER,
   applySiteLocationChange,
@@ -71,10 +72,11 @@ export default function ClientSiteEditorDialog({
                 type="number"
                 className="ae-input"
                 value={form.geofenceRadius}
-                min="1"
+                min={MIN_GEOFENCE_RADIUS_METERS}
                 max={MAX_GEOFENCE_RADIUS_METERS}
                 onChange={(e) => onFieldChange('geofenceRadius', clampGeofenceRadius(e.target.value))}
               />
+              <p className="ae-hint">Minimum radius: {MIN_GEOFENCE_RADIUS_METERS}m.</p>
               <p className="ae-hint">Maximum radius: {MAX_GEOFENCE_RADIUS_METERS}m.</p>
             </div>
           </div>
