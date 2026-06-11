@@ -1,4 +1,4 @@
-import { FaBars, FaDownload, FaExclamationTriangle } from 'react-icons/fa';
+import { FaBars, FaDownload } from 'react-icons/fa';
 import { useOutletContext } from 'react-router-dom';
 
 export default function HrisIncidentsTopbar() {
@@ -11,9 +11,6 @@ export default function HrisIncidentsTopbar() {
           <FaBars />
         </button>
         <div className="ir-title-group">
-          <div className="ir-title-icon-wrap">
-            <FaExclamationTriangle />
-          </div>
           <div className="ir-title-text">
             <h2>Incident Report Management</h2>
             <p>NLP-Enhanced incident monitoring and analysis</p>

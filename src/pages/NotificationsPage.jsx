@@ -382,7 +382,7 @@ export default function NotificationsPage({ portal = 'hris' }) {
             disabled={!stats.unread}
           >
             <FaEnvelopeOpenText />
-            Mark all read
+            Mark All As Read
           </button>
           <button
             type="button"

@@ -22,7 +22,7 @@ const getSkeletonCellStyle = (showClient) => (column) => {
   }
 
   if (column === actionColumn) {
-    return { width: 54, height: 28 };
+    return { width: 82, height: 32, borderRadius: 6 };
   }
 
   if (column === 0 || column === 2) return { width: '55%' };
@@ -135,10 +135,10 @@ export default function ServiceRequestTable({
                   </td>
                   <td onClick={(event) => event.stopPropagation()}>
                     <button
-                      className={isRespondAction ? 'sr-action-respond' : (showClient ? 'sr-action-view' : 'sr-view-btn')}
+                      className={isRespondAction ? 'sr-action-respond' : 'sr-view-btn'}
                       onClick={() => onOpenRequest?.(request)}
                     >
-                      {isRespondAction ? <><FaReply /> Respond</> : (showClient ? 'View' : <><FaEye /> View</>)}
+                      {isRespondAction ? <><FaReply /> Respond</> : <><FaEye /> View</>}
                     </button>
                   </td>
                 </tr>

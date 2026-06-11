@@ -75,6 +75,13 @@
   box-shadow: 0 4px 12px rgba(185, 28, 28, 0.10);
 }
 
+.notif-mark-all-btn {
+  background: linear-gradient(135deg, #093269 0%, #0d4a8f 100%);
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 12px rgba(9, 50, 105, 0.25);
+}
+
 .notif-mark-all-btn:hover:not(:disabled) {
   background: linear-gradient(135deg, #0a3d7a 0%, #0e56a8 100%);
   box-shadow: 0 6px 16px rgba(9, 50, 105, 0.35);

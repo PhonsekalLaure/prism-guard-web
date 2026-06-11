@@ -179,6 +179,18 @@
 .pr-process-btn:disabled { background: #9ca3af; cursor: not-allowed; }
 .pr-process-btn.success { background: #16a34a; }
 
+.pr-create-draft-btn {
+  background: linear-gradient(135deg, #093269 0%, #0d4a8f 100%);
+  box-shadow: 0 4px 12px rgba(9, 50, 105, 0.25);
+  transition: all 0.2s;
+}
+
+.pr-create-draft-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0a3d7a 0%, #0e56a8 100%);
+  box-shadow: 0 6px 16px rgba(9, 50, 105, 0.35);
+  transform: translateY(-1px);
+}
+
 /* =============================================
    ONGOING ALERT
    ============================================= */
@@ -511,26 +523,26 @@
 
 /* View button */
 .pr-view-btn {
-  background: transparent;
-  border: none;
-  color: #093269;
-  font-size: 1rem;
-  cursor: pointer;
-  padding: 0.3rem;
-  transition: color 0.2s;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 0.8rem;
-  font-weight: 500;
-  font-family: 'Poppins', sans-serif;
-  border: 1px solid #e5e7eb;
+  gap: 0.3rem;
+  padding: 0.35rem 0.75rem;
   border-radius: 6px;
-  padding: 0.3rem 0.7rem;
-  background: #f9fafb;
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  background: rgba(9, 50, 105, 0.08);
+  color: #093269;
 }
 
-.pr-view-btn:hover { color: #e6b215; border-color: #e6b215; }
+.pr-view-btn:hover {
+  background: rgba(9, 50, 105, 0.15);
+  transform: scale(1.03);
+}
 
 .pr-row-actions {
   display: flex;

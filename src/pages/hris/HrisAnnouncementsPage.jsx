@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
 import HrisAnnouncementsTopbar from '@hris-components/announcements/HrisAnnouncementsTopbar';
 import HrisAnnouncementsStatCards from '@hris-components/announcements/HrisAnnouncementsStatCards';
 import HrisAnnouncementsCompose from '@hris-components/announcements/HrisAnnouncementsCompose';
 import HrisAnnouncementsHistory from '@hris-components/announcements/HrisAnnouncementsHistory';
+import Notification from '@components/ui/Notification';
+import useNotification from '@hooks/useNotification';
 import announcementsService from '@services/hris/announcementsService';
 import authService from '@services/authService';
 import { hasPermission } from '@utils/adminPermissions';
@@ -71,7 +72,7 @@ export default function HrisAnnouncementsPage() {
   const [loading, setLoading] = useState(true);
   const [publishing, setPublishing] = useState(false);
   const [actionLoadingId, setActionLoadingId] = useState(null);
-  const [toast, setToast] = useState(null);
+  const { notification, showNotification, closeNotification } = useNotification();
 
   const loadAnnouncements = useCallback(async (nextParams = {}) => {
     const requestId = latestRequestId.current + 1;
@@ -94,16 +95,13 @@ export default function HrisAnnouncementsPage() {
       setStats(statData);
     } catch (err) {
       if (latestRequestId.current !== requestId) return;
-      setToast({
-        type: 'error',
-        message: err.response?.data?.error || 'Failed to load announcements.',
-      });
+      showNotification(err.response?.data?.error || 'Failed to load announcements.', 'error');
     } finally {
       if (latestRequestId.current === requestId) {
         setLoading(false);
       }
     }
-  }, []);
+  }, [showNotification]);
 
   const refreshPageAfterRemoval = async () => {
     const nextPage = rows.length === 1 && (metadata.page || 1) > 1
@@ -121,12 +119,9 @@ export default function HrisAnnouncementsPage() {
     try {
       await announcementsService.publishAnnouncement(data);
       await loadAnnouncements({ page: 1, filters });
-      setToast({ type: 'success', message: 'Announcement published successfully!' });
+      showNotification('Announcement published successfully!', 'success');
     } catch (err) {
-      setToast({
-        type: 'error',
-        message: err.response?.data?.error || 'Failed to publish announcement.',
-      });
+      showNotification(err.response?.data?.error || 'Failed to publish announcement.', 'error');
       throw err;
     } finally {
       setPublishing(false);
@@ -152,12 +147,9 @@ export default function HrisAnnouncementsPage() {
     try {
       await announcementsService.updateAnnouncement(id, data);
       await refreshCurrentPage();
-      setToast({ type: 'success', message: 'Announcement updated successfully.' });
+      showNotification('Announcement updated successfully.', 'success');
     } catch (err) {
-      setToast({
-        type: 'error',
-        message: err.response?.data?.error || 'Failed to update announcement.',
-      });
+      showNotification(err.response?.data?.error || 'Failed to update announcement.', 'error');
       throw err;
     } finally {
       setActionLoadingId(null);
@@ -169,12 +161,9 @@ export default function HrisAnnouncementsPage() {
     try {
       await announcementsService.archiveAnnouncement(id);
       await refreshPageAfterRemoval();
-      setToast({ type: 'success', message: 'Announcement archived.' });
+      showNotification('Announcement archived.', 'success');
     } catch (err) {
-      setToast({
-        type: 'error',
-        message: err.response?.data?.error || 'Failed to archive announcement.',
-      });
+      showNotification(err.response?.data?.error || 'Failed to archive announcement.', 'error');
       throw err;
     } finally {
       setActionLoadingId(null);
@@ -186,12 +175,9 @@ export default function HrisAnnouncementsPage() {
     try {
       await announcementsService.deleteAnnouncement(id);
       await refreshPageAfterRemoval();
-      setToast({ type: 'success', message: 'Announcement deleted.' });
+      showNotification('Announcement deleted.', 'success');
     } catch (err) {
-      setToast({
-        type: 'error',
-        message: err.response?.data?.error || 'Failed to delete announcement.',
-      });
+      showNotification(err.response?.data?.error || 'Failed to delete announcement.', 'error');
       throw err;
     } finally {
       setActionLoadingId(null);
@@ -202,14 +188,16 @@ export default function HrisAnnouncementsPage() {
     loadAnnouncements({ page: 1, filters: EMPTY_FILTERS });
   }, [loadAnnouncements]);
 
-  useEffect(() => {
-    if (!toast) return undefined;
-    const t = setTimeout(() => setToast(null), 3000);
-    return () => clearTimeout(t);
-  }, [toast]);
-
   return (
     <>
+      {notification && (
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          duration={notification.duration}
+          onClose={closeNotification}
+        />
+      )}
       <HrisAnnouncementsTopbar />
 
       <div className="dashboard-content">
@@ -235,14 +223,6 @@ export default function HrisAnnouncementsPage() {
         />
       </div>
 
-      {toast && (
-        <div className={`an-toast ${toast.type === 'error' ? 'error' : ''}`}>
-          {toast.type === 'error'
-            ? <FaExclamationCircle style={{ fontSize: '1.1rem' }} />
-            : <FaCheckCircle style={{ fontSize: '1.1rem' }} />}
-          {toast.message}
-        </div>
-      )}
     </>
   );
 }

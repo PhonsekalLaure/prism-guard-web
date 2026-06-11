@@ -273,13 +273,13 @@
   background: rgba(9, 50, 105, 0.08);
   color: #093269;
   border: none;
-  padding: 0.4rem 0.85rem;
+  padding: 0.35rem 0.75rem;
   border-radius: 6px;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 600;
   font-family: 'Poppins', sans-serif;
   cursor: pointer;
-  transition: background 0.2s, transform 0.15s;
+  transition: all 0.2s;
   white-space: nowrap;
 }
 

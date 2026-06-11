@@ -30,7 +30,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  background: #e6b215;
+  background: linear-gradient(135deg, #093269 0%, #0d4a8f 100%);
   color: #fff;
   padding: 0.55rem 1.2rem;
   border-radius: 8px;
@@ -39,13 +39,14 @@
   font-family: 'Poppins', sans-serif;
   border: none;
   cursor: pointer;
-  transition: background 0.3s, box-shadow 0.3s;
-  box-shadow: 0 4px 12px rgba(230, 178, 21, 0.3);
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(9, 50, 105, 0.25);
 }
 
-.btn-generate-soa:hover {
-  background: #d4a012;
-  box-shadow: 0 6px 18px rgba(230, 178, 21, 0.4);
+.btn-generate-soa:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0a3d7a 0%, #0e56a8 100%);
+  box-shadow: 0 6px 16px rgba(9, 50, 105, 0.35);
+  transform: translateY(-1px);
 }
 
 .btn-generate-soa:disabled {
@@ -1221,15 +1222,16 @@
 }
 
 .billing-link-button--view {
-  background: #eff6ff;
-  border-color: #bfdbfe;
-  color: #1d4ed8;
+  border-color: transparent;
+  background: rgba(9, 50, 105, 0.08);
+  color: #093269;
 }
 
 .billing-link-button--view:hover:not(:disabled) {
-  background: #1d4ed8;
-  border-color: #1d4ed8;
-  color: #fff;
+  border-color: transparent;
+  background: rgba(9, 50, 105, 0.15);
+  color: #093269;
+  transform: scale(1.03);
 }
 
 .billing-link-button--download {
@@ -1263,6 +1265,8 @@
   background: #eff6ff;
   border-color: #bfdbfe;
   color: #093269;
+  box-shadow: 0 3px 10px rgba(9, 50, 105, 0.08);
+  transform: none;
 }
 
 .billing-holiday-modal {

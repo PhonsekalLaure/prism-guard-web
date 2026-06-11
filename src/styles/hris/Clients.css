@@ -7,7 +7,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  background: #e6b215;
+  background: linear-gradient(135deg, #093269 0%, #0d4a8f 100%);
   color: #fff;
   padding: 0.65rem 1.3rem;
   border-radius: 8px;
@@ -16,13 +16,14 @@
   font-family: 'Poppins', sans-serif;
   border: none;
   cursor: pointer;
-  transition: background 0.3s, box-shadow 0.3s;
-  box-shadow: 0 4px 12px rgba(230, 178, 21, 0.25);
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(9, 50, 105, 0.25);
 }
 
 .clients-topbar .btn-add-client:hover {
-  background: #d4a012;
-  box-shadow: 0 6px 18px rgba(230, 178, 21, 0.35);
+  background: linear-gradient(135deg, #0a3d7a 0%, #0e56a8 100%);
+  box-shadow: 0 6px 16px rgba(9, 50, 105, 0.35);
+  transform: translateY(-1px);
 }
 
 /* Search / Filter bar */

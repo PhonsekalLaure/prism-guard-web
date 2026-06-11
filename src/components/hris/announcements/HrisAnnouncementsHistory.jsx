@@ -504,8 +504,9 @@ export default function HrisAnnouncementsHistory({
                   <td><span className={`an-badge ${row.statusClass}`}>{row.status}</span></td>
                   <td onClick={(e) => e.stopPropagation()}>
                     <div className="an-row-actions">
-                      <button className="an-icon-btn" onClick={() => setSelected(row)} title="View">
+                      <button className="an-view-btn" onClick={() => setSelected(row)} title="View">
                         <FaEye />
+                        View
                       </button>
                       <button className="an-icon-btn" onClick={() => setEditing(row)} title="Edit" disabled={isBusy || !canWrite}>
                         <FaEdit />

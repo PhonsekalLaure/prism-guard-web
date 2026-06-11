@@ -67,7 +67,7 @@ export default function HrisPayrollTopbar({
 
         {showGenerationActions && (
           <ReportActionButton
-            className="pr-process-btn"
+            className="pr-process-btn pr-create-draft-btn"
             label="Create Draft"
             loadingLabel="Creating..."
             icon={FaMoneyBillWave}

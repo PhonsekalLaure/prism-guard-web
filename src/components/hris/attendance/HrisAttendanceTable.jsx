@@ -18,7 +18,7 @@ import {
 const getAttendanceSkeletonCellStyle = (column) => {
   if (column === 0) return { width: '85%', height: 32 };
   if (column === 5 || column === 6) return { width: 86, height: 24, borderRadius: 20 };
-  if (column === 7) return { width: 34, height: 34, borderRadius: 8 };
+  if (column === 7) return { width: 82, height: 32, borderRadius: 6 };
   return { width: '70%', height: 14 };
 };
 
@@ -182,6 +182,7 @@ export default function HrisAttendanceTable({
                   <td>
                     <button className="ha-view-btn" title="View Details" onClick={() => openModal(row)}>
                       <FaEye />
+                      View
                     </button>
                   </td>
                 </tr>

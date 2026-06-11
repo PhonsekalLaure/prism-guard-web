@@ -520,23 +520,25 @@
 .ha-status-badge.on-leave { background: #f59e0b; box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3); }
 
 .ha-view-btn {
-  background: rgba(9, 50, 105, 0.05);
-  border: none;
-  border-radius: 8px;
-  color: #093269;
-  font-size: 1.1rem;
-  cursor: pointer;
-  padding: 0.45rem;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  border: none;
+  cursor: pointer;
   transition: all 0.2s;
+  white-space: nowrap;
+  background: rgba(9, 50, 105, 0.08);
+  color: #093269;
 }
 
 .ha-view-btn:hover {
-  background: rgba(230, 178, 21, 0.15);
-  color: #d4a012;
-  transform: translateY(-2px);
+  background: rgba(9, 50, 105, 0.15);
+  transform: scale(1.03);
 }
 
 /* Row background tints */
