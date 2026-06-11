@@ -2,10 +2,7 @@ import { FaBriefcase } from 'react-icons/fa';
 import { formatShiftTime, formatWorkDays, getShiftLabel, getShiftLabelColor } from '@utils/formatters';
 import { EditInput, EditSelect, InfoCell } from './EmployeeEditFields';
 
-const POSITIONS = [
-  'Security Guard', 'Security Officer', 'Team Leader', 'Shift Supervisor',
-  'Operations Manager', 'Administrative Officer', 'HR Officer', 'Utility Personnel',
-];
+const POSITIONS = ['Security Guard'];
 
 const toProperCase = (str) => {
   if (!str) return '';

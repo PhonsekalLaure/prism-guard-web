@@ -6,13 +6,31 @@ export const NOTIFICATION_PREFIXES = {
   applicant: ['applicant_'],
   incident: ['incident_'],
   announcement: ['announcement_'],
+  billing: ['billing_'],
+  deployment: ['deployment_'],
+  attendance: ['attendance_'],
 };
 
 export const NOTIFICATION_SECTIONS = [
   {
     portal: 'hris',
-    paths: ['/service-requests'],
+    paths: ['/billing'],
+    prefixes: NOTIFICATION_PREFIXES.billing,
+  },
+  {
+    portal: 'hris',
+    paths: ['/service-request', '/service-requests'],
     prefixes: NOTIFICATION_PREFIXES.serviceRequest,
+  },
+  {
+    portal: 'cms',
+    paths: ['/cms/billing'],
+    prefixes: NOTIFICATION_PREFIXES.billing,
+  },
+  {
+    portal: 'cms',
+    paths: ['/cms/deployed-guards'],
+    prefixes: NOTIFICATION_PREFIXES.deployment,
   },
   {
     portal: 'hris',
@@ -23,6 +41,11 @@ export const NOTIFICATION_SECTIONS = [
     portal: 'hris',
     paths: ['/leaves'],
     prefixes: NOTIFICATION_PREFIXES.leave,
+  },
+  {
+    portal: 'hris',
+    paths: ['/attendance'],
+    prefixes: NOTIFICATION_PREFIXES.attendance,
   },
   {
     portal: 'hris',
