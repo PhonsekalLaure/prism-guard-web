@@ -1,7 +1,7 @@
 import { FaDownload, FaBars } from 'react-icons/fa';
 import { useOutletContext } from 'react-router-dom';
 
-export default function Topbar() {
+export default function Topbar({ exporting, exportDisabled, onExport }) {
   const { toggleSidebar } = useOutletContext();
   return (
     <header className="dashboard-topbar">
@@ -13,9 +13,14 @@ export default function Topbar() {
           <h2>Dashboard</h2>
         </div>
         <div className="topbar-actions">
-          <button className="btn-export">
+          <button
+            className="btn-export"
+            disabled={exportDisabled || exporting}
+            onClick={onExport}
+            type="button"
+          >
             <FaDownload />
-            Export Backup
+            {exporting ? 'Exporting...' : 'Export Dashboard Report'}
           </button>
         </div>
       </div>

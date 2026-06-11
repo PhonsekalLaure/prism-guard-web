@@ -1,16 +1,24 @@
 import { useEffect, useState } from 'react';
+import Notification from '@components/ui/Notification';
 import Topbar from '@hris-components/dashboard/Topbar';
 import StatCards from '@hris-components/dashboard/StatCards';
 import IncidentFeed from '@hris-components/dashboard/IncidentFeed';
 import ManpowerTable from '@hris-components/dashboard/ManpowerTable';
 import LeaveRequests from '@hris-components/dashboard/LeaveRequests';
 import CashAdvances from '@hris-components/dashboard/CashAdvances';
+import {
+  buildDashboardReportCsv,
+  buildDashboardReportFilename,
+} from '@hris-components/dashboard/dashboardReport';
+import useNotification from '@hooks/useNotification';
 import dashboardService from '@services/hris/dashboardService';
 
 export default function DashboardPage() {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState('');
+  const { notification, showNotification, closeNotification } = useNotification();
 
   useEffect(() => {
     let cancelled = false;
@@ -39,9 +47,52 @@ export default function DashboardPage() {
   const access = summary?.access || {};
   const widgetErrors = Object.values(summary?.errors || {}).filter(Boolean);
 
+  const handleExportReport = async () => {
+    if (!summary || loading || exporting) return;
+
+    let downloadUrl = '';
+    let link = null;
+
+    try {
+      setExporting(true);
+      await Promise.resolve();
+
+      const generatedAt = new Date();
+      const csv = buildDashboardReportCsv(summary, generatedAt);
+      const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' });
+      downloadUrl = URL.createObjectURL(blob);
+      link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = buildDashboardReportFilename(generatedAt);
+      document.body.appendChild(link);
+      link.click();
+    } catch {
+      showNotification('Failed to export dashboard report.', 'error');
+    } finally {
+      link?.remove();
+      if (downloadUrl) {
+        window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 0);
+      }
+      setExporting(false);
+    }
+  };
+
   return (
     <>
-      <Topbar />
+      {notification && (
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          duration={notification.duration}
+          onClose={closeNotification}
+        />
+      )}
+
+      <Topbar
+        exporting={exporting}
+        exportDisabled={loading || !summary}
+        onExport={handleExportReport}
+      />
 
       <div className="dashboard-content">
         {access.attendance !== false && <StatCards stats={summary?.stats} loading={loading} />}
