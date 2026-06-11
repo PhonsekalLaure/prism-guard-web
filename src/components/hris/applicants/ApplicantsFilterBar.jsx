@@ -25,9 +25,6 @@ export default function ApplicantsFilterBar({ filters, onChange }) {
         <select value={filters.position} onChange={(e) => onChange({ position: e.target.value })} className="filter-select">
           <option value="all">All Positions</option>
           <option value="Security Guard">Security Guard</option>
-          <option value="Lady Guard">Lady Guard</option>
-          <option value="Security Officer">Security Officer</option>
-          <option value="Detachment Commander">Detachment Commander</option>
         </select>
       </div>
 

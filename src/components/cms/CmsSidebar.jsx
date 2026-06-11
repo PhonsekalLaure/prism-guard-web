@@ -15,12 +15,12 @@ import EntityAvatar from '@components/ui/EntityAvatar';
 
 const navItems = [
   { to: '/cms/dashboard', icon: FaTachometerAlt, label: 'Dashboard' },
-  { to: '/cms/deployed-guards', icon: FaUsers, label: 'Deployed Guards' },
+  { to: '/cms/deployed-guards', icon: FaUsers, label: 'Deployed Guards', notificationPrefixes: NOTIFICATION_PREFIXES.deployment },
   { to: '/cms/service-requests', icon: FaHeadset, label: 'Service Request', notificationPrefixes: NOTIFICATION_PREFIXES.serviceRequest },
   { to: '/cms/notifications', icon: FaBell, label: 'Notifications', notificationUncategorized: true, dividerBefore: true },
   { to: '/cms/incident-reports', icon: FaExclamationTriangle, label: 'Incidents', notificationPrefixes: NOTIFICATION_PREFIXES.incident },
   { to: '/cms/announcements', icon: FaBullhorn, label: 'Announcements', notificationPrefixes: NOTIFICATION_PREFIXES.announcement },
-  { to: '/cms/billing', icon: FaCreditCard, label: 'Billing & Payments', dividerBefore: true },
+  { to: '/cms/billing', icon: FaCreditCard, label: 'Billing & Payments', notificationPrefixes: NOTIFICATION_PREFIXES.billing, dividerBefore: true },
   { to: '/cms/reviews', icon: FaStar, label: 'Service Reviews', notificationPrefixes: NOTIFICATION_PREFIXES.serviceReview },
 ];
 

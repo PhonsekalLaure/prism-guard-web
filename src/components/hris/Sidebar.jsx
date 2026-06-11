@@ -27,7 +27,7 @@ const navGroups = [
     label: 'Client Management',
     items: [
       { to: '/clients', icon: FaBuilding, label: 'Clients', permissions: ['clients.read'] },
-      { to: '/billing', icon: FaFileInvoiceDollar, label: 'Billing & Payments', permissions: ['billing.read'] },
+      { to: '/billing', icon: FaFileInvoiceDollar, label: 'Billing & Payments', permissions: ['billing.read'], notificationPrefixes: NOTIFICATION_PREFIXES.billing },
       { to: '/service-request', icon: FaHeadset, label: 'Service Request', permissions: ['servicerequests.read'], notificationPrefixes: NOTIFICATION_PREFIXES.serviceRequest },
       { to: '/service-reviews', icon: FaStar, label: 'Service Reviews', permissions: ['servicereviews.read'], notificationPrefixes: NOTIFICATION_PREFIXES.serviceReview },
     ],
@@ -36,7 +36,7 @@ const navGroups = [
     label: 'Workforce',
     items: [
       { to: '/employees', icon: FaUsers, label: 'Employees', permissions: ['employees.read'] },
-      { to: '/attendance', icon: FaFingerprint, label: 'Attendance', permissions: ['attendance.read'] },
+      { to: '/attendance', icon: FaFingerprint, label: 'Attendance', permissions: ['attendance.read'], notificationPrefixes: NOTIFICATION_PREFIXES.attendance },
       { to: '/leaves', icon: FaCalendarAlt, label: 'Leave Requests', permissions: ['leaves.read'], notificationPrefixes: NOTIFICATION_PREFIXES.leave },
       { to: '/cash-advance', icon: FaHandHoldingUsd, label: 'Cash Advance', permissions: ['cashadvance.read'], notificationPrefixes: NOTIFICATION_PREFIXES.cashAdvance },
       { to: '/payroll', icon: FaMoneyBillWave, label: 'Payroll', permissions: ['payroll.read'] },

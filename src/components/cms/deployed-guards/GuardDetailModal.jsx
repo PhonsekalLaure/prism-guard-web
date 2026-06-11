@@ -106,7 +106,7 @@ function PersonalTab({ guard }) {
           />
           <div>
             <h3 className="gdm-profile-name">{guard.full_name || guard.name}</h3>
-            <p className="gdm-profile-position">{guard.position || 'Security Officer'}</p>
+            <p className="gdm-profile-position">{guard.position || 'Security Guard'}</p>
             <div className="gdm-profile-meta">
               <span className={`gdm-badge ${fmtStatus(guard.status).cls}`}>
                 {fmtStatus(guard.status).label}

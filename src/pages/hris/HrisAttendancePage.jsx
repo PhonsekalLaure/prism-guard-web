@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import HrisAttendanceTopbar from '@hris-components/attendance/HrisAttendanceTopbar';
 import HrisAttendanceStatCards from '@hris-components/attendance/HrisAttendanceStatCards';
 import HrisAttendanceFilterBar from '@hris-components/attendance/HrisAttendanceFilterBar';
@@ -29,6 +30,8 @@ function downloadBlob(blob, filename) {
 }
 
 export default function HrisAttendancePage() {
+  const [searchParams] = useSearchParams();
+  const requestedAttendanceLogId = searchParams.get('attendanceLogId');
   const today = getTodayDateString();
   const [records, setRecords] = useState([]);
   const [metadata, setMetadata] = useState(DEFAULT_METADATA);
@@ -182,6 +185,7 @@ export default function HrisAttendancePage() {
           selectedDate={selectedDate}
           onPageChange={handlePageChange}
           onResetFilters={handleResetFilters}
+          requestedAttendanceLogId={requestedAttendanceLogId}
         />
       </div>
     </>

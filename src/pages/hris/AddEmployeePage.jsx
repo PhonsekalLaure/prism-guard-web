@@ -7,11 +7,6 @@ function stripPhilippinePrefix(value = '') {
   return String(value).replace(/^\+63/, '').replace(/\D/g, '').slice(0, 10);
 }
 
-function normalizePosition(position = '') {
-  if (position === 'Security Officer') return 'Security Officer I';
-  return position || 'Security Guard';
-}
-
 function buildApplicantInitialData(applicant) {
   if (!applicant) return null;
 
@@ -34,7 +29,7 @@ function buildApplicantInitialData(applicant) {
     emergencyName: applicant.emergency_contact_name || '',
     emergencyContact: stripPhilippinePrefix(applicant.emergency_contact_number),
     emergencyRelationship: applicant.emergency_contact_relationship || '',
-    position: normalizePosition(applicant.position_applied),
+    position: 'Security Guard',
     badgeNumber: applicant.badge_number || '',
     licenseNumber: applicant.license_number || '',
     licenseExpiryDate: applicant.license_expiry_date || '',

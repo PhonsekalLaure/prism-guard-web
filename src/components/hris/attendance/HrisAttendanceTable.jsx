@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { FaEye, FaListUl, FaMinusCircle } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
 import EmptyState from '@components/ui/EmptyState';
@@ -29,11 +29,13 @@ export default function HrisAttendanceTable({
   selectedDate = null,
   onPageChange,
   onResetFilters,
+  requestedAttendanceLogId = null,
 }) {
   const [selectedRow, setSelectedRow] = useState(null);
   const [selectedDetail, setSelectedDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState(null);
+  const openedRequestRef = useRef(null);
   const currentPage = metadata.page || 1;
   const pageLimit = metadata.limit || 8;
   const totalRecords = metadata.total || 0;
@@ -41,7 +43,7 @@ export default function HrisAttendanceTable({
   const from = totalRecords === 0 ? 0 : ((currentPage - 1) * pageLimit) + 1;
   const to = Math.min(currentPage * pageLimit, totalRecords);
 
-  const openModal = async (row) => {
+  const openModal = useCallback(async (row) => {
     setSelectedRow(row);
     setSelectedDetail(null);
     setDetailError(null);
@@ -59,7 +61,23 @@ export default function HrisAttendanceTable({
     } finally {
       setDetailLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!requestedAttendanceLogId || openedRequestRef.current === requestedAttendanceLogId) {
+      return;
+    }
+
+    openedRequestRef.current = requestedAttendanceLogId;
+    const matchingRow = records.find(
+      (row) => row.attendanceLogId === requestedAttendanceLogId
+    );
+    openModal(matchingRow || {
+      id: `notification-${requestedAttendanceLogId}`,
+      attendanceLogId: requestedAttendanceLogId,
+      name: 'Attendance record',
+    });
+  }, [openModal, records, requestedAttendanceLogId]);
 
   const closeModal = () => {
     setSelectedRow(null);
