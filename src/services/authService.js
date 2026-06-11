@@ -46,12 +46,14 @@ function setTokens(session, rememberMe = false) {
 }
 
 let inflightAuthPromise = null;
+let inflightRefreshSessionPromise = null;
 let cachedAuthData = null;
 let cachedAuthToken = null;
 let lastAuthFetchTime = 0;
 
 function resetAuthCache() {
   inflightAuthPromise = null;
+  inflightRefreshSessionPromise = null;
   cachedAuthData = null;
   cachedAuthToken = null;
   lastAuthFetchTime = 0;
@@ -60,6 +62,24 @@ function resetAuthCache() {
 function clearTokens() {
   removeStoredAuthState();
   resetAuthCache();
+}
+
+function decodeJwtPayload(token) {
+  try {
+    const payload = token.split('.')[1];
+    if (!payload) return null;
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
+    return JSON.parse(window.atob(padded));
+  } catch {
+    return null;
+  }
+}
+
+function isTokenExpiringSoon(token, skewSeconds = 60) {
+  const payload = decodeJwtPayload(token);
+  if (!payload?.exp) return false;
+  return payload.exp * 1000 <= Date.now() + (skewSeconds * 1000);
 }
 
 function setProfile(profile) {
@@ -205,17 +225,36 @@ async function refreshStoredSession() {
   const refreshToken = getRefreshToken();
   if (!refreshToken) return null;
 
-  const rememberMe = getRememberPreference();
-  const { data, error } = await supabase.auth.refreshSession({
-    refresh_token: refreshToken,
-  });
-
-  if (error || !data.session) {
-    return null;
+  if (inflightRefreshSessionPromise) {
+    return inflightRefreshSessionPromise;
   }
 
-  setTokens(data.session, rememberMe);
-  return data.session.access_token;
+  inflightRefreshSessionPromise = (async () => {
+    const rememberMe = getRememberPreference();
+    const { data, error } = await supabase.auth.refreshSession({
+      refresh_token: refreshToken,
+    });
+
+    if (error || !data.session) {
+      return null;
+    }
+
+    setTokens(data.session, rememberMe);
+    return data.session.access_token;
+  })();
+
+  try {
+    return await inflightRefreshSessionPromise;
+  } finally {
+    inflightRefreshSessionPromise = null;
+  }
+}
+
+async function getValidToken() {
+  const token = getToken();
+  if (!token) return null;
+  if (!isTokenExpiringSoon(token)) return token;
+  return await refreshStoredSession() || token;
 }
 
 /**
@@ -300,4 +339,4 @@ async function logout() {
   clearTokens();
 }
 
-export default { login, logout, forgotPassword, updatePassword, getMe, getToken, getProfile, updateProfile, clearTokens, openFileUrl, getFileObjectUrl };
+export default { login, logout, forgotPassword, updatePassword, getMe, getToken, getValidToken, refreshStoredSession, getProfile, updateProfile, clearTokens, openFileUrl, getFileObjectUrl };

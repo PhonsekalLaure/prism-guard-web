@@ -6,11 +6,31 @@ const api = axios.create({
   baseURL: buildApiUrl('/api/web/hris/promo-carousel'),
 });
 
-api.interceptors.request.use((config) => {
-  const token = authService.getToken();
+api.interceptors.request.use(async (config) => {
+  const token = await authService.getValidToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    if (error.response?.status !== 401 || originalRequest?._retryAuth) {
+      throw error;
+    }
+
+    originalRequest._retryAuth = true;
+    const token = await authService.refreshStoredSession();
+    if (!token) {
+      throw error;
+    }
+
+    originalRequest.headers = originalRequest.headers || {};
+    originalRequest.headers.Authorization = `Bearer ${token}`;
+    return api(originalRequest);
+  }
+);
 
 function multipartConfig() {
   return {
@@ -25,6 +45,16 @@ function multipartConfig() {
 async function listSlides() {
   const { data } = await api.get('/');
   return data?.data || [];
+}
+
+async function getSettings() {
+  const { data } = await api.get('/settings');
+  return data?.data || { use_default_hero: true };
+}
+
+async function updateSettings(payload) {
+  const { data } = await api.patch('/settings', payload);
+  return data?.data;
 }
 
 async function createSlide(payload) {
@@ -50,7 +80,9 @@ async function deleteSlide(id) {
 export default {
   createSlide,
   deleteSlide,
+  getSettings,
   listSlides,
   reorderSlides,
+  updateSettings,
   updateSlide,
 };

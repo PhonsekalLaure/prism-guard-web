@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { FaBars, FaImages, FaPlus } from 'react-icons/fa';
+import { FaBars, FaImages, FaPlus, FaShieldAlt } from 'react-icons/fa';
 import Notification from '@components/ui/Notification';
 import PromoCarouselDeleteDialog from '@hris-components/promo-carousel/PromoCarouselDeleteDialog';
 import PromoCarouselSlideList from '@hris-components/promo-carousel/PromoCarouselSlideList';
@@ -22,6 +22,7 @@ export default function PromoCarouselPage() {
   const canWrite = hasPermission(authService.getProfile() || {}, 'promocarousel.write');
   const { notification, showNotification, closeNotification } = useNotification();
   const [slides, setSlides] = useState([]);
+  const [settings, setSettings] = useState({ use_default_hero: true });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [actionId, setActionId] = useState('');
@@ -31,7 +32,12 @@ export default function PromoCarouselPage() {
   const loadSlides = useCallback(async () => {
     setLoading(true);
     try {
-      setSlides(await promoCarouselService.listSlides());
+      const [nextSlides, nextSettings] = await Promise.all([
+        promoCarouselService.listSlides(),
+        promoCarouselService.getSettings(),
+      ]);
+      setSlides(nextSlides);
+      setSettings(nextSettings);
     } catch (error) {
       showNotification(getErrorMessage(error, 'Failed to load promo slides.'), 'error');
     } finally {
@@ -59,6 +65,26 @@ export default function PromoCarouselPage() {
       throw error;
     } finally {
       setSaving(false);
+    }
+  };
+
+  const toggleDefaultHero = async () => {
+    setActionId('settings');
+    try {
+      const nextSettings = await promoCarouselService.updateSettings({
+        useDefaultHero: !settings.use_default_hero,
+      });
+      setSettings(nextSettings);
+      showNotification(
+        nextSettings.use_default_hero
+          ? 'Default promo hero enabled. Custom slides are hidden.'
+          : 'Custom promo carousel enabled.',
+        'success',
+      );
+    } catch (error) {
+      showNotification(getErrorMessage(error, 'Failed to update promo hero mode.'), 'error');
+    } finally {
+      setActionId('');
     }
   };
 
@@ -134,9 +160,36 @@ export default function PromoCarouselPage() {
       </header>
 
       <main className="pc-content">
+        <section className="pc-settings">
+          <div className="pc-settings-icon"><FaShieldAlt /></div>
+          <div className="pc-settings-copy">
+            <h3>Default Promo Hero</h3>
+            <p>
+              {settings.use_default_hero
+                ? 'The promo site is showing the original two-image hero. Custom slides are hidden.'
+                : 'The promo site is showing active custom carousel slides.'}
+            </p>
+          </div>
+          {canWrite && (
+            <label className="pc-switch">
+              <input
+                type="checkbox"
+                checked={Boolean(settings.use_default_hero)}
+                disabled={actionId === 'settings'}
+                onChange={toggleDefaultHero}
+              />
+              <span />
+            </label>
+          )}
+        </section>
+
         <section className="pc-summary">
           <div><FaImages /><span><strong>{slides.length} / {MAX_SLIDES}</strong> slides used</span></div>
-          <p>Inactive slides count toward the five-slide limit.</p>
+          <p>
+            {settings.use_default_hero
+              ? 'Inactive and active custom slides are saved but not shown while default mode is on.'
+              : 'Inactive slides count toward the five-slide limit.'}
+          </p>
         </section>
 
         <PromoCarouselSlideList
