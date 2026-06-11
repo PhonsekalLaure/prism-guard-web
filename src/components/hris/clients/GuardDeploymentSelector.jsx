@@ -223,8 +223,8 @@ export default function GuardDeploymentSelector({
                   onChange={(e) => onFieldChange('baseSalary', e.target.value)}
                   placeholder={String(MINIMUM_MONTHLY_BASE_PAY)}
                 />
-                <p className="ae-hint">{MINIMUM_MONTHLY_BASE_PAY_HINT}</p>
               </div>
+              <p className="ae-hint">{MINIMUM_MONTHLY_BASE_PAY_HINT}</p>
             </div>
           </div>
 

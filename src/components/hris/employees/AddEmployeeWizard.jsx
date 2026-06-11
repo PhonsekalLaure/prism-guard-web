@@ -197,8 +197,8 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
         if (isAfterDate(formData.deploymentEndDate, clientContractEndDate)) {
           showNotification(`Deployment end date cannot be later than the client contract end date (${clientContractEndDate}).`, 'error'); return false;
         }
-        if (formData.daysOfWeek.length === 0) {
-          showNotification('Please select at least one schedule day for the initial deployment.', 'error'); return false;
+        if (formData.daysOfWeek.length < 6) {
+          showNotification('Please select at least 6 schedule days for the initial deployment.', 'error'); return false;
         }
         if (!formData.shiftStart || !formData.shiftEnd) {
           showNotification('Please set both shift start and shift end for the initial deployment.', 'error'); return false;

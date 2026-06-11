@@ -291,6 +291,9 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
         if (new Date(formData.contractStartDate) >= new Date(formData.contractEndDate)) {
           showNotification('Contract end date must be after start date.', 'error'); return false;
         }
+        if (!formData.ratePerGuard || Number(formData.ratePerGuard) <= 0) {
+          showNotification('Please enter a valid rate per guard greater than 0.', 'error'); return false;
+        }
         if (!(formData.contractUrl instanceof File)) {
           showNotification('Please upload the client contract document.', 'error'); return false;
         }
@@ -305,6 +308,9 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
           }
           if (site.latitude === '' || site.latitude == null || site.longitude === '' || site.longitude == null) {
             showNotification(`Please select a validated address for Site ${i + 1} from the Google suggestions.`, 'error'); return false;
+          }
+          if (site.geofenceRadius === '' || Number(site.geofenceRadius) < 20) {
+            showNotification(`Site ${i + 1} minimum geofence radius is 20m.`, 'error'); return false;
           }
         }
         return true;
@@ -325,8 +331,8 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
           if (isAfterDate(assignment.contractEndDate, formData.contractEndDate)) {
             showNotification(`Deployment end date for ${assignment.employeeName || 'each selected guard'} cannot be later than the client contract end date (${formData.contractEndDate}).`, 'error'); return false;
           }
-          if (assignment.daysOfWeek.length === 0) {
-            showNotification(`Please select at least one schedule day for ${assignment.employeeName || 'each selected guard'}.`, 'error'); return false;
+          if (assignment.daysOfWeek.length < 6) {
+            showNotification(`Please select at least 6 schedule days for ${assignment.employeeName || 'each selected guard'}.`, 'error'); return false;
           }
           if (!assignment.shiftStart || !assignment.shiftEnd) {
             showNotification(`Please set both shift start and shift end for ${assignment.employeeName || 'each selected guard'}.`, 'error'); return false;
