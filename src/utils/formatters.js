@@ -81,15 +81,61 @@ export function formatShiftTime(time, fallback = '') {
   });
 }
 
+export function getShiftType(start, end) {
+  if (typeof start !== 'string' || typeof end !== 'string') return 'custom';
+
+  const toMinutes = (timeStr) => {
+    const parts = timeStr.split(':');
+    const hours = Number.parseInt(parts[0], 10);
+    const minutes = Number.parseInt(parts[1] || '0', 10);
+    if (Number.isNaN(hours)) return null;
+    return (hours * 60) + (Number.isNaN(minutes) ? 0 : minutes);
+  };
+
+  const startMin = toMinutes(start);
+  const endMin = toMinutes(end);
+
+  if (startMin === null || endMin === null) return 'custom';
+
+  // If start and end are the same, it's a 24-Hour shift
+  if (startMin === endMin) return '24hr';
+
+  const totalMinutes = startMin < endMin 
+    ? endMin - startMin 
+    : (1440 - startMin) + endMin;
+
+  const dayStart = 6 * 60; // 06:00
+  const dayEnd = 18 * 60;  // 18:00
+
+  const getIntervalOverlap = (s, e) => {
+    return Math.max(0, Math.min(e, dayEnd) - Math.max(s, dayStart));
+  };
+
+  let dayMinutes = 0;
+  if (startMin < endMin) {
+    dayMinutes = getIntervalOverlap(startMin, endMin);
+  } else {
+    dayMinutes = getIntervalOverlap(startMin, 1440) + getIntervalOverlap(0, endMin);
+  }
+
+  const nightMinutes = totalMinutes - dayMinutes;
+
+  // Exact ties default to day shift (as per user instruction)
+  return nightMinutes > dayMinutes ? 'night' : 'day';
+}
+
 export function getShiftLabel(start, end) {
-  if (typeof start !== 'string' || typeof end !== 'string') return 'Custom Shift';
-
-  const startHour = Number.parseInt(start.split(':')[0], 10);
-  if (Number.isNaN(startHour)) return 'Custom Shift';
-
-  return startHour >= 4 && startHour < 16 ? 'Day Shift' : 'Night Shift';
+  const type = getShiftType(start, end);
+  if (type === 'day') return 'Day Shift';
+  if (type === 'night') return 'Night Shift';
+  if (type === '24hr') return '24-Hour Shift';
+  return 'Custom Shift';
 }
 
 export function getShiftLabelColor(label) {
-  return label === 'Day Shift' ? '#f59e0b' : '#3b82f6';
+  if (label === 'Day Shift') return '#f59e0b';
+  if (label === 'Night Shift') return '#3b82f6';
+  if (label === '24-Hour Shift') return '#8b5cf6';
+  return '#6b7280';
 }
+

@@ -110,6 +110,12 @@
   color: #dc2626;
 }
 
+.term-icon-ring-success {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #059669;
+}
+
 .term-title {
   font-size: 1.15rem;
   font-weight: 800;
@@ -153,6 +159,19 @@
   font-weight: 700;
 }
 
+.term-success-box {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+}
+
+.term-success-box p {
+  color: #065f46;
+}
+
+.term-success-box strong {
+  color: #047857;
+}
+
 .term-note {
   font-size: 0.75rem;
   color: #94a3b8;
@@ -171,6 +190,18 @@
 .dlg-btn-danger:hover:not(:disabled) {
   background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
   box-shadow: 0 6px 18px rgba(220, 38, 38, 0.5);
+  transform: translateY(-1px);
+}
+
+.dlg-btn-success {
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35);
+}
+
+.dlg-btn-success:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669 0%, #065f46 100%);
+  box-shadow: 0 6px 18px rgba(5, 150, 105, 0.45);
   transform: translateY(-1px);
 }
 

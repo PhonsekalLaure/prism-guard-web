@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   FaTimes, FaUser, FaBriefcase, FaShieldAlt, FaMoneyCheckAlt,
-  FaFileContract, FaMapMarkerAlt, FaUserMinus,
+  FaFileContract, FaMapMarkerAlt, FaUserMinus, FaUserCheck,
 } from 'react-icons/fa';
 import employeeService from '@services/hris/employeeService';
 import clientService from '@services/hris/clientService';
@@ -27,6 +27,7 @@ import DeployEmployeeDialog    from './DeployEmployeeDialog';
 import RelieveEmployeeDialog   from './RelieveEmployeeDialog';
 import DeactivateEmployeeDialog from './DeactivateEmployeeDialog';
 import RenewEmployeeContractDialog from './RenewEmployeeContractDialog';
+import ReactivateAccountDialog from '../ReactivateAccountDialog';
 
 const TABS = [
   { key: 'personal',   label: 'Personal Info', icon: FaUser },
@@ -95,6 +96,7 @@ export default function ViewEmployeeDetail({
   const [pendingFiles,     setPendingFiles]     = useState({});
   const [isSaving,         setIsSaving]         = useState(false);
   const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false);
+  const [showReactivateConfirm, setShowReactivateConfirm] = useState(false);
   const [showRelieveConfirm, setShowRelieveConfirm] = useState(false);
   const [showRenewContractDialog, setShowRenewContractDialog] = useState(false);
   const [showDeployModal,  setShowDeployModal]  = useState(false);
@@ -125,6 +127,7 @@ export default function ViewEmployeeDetail({
       setPendingFiles({});
       setFetchError(false);
       setShowDeactivateConfirm(false);
+      setShowReactivateConfirm(false);
       setShowRelieveConfirm(false);
       setShowRenewContractDialog(false);
       setRenewalForm({ contractStartDate: '', contractEndDate: '', contractFile: null });
@@ -207,6 +210,23 @@ export default function ViewEmployeeDetail({
     } catch (err) {
       console.error(err);
       showNotification(err.response?.data?.error || 'Failed to deactivate employee.', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleReactivate = async () => {
+    try {
+      setIsSaving(true);
+      await employeeService.reactivateEmployee(previewEmployee.id);
+      const refreshed = await employeeService.getEmployeeDetails(previewEmployee.id);
+      setEmployeeDetails(refreshed);
+      showNotification('Employee reactivated successfully.', 'success');
+      setShowReactivateConfirm(false);
+      onUpdated?.();
+    } catch (err) {
+      console.error(err);
+      showNotification(err.response?.data?.error || 'Failed to reactivate employee.', 'error');
     } finally {
       setIsSaving(false);
     }
@@ -526,9 +546,15 @@ export default function ViewEmployeeDetail({
                 <FaUserMinus /> Relieve From Post
               </button>
             )}
-            <button className="ve-btn ve-btn-red" onClick={() => setShowDeactivateConfirm(true)} disabled={!canWriteEmployees || data.status !== 'active'}>
-              <FaUserMinus /> {data.status === 'inactive' ? 'Inactive' : 'Deactivate Employee'}
-            </button>
+            {data.status === 'inactive' ? (
+              <button className="ve-btn ve-btn-green" onClick={() => setShowReactivateConfirm(true)} disabled={!canWriteEmployees}>
+                <FaUserCheck /> Reactivate Employee
+              </button>
+            ) : (
+              <button className="ve-btn ve-btn-red" onClick={() => setShowDeactivateConfirm(true)} disabled={!canWriteEmployees}>
+                <FaUserMinus /> Deactivate Employee
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -539,6 +565,15 @@ export default function ViewEmployeeDetail({
         isSaving={isSaving}
         onCancel={() => setShowDeactivateConfirm(false)}
         onConfirm={handleDeactivate}
+      />
+
+      <ReactivateAccountDialog
+        isOpen={showReactivateConfirm}
+        entityLabel="Employee"
+        entityName={data.full_name || data.name || 'this employee'}
+        isSaving={isSaving}
+        onCancel={() => setShowReactivateConfirm(false)}
+        onConfirm={handleReactivate}
       />
 
       <RelieveEmployeeDialog

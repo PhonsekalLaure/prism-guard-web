@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   FaTimes, FaBuilding, FaMapMarkerAlt, FaFileInvoiceDollar, FaTicketAlt,
-  FaFileContract, FaUserPlus, FaUserMinus,
+  FaFileContract, FaUserPlus, FaUserMinus, FaUserCheck,
 } from 'react-icons/fa';
 import clientService from '@services/hris/clientService';
 import employeeService from '@services/hris/employeeService';
@@ -25,6 +25,7 @@ import RelieveAllClientGuardsDialog from './RelieveAllClientGuardsDialog';
 import ClientSiteEditorDialog from './ClientSiteEditorDialog';
 import RenewClientContractDialog from './RenewClientContractDialog';
 import DeactivateClientSiteDialog from './DeactivateClientSiteDialog';
+import ReactivateAccountDialog from '../ReactivateAccountDialog';
 
 const TABS = [
   { key: 'general', label: 'General Info', icon: FaBuilding },
@@ -83,6 +84,7 @@ export default function ViewClientDetail({
   const [pendingFiles, setPendingFiles] = useState({});
   const [isSaving, setIsSaving] = useState(false);
   const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false);
+  const [showReactivateConfirm, setShowReactivateConfirm] = useState(false);
   const [showRelieveAllConfirm, setShowRelieveAllConfirm] = useState(false);
   const [showRenewContractDialog, setShowRenewContractDialog] = useState(false);
   const [showSiteDialog, setShowSiteDialog] = useState(false);
@@ -139,6 +141,7 @@ export default function ViewClientDetail({
       setIsEditing(false);
       setPendingFiles({});
       setShowDeactivateConfirm(false);
+      setShowReactivateConfirm(false);
       setShowRelieveAllConfirm(false);
       setShowRenewContractDialog(false);
       setShowSiteDialog(false);
@@ -433,6 +436,21 @@ export default function ViewClientDetail({
     }
   };
 
+  const handleReactivate = async () => {
+    setIsSaving(true);
+    try {
+      await clientService.reactivateClient(previewClient.id);
+      await loadClientDetails(previewClient.id);
+      showNotification('Client reactivated successfully.', 'success');
+      setShowReactivateConfirm(false);
+      onUpdated?.();
+    } catch (err) {
+      showNotification(err.response?.data?.error || 'Failed to reactivate client.', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleRelieveAllGuards = async () => {
     setIsSaving(true);
     try {
@@ -671,9 +689,15 @@ export default function ViewClientDetail({
               </button>
             )}
 
-            <button className="ve-btn ve-btn-red" onClick={() => setShowDeactivateConfirm(true)} disabled={!canWriteClients || data.status !== 'active'}>
-              <FaUserMinus /> {data.status === 'inactive' ? 'Inactive' : 'Deactivate Client'}
-            </button>
+            {data.status === 'inactive' ? (
+              <button className="ve-btn ve-btn-green" onClick={() => setShowReactivateConfirm(true)} disabled={!canWriteClients}>
+                <FaUserCheck /> Reactivate Client
+              </button>
+            ) : (
+              <button className="ve-btn ve-btn-red" onClick={() => setShowDeactivateConfirm(true)} disabled={!canWriteClients}>
+                <FaUserMinus /> Deactivate Client
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -792,6 +816,16 @@ export default function ViewClientDetail({
         isSaving={isSaving}
         onCancel={() => setShowDeactivateConfirm(false)}
         onConfirm={handleDeactivate}
+      />
+
+      <ReactivateAccountDialog
+        isOpen={showReactivateConfirm}
+        entityLabel="Client"
+        entityName={data.company || 'this client'}
+        detailMessage="All sites belonging to this client will also be reactivated. Contracts and guard deployments remain unchanged."
+        isSaving={isSaving}
+        onCancel={() => setShowReactivateConfirm(false)}
+        onConfirm={handleReactivate}
       />
 
       <RelieveAllClientGuardsDialog

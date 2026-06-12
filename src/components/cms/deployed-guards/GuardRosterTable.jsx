@@ -12,7 +12,7 @@ const statusConfig = {
   unknown: { label: 'Unknown', className: 'dg-status-badge dg-status-badge--unknown' },
 };
 
-function ShiftBadge({ shift }) {
+function ShiftBadge({ shift, shiftKey }) {
   if (!shift || shift === 'Unscheduled') {
     return (
       <span className="dg-shift-badge dg-shift-badge--unscheduled">
@@ -20,8 +20,8 @@ function ShiftBadge({ shift }) {
       </span>
     );
   }
-  const isNight = shift.toLowerCase().startsWith('night') || shift.includes('PM') || shift.includes('18:');
-  const is24 = shift === '24-Hour';
+  const is24 = shiftKey === '24hr' || shift === '24-Hour';
+  const isNight = shiftKey === 'night' || (!shiftKey && (shift.toLowerCase().startsWith('night') || shift.includes('PM') || shift.includes('18:')));
 
   if (is24) {
     return (
@@ -145,7 +145,7 @@ export default function GuardRosterTable({
                       </div>
                     </td>
                     <td className="dg-td-mono">{guard.employee_id_number}</td>
-                    <td><ShiftBadge shift={guard.shift} /></td>
+                    <td><ShiftBadge shift={guard.shift} shiftKey={guard.shift_key} /></td>
                     <td onClick={(e) => e.stopPropagation()}>
                       <AttendanceBadge attendanceStatus={guard.attendance_status} />
                     </td>
