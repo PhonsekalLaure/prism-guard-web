@@ -11,7 +11,9 @@ import ReportConfirmDialog from '@components/ui/ReportConfirmDialog';
 import useNotification from '@hooks/useNotification';
 import useReportAction from '@hooks/useReportAction';
 import billingService from '@services/hris/billingService';
+import authService from '@services/authService';
 import { getDefaultPayrollPeriod, getPayrollCutoffOptions } from '@hris-components/payroll/payrollPageUtils';
+import { hasPermission } from '@utils/adminPermissions';
 
 const PAGE_LIMIT = 8;
 const DEFAULT_METADATA = { total: 0, page: 1, limit: PAGE_LIMIT, totalPages: 0 };
@@ -43,6 +45,7 @@ function resolveCutoffState(cutoffOptions, defaultPeriod, cutoffKey) {
 }
 
 export default function BillingPage() {
+  const canManagePayrollType = hasPermission(authService.getProfile() || {}, 'payroll.write');
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -267,12 +270,18 @@ export default function BillingPage() {
   const saveHoliday = async (form, onSaved) => {
     try {
       setHolidaySaving(true);
-      const payload = {
-        holiday_date: form.holiday_date,
-        name: form.name,
-        rate_per_guard: form.rate_per_guard,
-        notes: form.notes,
-      };
+      const payrollManagedWithoutAccess = Boolean(
+        form.id && form.payroll_type && !canManagePayrollType
+      );
+      const payload = payrollManagedWithoutAccess
+        ? { rate_per_guard: form.rate_per_guard }
+        : {
+          holiday_date: form.holiday_date,
+          name: form.name,
+          rate_per_guard: form.rate_per_guard,
+          notes: form.notes,
+        };
+      if (canManagePayrollType) payload.payroll_type = form.payroll_type || null;
       if (form.id) {
         await billingService.updateHoliday(form.id, payload);
         showNotification('Holiday updated.', 'success');
@@ -412,6 +421,7 @@ export default function BillingPage() {
         loading={holidaysLoading}
         saving={holidaySaving}
         deletingId={holidayDeletingId}
+        canManagePayrollType={canManagePayrollType}
         onClose={() => setHolidayModalOpen(false)}
         onSave={saveHoliday}
         onDelete={setHolidayDeleteTarget}

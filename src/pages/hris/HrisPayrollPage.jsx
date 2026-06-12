@@ -6,6 +6,7 @@ import HrisPayrollStatCards from '@hris-components/payroll/HrisPayrollStatCards'
 import HrisPayrollOngoingAlert from '@hris-components/payroll/HrisPayrollOngoingAlert';
 import HrisPayrollFilterBar from '@hris-components/payroll/HrisPayrollFilterBar';
 import HrisPayrollTable from '@hris-components/payroll/HrisPayrollTable';
+import PayrollHolidayManager from '@hris-components/payroll/PayrollHolidayManager';
 import useNotification from '@hooks/useNotification';
 import useReportAction from '@hooks/useReportAction';
 import {
@@ -52,6 +53,7 @@ export default function HrisPayrollPage() {
   const [selectedRunId, setSelectedRunId] = useState('');
   const [selectedRun, setSelectedRun] = useState(null);
   const [paymentTarget, setPaymentTarget] = useState(null);
+  const [holidayModalOpen, setHolidayModalOpen] = useState(false);
   const [loadingRuns, setLoadingRuns] = useState(true);
   const [loadingRecords, setLoadingRecords] = useState(false);
   const [error, setError] = useState('');
@@ -141,6 +143,7 @@ export default function HrisPayrollPage() {
     : loadingRuns
       ? 'Loading runs'
       : 'No run selected';
+  const selectedCutoff = cutoffOptions.find((option) => option.key === selectedCutoffKey);
 
   useEffect(() => {
     if (recordsPage > totalRecordPages) setRecordsPage(totalRecordPages);
@@ -270,6 +273,7 @@ export default function HrisPayrollPage() {
 
       <HrisPayrollTopbar
         actionLoading={actionLoading}
+        onAddHoliday={() => selectedCutoff && setHolidayModalOpen(true)}
         onApprove={approveAction.execute}
         onCreate={createAction.execute}
         onExport={handleExport}
@@ -309,6 +313,13 @@ export default function HrisPayrollPage() {
         tone="warning"
         onCancel={() => setPaymentTarget(null)}
         onConfirm={handleConfirmRecordPaid}
+      />
+
+      <PayrollHolidayManager
+        cutoff={selectedCutoff}
+        isOpen={holidayModalOpen}
+        onClose={() => setHolidayModalOpen(false)}
+        showNotification={showNotification}
       />
     </>
   );

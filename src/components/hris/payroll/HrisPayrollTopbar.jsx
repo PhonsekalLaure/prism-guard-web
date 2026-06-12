@@ -1,5 +1,6 @@
 import {
   FaBars,
+  FaCalendarDay,
   FaCheck,
   FaDownload,
   FaRedo,
@@ -12,6 +13,7 @@ export default function HrisPayrollTopbar({
   actionLoading,
   cutoffOptions,
   onApprove,
+  onAddHoliday,
   onCreate,
   onExport,
   onRecalculate,
@@ -55,6 +57,15 @@ export default function HrisPayrollTopbar({
             ))}
           </select>
         </label>
+
+        <ReportActionButton
+          className="pr-export-btn"
+          label="Add Holiday"
+          icon={FaCalendarDay}
+          disabled={cutoffActionDisabled}
+          variant="secondary"
+          onClick={onAddHoliday}
+        />
 
         <ReportActionButton
           className="pr-export-btn"

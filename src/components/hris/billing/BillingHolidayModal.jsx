@@ -23,6 +23,7 @@ const EMPTY_FORM = {
   holiday_date: '',
   name: '',
   rate_per_guard: '',
+  payroll_type: '',
   notes: '',
 };
 
@@ -33,6 +34,8 @@ export default function BillingHolidayModal({
   loading = false,
   saving = false,
   deletingId = '',
+  context = 'billing',
+  canManagePayrollType = true,
   onClose,
   onSave,
   onDelete,
@@ -40,7 +43,7 @@ export default function BillingHolidayModal({
   const [form, setForm] = useState(EMPTY_FORM);
 
   const title = useMemo(() => (
-    cutoff ? `Holidays for ${cutoff.label}` : 'Billing Holidays'
+    cutoff ? `Holidays for ${cutoff.label}` : 'Shared Holidays'
   ), [cutoff]);
 
   if (!isOpen) return null;
@@ -55,6 +58,7 @@ export default function BillingHolidayModal({
       holiday_date: holiday.holiday_date || '',
       name: holiday.name || '',
       rate_per_guard: holiday.rate_per_guard || '',
+      payroll_type: holiday.payroll_type || '',
       notes: holiday.notes || '',
     });
   };
@@ -72,6 +76,15 @@ export default function BillingHolidayModal({
   };
 
   const isEditing = Boolean(form.id);
+  const isBillingManagedInPayroll = context === 'payroll'
+    && isEditing
+    && form.rate_per_guard !== ''
+    && form.rate_per_guard !== null;
+  const isPayrollManagedInBilling = context === 'billing'
+    && isEditing
+    && Boolean(form.payroll_type)
+    && !canManagePayrollType;
+  const sharedDetailsDisabled = isBillingManagedInPayroll || isPayrollManagedInBilling;
   const minDate = cutoff?.periodStart || undefined;
   const maxDate = cutoff?.periodEnd || undefined;
   const holidayDateValue = form.holiday_date || cutoff?.periodStart || '';
@@ -96,7 +109,9 @@ export default function BillingHolidayModal({
 
         <div className="bp-modal-body billing-holiday-body">
           <p className="billing-holiday-regeneration-note">
-            Holiday changes are used the next time statements are generated. Regenerate an existing cutoff after editing holidays to update the invoice totals.
+            {context === 'payroll'
+              ? 'Holiday changes apply to new payroll calculations. Recalculate an existing draft to update holiday pay; approved and paid runs remain unchanged.'
+              : 'Holiday changes are used the next time statements are generated. Regenerate an existing cutoff after editing holidays to update invoice totals.'}
           </p>
 
           <form className="billing-holiday-form" onSubmit={submit}>
@@ -109,6 +124,7 @@ export default function BillingHolidayModal({
                 max={maxDate}
                 value={holidayDateValue}
                 onChange={(event) => updateField('holiday_date', event.target.value)}
+                disabled={sharedDetailsDisabled}
                 required
               />
             </label>
@@ -120,23 +136,46 @@ export default function BillingHolidayModal({
                 type="text"
                 value={form.name}
                 onChange={(event) => updateField('name', event.target.value)}
+                disabled={sharedDetailsDisabled}
                 placeholder="Christmas Day"
                 required
               />
             </label>
 
+            {context === 'billing' && (
+              <label className="billing-holiday-field">
+                <span>Holiday Rate per Guard</span>
+                <input
+                  className="bp-input"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.rate_per_guard}
+                  onChange={(event) => updateField('rate_per_guard', event.target.value)}
+                  placeholder="933.50"
+                  required
+                />
+              </label>
+            )}
+
             <label className="billing-holiday-field">
-              <span>Holiday Rate per Guard</span>
-              <input
+              <span>Payroll Classification</span>
+              <select
                 className="bp-input"
-                type="number"
-                min="0"
-                step="0.01"
-                value={form.rate_per_guard}
-                onChange={(event) => updateField('rate_per_guard', event.target.value)}
-                placeholder="933.50"
-                required
-              />
+                value={form.payroll_type}
+                onChange={(event) => updateField('payroll_type', event.target.value)}
+                disabled={!canManagePayrollType}
+                required={context === 'payroll'}
+              >
+                <option value="">
+                  {context === 'payroll' ? 'Select payroll type' : 'Billing only'}
+                </option>
+                <option value="regular">Regular holiday</option>
+                <option value="special_non_working">Special non-working holiday</option>
+              </select>
+              {!canManagePayrollType && (
+                <small>Payroll write permission is required to change this field.</small>
+              )}
             </label>
 
             <label className="billing-holiday-field billing-holiday-field--full">
@@ -146,6 +185,7 @@ export default function BillingHolidayModal({
                 rows={2}
                 value={form.notes}
                 onChange={(event) => updateField('notes', event.target.value)}
+                disabled={sharedDetailsDisabled}
                 placeholder="Optional internal note"
               />
             </label>
@@ -186,18 +226,35 @@ export default function BillingHolidayModal({
                 <div>
                   <p className="billing-holiday-name">{holiday.name}</p>
                   <p className="billing-holiday-meta">
-                    {formatDate(holiday.holiday_date)} - {formatCurrency(holiday.rate_per_guard)} per guard
+                    {formatDate(holiday.holiday_date)}
+                    {holiday.rate_per_guard !== null
+                      ? ` - ${formatCurrency(holiday.rate_per_guard)} per guard`
+                      : ' - No client billing charge'}
+                  </p>
+                  <p className="billing-holiday-meta">
+                    {holiday.payroll_type === 'regular'
+                      ? 'Regular payroll holiday'
+                      : holiday.payroll_type === 'special_non_working'
+                        ? 'Special non-working payroll holiday'
+                        : 'Billing only'}
                   </p>
                 </div>
                 <div className="billing-holiday-row-actions">
-                  <button type="button" onClick={() => editHoliday(holiday)} disabled={saving || deletingId === holiday.id}>
+                  <button
+                    type="button"
+                    onClick={() => editHoliday(holiday)}
+                    disabled={saving || deletingId === holiday.id}
+                  >
                     <FaEdit /> Edit
                   </button>
                   <button
                     type="button"
                     className="danger"
                     onClick={() => onDelete?.(holiday)}
-                    disabled={saving || deletingId === holiday.id}
+                    disabled={saving
+                      || deletingId === holiday.id
+                      || (!canManagePayrollType && holiday.payroll_type)
+                      || (context === 'payroll' && !holiday.payroll_type)}
                   >
                     <FaTrash /> {deletingId === holiday.id ? 'Deleting...' : 'Delete'}
                   </button>

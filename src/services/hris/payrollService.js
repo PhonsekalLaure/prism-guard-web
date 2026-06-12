@@ -20,6 +20,26 @@ async function listPayrollRuns(params = {}) {
   return data;
 }
 
+async function getHolidays(params = {}) {
+  const { data } = await api.get('/holidays', { params });
+  return data;
+}
+
+async function createHoliday(payload) {
+  const { data } = await api.post('/holidays', payload);
+  return data;
+}
+
+async function updateHoliday(id, payload) {
+  const { data } = await api.patch(`/holidays/${id}`, payload);
+  return data;
+}
+
+async function deleteHoliday(id) {
+  const { data } = await api.delete(`/holidays/${id}`);
+  return data;
+}
+
 async function createPayrollRun(payload) {
   const { data } = await api.post('/runs', payload);
   return data;
@@ -47,9 +67,13 @@ async function markPayrollRecordPaid(runId, recordId) {
 
 export default {
   approvePayrollRun,
+  createHoliday,
   createPayrollRun,
+  deleteHoliday,
+  getHolidays,
   getPayrollRunById,
   listPayrollRuns,
   markPayrollRecordPaid,
   recalculatePayrollRun,
+  updateHoliday,
 };

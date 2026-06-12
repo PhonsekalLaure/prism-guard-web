@@ -16,6 +16,7 @@ export default function PayrollBreakdownModal({ row, onClose }) {
   const earnings = buildEarnings(row);
   const deductions = buildDeductions(row);
   const snapshot = row.calculation_snapshot || {};
+  const holidayDetails = Array.isArray(snapshot.holidays) ? snapshot.holidays : [];
   const deductionExcess = getDeductionExcess(row);
 
   return (
@@ -89,6 +90,10 @@ export default function PayrollBreakdownModal({ row, onClose }) {
 
           <div className="pr-snapshot-grid">
             <div>
+              <span>Payroll Holidays</span>
+              <strong>{holidayDetails.length} day(s)</strong>
+            </div>
+            <div>
               <span>Paid SIL</span>
               <strong>{numeric(snapshot.paid_service_incentive_leaves?.length)} day(s)</strong>
             </div>
@@ -125,6 +130,25 @@ export default function PayrollBreakdownModal({ row, onClose }) {
               </strong>
             </div>
           </div>
+
+          {holidayDetails.length > 0 && (
+            <div className="pr-breakdown-section">
+              <h4><FaCoins style={{ color: '#ca8a04' }} /> Holiday Treatment</h4>
+              <div className="pr-earnings-box">
+                {holidayDetails.map((holiday) => (
+                  <div
+                    key={holiday.holiday_id || `${holiday.holiday_date}-${holiday.name}`}
+                    className="pr-breakdown-row"
+                  >
+                    <span>
+                      {holiday.name} ({holiday.status.replaceAll('_', ' ')})
+                    </span>
+                    <span>{money(holiday.amount)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="pr-net-hero">
             <div className="pr-net-hero-amount">
