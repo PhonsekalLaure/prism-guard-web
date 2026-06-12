@@ -21,11 +21,16 @@ export function EditInput({ label, value, onChange, type = 'text', placeholder, 
   );
 }
 
-export function EditSelect({ label, value, onChange, options }) {
+export function EditSelect({ label, value, onChange, options, disabled = false }) {
   return (
     <div className="ve-edit-field">
       <label className="ve-edit-label">{label}</label>
-      <select className="ve-edit-input" value={value} onChange={e => onChange(e.target.value)}>
+      <select
+        className="ve-edit-input"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        disabled={disabled}
+      >
         <option value="">— Select —</option>
         {options.map(o => (
           <option key={o.value ?? o} value={o.value ?? o}>{o.label ?? o}</option>

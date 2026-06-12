@@ -129,13 +129,15 @@ export default function PersonalTab({
                 onChange={v => onField('date_of_birth', v)}
                 min={minDob}
                 max={maxDob}
+                readOnly
+                disabled
               />
-              <EditSelect label="Gender"                 value={editForm.gender}                            onChange={v => onField('gender', v)}        options={['Male', 'Female']} />
-              <EditSelect label="Marital Status"         value={editForm.civil_status}                     onChange={v => onField('civil_status', v)}  options={['Single', 'Married', 'Widowed', 'Separated']} />
-              <EditSelect label="Blood Type"             value={editForm.blood_type}                       onChange={v => onField('blood_type', v)}    options={['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']} />
-              <EditInput  label="Place of Birth"         value={editForm.place_of_birth}                   onChange={v => onField('place_of_birth', v)} placeholder="City, Province" />
-              <EditInput  label="Height (cm)"            type="number" value={editForm.height_cm}          onChange={v => onField('height_cm', v)}     placeholder="e.g. 170" />
-              <EditSelect label="Educational Attainment" value={editForm.educational_level}                onChange={v => onField('educational_level', v)} options={EDUCATIONAL_LEVELS} />
+              <EditSelect label="Gender"                 value={editForm.gender}                            onChange={v => onField('gender', v)}        options={['Male', 'Female']} disabled />
+              <EditSelect label="Marital Status"         value={editForm.civil_status}                     onChange={v => onField('civil_status', v)}  options={['Single', 'Married', 'Widowed', 'Separated']} disabled />
+              <EditSelect label="Blood Type"             value={editForm.blood_type}                       onChange={v => onField('blood_type', v)}    options={['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']} disabled />
+              <EditInput  label="Place of Birth"         value={editForm.place_of_birth}                   onChange={v => onField('place_of_birth', v)} placeholder="City, Province" readOnly disabled />
+              <EditInput  label="Height (cm)"            type="number" value={editForm.height_cm}          onChange={v => onField('height_cm', v)}     placeholder="e.g. 170" readOnly disabled />
+              <EditSelect label="Educational Attainment" value={editForm.educational_level}                onChange={v => onField('educational_level', v)} options={EDUCATIONAL_LEVELS} disabled />
               <EditInput  label="Citizenship"            value={editForm.citizenship}                      onChange={v => onField('citizenship', v)}   readOnly disabled />
             </div>
           </div>
