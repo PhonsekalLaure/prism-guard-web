@@ -15,7 +15,7 @@
   align-items: center;
   position: sticky;
   top: 0;
-  z-index: 950;
+  z-index: 10;
   box-shadow: 0 1px 6px rgba(9, 50, 105, 0.06);
 }
 
