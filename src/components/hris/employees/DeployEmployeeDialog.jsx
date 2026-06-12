@@ -4,6 +4,7 @@ import {
   MINIMUM_MONTHLY_BASE_PAY,
   MINIMUM_MONTHLY_BASE_PAY_HINT,
 } from '@constants/payrollRules';
+import { getBusinessTodayDateInputValue } from '@utils/hrisDateRules';
 
 const DAY_OPTIONS = [
   { value: 0, label: 'Sun' },
@@ -38,10 +39,13 @@ export default function DeployEmployeeDialog({
   if (!isOpen) return null;
 
   const handleSiteSelect = (site) => {
+    const today = getBusinessTodayDateInputValue();
+    const clientStart = site?.client_contract_start_date || '';
+    const defaultStart = clientStart && clientStart < today ? today : clientStart;
     setDeployForm((form) => ({
       ...form,
       siteId: site?.id || '',
-      contractStartDate: site?.client_contract_start_date || '',
+      contractStartDate: defaultStart,
       contractEndDate: site?.client_contract_end_date || '',
     }));
   };
@@ -95,7 +99,12 @@ export default function DeployEmployeeDialog({
                   className="dep-input"
                   value={deployForm.contractStartDate}
                   onChange={(e) => setDeployForm((f) => ({ ...f, contractStartDate: e.target.value }))}
-                  min={clientContractStartDate || undefined}
+                  min={(() => {
+                    const today = getBusinessTodayDateInputValue();
+                    return clientContractStartDate && clientContractStartDate > today
+                      ? clientContractStartDate
+                      : today;
+                  })()}
                   max={deployForm.contractEndDate || clientContractEndDate || undefined}
                 />
                 {clientContractStartDate && (

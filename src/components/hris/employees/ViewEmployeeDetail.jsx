@@ -9,7 +9,11 @@ import authService from '@services/authService';
 import Notification from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
 import { hasPermission } from '@utils/adminPermissions';
-import { getAgeDateBounds, getRenewalDateBounds } from '@utils/hrisDateRules';
+import {
+  getAgeDateBounds,
+  getBusinessTodayDateInputValue,
+  getRenewalDateBounds,
+} from '@utils/hrisDateRules';
 import { getGuardHeightError } from '@utils/guardEligibility';
 import {
   isBelowMinimumMonthlyBasePay,
@@ -340,8 +344,15 @@ export default function ViewEmployeeDetail({
       showNotification(MINIMUM_MONTHLY_BASE_PAY_MESSAGE, 'error');
       return;
     }
-    if (selectedClientContractStartDate && deployForm.contractStartDate && deployForm.contractStartDate < selectedClientContractStartDate) {
-      showNotification(`Deployment contract start date cannot be earlier than the client contract start date (${selectedClientContractStartDate}).`, 'error');
+    const today = getBusinessTodayDateInputValue();
+    const minStartDate = selectedClientContractStartDate && selectedClientContractStartDate > today
+      ? selectedClientContractStartDate
+      : today;
+    if (deployForm.contractStartDate && deployForm.contractStartDate < minStartDate) {
+      const errorMsg = minStartDate === today
+        ? 'Deployment contract start date cannot be earlier than today.'
+        : `Deployment contract start date cannot be earlier than the client contract start date (${selectedClientContractStartDate}).`;
+      showNotification(errorMsg, 'error');
       return;
     }
     if (selectedClientContractEndDate && deployForm.contractStartDate && isAfterDate(deployForm.contractStartDate, selectedClientContractEndDate)) {

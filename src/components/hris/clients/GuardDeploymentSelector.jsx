@@ -8,6 +8,7 @@ import {
   MINIMUM_MONTHLY_BASE_PAY,
   MINIMUM_MONTHLY_BASE_PAY_HINT,
 } from '@constants/payrollRules';
+import { getBusinessTodayDateInputValue } from '@utils/hrisDateRules';
 
 const DAY_OPTIONS = [
   { value: 0, label: 'Sun' },
@@ -239,7 +240,12 @@ export default function GuardDeploymentSelector({
                     className="dep-input"
                     value={deploymentForm.contractStartDate}
                     onChange={(e) => onFieldChange('contractStartDate', e.target.value)}
-                    min={clientContractStartDate || undefined}
+                    min={(() => {
+                      const today = getBusinessTodayDateInputValue();
+                      return clientContractStartDate && clientContractStartDate > today
+                        ? clientContractStartDate
+                        : today;
+                    })()}
                     max={deploymentForm.contractEndDate || clientContractEndDate || undefined}
                   />
                   {clientContractStartDate && (

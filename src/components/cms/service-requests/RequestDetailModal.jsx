@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import {
   FaTimes, FaHistory, FaPaperPlane, FaEye, FaCheck, FaBan, FaComments,
-  FaTicketAlt, FaExclamationTriangle,
+  FaTicketAlt,
 } from 'react-icons/fa';
+import CancelServiceRequestDialog from '@components/service-requests/CancelServiceRequestDialog';
 import ServiceRequestThread from '@components/service-requests/ServiceRequestThread';
 import ServiceRequestReplyBox from '@components/service-requests/ServiceRequestReplyBox';
 import ServiceRequestTypeDetails from '@components/service-requests/ServiceRequestTypeDetails';
@@ -297,31 +298,7 @@ export default function RequestDetailModal({ isOpen, request, loadingDetail = fa
 
           {/* Actions */}
           <div className="sr-modal-actions sr-detail-actions">
-            {confirmingCancel ? (
-              <div className="sr-cancel-confirm sr-cancel-confirm--actions">
-                <p>
-                  <FaExclamationTriangle /> Are you sure you want to cancel this request?
-                </p>
-                <div>
-                  <button
-                    type="button"
-                    className="sr-btn-back"
-                    onClick={() => setConfirmingCancel(false)}
-                    disabled={cancelling}
-                  >
-                    Keep Request
-                  </button>
-                  <button
-                    type="button"
-                    className="sr-btn-cancel-req"
-                    onClick={handleCancel}
-                    disabled={cancelling}
-                  >
-                    <FaTimes /> {cancelling ? 'Cancelling...' : 'Cancel Request'}
-                  </button>
-                </div>
-              </div>
-            ) : canCancel && (
+            {canCancel && (
               <button
                 className="sr-btn-cancel-req"
                 onClick={() => setConfirmingCancel(true)}
@@ -334,6 +311,14 @@ export default function RequestDetailModal({ isOpen, request, loadingDetail = fa
               Close
             </button>
           </div>
+
+          <CancelServiceRequestDialog
+            isOpen={confirmingCancel}
+            requestId={request?.id}
+            isSaving={cancelling}
+            onCancel={() => setConfirmingCancel(false)}
+            onConfirm={handleCancel}
+          />
 
         </div>
         )} {/* end loadingDetail ternary */}

@@ -5,6 +5,17 @@ export function toDateInputValue(date) {
   return `${year}-${month}-${day}`;
 }
 
+export function getBusinessTodayDateInputValue(date = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Manila',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
 export function getAgeDateBounds({ minAge = 18, maxAge = 45 } = {}) {
   const today = new Date();
   const oldestAllowedBirthDate = new Date(

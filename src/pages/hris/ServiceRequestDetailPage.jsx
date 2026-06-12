@@ -10,8 +10,10 @@ import {
   FaComments,
   FaTimes,
   FaExchangeAlt,
-  FaExclamationTriangle,
 } from 'react-icons/fa';
+import CancelServiceRequestDialog from '@components/service-requests/CancelServiceRequestDialog';
+import Notification from '@components/ui/Notification';
+import useNotification from '@hooks/useNotification';
 import DeployEmployeeDialog from '@hris-components/employees/DeployEmployeeDialog';
 import GuardFulfillmentPicker from '@hris-components/service-requests/GuardFulfillmentPicker';
 import ServiceRequestReplyBox from '@components/service-requests/ServiceRequestReplyBox';
@@ -26,6 +28,7 @@ import {
   isAfterDate,
   isEarlierDate,
 } from '@utils/serviceRequestFulfillment';
+import { getBusinessTodayDateInputValue } from '@utils/hrisDateRules';
 import {
   isBelowMinimumMonthlyBasePay,
   MINIMUM_MONTHLY_BASE_PAY_MESSAGE,
@@ -42,6 +45,7 @@ export default function ServiceRequestDetailPage() {
   const { id }            = useParams();
   const navigate          = useNavigate();
   const { toggleSidebar } = useOutletContext();
+  const { notification, showNotification, closeNotification } = useNotification();
 
   const [request,       setRequest]       = useState(null);
   const [loading,       setLoading]       = useState(true);
@@ -191,14 +195,21 @@ export default function ServiceRequestDetailPage() {
       ? request?.replacement_details?.site_id || request?.site_id || ''
       : request?.site_id || '';
 
+    const lockedSite = sitesList.find((s) => s.id === lockedSiteId);
+    const today = getBusinessTodayDateInputValue();
+    const clientStart = lockedSite?.client_contract_start_date || '';
+    const defaultStart = clientStart && clientStart < today ? today : clientStart;
+
     setDeployForm({
       ...DEFAULT_DEPLOY_FORM,
       siteId: lockedSiteId,
       baseSalary: selectedEmployee.base_salary || '',
+      contractStartDate: defaultStart,
+      contractEndDate: lockedSite?.client_contract_end_date || '',
     });
     setShowGuardPicker(false);
     setShowDeployModal(true);
-  }, [selectedEmployee, request, fulfillmentMode]);
+  }, [selectedEmployee, request, fulfillmentMode, sitesList]);
 
   const toggleScheduleDay = useCallback((dayValue) => {
     setDeployForm((cur) => ({
@@ -211,17 +222,27 @@ export default function ServiceRequestDetailPage() {
 
   const handleDeployAdditionalGuard = useCallback(async () => {
     if (!request || !selectedEmployee) return;
-    if (!deployForm.siteId)                                         { setError('Please select a client site.'); return; }
+    if (!deployForm.siteId)                                         { showNotification('Please select a client site.', 'error'); return; }
     if (isBelowMinimumMonthlyBasePay(deployForm.baseSalary)) {
-      setError(MINIMUM_MONTHLY_BASE_PAY_MESSAGE); return;
+      showNotification(MINIMUM_MONTHLY_BASE_PAY_MESSAGE, 'error'); return;
     }
-    if (selectedClientContractStartDate && deployForm.contractStartDate && deployForm.contractStartDate < selectedClientContractStartDate) { setError(`Deployment contract start date cannot be earlier than the client contract start date (${selectedClientContractStartDate}).`); return; }
-    if (selectedClientContractEndDate && deployForm.contractStartDate && isAfterDate(deployForm.contractStartDate, selectedClientContractEndDate)) { setError(`Deployment contract start date cannot be later than the client contract end date (${selectedClientContractEndDate}).`); return; }
-    if (isEarlierDate(deployForm.contractStartDate, deployForm.contractEndDate)) { setError('Deployment contract end date cannot be earlier than deployment contract start date.'); return; }
-    if (isAfterDate(deployForm.contractEndDate, selectedClientContractEndDate))  { setError(`Deployment contract end date cannot be later than the client contract end date (${selectedClientContractEndDate}).`); return; }
-    if (deployForm.daysOfWeek.length === 0)                         { setError('Please select at least one schedule day.'); return; }
-    if (!deployForm.shiftStart || !deployForm.shiftEnd)             { setError('Please set both shift start and shift end time.'); return; }
-    if (!deployForm.deploymentOrderFile)                            { setError('Please upload the deployment order document.'); return; }
+    const today = getBusinessTodayDateInputValue();
+    const minStartDate = selectedClientContractStartDate && selectedClientContractStartDate > today
+      ? selectedClientContractStartDate
+      : today;
+    if (deployForm.contractStartDate && deployForm.contractStartDate < minStartDate) {
+      const errorMsg = minStartDate === today
+        ? 'Deployment contract start date cannot be earlier than today.'
+        : `Deployment contract start date cannot be earlier than the client contract start date (${selectedClientContractStartDate}).`;
+      showNotification(errorMsg, 'error');
+      return;
+    }
+    if (selectedClientContractEndDate && deployForm.contractStartDate && isAfterDate(deployForm.contractStartDate, selectedClientContractEndDate)) { showNotification(`Deployment contract start date cannot be later than the client contract end date (${selectedClientContractEndDate}).`, 'error'); return; }
+    if (isEarlierDate(deployForm.contractStartDate, deployForm.contractEndDate)) { showNotification('Deployment contract end date cannot be earlier than deployment contract start date.', 'error'); return; }
+    if (isAfterDate(deployForm.contractEndDate, selectedClientContractEndDate))  { showNotification(`Deployment contract end date cannot be later than the client contract end date (${selectedClientContractEndDate}).`, 'error'); return; }
+    if (deployForm.daysOfWeek.length < 6)                          { showNotification('Please select at least 6 schedule days.', 'error'); return; }
+    if (!deployForm.shiftStart || !deployForm.shiftEnd)             { showNotification('Please set both shift start and shift end time.', 'error'); return; }
+    if (!deployForm.deploymentOrderFile)                            { showNotification('Please upload the deployment order document.', 'error'); return; }
 
     try {
       setIsDeploying(true);
@@ -243,20 +264,26 @@ export default function ServiceRequestDetailPage() {
         await serviceRequestsService.deployAdditionalGuard(request.id, payload);
       }
       await fetchRequest();
+      showNotification(
+        fulfillmentMode === 'guard_replacement'
+          ? 'Guard replacement fulfilled successfully.'
+          : 'Additional guard deployed successfully.',
+        'success'
+      );
       setShowDeployModal(false);
       setSelectedEmployeeId('');
       setFulfillmentMode(null);
       setDeployForm(DEFAULT_DEPLOY_FORM);
     } catch (err) {
-      setError(err?.response?.data?.error || (
+      showNotification(err?.response?.data?.error || (
         fulfillmentMode === 'guard_replacement'
           ? 'Failed to fulfill guard replacement.'
           : 'Failed to deploy additional guard.'
-      ));
+      ), 'error');
     } finally {
       setIsDeploying(false);
     }
-  }, [request, selectedEmployee, deployForm, selectedClientContractStartDate, selectedClientContractEndDate, fetchRequest, fulfillmentMode]);
+  }, [request, selectedEmployee, deployForm, selectedClientContractStartDate, selectedClientContractEndDate, fetchRequest, fulfillmentMode, showNotification]);
 
   const canMessage             = ['open', 'in_progress'].includes(request?.status);
   const messages               = request?.messages || [];
@@ -271,6 +298,14 @@ export default function ServiceRequestDetailPage() {
 
   return (
     <>
+      {notification && (
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          duration={notification.duration}
+          onClose={closeNotification}
+        />
+      )}
       {/* Topbar */}
       <header className="dashboard-topbar">
         <div className="topbar-inner">
@@ -558,31 +593,7 @@ export default function ServiceRequestDetailPage() {
                     Set In Progress
                   </button>
                 )}
-                {confirmingCancel ? (
-                  <div className="sr-cancel-confirm sr-cancel-confirm--actions">
-                    <p>
-                      <FaExclamationTriangle /> Are you sure you want to cancel this request?
-                    </p>
-                    <div>
-                      <button
-                        type="button"
-                        className="sr-modal-btn gray"
-                        disabled={actionLoading}
-                        onClick={() => setConfirmingCancel(false)}
-                      >
-                        Keep Request
-                      </button>
-                      <button
-                        type="button"
-                        className="sr-modal-btn red"
-                        disabled={actionLoading}
-                        onClick={() => handleStatusChange('cancelled')}
-                      >
-                        {actionLoading ? 'Cancelling...' : 'Cancel Request'}
-                      </button>
-                    </div>
-                  </div>
-                ) : request.modalActions?.includes('cancel') && (
+                {request.modalActions?.includes('cancel') && (
                   <button
                     className="sr-modal-btn red"
                     disabled={actionLoading}
@@ -638,6 +649,14 @@ export default function ServiceRequestDetailPage() {
         submitLabel={fulfillmentMode === 'guard_replacement' ? 'Replace Guard' : 'Deploy Guard'}
         submittingLabel={fulfillmentMode === 'guard_replacement' ? 'Replacing...' : undefined}
         deployDisabled={!deployForm.deploymentOrderFile}
+      />
+      {/* Cancel service request confirmation dialog */}
+      <CancelServiceRequestDialog
+        isOpen={confirmingCancel}
+        requestId={request?.id}
+        isSaving={actionLoading}
+        onCancel={() => setConfirmingCancel(false)}
+        onConfirm={() => handleStatusChange('cancelled')}
       />
     </>
   );

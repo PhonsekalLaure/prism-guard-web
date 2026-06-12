@@ -9,7 +9,7 @@ import authService from '@services/authService';
 import Notification from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
 import { hasPermission } from '@utils/adminPermissions';
-import { getRenewalDateBounds } from '@utils/hrisDateRules';
+import { getBusinessTodayDateInputValue, getRenewalDateBounds } from '@utils/hrisDateRules';
 import {
   isBelowMinimumMonthlyBasePay,
   MINIMUM_MONTHLY_BASE_PAY_MESSAGE,
@@ -473,9 +473,12 @@ export default function ViewClientDetail({
     setShowDeployModal(true);
     setSelectedEmployee(null);
     setDeployFilters({ tallOnly: false, experiencedOnly: false, maleOnly: false, femaleOnly: false });
+    const today = getBusinessTodayDateInputValue();
+    const clientStart = data.contract_start_date || '';
+    const defaultStart = clientStart && clientStart < today ? today : clientStart;
     setDeployForm({
       siteId: siteId || activeSites[0]?.id || '',
-      contractStartDate: data.contract_start_date || '',
+      contractStartDate: defaultStart,
       contractEndDate: data.contract_end_date || '',
       daysOfWeek: [],
       shiftStart: '',
@@ -506,9 +509,17 @@ export default function ViewClientDetail({
       showNotification(MINIMUM_MONTHLY_BASE_PAY_MESSAGE, 'error'); return;
     }
 
-    // Guard deployment date validation against client contract dates
-    if (data.contract_start_date && deployForm.contractStartDate && deployForm.contractStartDate < data.contract_start_date) {
-      showNotification(`Deployment contract start date cannot be earlier than the client contract start date (${data.contract_start_date}).`, 'error'); return;
+    // Guard deployment date validation against client contract dates and today
+    const today = getBusinessTodayDateInputValue();
+    const minStartDate = data.contract_start_date && data.contract_start_date > today
+      ? data.contract_start_date
+      : today;
+    if (deployForm.contractStartDate && deployForm.contractStartDate < minStartDate) {
+      const errorMsg = minStartDate === today
+        ? 'Deployment contract start date cannot be earlier than today.'
+        : `Deployment contract start date cannot be earlier than the client contract start date (${data.contract_start_date}).`;
+      showNotification(errorMsg, 'error');
+      return;
     }
     if (data.contract_end_date && deployForm.contractStartDate && isAfterDate(deployForm.contractStartDate, data.contract_end_date)) {
       showNotification(`Deployment contract start date cannot be later than the client contract end date (${data.contract_end_date}).`, 'error'); return;
@@ -724,10 +735,13 @@ export default function ViewClientDetail({
                 siteValue={deployForm.siteId}
                 onSiteChange={(value) => {
                   setSelectedEmployee(null);
+                  const today = getBusinessTodayDateInputValue();
+                  const clientStart = data.contract_start_date || '';
+                  const defaultStart = clientStart && clientStart < today ? today : clientStart;
                   setDeployForm((cur) => ({
                     ...cur,
                     siteId: value,
-                    contractStartDate: data.contract_start_date || '',
+                    contractStartDate: defaultStart,
                     contractEndDate: data.contract_end_date || '',
                     daysOfWeek: [],
                     shiftStart: '',
