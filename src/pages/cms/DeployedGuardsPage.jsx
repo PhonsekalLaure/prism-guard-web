@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import DeployedGuardsTopbar from '@cms-components/deployed-guards/DeployedGuardsTopbar';
 import DeployedGuardsStatCards from '@cms-components/deployed-guards/DeployedGuardsStatCards';
 import DeployedGuardsFilterBar from '@cms-components/deployed-guards/DeployedGuardsFilterBar';
-import DeployedGuardsAnnouncementsPanel from '@cms-components/deployed-guards/DeployedGuardsAnnouncementsPanel';
 import GuardRosterTable from '@cms-components/deployed-guards/GuardRosterTable';
 import GuardDetailModal from '@cms-components/deployed-guards/GuardDetailModal';
 import deployedGuardsService from '@services/cms/deployedGuardsService';
@@ -97,7 +96,6 @@ export default function DeployedGuardsPage() {
 
       <div className="cms-content">
         <DeployedGuardsStatCards stats={stats} loading={statsLoading} />
-        <DeployedGuardsAnnouncementsPanel />
         <DeployedGuardsFilterBar key={filterResetKey} onFilterChange={handleFilterChange} />
         <GuardRosterTable
           guards={guards}
