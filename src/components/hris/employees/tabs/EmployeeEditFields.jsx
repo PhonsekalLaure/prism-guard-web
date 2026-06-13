@@ -22,6 +22,18 @@ export function EditInput({ label, value, onChange, type = 'text', placeholder, 
 }
 
 export function EditSelect({ label, value, onChange, options, disabled = false }) {
+  if (disabled) {
+    const selectedOption = options.find((option) => (option.value ?? option) === value);
+    const displayValue = selectedOption?.label ?? selectedOption ?? value;
+
+    return (
+      <div className="ve-edit-field">
+        <label className="ve-edit-label">{label}</label>
+        <input className="ve-edit-input" value={displayValue || ''} readOnly disabled />
+      </div>
+    );
+  }
+
   return (
     <div className="ve-edit-field">
       <label className="ve-edit-label">{label}</label>
@@ -29,7 +41,6 @@ export function EditSelect({ label, value, onChange, options, disabled = false }
         className="ve-edit-input"
         value={value}
         onChange={e => onChange(e.target.value)}
-        disabled={disabled}
       >
         <option value="">— Select —</option>
         {options.map(o => (

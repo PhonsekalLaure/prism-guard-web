@@ -94,7 +94,7 @@ export default function EmploymentTab({ employee, isEditing, editForm, onField }
           </div>
         ) : (
           <div className="ve-edit-grid cols-2">
-            <EditSelect label="Position" value={editForm.position} onChange={v => onField('position', v)} options={POSITIONS} />
+            <EditSelect label="Position" value={editForm.position} onChange={v => onField('position', v)} options={POSITIONS} disabled />
             <EditSelect label="Employment Type" value={editForm.employment_type} onChange={v => onField('employment_type', v)}
               options={[{ value: 'regular', label: 'Regular' }, { value: 'reliever', label: 'Reliever' }]} />
             <EditInput label="Badge Number"    value={editForm.badge_number}        onChange={v => onField('badge_number', v)} />
