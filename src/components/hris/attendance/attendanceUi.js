@@ -27,6 +27,7 @@ export function getClockInNoteClass(row) {
 }
 
 export function getClockOutNoteClass(row) {
+  if (row.earlyClockOut) return 'early';
   if (row.clockOut) return 'completed';
   if (row.status === 'on_leave') return 'leave';
   return 'on-time';
@@ -35,20 +36,9 @@ export function getClockOutNoteClass(row) {
 export function getHoursNoteClass(row) {
   if (row.status === 'absent') return 'no-activity';
   if (row.status === 'on_leave') return 'leave';
+  if (row.hoursNote === 'Early departure') return 'early';
   if (row.hoursNote === 'Overtime shift') return 'overtime';
   return 'on-time';
-}
-
-export function formatCoordinate(coordinate) {
-  if (!coordinate) return 'N/A';
-
-  const latitude = Number(coordinate.latitude);
-  const longitude = Number(coordinate.longitude);
-  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-    return 'N/A';
-  }
-
-  return `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
 }
 
 export function formatBoolean(value) {
@@ -57,6 +47,18 @@ export function formatBoolean(value) {
   return 'N/A';
 }
 
-export function formatRawStatus(value) {
-  return value ? value.replace(/_/g, ' ') : 'N/A';
+export function formatDistance(value) {
+  if (value === null || value === undefined || value === '') {
+    return 'Distance unavailable';
+  }
+
+  const distance = Number(value);
+  return Number.isFinite(distance) ? `${Math.round(distance)}m from site` : 'Distance unavailable';
+}
+
+export function formatGeofenceEvidence(evidence) {
+  if (!evidence) return 'N/A';
+  const result = evidence.result || formatBoolean(evidence.isWithinGeofence);
+  const distance = formatDistance(evidence.distanceMeters);
+  return result === 'N/A' ? distance : `${result} • ${distance}`;
 }

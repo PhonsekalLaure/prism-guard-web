@@ -4,9 +4,8 @@ import { SkeletonBlock, SkeletonList } from '@components/ui/Skeleton';
 import {
   GPS_ICONS,
   STATUS_META,
-  formatBoolean,
-  formatCoordinate,
-  formatRawStatus,
+  formatDistance,
+  formatGeofenceEvidence,
   getClockInNoteClass,
   getClockOutNoteClass,
   getHoursNoteClass,
@@ -63,7 +62,7 @@ export default function HrisAttendanceDetailModal({
         <div className="ha-modal-header">
           <div>
             <h2>Attendance Log Details</h2>
-            <p>{displayRow.attendanceLogId || 'No attendance log for this date'}</p>
+            <p>{detail?.log?.logDate || 'Attendance record'}</p>
           </div>
           <button className="ha-modal-close-btn" onClick={onClose}>
             <FaTimes />
@@ -127,18 +126,15 @@ export default function HrisAttendanceDetailModal({
           </div>
 
           <div className="ha-modal-section">
-            <span className="ha-modal-section-label">Raw Log Evidence</span>
+            <span className="ha-modal-section-label">Attendance Details</span>
             <div className="ha-detail-grid">
-              <div><span>Attendance Log ID</span><strong>{detail?.log?.id || displayRow.attendanceLogId || 'N/A'}</strong></div>
-              <div><span>Deployment ID</span><strong>{detail?.assignment?.deploymentId || displayRow.deploymentId || 'N/A'}</strong></div>
-              <div><span>Assignment Type</span><strong>{displayRow.deploymentTypeLabel || 'Regular Assignment'}</strong></div>
-              <div><span>Covering For</span><strong>{displayRow.coveringForName || 'N/A'}</strong></div>
               <div><span>Employee ID</span><strong>{detail?.employee?.employeeIdNumber || displayRow.empId}</strong></div>
               <div><span>Log Date</span><strong>{detail?.log?.logDate || 'N/A'}</strong></div>
-              <div><span>Derived Status</span><strong>{statusMeta.label}</strong></div>
-              <div><span>Raw DB Status</span><strong>{formatRawStatus(detail?.log?.rawStatus || displayRow.rawStatus)}</strong></div>
-              <div><span>Schedule ID</span><strong>{detail?.schedule?.id || 'N/A'}</strong></div>
-              <div><span>Site ID</span><strong>{detail?.assignment?.siteId || displayRow.siteId || 'N/A'}</strong></div>
+              <div><span>Assignment Type</span><strong>{displayRow.deploymentTypeLabel || 'Regular Assignment'}</strong></div>
+              {displayRow.isTemporaryReplacement && (
+                <div><span>Covering For</span><strong>{displayRow.coveringForName || 'N/A'}</strong></div>
+              )}
+              <div><span>Attendance Status</span><strong>{displayRow.attendanceStatusLabel || statusMeta.label}</strong></div>
             </div>
           </div>
 
@@ -154,13 +150,12 @@ export default function HrisAttendanceDetailModal({
                   })()} {detail?.gps?.status || displayRow.gps}
                 </strong>
               </div>
-              <div><span>Clock-in Coordinates</span><strong>{formatCoordinate(detail?.log?.clockInCoordinates)}</strong></div>
-              <div><span>Clock-out Coordinates</span><strong>{formatCoordinate(detail?.log?.clockOutCoordinates)}</strong></div>
-              <div><span>Site Coordinates</span><strong>{formatCoordinate(detail?.assignment?.siteCoordinates)}</strong></div>
+              <div><span>Clock-in Check</span><strong>{formatGeofenceEvidence(detail?.log?.clockInEvidence)}</strong></div>
+              <div><span>Clock-out Check</span><strong>{formatGeofenceEvidence(detail?.log?.clockOutEvidence)}</strong></div>
               <div><span>Geofence Radius</span><strong>{detail?.assignment?.geofenceRadiusMeters ? `${detail.assignment.geofenceRadiusMeters}m` : 'N/A'}</strong></div>
               <div><span>Latest Ping Time</span><strong>{detail?.gps?.latestPing?.pingTime || 'N/A'}</strong></div>
-              <div><span>Latest Ping Coordinates</span><strong>{formatCoordinate(detail?.gps?.latestPing)}</strong></div>
-              <div><span>Latest Ping Result</span><strong>{formatBoolean(detail?.gps?.latestPing?.isWithinGeofence)}</strong></div>
+              <div><span>Latest Ping</span><strong>{formatGeofenceEvidence(detail?.gps?.latestPing)}</strong></div>
+              <div><span>Ping Summary</span><strong>{`${detail?.gps?.pingCount || 0} checks, ${detail?.gps?.outsidePingCount || 0} outside`}</strong></div>
             </div>
           </div>
 
@@ -172,9 +167,9 @@ export default function HrisAttendanceDetailModal({
                   <div key={ping.id} className={`ha-ping-row ${ping.isWithinGeofence === false ? 'outside' : ''}`}>
                     <div>
                       <strong>{ping.pingTime}</strong>
-                      <span>{formatCoordinate(ping)}</span>
+                      <span>{formatDistance(ping.distanceMeters)}</span>
                     </div>
-                    <span>{formatBoolean(ping.isWithinGeofence)}</span>
+                    <span>{ping.result || 'N/A'}</span>
                   </div>
                 ))}
               </div>

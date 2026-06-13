@@ -464,6 +464,7 @@
 
 .ha-time-sub.on-time { color: #64748b; }
 .ha-time-sub.late { color: #ef4444; }
+.ha-time-sub.early { color: #ef4444; font-weight: 600; }
 .ha-time-sub.completed { color: #16a34a; }
 .ha-time-sub.overtime { color: #d97706; }
 .ha-time-sub.leave { color: #d97706; }
