@@ -65,8 +65,9 @@ export default function IncidentFeed({ incidents, loading }) {
           const style = severityStyles[inc.severity] || fallbackStyle;
           const Icon = style.icon;
           return (
-            <div
+            <Link
               key={inc.id}
+              to={`/incidents/${inc.id}`}
               className="incident-card"
               style={{ background: style.bgColor, borderLeftColor: style.borderColor }}
             >
@@ -83,7 +84,7 @@ export default function IncidentFeed({ incidents, loading }) {
                   <span>{inc.relativeTime}</span>
                 </div>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>
