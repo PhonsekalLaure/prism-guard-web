@@ -1,26 +1,47 @@
 import { useState } from 'react';
-import { FaBullhorn, FaShieldAlt, FaTimes, FaPaperPlane, FaExclamationTriangle } from 'react-icons/fa';
+import {
+  FaBullhorn,
+  FaCalendarAlt,
+  FaExclamationCircle,
+  FaExclamationTriangle,
+  FaInfoCircle,
+  FaPaperPlane,
+  FaShieldAlt,
+  FaTimes,
+} from 'react-icons/fa';
 
-const MAX_TITLE = 160;
+const MAX_TITLE   = 160;
 const MAX_MESSAGE = 5000;
 
+const URGENCY_OPTIONS = [
+  { value: 'normal',    label: 'Normal',    Icon: FaInfoCircle,        desc: 'Routine update' },
+  { value: 'important', label: 'Important', Icon: FaExclamationTriangle, desc: 'Needs attention' },
+  { value: 'urgent',    label: 'Urgent',    Icon: FaExclamationCircle,  desc: 'Immediate action' },
+];
+
+function getDatetimeLocalMin() {
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset() + 1);
+  return now.toISOString().slice(0, 16);
+}
+
 export default function CreateAnnouncementModal({ isOpen, onClose, onSubmit }) {
-  const [title, setTitle] = useState('');
-  const [message, setMessage] = useState('');
+  const [title,      setTitle]      = useState('');
+  const [message,    setMessage]    = useState('');
+  const [priority,   setPriority]   = useState('normal');
+  const [expiresAt,  setExpiresAt]  = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
+  const [error,      setError]      = useState(null);
 
   if (!isOpen) return null;
 
-  const titleCount = title.length;
+  const titleCount   = title.length;
   const messageCount = message.length;
-  const isValid = title.trim().length > 0 && message.trim().length > 0;
+  const isValid      = title.trim().length > 0 && message.trim().length > 0;
 
   const handleClose = () => {
     if (submitting) return;
-    setTitle('');
-    setMessage('');
-    setError(null);
+    setTitle(''); setMessage(''); setPriority('normal'); setExpiresAt(''); setError(null);
     onClose();
   };
 
@@ -28,13 +49,26 @@ export default function CreateAnnouncementModal({ isOpen, onClose, onSubmit }) {
     e.preventDefault();
     if (!isValid || submitting) return;
 
+    // Validate expiry
+    if (expiresAt) {
+      const expDate = new Date(expiresAt);
+      if (Number.isNaN(expDate.getTime()) || expDate <= new Date()) {
+        setError('Expiration must be a future date and time.');
+        return;
+      }
+    }
+
     setSubmitting(true);
     setError(null);
 
     try {
-      await onSubmit({ title: title.trim(), message: message.trim() });
-      setTitle('');
-      setMessage('');
+      await onSubmit({
+        title:      title.trim(),
+        message:    message.trim(),
+        priority,
+        expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
+      });
+      setTitle(''); setMessage(''); setPriority('normal'); setExpiresAt('');
       onClose();
     } catch (err) {
       setError(err?.response?.data?.error || err?.message || 'Failed to publish announcement.');
@@ -52,6 +86,7 @@ export default function CreateAnnouncementModal({ isOpen, onClose, onSubmit }) {
       onClick={handleClose}
     >
       <div className="create-ann-modal" onClick={(e) => e.stopPropagation()}>
+
         {/* ── Header ── */}
         <div className="create-ann-header">
           <div className="create-ann-header-left">
@@ -59,20 +94,11 @@ export default function CreateAnnouncementModal({ isOpen, onClose, onSubmit }) {
               <FaBullhorn />
             </div>
             <div>
-              <h3 id="create-ann-title" className="create-ann-title">
-                Create Announcement
-              </h3>
-              <p className="create-ann-subtitle">
-                Broadcast a message to your deployed security guards
-              </p>
+              <h3 id="create-ann-title" className="create-ann-title">Create Announcement</h3>
+              <p className="create-ann-subtitle">Broadcast a message to your deployed security guards</p>
             </div>
           </div>
-          <button
-            className="create-ann-close"
-            onClick={handleClose}
-            disabled={submitting}
-            aria-label="Close"
-          >
+          <button className="create-ann-close" onClick={handleClose} disabled={submitting} aria-label="Close">
             <FaTimes />
           </button>
         </div>
@@ -88,6 +114,41 @@ export default function CreateAnnouncementModal({ isOpen, onClose, onSubmit }) {
 
         {/* ── Form ── */}
         <form className="create-ann-form" onSubmit={handleSubmit} noValidate>
+
+          {/* Urgency Level */}
+          <div className="create-ann-field">
+            <label className="create-ann-label">
+              Urgency Level <span className="create-ann-required">*</span>
+            </label>
+            <div className="create-ann-urgency-group" role="group" aria-label="Urgency level">
+              {URGENCY_OPTIONS.map(({ value, label, Icon, desc }) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={`create-ann-urgency-btn create-ann-urgency-btn--${value}${priority === value ? ' active' : ''}`}
+                  onClick={() => { setPriority(value); setError(null); }}
+                  disabled={submitting}
+                  aria-pressed={priority === value}
+                >
+                  <Icon className="create-ann-urgency-icon" />
+                  <span className="create-ann-urgency-label">{label}</span>
+                  <span className="create-ann-urgency-desc">{desc}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Urgent caution banner */}
+          {priority === 'urgent' && (
+            <div className="create-ann-urgent-banner" role="alert">
+              <FaExclamationCircle />
+              <span>
+                <strong>Urgent announcements</strong> trigger an immediate push notification to all
+                recipients regardless of their device notification preference.
+              </span>
+            </div>
+          )}
+
           {/* Title */}
           <div className="create-ann-field">
             <label htmlFor="ann-title" className="create-ann-label">
@@ -105,9 +166,7 @@ export default function CreateAnnouncementModal({ isOpen, onClose, onSubmit }) {
                 disabled={submitting}
                 autoFocus
               />
-              <span
-                className={`create-ann-char-count ${titleCount > MAX_TITLE * 0.9 ? 'create-ann-char-count--warn' : ''}`}
-              >
+              <span className={`create-ann-char-count ${titleCount > MAX_TITLE * 0.9 ? 'create-ann-char-count--warn' : ''}`}>
                 {titleCount}/{MAX_TITLE}
               </span>
             </div>
@@ -125,22 +184,41 @@ export default function CreateAnnouncementModal({ isOpen, onClose, onSubmit }) {
                 placeholder="Write your announcement here. Be clear and concise — guards will be notified immediately."
                 value={message}
                 maxLength={MAX_MESSAGE}
-                rows={6}
+                rows={5}
                 onChange={(e) => setMessage(e.target.value)}
                 disabled={submitting}
               />
-              <span
-                className={`create-ann-char-count ${messageCount > MAX_MESSAGE * 0.9 ? 'create-ann-char-count--warn' : ''}`}
-              >
+              <span className={`create-ann-char-count ${messageCount > MAX_MESSAGE * 0.9 ? 'create-ann-char-count--warn' : ''}`}>
                 {messageCount}/{MAX_MESSAGE}
               </span>
             </div>
           </div>
 
+          {/* Expiry Date */}
+          <div className="create-ann-field">
+            <label htmlFor="ann-expires" className="create-ann-label">
+              <FaCalendarAlt style={{ marginRight: '0.35rem', verticalAlign: 'middle' }} />
+              Expiry Date <span className="create-ann-optional">(optional)</span>
+            </label>
+            <input
+              id="ann-expires"
+              type="datetime-local"
+              className="create-ann-input"
+              min={getDatetimeLocalMin()}
+              value={expiresAt}
+              onChange={(e) => { setExpiresAt(e.target.value); setError(null); }}
+              disabled={submitting}
+            />
+            <p className="create-ann-hint">
+              Leave blank to keep the announcement visible until manually removed. When set, it will
+              automatically disappear from the guard feed after this date and time.
+            </p>
+          </div>
+
           {/* Error */}
           {error && (
             <div className="create-ann-error" role="alert">
-              <FaExclamationTriangle />
+              <FaExclamationCircle />
               <span>{error}</span>
             </div>
           )}
@@ -158,7 +236,7 @@ export default function CreateAnnouncementModal({ isOpen, onClose, onSubmit }) {
             <button
               id="publish-announcement-btn"
               type="submit"
-              className="create-ann-btn-publish"
+              className={`create-ann-btn-publish create-ann-btn-publish--${priority}`}
               disabled={!isValid || submitting}
             >
               {submitting ? (
