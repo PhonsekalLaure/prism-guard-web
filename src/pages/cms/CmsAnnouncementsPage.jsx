@@ -128,6 +128,7 @@ export default function CmsAnnouncementsPage() {
   const [clientAnnouncements, setClientAnnouncements] = useState([]);
   const [clientMetadata, setClientMetadata] = useState({ total: 0, page: 1, limit: 10, totalPages: 0 });
   const [clientLoading, setClientLoading] = useState(true);
+  const [deletingClientId, setDeletingClientId] = useState(null);
 
   // ── Modal state ────────────────────────────────────────────────────────────
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
@@ -211,6 +212,19 @@ export default function CmsAnnouncementsPage() {
     setClientMetadata((prev) => ({ ...prev, page }));
   };
 
+  const handleDeleteClientAnnouncement = async (id) => {
+    setDeletingClientId(id);
+    try {
+      await announcementsService.deleteClientAnnouncement(id);
+      showNotification('Announcement deleted.', 'success');
+      setClientAnnouncements((prev) => prev.filter((a) => a.id !== id));
+    } catch (err) {
+      showNotification(err.response?.data?.error || 'Failed to delete announcement.', 'error');
+    } finally {
+      setDeletingClientId(null);
+    }
+  };
+
   const handleCreateSubmit = async (payload) => {
     const result = await announcementsService.createClientAnnouncement(payload);
     showNotification(
@@ -264,6 +278,8 @@ export default function CmsAnnouncementsPage() {
             loading={clientLoading}
             onPageChange={handleClientPageChange}
             onViewDetail={(ann) => setSelectedAnnouncement(formatClientAnnouncementForDetail(ann))}
+            onDelete={handleDeleteClientAnnouncement}
+            deletingId={deletingClientId}
           />
         </div>
       </div>
