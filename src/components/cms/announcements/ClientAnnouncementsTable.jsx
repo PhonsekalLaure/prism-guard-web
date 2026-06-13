@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   FaBullhorn,
   FaCalendarTimes,
@@ -6,6 +7,7 @@ import {
   FaExclamationTriangle,
   FaInfoCircle,
   FaShieldAlt,
+  FaTrashAlt,
   FaUsers,
 } from 'react-icons/fa';
 import Pagination from '@components/ui/Pagination';
@@ -65,7 +67,10 @@ export default function ClientAnnouncementsTable({
   loading = false,
   onPageChange,
   onViewDetail,
+  onDelete,
+  deletingId,
 }) {
+  const [confirmId, setConfirmId] = useState(null);
   const page       = metadata?.page       || 1;
   const total      = metadata?.total      || 0;
   const limit      = metadata?.limit      || ITEMS_PER_PAGE;
@@ -148,9 +153,37 @@ export default function ClientAnnouncementsTable({
                       </span>
                     </td>
                     <td>
-                      <button className="ann-view-btn" onClick={() => onViewDetail?.(ann)}>
-                        <FaEye /> View
-                      </button>
+                      <div className="client-ann-actions">
+                        <button className="ann-view-btn" onClick={() => onViewDetail?.(ann)}>
+                          <FaEye /> View
+                        </button>
+                        {confirmId === ann.id ? (
+                          <>
+                            <button
+                              className="client-ann-confirm-yes"
+                              disabled={deletingId === ann.id}
+                              onClick={() => { setConfirmId(null); onDelete?.(ann.id); }}
+                            >
+                              {deletingId === ann.id ? 'Deleting…' : 'Confirm'}
+                            </button>
+                            <button
+                              className="client-ann-confirm-no"
+                              disabled={deletingId === ann.id}
+                              onClick={() => setConfirmId(null)}
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            className="client-ann-delete-btn"
+                            title="Delete announcement"
+                            onClick={() => setConfirmId(ann.id)}
+                          >
+                            <FaTrashAlt />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );

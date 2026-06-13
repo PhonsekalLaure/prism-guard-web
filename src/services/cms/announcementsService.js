@@ -69,8 +69,18 @@ async function createClientAnnouncement(payload) {
   return data;
 }
 
+/**
+ * Delete a client-to-guard announcement by ID.
+ * @param {string} id  – The announcement UUID
+ */
+async function deleteClientAnnouncement(id) {
+  const { data } = await api.delete(`/client/${id}`);
+  return data;
+}
+
 export default {
   getAnnouncements,
   getClientAnnouncements,
   createClientAnnouncement,
+  deleteClientAnnouncement,
 };

@@ -541,6 +541,83 @@
   border-color: #cbd5e1;
 }
 
+/* ─── Client Announcement Delete Controls ─── */
+.client-ann-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.client-ann-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid #fecaca;
+  background: #fff5f5;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.client-ann-delete-btn:hover {
+  background: #fee2e2;
+  border-color: #ef4444;
+  color: #dc2626;
+}
+
+.client-ann-confirm-yes {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.65rem;
+  border-radius: 6px;
+  border: 1px solid #ef4444;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.client-ann-confirm-yes:hover:not(:disabled) {
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+.client-ann-confirm-yes:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.client-ann-confirm-no {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.65rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.client-ann-confirm-no:hover:not(:disabled) {
+  background: #e2e8f0;
+}
+
+.client-ann-confirm-no:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* ─── Animations ─── */
 @keyframes annFadeIn {
   from { opacity: 0; }
