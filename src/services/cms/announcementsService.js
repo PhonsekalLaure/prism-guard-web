@@ -62,7 +62,7 @@ async function getClientAnnouncements(params = {}) {
 
 /**
  * Create a new client-to-guard announcement.
- * @param {{ title: string, message: string }} payload
+ * @param {{ title: string, message: string, priority?: string, expires_at?: string|null }} payload
  */
 async function createClientAnnouncement(payload) {
   const { data } = await api.post('/client', payload);

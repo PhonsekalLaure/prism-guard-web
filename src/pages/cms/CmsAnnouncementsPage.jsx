@@ -88,22 +88,29 @@ function formatAnnouncement(item) {
 
 /** Format a client announcement for the detail modal (adapts to the same shape). */
 function formatClientAnnouncementForDetail(item) {
+  const priorityMap = {
+    urgent: { label: 'Urgent', className: 'ann-badge ann-badge--urgent' },
+    important: { label: 'Important', className: 'ann-badge ann-badge--important' },
+    normal: { label: 'Normal', className: 'ann-badge ann-badge--normal' },
+  };
+  const priority = priorityMap[item.priority] || priorityMap.normal;
+
   return {
     id: item.id,
     subject: item.title || 'Untitled announcement',
     title: item.title || 'Untitled announcement',
     message: item.message || '',
-    priority: 'Normal',
-    priorityValue: 'normal',
-    priorityClass: 'ann-badge ann-badge--normal',
+    priority: priority.label,
+    priorityValue: item.priority || 'normal',
+    priorityClass: priority.className,
     audience: 'Deployed Guards',
     targetAudience: 'deployed_guards',
     audienceClass: 'ann-aud client-ann-aud--guards',
     date: formatDate(item.published_at),
     dateValue: item.published_at || '',
     publishedBy: item.company ? `${item.company} (You)` : 'You',
-    expiresAt: null,
-    expiresAtDisplay: 'No expiration',
+    expiresAt: item.expires_at || null,
+    expiresAtDisplay: formatDateTime(item.expires_at),
     recipient_count: item.recipient_count ?? null,
     isClientAnnouncement: true,
   };

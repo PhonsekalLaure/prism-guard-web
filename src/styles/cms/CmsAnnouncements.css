@@ -980,6 +980,179 @@
   to { transform: rotate(360deg); }
 }
 
+/* ── Urgency Segmented Control ── */
+.create-ann-urgency-group {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.create-ann-urgency-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.75rem 0.5rem;
+  border-radius: 10px;
+  border: 2px solid #e2e8f0;
+  background: #f8fafc;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  transition: border-color 0.18s, background 0.18s, box-shadow 0.18s, transform 0.12s;
+}
+
+.create-ann-urgency-btn:hover:not(:disabled) {
+  background: #fff;
+  transform: translateY(-1px);
+}
+
+.create-ann-urgency-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.create-ann-urgency-icon {
+  font-size: 1.1rem;
+  margin-bottom: 0.1rem;
+}
+
+.create-ann-urgency-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.create-ann-urgency-desc {
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: #94a3b8;
+  line-height: 1.2;
+  text-align: center;
+}
+
+/* Normal */
+.create-ann-urgency-btn--normal .create-ann-urgency-icon { color: #3b82f6; }
+.create-ann-urgency-btn--normal .create-ann-urgency-label { color: #1d4ed8; }
+.create-ann-urgency-btn--normal.active {
+  border-color: #3b82f6;
+  background: #eff6ff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* Important */
+.create-ann-urgency-btn--important .create-ann-urgency-icon { color: #d97706; }
+.create-ann-urgency-btn--important .create-ann-urgency-label { color: #92400e; }
+.create-ann-urgency-btn--important.active {
+  border-color: #d97706;
+  background: #fffbeb;
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.15);
+}
+
+/* Urgent */
+.create-ann-urgency-btn--urgent .create-ann-urgency-icon { color: #dc2626; }
+.create-ann-urgency-btn--urgent .create-ann-urgency-label { color: #b91c1c; }
+.create-ann-urgency-btn--urgent.active {
+  border-color: #dc2626;
+  background: #fef2f2;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+  animation: urgentPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes urgentPulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15); }
+  50%       { box-shadow: 0 0 0 6px rgba(220, 38, 38, 0.08); }
+}
+
+/* ── Urgent Caution Banner ── */
+.create-ann-urgent-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-left: 4px solid #dc2626;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.8rem;
+  color: #7f1d1d;
+  line-height: 1.55;
+  animation: annFadeIn 0.2s ease;
+}
+
+.create-ann-urgent-banner svg {
+  color: #dc2626;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+
+.create-ann-urgent-banner strong {
+  color: #991b1b;
+}
+
+/* ── Expiry hint ── */
+.create-ann-hint {
+  font-size: 0.73rem;
+  color: #94a3b8;
+  margin: 0.2rem 0 0;
+  line-height: 1.55;
+}
+
+.create-ann-optional {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  font-weight: 500;
+  text-transform: lowercase;
+  margin-left: 0.3rem;
+  letter-spacing: 0;
+}
+
+/* ── Publish button urgency variants ── */
+.create-ann-btn-publish--important {
+  background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3);
+}
+.create-ann-btn-publish--important:hover:not(:disabled) {
+  background: linear-gradient(135deg, #b45309 0%, #d97706 100%);
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.4);
+}
+.create-ann-btn-publish--urgent {
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+.create-ann-btn-publish--urgent:hover:not(:disabled) {
+  background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);
+}
+
+/* ── Client Announcements Table — Urgency + Expires columns ── */
+.client-ann-urgency-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.22rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.client-ann-urgency-badge--normal    { background: #dbeafe; color: #1d4ed8; }
+.client-ann-urgency-badge--important { background: #fef3c7; color: #92400e; }
+.client-ann-urgency-badge--urgent    { background: #fee2e2; color: #b91c1c; }
+
+.client-ann-expiry-cell {
+  font-size: 0.76rem;
+  color: #475569;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.client-ann-expiry-cell--none {
+  color: #9ca3af;
+  font-style: italic;
+}
+
 /* Responsive */
 @media (max-width: 640px) {
   .ann-create-btn {
@@ -1003,4 +1176,9 @@
   .create-ann-scope-notice {
     margin: 1rem 1.1rem 0;
   }
+
+  .create-ann-urgency-group {
+    grid-template-columns: 1fr;
+  }
 }
+
