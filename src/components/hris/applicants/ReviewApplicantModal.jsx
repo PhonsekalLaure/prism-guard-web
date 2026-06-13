@@ -2,6 +2,12 @@ import { useState } from 'react';
 import { FaBriefcase, FaCalendarCheck, FaCheck, FaExternalLinkAlt, FaTimes, FaTimesCircle } from 'react-icons/fa';
 import EntityAvatar from '@components/ui/EntityAvatar';
 
+const INTERVIEW_MINUTES = ['00', '15', '30'];
+const INTERVIEW_TIME_OPTIONS = Array.from({ length: 24 }, (_, hour) => (
+  INTERVIEW_MINUTES.map((minute) => `${String(hour).padStart(2, '0')}:${minute}`)
+)).flat();
+const DEFAULT_INTERVIEW_TIME = '08:00';
+
 function DetailCell({ label, value }) {
   return (
     <div className="ar-detail-cell">
@@ -16,6 +22,20 @@ function formatDateTimeLocal(value) {
   const date = new Date(value);
   const offsetMs = date.getTimezoneOffset() * 60000;
   return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+}
+
+function getDatePart(value) {
+  return value ? value.slice(0, 10) : '';
+}
+
+function getTimePart(value) {
+  const time = value ? value.slice(11, 16) : '';
+  return INTERVIEW_TIME_OPTIONS.includes(time) ? time : '';
+}
+
+function buildDateTimeLocal(datePart, timePart) {
+  if (!datePart) return '';
+  return `${datePart}T${timePart || DEFAULT_INTERVIEW_TIME}`;
 }
 
 function getManilaDateKey(date = new Date()) {
@@ -63,9 +83,18 @@ export default function ReviewApplicantModal({
   const canSchedule = applicant.status !== 'rejected' && applicant.status !== 'hired';
   const canStartHiring = applicant.status === 'interview' && passedInterview;
   const minInterviewDateKey = addDaysToDateKey(getManilaDateKey(), 1);
-  const minInterviewDateTime = `${minInterviewDateKey}T00:00`;
   const isScheduledForInterview = applicant.status === 'interview';
-  const hasAllowedInterviewDate = Boolean(interviewScheduledAt && interviewScheduledAt.slice(0, 10) >= minInterviewDateKey);
+  const interviewDate = getDatePart(interviewScheduledAt);
+  const interviewTime = getTimePart(interviewScheduledAt);
+  const hasAllowedInterviewDate = Boolean(interviewDate && interviewDate >= minInterviewDateKey && interviewTime);
+
+  const updateInterviewDate = (datePart) => {
+    setInterviewScheduledAt(buildDateTimeLocal(datePart, interviewTime));
+  };
+
+  const updateInterviewTime = (timePart) => {
+    setInterviewScheduledAt(buildDateTimeLocal(interviewDate || minInterviewDateKey, timePart));
+  };
 
   return (
     <div className="ar-modal-overlay" onClick={(event) => event.target === event.currentTarget && onClose()}>
@@ -147,12 +176,23 @@ export default function ReviewApplicantModal({
                 <p className="ar-detail-label">Interview Schedule</p>
                 <input
                   className="ar-inline-input"
-                  type="datetime-local"
-                  value={interviewScheduledAt}
-                  min={minInterviewDateTime}
+                  type="date"
+                  value={interviewDate}
+                  min={minInterviewDateKey}
                   disabled={!canSchedule || isSubmitting}
-                  onChange={(event) => setInterviewScheduledAt(event.target.value)}
+                  onChange={(event) => updateInterviewDate(event.target.value)}
                 />
+                <select
+                  className="ar-inline-input ar-inline-select"
+                  value={interviewTime}
+                  disabled={!canSchedule || isSubmitting}
+                  onChange={(event) => updateInterviewTime(event.target.value)}
+                >
+                  <option value="">Select time</option>
+                  {INTERVIEW_TIME_OPTIONS.map((time) => (
+                    <option key={time} value={time}>{time}</option>
+                  ))}
+                </select>
               </div>
               <div className="ar-detail-cell">
                 <p className="ar-detail-label">Residential Address</p>

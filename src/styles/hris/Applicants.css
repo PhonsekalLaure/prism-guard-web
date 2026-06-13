@@ -676,11 +676,16 @@
   width: 100%;
   border: none;
   outline: none;
-  padding: 0;
+  padding: 0.1rem 0;
   font: inherit;
   font-weight: 700;
   color: #1a202c;
   background: transparent;
+}
+
+.ar-inline-select {
+  margin-top: 0.45rem;
+  cursor: pointer;
 }
 
 .ar-pass-toggle {
