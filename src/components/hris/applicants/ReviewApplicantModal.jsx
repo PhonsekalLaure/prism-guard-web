@@ -18,6 +18,23 @@ function formatDateTimeLocal(value) {
   return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
 }
 
+function getManilaDateKey(date = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Manila',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
+function addDaysToDateKey(dateKey, days) {
+  const date = new Date(`${dateKey}T00:00:00+08:00`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
 export default function ReviewApplicantModal({
   isOpen,
   applicant,
@@ -45,6 +62,10 @@ export default function ReviewApplicantModal({
 
   const canSchedule = applicant.status !== 'rejected' && applicant.status !== 'hired';
   const canStartHiring = applicant.status === 'interview' && passedInterview;
+  const minInterviewDateKey = addDaysToDateKey(getManilaDateKey(), 1);
+  const minInterviewDateTime = `${minInterviewDateKey}T00:00`;
+  const isScheduledForInterview = applicant.status === 'interview';
+  const hasAllowedInterviewDate = Boolean(interviewScheduledAt && interviewScheduledAt.slice(0, 10) >= minInterviewDateKey);
 
   return (
     <div className="ar-modal-overlay" onClick={(event) => event.target === event.currentTarget && onClose()}>
@@ -128,6 +149,7 @@ export default function ReviewApplicantModal({
                   className="ar-inline-input"
                   type="datetime-local"
                   value={interviewScheduledAt}
+                  min={minInterviewDateTime}
                   disabled={!canSchedule || isSubmitting}
                   onChange={(event) => setInterviewScheduledAt(event.target.value)}
                 />
@@ -139,17 +161,19 @@ export default function ReviewApplicantModal({
             </div>
           </div>
 
-          <div>
-            <p className="ar-notes-label">Interview Notes</p>
-            <textarea
-              className="ar-notes-textarea"
-              rows={2}
-              value={interviewNotes}
-              disabled={!canSchedule || isSubmitting}
-              onChange={(event) => setInterviewNotes(event.target.value)}
-              placeholder="Add interview schedule instructions or reminders..."
-            />
-          </div>
+          {isScheduledForInterview && (
+            <div>
+              <p className="ar-notes-label">Interview Notes</p>
+              <textarea
+                className="ar-notes-textarea"
+                rows={2}
+                value={interviewNotes}
+                disabled={!canSchedule || isSubmitting}
+                onChange={(event) => setInterviewNotes(event.target.value)}
+                placeholder="Add interview schedule instructions or reminders..."
+              />
+            </div>
+          )}
 
           {applicant.status === 'interview' && (
             <label className="ar-pass-toggle">
@@ -178,10 +202,10 @@ export default function ReviewApplicantModal({
           <div className="ar-modal-actions">
             <button
               className="ar-btn ar-btn-blue"
-              disabled={!canSchedule || isSubmitting}
+              disabled={!canSchedule || isSubmitting || !hasAllowedInterviewDate}
               onClick={() => onScheduleInterview(applicant.id, {
                 interviewScheduledAt,
-                interviewNotes,
+                interviewNotes: isScheduledForInterview ? interviewNotes : '',
                 passedInterview,
                 notes,
               })}
