@@ -6,6 +6,7 @@ import {
 } from 'react-icons/fa';
 import AuthInlineNotification from '@components/auth/AuthInlineNotification';
 import authService from '@services/authService';
+import { getSafeInternalPath } from '@utils/security';
 
 // ── View 1: Login ────────────────────────────────────────────
 function LoginView({ onNotify, onForgot }) {
@@ -20,7 +21,9 @@ function LoginView({ onNotify, onForgot }) {
     try {
       const result = await authService.login(data.email.trim(), data.password, data.rememberMe);
       onNotify?.('Login successful! Redirecting...', 'success');
-      setTimeout(() => { window.location.href = result.redirect; }, 1000);
+      setTimeout(() => {
+        window.location.href = getSafeInternalPath(result.redirect, '/login');
+      }, 1000);
     } catch (err) {
       const status  = err.response?.status;
       const message = err.response?.data?.error;

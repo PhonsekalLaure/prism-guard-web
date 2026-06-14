@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { FaBriefcase, FaCalendarCheck, FaCheck, FaExternalLinkAlt, FaTimes, FaTimesCircle } from 'react-icons/fa';
 import EntityAvatar from '@components/ui/EntityAvatar';
+import { getSafeDocumentUrl } from '@utils/security';
 
 const INTERVIEW_MINUTES = ['00', '15', '30'];
 const INTERVIEW_TIME_OPTIONS = Array.from({ length: 24 }, (_, hour) => (
@@ -65,6 +66,7 @@ export default function ReviewApplicantModal({
   isSubmitting,
   actionError = '',
 }) {
+  const safeLicensePhotoUrl = getSafeDocumentUrl(applicant?.license_photo_url);
   const [interviewScheduledAt, setInterviewScheduledAt] = useState(() =>
     formatDateTimeLocal(applicant?.interview_scheduled_at)
   );
@@ -149,8 +151,8 @@ export default function ReviewApplicantModal({
                 <div>
                   <p className="ar-credential-name">Security License</p>
                   <p className="ar-credential-sub">{applicant.license}</p>
-                  {applicant.license_photo_url && (
-                    <a className="ar-credential-link" href={applicant.license_photo_url} target="_blank" rel="noreferrer">
+                  {safeLicensePhotoUrl && (
+                    <a className="ar-credential-link" href={safeLicensePhotoUrl} target="_blank" rel="noopener noreferrer">
                       View license photo <FaExternalLinkAlt />
                     </a>
                   )}

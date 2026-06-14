@@ -75,10 +75,11 @@ export function getTodayDateInputValue() {
 }
 
 export function isAllowedReceiptFile(file) {
-  return file?.type?.startsWith('image/') || file?.type === 'application/pdf';
+  return isAllowedDocumentFile(file);
 }
 
 export function formatFileSize(bytes = 0) {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
+import { isAllowedDocumentFile } from '@utils/security';

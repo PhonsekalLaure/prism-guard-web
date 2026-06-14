@@ -28,7 +28,7 @@ function DocRow({ doc, disabled = false, documents, onChange }) {
           <input
             type="file"
             className="hidden"
-            accept="image/*,.pdf"
+            accept=".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf"
             disabled={disabled}
             onChange={(e) => onChange(doc.id, e.target.files[0])}
           />

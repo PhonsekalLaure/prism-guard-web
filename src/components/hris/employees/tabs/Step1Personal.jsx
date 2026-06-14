@@ -35,7 +35,7 @@ export default function Step1Personal({ data, onChange }) {
             <input
               type="file"
               className="absolute inset-0 opacity-0 cursor-pointer"
-              accept="image/*"
+              accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
               onChange={(e) => onChange('avatar', e.target.files[0])}
             />
           </div>

@@ -111,7 +111,7 @@ export default function ComplianceTab({ employee, isEditing, pendingFiles, onPre
                     <>
                       <input
                         type="file"
-                        accept="image/*,application/pdf"
+                        accept=".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf"
                         style={{ display: 'none' }}
                         ref={el => fileInputRefs.current[type] = el}
                         onChange={e => {

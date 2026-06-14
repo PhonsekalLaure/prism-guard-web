@@ -84,7 +84,7 @@ export function RenewalDocumentPanel({
           <input
             type="file"
             className="hidden"
-            accept="image/*,application/pdf"
+            accept=".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf"
             onChange={(e) => onFileChange(e.target.files?.[0] || null)}
           />
         </label>

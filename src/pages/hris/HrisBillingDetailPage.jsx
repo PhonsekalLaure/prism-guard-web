@@ -20,6 +20,7 @@ import useNotification from '@hooks/useNotification';
 import authService from '@services/authService';
 import billingService from '@services/hris/billingService';
 import { hasPermission } from '@utils/adminPermissions';
+import { getSafeDocumentUrl, isSafePreviewMimeType } from '@utils/security';
 import '../../styles/hris/Employees.css';
 import '../../styles/hris/Billing.css';
 
@@ -82,7 +83,8 @@ function getErrorMessage(error, fallback) {
 }
 
 function openExternal(url) {
-  if (url) window.open(url, '_blank', 'noopener,noreferrer');
+  const safeUrl = getSafeDocumentUrl(url);
+  if (safeUrl) window.open(safeUrl, '_blank', 'noopener,noreferrer');
 }
 
 function sanitizeFilenamePart(value, fallback = 'file') {
@@ -295,6 +297,9 @@ export default function HrisBillingDetailPage() {
     try {
       setBusyAction(`viewReceipt:${receipt.id}`);
       const { blob } = await billingService.downloadReceipt(billing.id, receipt.id);
+      if (!isSafePreviewMimeType(blob?.type)) {
+        throw new Error('This receipt type cannot be previewed safely.');
+      }
       const resolvedUrl = URL.createObjectURL(blob);
       window.open(resolvedUrl, '_blank', 'noopener,noreferrer');
       window.setTimeout(() => URL.revokeObjectURL(resolvedUrl), 60000);

@@ -14,6 +14,7 @@ import {
   getReceiptDownloadTarget,
   openBlobInNewTab,
 } from '@cms-components/billing/billingFiles';
+import { getSafeDocumentUrl } from '@utils/security';
 
 const PAGE_LIMIT = 8;
 const DEFAULT_METADATA = { total: 0, page: 1, limit: PAGE_LIMIT, totalPages: 0 };
@@ -86,8 +87,9 @@ export default function CmsBillingPage() {
         return;
       }
       const { url } = await billingService.getStatementUrl(invoice.id, false);
-      if (!url) return;
-      window.open(url, '_blank', 'noopener,noreferrer');
+      const safeUrl = getSafeDocumentUrl(url);
+      if (!safeUrl) throw new Error('The statement URL is not allowed.');
+      window.open(safeUrl, '_blank', 'noopener,noreferrer');
     } catch (error) {
       showNotification(getErrorMessage(error, 'Failed to open statement.'), 'error');
     }

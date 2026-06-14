@@ -7,6 +7,7 @@ import {
   FaTimes,
 } from 'react-icons/fa';
 import notificationsService from '@services/notificationsService';
+import { getSafePortalPath } from '@utils/security';
 import '@styles/components/Notification.css';
 
 const POLL_INTERVAL_MS = 30000;
@@ -145,7 +146,11 @@ export default function GlobalNotificationToasts({
   }, [loadUnreadNotifications, onStatsChange]);
 
   const handleOpen = useCallback(async (item) => {
-    const route = item.event?.action_url || getFallbackRoute(portal);
+    const route = getSafePortalPath(
+      item.event?.action_url,
+      portal,
+      getFallbackRoute(portal)
+    );
     await markReadAndRemove(item);
     navigate(route);
   }, [markReadAndRemove, navigate, portal]);

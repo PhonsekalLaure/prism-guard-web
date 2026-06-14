@@ -1,6 +1,7 @@
 import axios from 'axios';
 import authService from '@services/authService';
 import { buildApiUrl } from '@services/apiConfig';
+import { getSafeDocumentUrl } from '@utils/security';
 
 const api = axios.create({
   baseURL: buildApiUrl('/api/web/hris/leave-requests'),
@@ -65,8 +66,9 @@ async function rejectLeaveRequest(id, reviewNotes = '') {
 
 async function openSupportingDocument(id) {
   const { data } = await api.get(`/${id}/document`);
-  if (data?.url) {
-    window.open(data.url, '_blank', 'noopener,noreferrer');
+  const safeUrl = getSafeDocumentUrl(data?.url);
+  if (safeUrl) {
+    window.open(safeUrl, '_blank', 'noopener,noreferrer');
   }
   return data;
 }

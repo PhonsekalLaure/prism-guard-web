@@ -1,3 +1,5 @@
+import { isSafePreviewMimeType } from '@utils/security';
+
 function sanitizeFilenamePart(value, fallback = 'file') {
   const normalized = String(value || fallback)
     .trim()
@@ -31,6 +33,9 @@ export function downloadBlob(blob, filename = 'download') {
 
 export function openBlobInNewTab(blob) {
   if (!blob) return;
+  if (!isSafePreviewMimeType(blob.type)) {
+    throw new Error('This file type cannot be previewed safely.');
+  }
   const resolvedUrl = URL.createObjectURL(blob);
   window.open(resolvedUrl, '_blank', 'noopener,noreferrer');
   window.setTimeout(() => URL.revokeObjectURL(resolvedUrl), 60000);

@@ -8,6 +8,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import EntityAvatar from '@components/ui/EntityAvatar';
 import { SkeletonBlock, SkeletonList } from '@components/ui/Skeleton';
+import { getSafeDocumentUrl } from '@utils/security';
 
 /* ─────────────────────────────────────────────────────────
    Constants & helpers
@@ -219,6 +220,7 @@ function ComplianceTab({ guard }) {
   function DocCard({ type }) {
     const c = existingMap[type];
     const hasDoc = !!c?.document_url;
+    const safeDocumentUrl = getSafeDocumentUrl(c?.document_url);
     const isPdf = hasDoc && (c.document_url.toLowerCase().includes('.pdf') || c.document_url.toLowerCase().includes('/pdf'));
     return (
       <div className={`gdm-doc-card ${hasDoc ? 'has-doc' : 'no-doc'}`}>
@@ -238,9 +240,9 @@ function ComplianceTab({ guard }) {
             </p>
           )}
         </div>
-        {hasDoc ? (
+        {safeDocumentUrl ? (
           <a
-            href={c.document_url}
+            href={safeDocumentUrl}
             target="_blank"
             rel="noopener noreferrer"
             className={`gdm-doc-view-btn ${isPdf ? 'pdf' : 'img'}`}
@@ -298,11 +300,11 @@ function DeploymentTab({ guard }) {
           <InfoCell label="Deployment Type"   value={guard.deployment_type ? guard.deployment_type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : 'N/A'} />
           <InfoCell label="Deployment Start"  value={fmtDate(guard.start_date)} variant="blue" />
           <InfoCell label="Contract End"      value={fmtDate(guard.end_date)}   variant="blue" />
-          {guard.deployment_order_url && (
+          {getSafeDocumentUrl(guard.deployment_order_url) && (
             <div className="gdm-info-cell">
               <p className="gdm-info-label">Deployment Order</p>
               <a
-                href={guard.deployment_order_url}
+                href={getSafeDocumentUrl(guard.deployment_order_url)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="gdm-info-link"

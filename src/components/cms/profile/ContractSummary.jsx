@@ -1,4 +1,5 @@
 import { FaFileContract, FaCheckCircle, FaClock, FaFileAlt, FaTimesCircle, FaExclamationCircle } from 'react-icons/fa';
+import { getSafeDocumentUrl } from '@utils/security';
 
 function formatDate(dateStr) {
   if (!dateStr) return '—';
@@ -50,6 +51,7 @@ function StatusBadge({ status }) {
 }
 
 export default function ContractSummary({ profile }) {
+  const safeContractUrl = getSafeDocumentUrl(profile?.contract_url);
   const daysUntilExpiry = getDaysUntilExpiry(profile?.contract_end_date);
   const renewalMonth = getRenewalMonth(profile?.contract_end_date);
   const contractStatus = profile?.contract_status;
@@ -116,9 +118,9 @@ export default function ContractSummary({ profile }) {
         )}
 
         {/* View Full Contract */}
-        {profile?.contract_url ? (
+        {safeContractUrl ? (
           <a
-            href={profile.contract_url}
+            href={safeContractUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="cms-profile-contract__view-btn"

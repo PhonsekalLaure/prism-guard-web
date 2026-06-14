@@ -48,7 +48,7 @@ export default function PersonalTab({
                   type="file"
                   ref={avatarInputRef}
                   className="hidden"
-                  accept="image/*"
+                  accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                   onChange={(e) => { if (e.target.files[0]) onFile('avatar', e.target.files[0]); }}
                 />
               </>

@@ -83,7 +83,7 @@ export default function LeaveApprovalCoverageFields({
         <label className={`hlr-upload-zone${deploymentOrderFile ? ' has-file' : ''}`}>
           <input
             type="file"
-            accept=".pdf,image/*"
+            accept=".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf"
             onChange={(event) => onDeploymentOrderFileChange(event.target.files?.[0] || null)}
           />
           <FaFileUpload />

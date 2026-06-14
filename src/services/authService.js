@@ -1,6 +1,11 @@
 import axios from 'axios';
 import supabase from '@services/supabaseBrowserClient';
-import { buildApiUrl } from '@services/apiConfig';
+import { buildApiUrl, getApiBaseUrl } from '@services/apiConfig';
+import {
+  getSafeDocumentUrl,
+  isSafePreviewMimeType,
+  isSameOriginUrl,
+} from '@utils/security';
 
 const api = axios.create({
   baseURL: buildApiUrl('/api/web/auth'),
@@ -118,15 +123,6 @@ function isCloudinaryUrl(url) {
   }
 }
 
-function isAbsoluteUrl(url) {
-  try {
-    new URL(url);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 async function openFileUrl(url) {
   if (!url) {
     throw new Error('No file URL provided');
@@ -145,32 +141,38 @@ async function getFileObjectUrl(url) {
     throw new Error('No file URL provided');
   }
 
-  const requestUrl = isAbsoluteUrl(url) ? url : buildApiUrl(url);
+  const safeUrl = getSafeDocumentUrl(url);
+  if (!safeUrl) {
+    throw new Error('The file URL is not allowed.');
+  }
+
+  const requestUrl = safeUrl.startsWith('/') ? buildApiUrl(safeUrl) : safeUrl;
   if (isCloudinaryUrl(requestUrl)) {
+    return requestUrl;
+  }
+
+  const apiOrigin = new URL(getApiBaseUrl()).origin;
+  if (!isSameOriginUrl(requestUrl, apiOrigin)) {
     return requestUrl;
   }
 
   const token = getToken();
   const headers = {};
 
-  if (!isCloudinaryUrl(requestUrl) && token) {
+  if (token) {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  try {
-    const { data } = await axios.get(requestUrl, {
-      responseType: 'blob',
-      headers,
-    });
+  const { data } = await axios.get(requestUrl, {
+    responseType: 'blob',
+    headers,
+  });
 
-    return URL.createObjectURL(data);
-  } catch (error) {
-    if (isCloudinaryUrl(requestUrl)) {
-      return requestUrl;
-    }
-
-    throw error;
+  if (!isSafePreviewMimeType(data?.type)) {
+    throw new Error('This file type cannot be previewed safely.');
   }
+
+  return URL.createObjectURL(data);
 }
 
 // ─── Auth API calls ──────────────────────────────────────────

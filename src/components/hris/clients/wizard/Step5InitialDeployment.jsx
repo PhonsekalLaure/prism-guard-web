@@ -244,7 +244,7 @@ export default function Step5InitialDeployment({
                       <input
                         type="file"
                         className="hidden"
-                        accept="image/*,application/pdf"
+                        accept=".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf"
                         onChange={(e) => onAssignmentField(
                           assignment.employeeId,
                           'deploymentOrderFile',

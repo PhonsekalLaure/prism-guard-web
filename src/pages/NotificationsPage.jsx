@@ -21,6 +21,7 @@ import EmptyState from '@components/ui/EmptyState';
 import { SkeletonBlock, SkeletonList } from '@components/ui/Skeleton';
 import useNotification from '@hooks/useNotification';
 import notificationsService from '@services/notificationsService';
+import { getSafePortalPath } from '@utils/security';
 import '@styles/NotificationsPage.css';
 
 const TYPE_LABELS = {
@@ -88,10 +89,7 @@ function formatType(type) {
 
 function getPortalPath(path, portal) {
   if (!path) return null;
-  if (/^https?:\/\//i.test(path)) return path;
-  if (portal === 'cms' && path.startsWith('/cms/')) return path;
-  if (portal === 'hris' && !path.startsWith('/cms/')) return path;
-  return path;
+  return getSafePortalPath(path, portal);
 }
 
 function buildOpenState(item) {
@@ -181,7 +179,7 @@ function NotificationRow({ item, portal, onOpen, onMarkRead, onDismiss }) {
 export default function NotificationsPage({ portal = 'hris' }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { refreshNotificationStats, toggleSidebar } = useOutletContext() || {};
+  const { refreshNotificationStats } = useOutletContext() || {};
   const [notifications, setNotifications] = useState([]);
   const [stats, setStats] = useState({ total: 0, unread: 0, urgent: 0, by_type: {} });
   const [metadata, setMetadata] = useState(DEFAULT_METADATA);
@@ -306,10 +304,7 @@ export default function NotificationsPage({ portal = 'hris' }) {
       await refreshNotificationStats?.().catch(() => null);
     }
 
-    if (/^https?:\/\//i.test(actionUrl)) {
-      window.open(actionUrl, '_blank', 'noopener,noreferrer');
-      await refreshCurrentPage();
-    } else if (actionUrl === location.pathname) {
+    if (actionUrl === location.pathname) {
       await refreshCurrentPage();
     } else {
       navigate(actionUrl, { state: buildOpenState(item) });

@@ -74,7 +74,7 @@ export default function Step3Contract({ data, onChange }) {
               <input
                 type="file"
                 className="hidden"
-                accept="image/*,application/pdf"
+                accept=".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf"
                 onChange={(e) => onChange('contractUrl', e.target.files?.[0] || null)}
               />
             </label>

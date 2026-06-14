@@ -77,7 +77,7 @@ export default function ReceiptUploadField({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*,application/pdf"
+        accept=".jpg,.jpeg,.png,.webp,.pdf,image/jpeg,image/png,image/webp,application/pdf"
         style={{ display: 'none' }}
         onChange={(event) => onChange?.(event.target.files?.[0] || null)}
       />

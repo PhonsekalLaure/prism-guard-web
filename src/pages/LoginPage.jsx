@@ -5,6 +5,7 @@ import LoginForm from '@components/login/LoginForm';
 import Notification from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
 import authService from '@services/authService';
+import { getSafeInternalPath } from '@utils/security';
 import '@styles/Auth.css';
 
 export default function LoginPage() {
@@ -16,7 +17,7 @@ export default function LoginPage() {
     async function checkExistingSession() {
       const result = await authService.getMe();
       if (result) {
-        window.location.href = result.redirect;
+        window.location.href = getSafeInternalPath(result.redirect, '/login');
       }
     }
     checkExistingSession();
