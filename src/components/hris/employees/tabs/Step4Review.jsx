@@ -121,7 +121,7 @@ export default function Step4Review({ data }) {
           <ReviewField label="Pag-IBIG" value={data.pagibigNumber} />
           <ReviewField label="PhilHealth" value={data.philhealthNumber} />
           <ReviewField label="License Number" value={data.licenseNumber} />
-          <ReviewField label="Badge Number" value={data.badgeNumber} />
+          <ReviewField label="Badge Number" value={data.badgeNumber || 'Not assigned'} />
           <ReviewField label="License Expiry" value={data.licenseExpiryDate} />
         </ReviewSection>
       </div>

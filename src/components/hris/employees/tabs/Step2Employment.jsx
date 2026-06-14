@@ -147,7 +147,7 @@ export default function Step2Employment({ data, onChange, sites, onSiteChange, t
           <h4 className="text-sm font-bold text-gray-700 border-b pb-2">License &amp; Credentials</h4>
         </div>
         <FormField label="License Number"    type="text" value={data.licenseNumber}     onChange={(e) => onChange('licenseNumber',     e.target.value)} placeholder="e.g., SG-12345678" />
-        <FormField label="Badge Number"      type="text" value={data.badgeNumber}       onChange={(e) => onChange('badgeNumber',       e.target.value)} placeholder="e.g., B-1234" />
+        <FormField label="Badge Number (Optional)" type="text" value={data.badgeNumber} onChange={(e) => onChange('badgeNumber',       e.target.value)} placeholder="Leave blank if not assigned yet" />
         <FormField
           label="License Expiry Date"
           type="date"
