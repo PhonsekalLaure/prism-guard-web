@@ -35,6 +35,13 @@ async function getAttendanceLogDetails(attendanceLogId) {
   return data;
 }
 
+async function approveMissedClockOutScheduledEnd(attendanceLogId, reviewNotes) {
+  const { data } = await api.post(`/${attendanceLogId}/missed-clock-out/approve-scheduled-end`, {
+    reviewNotes,
+  });
+  return data;
+}
+
 function getFilenameFromDisposition(disposition) {
   const match = /filename="?([^"]+)"?/i.exec(disposition || '');
   return match?.[1] || null;
@@ -53,6 +60,7 @@ async function exportReport(params = {}) {
 }
 
 export default {
+  approveMissedClockOutScheduledEnd,
   getAttendanceRecords,
   getAttendanceLogDetails,
   getStats,

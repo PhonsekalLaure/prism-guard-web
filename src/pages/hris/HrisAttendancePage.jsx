@@ -183,6 +183,7 @@ export default function HrisAttendancePage() {
           metadata={metadata}
           loading={loading}
           selectedDate={selectedDate}
+          onRefresh={handleRefresh}
           onPageChange={handlePageChange}
           onResetFilters={handleResetFilters}
           requestedAttendanceLogId={requestedAttendanceLogId}

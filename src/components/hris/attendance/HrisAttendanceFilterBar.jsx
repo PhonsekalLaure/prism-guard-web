@@ -72,6 +72,7 @@ export default function HrisAttendanceFilterBar({
         >
           <option value="all">All Status</option>
           <option value="active">Active</option>
+          <option value="missed_clock_out">Missed Clock-out</option>
           <option value="location_review">Location Review</option>
           <option value="late">Late</option>
           <option value="absent">Absent</option>

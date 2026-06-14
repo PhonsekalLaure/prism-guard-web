@@ -1250,6 +1250,44 @@
   min-height: 3rem;
 }
 
+.ha-review-action {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.ha-review-action label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+  font-weight: 700;
+}
+
+.ha-review-action textarea {
+  width: 100%;
+  border: 1.5px solid #dbe3ef;
+  border-radius: 10px;
+  padding: 0.75rem 0.85rem;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.85rem;
+  color: #1f2937;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.ha-review-action textarea:focus {
+  outline: none;
+  border-color: #0d4a8f;
+  box-shadow: 0 0 0 3px rgba(13, 74, 143, 0.12);
+}
+
+.ha-review-action textarea:disabled {
+  background: #f3f4f6;
+  cursor: not-allowed;
+}
+
 /* Footer */
 .ha-modal-footer {
   padding: 1rem 1.6rem;
@@ -1296,6 +1334,13 @@
 .ha-modal-btn.primary:hover {
   box-shadow: 0 6px 16px rgba(9, 50, 105, 0.35);
   transform: translateY(-1px);
+}
+
+.ha-modal-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 /* Premium Filter Bar */

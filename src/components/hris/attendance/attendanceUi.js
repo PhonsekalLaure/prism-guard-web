@@ -2,6 +2,7 @@ import { FaCheckCircle, FaCircle, FaMinusCircle, FaTimesCircle } from 'react-ico
 
 export const STATUS_META = {
   active: { label: 'ACTIVE', className: 'active', icon: FaCircle, rowClass: '' },
+  missed_clock_out: { label: 'MISSED CLOCK-OUT', className: 'late', icon: null, rowClass: '' },
   late: { label: 'LATE', className: 'late', icon: null, rowClass: '' },
   absent: { label: 'ABSENT', className: 'absent', icon: null, rowClass: 'ha-row-absent' },
   off_duty: { label: 'OFF DUTY', className: 'off-duty', icon: null, rowClass: 'ha-row-completed' },
@@ -28,6 +29,7 @@ export function getClockInNoteClass(row) {
 }
 
 export function getClockOutNoteClass(row) {
+  if (row.status === 'missed_clock_out') return 'early';
   if (row.earlyClockOut) return 'early';
   if (row.clockOut) return 'completed';
   if (row.status === 'on_leave') return 'leave';
@@ -35,6 +37,7 @@ export function getClockOutNoteClass(row) {
 }
 
 export function getHoursNoteClass(row) {
+  if (row.status === 'missed_clock_out') return 'early';
   if (row.status === 'absent') return 'no-activity';
   if (row.status === 'on_leave') return 'leave';
   if (row.hoursNote === 'Early departure') return 'early';

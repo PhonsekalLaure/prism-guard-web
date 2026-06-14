@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { FaClock, FaMapMarkerAlt, FaMinusCircle, FaTimes, FaUserShield } from 'react-icons/fa';
 import EntityAvatar from '@components/ui/EntityAvatar';
 import { SkeletonBlock, SkeletonList } from '@components/ui/Skeleton';
+import attendanceService from '@services/hris/attendanceService';
 import {
   GPS_ICONS,
   STATUS_META,
@@ -53,9 +55,38 @@ export default function HrisAttendanceDetailModal({
   loading = false,
   error = null,
   onClose,
+  onDetailUpdated,
 }) {
+  const [reviewNotes, setReviewNotes] = useState('');
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewError, setReviewError] = useState(null);
   const displayRow = detail?.summary || row;
   const statusMeta = STATUS_META[displayRow.status] || STATUS_META.absent;
+  const missedClockOutReview = detail?.missedClockOutReview;
+  const canApproveScheduledEnd = Boolean(missedClockOutReview?.canApproveScheduledEnd);
+
+  const handleApproveScheduledEnd = async () => {
+    const notes = reviewNotes.trim();
+    if (!notes) {
+      setReviewError('Review notes are required.');
+      return;
+    }
+
+    try {
+      setReviewLoading(true);
+      setReviewError(null);
+      const updatedDetail = await attendanceService.approveMissedClockOutScheduledEnd(
+        displayRow.attendanceLogId,
+        notes
+      );
+      setReviewNotes('');
+      onDetailUpdated?.(updatedDetail);
+    } catch (err) {
+      setReviewError(err?.response?.data?.error || 'Failed to approve missed clock-out.');
+    } finally {
+      setReviewLoading(false);
+    }
+  };
 
   return (
     <div className="ha-modal-overlay" onClick={(event) => event.target === event.currentTarget && onClose?.()}>
@@ -138,6 +169,44 @@ export default function HrisAttendanceDetailModal({
               <div><span>Attendance Status</span><strong>{displayRow.attendanceStatusLabel || statusMeta.label}</strong></div>
             </div>
           </div>
+
+          {(missedClockOutReview?.status || displayRow.missedClockOutReviewStatus) && (
+            <div className="ha-modal-section">
+              <span className="ha-modal-section-label">Missed Clock-out Review</span>
+              <div className="ha-detail-grid">
+                <div><span>Review Status</span><strong>{missedClockOutReview?.statusLabel || displayRow.missedClockOutReviewStatus}</strong></div>
+                <div><span>Approved Clock-out</span><strong>{missedClockOutReview?.approvedClockOut || 'N/A'}</strong></div>
+                <div><span>Reviewed By</span><strong>{missedClockOutReview?.reviewedBy || 'N/A'}</strong></div>
+                <div><span>Reviewed At</span><strong>{missedClockOutReview?.reviewedAt || 'N/A'}</strong></div>
+              </div>
+              <div className="ha-modal-notes-box">
+                {missedClockOutReview?.notes || 'No review notes yet.'}
+              </div>
+
+              {canApproveScheduledEnd && (
+                <div className="ha-review-action">
+                  <label htmlFor="missed-clock-out-review-notes">Review Notes</label>
+                  <textarea
+                    id="missed-clock-out-review-notes"
+                    value={reviewNotes}
+                    onChange={(event) => setReviewNotes(event.target.value)}
+                    placeholder="Explain why the scheduled shift end is being approved."
+                    rows={3}
+                    disabled={reviewLoading}
+                  />
+                  {reviewError && <div className="ha-modal-alert">{reviewError}</div>}
+                  <button
+                    type="button"
+                    className="ha-modal-btn primary"
+                    onClick={handleApproveScheduledEnd}
+                    disabled={reviewLoading}
+                  >
+                    {reviewLoading ? 'Approving...' : 'Approve Scheduled End'}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="ha-modal-section">
             <span className="ha-modal-section-label">GPS Evidence</span>

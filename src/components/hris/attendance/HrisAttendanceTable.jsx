@@ -27,6 +27,7 @@ export default function HrisAttendanceTable({
   metadata = { total: 0, page: 1, limit: 8, totalPages: 1 },
   loading = false,
   selectedDate = null,
+  onRefresh,
   onPageChange,
   onResetFilters,
   requestedAttendanceLogId = null,
@@ -84,6 +85,14 @@ export default function HrisAttendanceTable({
     setSelectedDetail(null);
     setDetailError(null);
     setDetailLoading(false);
+  };
+
+  const handleDetailUpdated = (detail) => {
+    setSelectedDetail(detail);
+    if (detail?.summary) {
+      setSelectedRow(detail.summary);
+    }
+    onRefresh?.();
   };
 
   return (
@@ -212,6 +221,7 @@ export default function HrisAttendanceTable({
           loading={detailLoading}
           error={detailError}
           onClose={closeModal}
+          onDetailUpdated={handleDetailUpdated}
         />
       )}
     </div>

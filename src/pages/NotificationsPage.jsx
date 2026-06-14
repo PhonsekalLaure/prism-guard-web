@@ -54,6 +54,7 @@ const TYPE_LABELS = {
   profile_password_changed: 'Account Security',
   profile_email_change_requested: 'Account Security',
   attendance_geofence_review_hris: 'Attendance',
+  attendance_missed_clock_out_hris: 'Attendance',
 };
 
 const PRIORITY_LABELS = {
