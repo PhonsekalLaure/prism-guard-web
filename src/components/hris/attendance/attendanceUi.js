@@ -10,6 +10,7 @@ export const STATUS_META = {
 
 export const GPS_ICONS = {
   verified: FaCheckCircle,
+  review: FaTimesCircle,
   'no-gps': FaTimesCircle,
   na: FaMinusCircle,
 };
@@ -61,4 +62,10 @@ export function formatGeofenceEvidence(evidence) {
   const result = evidence.result || formatBoolean(evidence.isWithinGeofence);
   const distance = formatDistance(evidence.distanceMeters);
   return result === 'N/A' ? distance : `${result} • ${distance}`;
+}
+
+export function formatReasonCode(value) {
+  return String(value || '')
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }

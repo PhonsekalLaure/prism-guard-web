@@ -6,6 +6,7 @@ import {
   STATUS_META,
   formatDistance,
   formatGeofenceEvidence,
+  formatReasonCode,
   getClockInNoteClass,
   getClockOutNoteClass,
   getHoursNoteClass,
@@ -156,8 +157,40 @@ export default function HrisAttendanceDetailModal({
               <div><span>Latest Ping Time</span><strong>{detail?.gps?.latestPing?.pingTime || 'N/A'}</strong></div>
               <div><span>Latest Ping</span><strong>{formatGeofenceEvidence(detail?.gps?.latestPing)}</strong></div>
               <div><span>Ping Summary</span><strong>{`${detail?.gps?.pingCount || 0} checks, ${detail?.gps?.outsidePingCount || 0} outside`}</strong></div>
+              <div><span>Review Required</span><strong>{detail?.gps?.reviewRequiredAt ? detail.gps.reviewRequiredAt : 'No'}</strong></div>
+              <div>
+                <span>Risk Reasons</span>
+                <strong>
+                  {detail?.gps?.riskReasons?.length
+                    ? detail.gps.riskReasons.map(formatReasonCode).join(', ')
+                    : 'None'}
+                </strong>
+              </div>
             </div>
           </div>
+
+          {detail?.gps?.attempts?.length > 0 && (
+            <div className="ha-modal-section">
+              <span className="ha-modal-section-label">Location Evidence Attempts</span>
+              <div className="ha-ping-list">
+                {detail.gps.attempts.map((attempt) => (
+                  <div key={attempt.id} className={`ha-ping-row ${attempt.decision === 'review' || attempt.decision === 'blocked' ? 'outside' : ''}`}>
+                    <div>
+                      <strong>{attempt.createdAt}</strong>
+                      <span>
+                        {attempt.action?.replace(/_/g, ' ') || 'location'} - {attempt.decision}
+                      </span>
+                    </div>
+                    <span>
+                      {attempt.reasonCodes?.length
+                        ? attempt.reasonCodes.map(formatReasonCode).join(', ')
+                        : `${attempt.accuracyMeters ?? 'N/A'}m accuracy`}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {detail?.gps?.pings?.length > 0 && (
             <div className="ha-modal-section">
