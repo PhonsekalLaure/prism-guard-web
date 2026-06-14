@@ -6,7 +6,11 @@ import clientService   from '@services/hris/clientService';
 import Notification    from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
 import { formatSiteLabel } from '@hris-components/shared/siteDisplay';
-import { getAgeDateBounds, getHireDateBounds } from '@utils/hrisDateRules';
+import {
+  getAgeDateBounds,
+  getDeploymentStartDateMinimum,
+  getHireDateBounds,
+} from '@utils/hrisDateRules';
 import { getGuardHeightError } from '@utils/guardEligibility';
 import {
   isBelowMinimumMonthlyBasePay,
@@ -128,12 +132,21 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
     }
     const site = sites.find(s => s.id === siteId);
     const label = formatSiteLabel(site);
+    const clientContractStartDate = site?.client_contract_start_date || null;
     const clientContractEndDate = site?.client_contract_end_date || null;
     setFormData(prev => ({
       ...prev,
       initialSiteId: siteId,
       initialSiteLabel: label,
-      deploymentStartDate: prev.deploymentStartDate || prev.hireDate || '',
+      deploymentStartDate: (() => {
+        const minStartDate = getDeploymentStartDateMinimum({
+          hireDate: prev.hireDate,
+          clientContractStartDate,
+        });
+        return prev.deploymentStartDate && prev.deploymentStartDate >= minStartDate
+          ? prev.deploymentStartDate
+          : minStartDate;
+      })(),
       deploymentEndDate: clientContractEndDate && (!prev.deploymentEndDate || prev.deploymentEndDate > clientContractEndDate)
         ? clientContractEndDate
         : prev.deploymentEndDate,
@@ -187,9 +200,20 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
           showNotification(MINIMUM_MONTHLY_BASE_PAY_MESSAGE, 'error'); return false;
         }
         const selectedSite = sites.find((site) => site.id === formData.initialSiteId);
+        const clientContractStartDate = selectedSite?.client_contract_start_date || null;
         const clientContractEndDate = selectedSite?.client_contract_end_date || null;
+        const minDeploymentStartDate = getDeploymentStartDateMinimum({
+          hireDate: formData.hireDate,
+          clientContractStartDate,
+        });
         if (!formData.deploymentStartDate || !formData.deploymentEndDate) {
           showNotification('Please set the initial deployment start and end date.', 'error'); return false;
+        }
+        if (formData.deploymentStartDate < minDeploymentStartDate) {
+          showNotification(`Deployment start date must be on or after ${minDeploymentStartDate}.`, 'error'); return false;
+        }
+        if (isAfterDate(formData.deploymentStartDate, clientContractEndDate)) {
+          showNotification(`Deployment start date cannot be later than the client contract end date (${clientContractEndDate}).`, 'error'); return false;
         }
         if (isEarlierDate(formData.deploymentStartDate, formData.deploymentEndDate)) {
           showNotification('Deployment end date cannot be earlier than deployment start date.', 'error'); return false;
@@ -252,7 +276,22 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
       }
       if (formData.initialSiteId) {
         const selectedSite = sites.find((site) => site.id === formData.initialSiteId);
+        const clientContractStartDate = selectedSite?.client_contract_start_date || null;
         const clientContractEndDate = selectedSite?.client_contract_end_date || null;
+        const minDeploymentStartDate = getDeploymentStartDateMinimum({
+          hireDate: formData.hireDate,
+          clientContractStartDate,
+        });
+        if (formData.deploymentStartDate < minDeploymentStartDate) {
+          showNotification(`Deployment start date must be on or after ${minDeploymentStartDate}.`, 'error');
+          setIsSubmitting(false);
+          return;
+        }
+        if (isAfterDate(formData.deploymentStartDate, clientContractEndDate)) {
+          showNotification(`Deployment start date cannot be later than the client contract end date (${clientContractEndDate}).`, 'error');
+          setIsSubmitting(false);
+          return;
+        }
         if (isAfterDate(formData.deploymentEndDate, clientContractEndDate)) {
           showNotification(`Deployment end date cannot be later than the client contract end date (${clientContractEndDate}).`, 'error');
           setIsSubmitting(false);

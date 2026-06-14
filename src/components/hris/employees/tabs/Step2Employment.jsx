@@ -1,5 +1,8 @@
 import SiteSelect from '@hris-components/shared/SiteSelect';
-import { getHireDateBounds } from '@utils/hrisDateRules';
+import {
+  getDeploymentStartDateMinimum,
+  getHireDateBounds,
+} from '@utils/hrisDateRules';
 import {
   MINIMUM_MONTHLY_BASE_PAY,
   MINIMUM_MONTHLY_BASE_PAY_HINT,
@@ -23,7 +26,12 @@ export default function Step2Employment({ data, onChange, sites, onSiteChange, t
 
   const isFloating = !data.initialSiteId;
   const selectedSite = sites.find((site) => site.id === data.initialSiteId);
+  const clientContractStartDate = selectedSite?.client_contract_start_date || null;
   const clientContractEndDate = selectedSite?.client_contract_end_date || null;
+  const minDeploymentStartDate = getDeploymentStartDateMinimum({
+    hireDate: data.hireDate,
+    clientContractStartDate,
+  });
   const { min: minHireDate, max: maxHireDate } = getHireDateBounds();
 
   return (
@@ -81,6 +89,9 @@ export default function Step2Employment({ data, onChange, sites, onSiteChange, t
               required
               value={data.deploymentStartDate}
               onChange={(e) => onChange('deploymentStartDate', e.target.value)}
+              min={minDeploymentStartDate}
+              max={clientContractEndDate || undefined}
+              hint={`Must be on or after ${minDeploymentStartDate}${clientContractEndDate ? ` and on or before ${clientContractEndDate}` : ''}.`}
             />
             <FormField
               label="Deployment End Date *"

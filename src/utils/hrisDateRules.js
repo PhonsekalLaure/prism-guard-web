@@ -16,6 +16,21 @@ export function getBusinessTodayDateInputValue(date = new Date()) {
   return `${values.year}-${values.month}-${values.day}`;
 }
 
+export function getDeploymentStartDateMinimum({
+  hireDate = null,
+  clientContractStartDate = null,
+  date = new Date(),
+} = {}) {
+  return [
+    getBusinessTodayDateInputValue(date),
+    hireDate,
+    clientContractStartDate,
+  ]
+    .filter(Boolean)
+    .sort()
+    .at(-1);
+}
+
 export function getAgeDateBounds({ minAge = 18, maxAge = 45 } = {}) {
   const today = new Date();
   const oldestAllowedBirthDate = new Date(
