@@ -59,20 +59,6 @@ function LeaveRequestDetailSkeleton() {
   );
 }
 
-function getTodayDateKey() {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-function isPastSickAbsenceRequest(leaveRequest) {
-  return leaveRequest?.leaveType === 'sick'
-    && leaveRequest?.endDateRaw
-    && leaveRequest.endDateRaw < getTodayDateKey();
-}
-
 export default function HrisLeaveRequestDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -133,7 +119,7 @@ export default function HrisLeaveRequestDetailPage() {
     setReviewNotes('');
     setCancelNotes('');
     setApprovalMode(true);
-    if (!isPastSickAbsenceRequest(leaveRequest)) {
+    if (leaveRequest?.requiresReplacementCoverage) {
       await loadReplacementGuards();
     }
   };
@@ -157,7 +143,7 @@ export default function HrisLeaveRequestDetailPage() {
   };
 
   const handleApprove = async () => {
-    const requiresReplacementCoverage = !isPastSickAbsenceRequest(leaveRequest);
+    const requiresReplacementCoverage = Boolean(leaveRequest?.requiresReplacementCoverage);
     if (requiresReplacementCoverage && (!selectedRelieverId || !deploymentOrderFile)) return;
     setActionLoadingId('approve');
     try {
@@ -221,8 +207,7 @@ export default function HrisLeaveRequestDetailPage() {
   const isApproving = actionLoadingId === 'approve';
   const isRejecting = actionLoadingId === 'reject';
   const isCancelling = actionLoadingId === 'cancel';
-  const isPastSickAbsence = isPastSickAbsenceRequest(leaveRequest);
-  const requiresReplacementCoverage = !isPastSickAbsence;
+  const requiresReplacementCoverage = Boolean(leaveRequest?.requiresReplacementCoverage);
 
   return (
     <>
@@ -297,6 +282,36 @@ export default function HrisLeaveRequestDetailPage() {
                   <p>{leaveRequest.endDate}</p>
                 </div>
               </div>
+
+              {(leaveRequest.leaveSubtype || leaveRequest.qualifyingEventDateLabel || leaveRequest.silPurpose) && (
+                <div className="hlr-modal-grid">
+                  {leaveRequest.leaveSubtype && (
+                    <div className="hlr-modal-cell">
+                      <label>Leave Subtype</label>
+                      <p>{leaveRequest.leaveSubtype === 'maternity' ? 'Maternity' : 'Paternity'}</p>
+                    </div>
+                  )}
+                  {leaveRequest.qualifyingEventDateLabel && (
+                    <div className="hlr-modal-cell">
+                      <label>Qualifying Event Date</label>
+                      <p>{leaveRequest.qualifyingEventDateLabel}</p>
+                    </div>
+                  )}
+                  {leaveRequest.silPurpose && (
+                    <div className="hlr-modal-cell">
+                      <label>SIL Purpose</label>
+                      <p>{leaveRequest.silPurpose === 'sick_substitution' ? 'Sick Substitute' : 'Standard'}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {leaveRequest.requestedDates?.length > 0 && (
+                <div>
+                  <span className="hlr-modal-section-label">Selected Leave Dates</span>
+                  <div className="hlr-modal-reason">{leaveRequest.requestedDates.join(', ')}</div>
+                </div>
+              )}
 
               <div>
                 <span className="hlr-modal-section-label">Reason for Leave</span>
