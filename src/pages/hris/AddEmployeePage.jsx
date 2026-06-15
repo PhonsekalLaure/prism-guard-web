@@ -3,6 +3,8 @@ import { useLocation, useNavigate, useOutletContext } from 'react-router-dom';
 import { FaArrowLeft, FaBars } from 'react-icons/fa';
 import AddEmployeeWizard from '@hris-components/employees/AddEmployeeWizard';
 
+const SUCCESS_REDIRECT_DELAY_MS = 1200;
+
 function stripPhilippinePrefix(value = '') {
   return String(value).replace(/^\+63/, '').replace(/\D/g, '').slice(0, 10);
 }
@@ -51,13 +53,10 @@ export default function AddEmployeePage() {
   const sourceApplicant   = location.state?.sourceApplicant || null;
   const initialData       = useMemo(() => buildApplicantInitialData(sourceApplicant), [sourceApplicant]);
 
-  const handleSaved = async () => {
-    navigate('/employees', {
-      state: {
-        message: 'Employee added successfully and invitation requested.',
-        type: 'success',
-      },
-    });
+  const handleSaved = () => {
+    setTimeout(() => {
+      navigate('/employees');
+    }, SUCCESS_REDIRECT_DELAY_MS);
   };
 
   return (
