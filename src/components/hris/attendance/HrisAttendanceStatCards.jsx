@@ -1,7 +1,17 @@
-import { FaClock, FaUserTimes, FaHourglassEnd, FaSignOutAlt } from 'react-icons/fa';
+import { FaClock, FaSignInAlt, FaSignOutAlt, FaUserTimes } from 'react-icons/fa';
 import StatCards from '@components/ui/StatCards';
 
 const stats = [
+  {
+    label: 'Total Clock-ins',
+    key: 'totalClockIns',
+    icon: FaSignInAlt,
+    iconBg: '#dbeafe',
+    iconColor: '#2563eb',
+    valueColor: '#2563eb',
+    borderColor: '#3b82f6',
+    delay: '0s',
+  },
   {
     label: 'Late Clock-ins',
     key: 'lateClockIns',
@@ -10,7 +20,7 @@ const stats = [
     iconColor: '#ca8a04',
     valueColor: '#e6b215',
     borderColor: '#eab308',
-    delay: '0s',
+    delay: '0.05s',
   },
   {
     label: 'Total Absences',
@@ -20,16 +30,6 @@ const stats = [
     iconColor: '#dc2626',
     valueColor: '#dc2626',
     borderColor: '#ef4444',
-    delay: '0.05s',
-  },
-  {
-    label: 'Overtime Count',
-    key: 'overtimeCount',
-    icon: FaHourglassEnd,
-    iconBg: '#fef3c7',
-    iconColor: '#d97706',
-    valueColor: '#e6b215',
-    borderColor: '#e6b215',
     delay: '0.1s',
   },
   {
