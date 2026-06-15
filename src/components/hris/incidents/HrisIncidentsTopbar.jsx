@@ -1,4 +1,4 @@
-import { FaBars, FaDownload } from 'react-icons/fa';
+import { FaBars } from 'react-icons/fa';
 import { useOutletContext } from 'react-router-dom';
 
 export default function HrisIncidentsTopbar() {
@@ -17,9 +17,6 @@ export default function HrisIncidentsTopbar() {
           </div>
         </div>
       </div>
-      <button className="ir-export-btn">
-        <FaDownload /> Export Report
-      </button>
     </header>
   );
 }

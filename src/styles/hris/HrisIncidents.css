@@ -70,29 +70,6 @@
   margin: 0;
 }
 
-.ir-export-btn {
-  background: linear-gradient(135deg, #093269 0%, #0d4a8f 100%);
-  color: #fff;
-  padding: 0.65rem 1.3rem;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: all 0.2s;
-  font-family: 'Poppins', sans-serif;
-  box-shadow: 0 4px 12px rgba(9, 50, 105, 0.25);
-}
-
-.ir-export-btn:hover {
-  background: linear-gradient(135deg, #0a3d7a 0%, #0e56a8 100%);
-  box-shadow: 0 6px 16px rgba(9, 50, 105, 0.35);
-  transform: translateY(-1px);
-}
-
 /* =============================================
    STAT CARDS
    ============================================= */
