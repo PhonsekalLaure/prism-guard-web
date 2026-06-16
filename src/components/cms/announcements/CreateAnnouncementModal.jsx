@@ -121,20 +121,24 @@ export default function CreateAnnouncementModal({ isOpen, onClose, onSubmit }) {
               Urgency Level <span className="create-ann-required">*</span>
             </label>
             <div className="create-ann-urgency-group" role="group" aria-label="Urgency level">
-              {URGENCY_OPTIONS.map(({ value, label, Icon, desc }) => (
-                <button
-                  key={value}
-                  type="button"
-                  className={`create-ann-urgency-btn create-ann-urgency-btn--${value}${priority === value ? ' active' : ''}`}
-                  onClick={() => { setPriority(value); setError(null); }}
-                  disabled={submitting}
-                  aria-pressed={priority === value}
-                >
-                  <Icon className="create-ann-urgency-icon" />
-                  <span className="create-ann-urgency-label">{label}</span>
-                  <span className="create-ann-urgency-desc">{desc}</span>
-                </button>
-              ))}
+              {URGENCY_OPTIONS.map((option) => {
+                const UrgencyIcon = option.Icon;
+
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    className={`create-ann-urgency-btn create-ann-urgency-btn--${option.value}${priority === option.value ? ' active' : ''}`}
+                    onClick={() => { setPriority(option.value); setError(null); }}
+                    disabled={submitting}
+                    aria-pressed={priority === option.value}
+                  >
+                    <UrgencyIcon className="create-ann-urgency-icon" />
+                    <span className="create-ann-urgency-label">{option.label}</span>
+                    <span className="create-ann-urgency-desc">{option.desc}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
