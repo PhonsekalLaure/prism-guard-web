@@ -200,6 +200,15 @@
   background: #ef4444;
 }
 
+.employee-badge.badge-inactive,
+.employee-badge.badge-deactivated {
+  background: #ef4444;
+}
+
+.employee-badge.badge-unknown {
+  background: #64748b;
+}
+
 /* Info section */
 .employee-info-section {
   display: flex;
@@ -471,6 +480,9 @@
 .ve-profile-badge.badge-active { background: #10b981; }
 .ve-profile-badge.badge-leave  { background: #f59e0b; }
 .ve-profile-badge.badge-absent { background: #ef4444; }
+.ve-profile-badge.badge-inactive,
+.ve-profile-badge.badge-deactivated { background: #ef4444; }
+.ve-profile-badge.badge-unknown { background: #64748b; }
 
 .ve-profile-id {
   font-size: 0.82rem;

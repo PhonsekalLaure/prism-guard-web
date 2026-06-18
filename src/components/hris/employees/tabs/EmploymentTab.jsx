@@ -4,6 +4,11 @@ import { EditInput, EditSelect, InfoCell } from './EmployeeEditFields';
 
 const POSITIONS = ['Security Guard'];
 
+function getEmployeeStatusLabel(status) {
+  if (status === 'inactive') return 'DEACTIVATED';
+  return status?.toUpperCase() || 'UNKNOWN';
+}
+
 const toProperCase = (str) => {
   if (!str) return '';
   return str.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
@@ -63,7 +68,7 @@ export default function EmploymentTab({ employee, isEditing, editForm, onField }
           <InfoCell label="Employee ID"     value={employee.employee_id_number}                                               variant="blue" />
           <InfoCell label="Date Started"    value={hireDateStr}                                                               variant="blue" />
           <InfoCell label="Tenure"          value={tenureStr}                                                                 variant="blue" />
-          <InfoCell label="Status"          value={employee.status?.toUpperCase()}                                            valueColor={employee.status === 'active' ? '#16a34a' : '#d97706'} />
+          <InfoCell label="Status"          value={getEmployeeStatusLabel(employee.status)}                                  valueColor={employee.status === 'active' ? '#16a34a' : '#dc2626'} />
           <InfoCell
             label="Employment Contract"
             value={(employee.employment_contract_status || 'unknown').replace(/_/g, ' ').toUpperCase()}

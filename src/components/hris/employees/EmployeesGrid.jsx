@@ -7,6 +7,11 @@ import EmptyState from '@components/ui/EmptyState';
 import EntityAvatar from '@components/ui/EntityAvatar';
 import { EntityCardSkeleton, SkeletonList } from '@components/ui/Skeleton';
 
+function getEmployeeStatusLabel(status) {
+  if (status === 'inactive') return 'DEACTIVATED';
+  return status?.toUpperCase() || 'UNKNOWN';
+}
+
 export default function EmployeesGrid({ 
   employees = [], 
   totalItems = 0,
@@ -62,7 +67,7 @@ export default function EmployeesGrid({
                     </div>
                   </div>
                   <span className={`employee-badge badge-${emp.status || 'unknown'}`}>
-                    {emp.status?.toUpperCase() || 'UNKNOWN'}
+                    {getEmployeeStatusLabel(emp.status)}
                   </span>
 
                 </div>

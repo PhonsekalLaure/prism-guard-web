@@ -7,6 +7,11 @@ import { EditInput, EditSelect, InfoCell } from './EmployeeEditFields';
 import { getAgeDateBounds } from '@utils/hrisDateRules';
 import { EDUCATIONAL_LEVELS } from '@/constants/employees';
 
+function getEmployeeStatusLabel(status) {
+  if (status === 'inactive') return 'DEACTIVATED';
+  return status?.toUpperCase() || 'UNKNOWN';
+}
+
 export default function PersonalTab({
   employee, canEdit, isEditing, editForm, pendingFiles,
   onFile, onField, onEdit, onSave, onCancel, isSaving,
@@ -59,7 +64,7 @@ export default function PersonalTab({
             <p className="ve-profile-position">{employee.position}</p>
             <div className="ve-profile-meta">
               <span className={`ve-profile-badge badge-${employee.status || 'unknown'}`}>
-                {employee.status?.toUpperCase() || 'UNKNOWN'}
+                {getEmployeeStatusLabel(employee.status)}
               </span>
               <span className="ve-profile-id">ID: {employee.employee_id_number}</span>
             </div>
