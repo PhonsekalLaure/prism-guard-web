@@ -1,10 +1,23 @@
 import { Link } from 'react-router-dom';
 import { FaHeadset, FaUserPlus, FaExchangeAlt, FaDotCircle, FaArrowRight, FaWrench } from 'react-icons/fa';
 import { TableSkeletonRows } from '@components/ui/Skeleton';
+import { SERVICE_REQUEST_TYPES } from '@/constants/serviceRequests';
 
 const thStyle = { padding: '0.65rem 1rem', textAlign: 'left', fontSize: '0.68rem', fontWeight: 600, color: '#7f8c8d', textTransform: 'uppercase', letterSpacing: '0.5px' };
 const tdStyle = { padding: '0.85rem 1rem', fontSize: '0.85rem' };
 const tableSkeletonCellStyle = { height: 14, width: '100%' };
+const serviceRequestTypeLabels = new Map(SERVICE_REQUEST_TYPES.map((type) => [type.value, type.label]));
+
+function formatEnumLabel(value = '') {
+  return String(value)
+    .replace(/[_-]+/g, ' ')
+    .trim()
+    .replace(/\w\S*/g, (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
+}
+
+function typeLabel(type = '') {
+  return serviceRequestTypeLabels.get(type) || formatEnumLabel(type);
+}
 
 /** Map ticket_type string to a matching icon */
 function typeIcon(type = '') {
@@ -58,17 +71,18 @@ export default function RecentServiceRequests({ requests, loading }) {
                 )
                 : rows.map((r, i) => {
                   const badge = statusStyle(r.status);
+                  const statusLabel = r.statusLabel || formatEnumLabel(r.status);
                   return (
                     <tr key={r.id ?? i} style={{ borderBottom: '1px solid #f0f0f0' }}>
                       <td style={{ ...tdStyle, fontFamily: 'monospace', fontWeight: 700, color: '#093269', fontSize: '0.8rem' }}>
                         #{String(r.id).substring(0, 8).toUpperCase()}
                       </td>
                       <td style={{ ...tdStyle, display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, color: '#1a1a1a' }}>
-                        {typeIcon(r.type)}{r.type}
+                        {typeIcon(r.type)}{typeLabel(r.type)}
                       </td>
                       <td style={tdStyle}>
-                        <span style={{ background: badge.bg, color: badge.color, padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 600, textTransform: 'capitalize' }}>
-                          {r.status}
+                        <span style={{ background: badge.bg, color: badge.color, padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 600 }}>
+                          {statusLabel}
                         </span>
                       </td>
                     </tr>

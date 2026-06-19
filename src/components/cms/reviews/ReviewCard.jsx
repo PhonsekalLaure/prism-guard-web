@@ -12,12 +12,31 @@ import {
 } from 'react-icons/fa';
 
 const CATEGORY_CLASS = {
+  'guard-performance': 'srv-category-badge--guard',
   'Guard Performance': 'srv-category-badge--guard',
+  'incident-response': 'srv-category-badge--incident',
   'Incident Response': 'srv-category-badge--incident',
+  communication: 'srv-category-badge--communication',
   Communication: 'srv-category-badge--communication',
   'overall-service': 'srv-category-badge--overall',
   'Overall Service': 'srv-category-badge--overall',
 };
+
+const STATUS_META = {
+  pending: { label: 'Pending', className: 'srv-status-badge--pending', icon: FaHourglassHalf },
+  Pending: { label: 'Pending', className: 'srv-status-badge--pending', icon: FaHourglassHalf },
+  published: { label: 'Published', className: 'srv-status-badge--published', icon: FaCheckCircle },
+  Published: { label: 'Published', className: 'srv-status-badge--published', icon: FaCheckCircle },
+  rejected: { label: 'Not Published', className: 'srv-status-badge--rejected', icon: FaTimesCircle },
+  'Not Published': { label: 'Not Published', className: 'srv-status-badge--rejected', icon: FaTimesCircle },
+};
+
+function formatEnumLabel(value = '') {
+  return String(value)
+    .replace(/[_-]+/g, ' ')
+    .trim()
+    .replace(/\w\S*/g, (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
+}
 
 function ReviewStars({ score }) {
   const safeScore = Number(score || 0);
@@ -47,6 +66,15 @@ export default function ReviewCard({ review }) {
   } = review;
 
   const categoryClass = CATEGORY_CLASS[category] ?? 'srv-category-badge--overall';
+  const categoryLabel = formatEnumLabel(category);
+  const statusMeta = STATUS_META[status] ?? {
+    label: formatEnumLabel(status || 'pending'),
+    className: 'srv-status-badge--pending',
+    icon: FaHourglassHalf,
+  };
+  const StatusIcon = statusMeta.icon;
+  const submissionClass = review.submissionType || 'ad_hoc';
+  const submissionLabel = review.submissionTypeLabel || formatEnumLabel(submissionClass);
   const reviewedGuardLabel = [
     review.reviewedEmployeeNumber,
     review.reviewedEmployeeName,
@@ -57,23 +85,14 @@ export default function ReviewCard({ review }) {
       <div className="srv-review-card-top">
         <div className="srv-review-meta">
           <div className="srv-review-badges">
-            <span className={`srv-category-badge ${categoryClass}`}>{category}</span>
-            {review.submissionTypeLabel && (
-              <span className={`srv-submission-badge srv-submission-badge--${review.submissionType}`}>
-                {review.submissionTypeLabel}
+            <span className={`srv-category-badge ${categoryClass}`}>{categoryLabel}</span>
+            {submissionLabel && (
+              <span className={`srv-submission-badge srv-submission-badge--${submissionClass}`}>
+                {submissionLabel}
               </span>
             )}
-            <span className={`srv-status-badge ${
-              status === 'Published'
-                ? 'srv-status-badge--published'
-                : status === 'Not Published'
-                  ? 'srv-status-badge--rejected'
-                  : 'srv-status-badge--pending'
-            }`}
-            >
-              {status === 'Published' && <><FaCheckCircle /> Published</>}
-              {status === 'Not Published' && <><FaTimesCircle /> Not Published</>}
-              {status === 'Pending' && <><FaHourglassHalf /> Pending</>}
+            <span className={`srv-status-badge ${statusMeta.className}`}>
+              <StatusIcon /> {statusMeta.label}
             </span>
           </div>
           <p className="srv-review-date">

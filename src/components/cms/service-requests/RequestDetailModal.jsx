@@ -63,6 +63,12 @@ function buildTimeline(request) {
   return events;
 }
 
+function fallbackLabel(value = '') {
+  return String(value)
+    .replace(/[_-]+/g, ' ')
+    .trim()
+    .replace(/\w\S*/g, (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
+}
 
 export default function RequestDetailModal({ isOpen, request, loadingDetail = false, onClose, onCancelSuccess, onMessageSent }) {
   const [cancelling, setCancelling] = useState(false);
@@ -83,6 +89,8 @@ export default function RequestDetailModal({ isOpen, request, loadingDetail = fa
   const canCancel = request.status === 'open' && !request.has_fulfillments;
   const canMessage = ['open', 'in_progress'].includes(request.status);
   const messages = request.messages || [];
+  const urgencyLabel = request.urgencyLabel || fallbackLabel(request.urgency);
+  const typeLabel = request.typeLabel || request.type || fallbackLabel(request.ticket_type);
 
   const handleCancel = async () => {
     try {
@@ -204,8 +212,8 @@ export default function RequestDetailModal({ isOpen, request, loadingDetail = fa
           {/* Badges */}
           <div className="sr-detail-badges">
             <span className={`sr-status-badge ${request.statusClass}`}>{request.statusLabel}</span>
-            <span className={`sr-urgency-badge ${request.urgencyClass}`}>{request.urgency}</span>
-            <span className="sr-type-pill">{request.type}</span>
+            <span className={`sr-urgency-badge ${request.urgencyClass}`}>{urgencyLabel}</span>
+            <span className="sr-type-pill">{typeLabel}</span>
           </div>
 
           {/* Error */}

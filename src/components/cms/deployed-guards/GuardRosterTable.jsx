@@ -3,6 +3,7 @@ import Pagination from '@components/ui/Pagination';
 import EmptyState from '@components/ui/EmptyState';
 import EntityAvatar from '@components/ui/EntityAvatar';
 import { TableSkeletonRows } from '@components/ui/Skeleton';
+import { getShiftLabel } from '@utils/formatters';
 
 const statusConfig = {
   active: { label: 'Active', className: 'dg-status-badge dg-status-badge--active' },
@@ -12,7 +13,7 @@ const statusConfig = {
   unknown: { label: 'Unknown', className: 'dg-status-badge dg-status-badge--unknown' },
 };
 
-function ShiftBadge({ shift, shiftKey }) {
+function ShiftBadge({ shift, shiftKey, shiftStart, shiftEnd }) {
   if (!shift || shift === 'Unscheduled') {
     return (
       <span className="dg-shift-badge dg-shift-badge--unscheduled">
@@ -20,8 +21,9 @@ function ShiftBadge({ shift, shiftKey }) {
       </span>
     );
   }
-  const is24 = shiftKey === '24hr' || shift === '24-Hour';
-  const isNight = shiftKey === 'night' || (!shiftKey && (shift.toLowerCase().startsWith('night') || shift.includes('PM') || shift.includes('18:')));
+  const shiftLabel = shiftStart && shiftEnd ? getShiftLabel(shiftStart, shiftEnd) : null;
+  const is24 = shiftLabel === '24-Hour Shift' || shiftKey === '24hr' || shift === '24-Hour';
+  const isNight = shiftLabel === 'Night Shift' || shiftKey === 'night';
 
   if (is24) {
     return (
@@ -145,7 +147,14 @@ export default function GuardRosterTable({
                       </div>
                     </td>
                     <td className="dg-td-mono">{guard.employee_id_number}</td>
-                    <td><ShiftBadge shift={guard.shift} shiftKey={guard.shift_key} /></td>
+                    <td>
+                      <ShiftBadge
+                        shift={guard.shift}
+                        shiftKey={guard.shift_key}
+                        shiftStart={guard.shift_start}
+                        shiftEnd={guard.shift_end}
+                      />
+                    </td>
                     <td onClick={(e) => e.stopPropagation()}>
                       <AttendanceBadge attendanceStatus={guard.attendance_status} />
                     </td>

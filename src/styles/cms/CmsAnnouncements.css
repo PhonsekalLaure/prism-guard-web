@@ -672,30 +672,30 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: linear-gradient(135deg, #e6b215 0%, #f5c842 100%);
-  color: #093269;
+  background: #093269;
+  color: #fff;
   border: none;
-  padding: 0.6rem 1.25rem;
-  border-radius: 10px;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
   font-size: 0.82rem;
   font-weight: 700;
   font-family: 'Poppins', sans-serif;
   cursor: pointer;
   white-space: nowrap;
-  box-shadow: 0 3px 12px rgba(230, 178, 21, 0.35);
+  box-shadow: 0 4px 12px rgba(9, 50, 105, 0.25);
   transition: background 0.2s, transform 0.15s, box-shadow 0.15s;
   flex-shrink: 0;
 }
 
 .ann-create-btn:hover {
-  background: linear-gradient(135deg, #d4a010 0%, #e6b215 100%);
+  background: #0a4080;
   transform: translateY(-1px);
-  box-shadow: 0 5px 18px rgba(230, 178, 21, 0.45);
+  box-shadow: 0 6px 16px rgba(9, 50, 105, 0.35);
 }
 
 .ann-create-btn:active {
   transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(230, 178, 21, 0.3);
+  box-shadow: 0 2px 8px rgba(9, 50, 105, 0.25);
 }
 
 /* =============================================

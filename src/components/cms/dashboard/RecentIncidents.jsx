@@ -6,6 +6,13 @@ const thStyle = { padding: '0.65rem 1rem', textAlign: 'left', fontSize: '0.68rem
 const tdStyle = { padding: '0.85rem 1rem', fontSize: '0.85rem' };
 const tableSkeletonCellStyle = { height: 14, width: '100%' };
 
+function formatEnumLabel(value = '') {
+  return String(value)
+    .replace(/[_-]+/g, ' ')
+    .trim()
+    .replace(/\w\S*/g, (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
+}
+
 export default function RecentIncidents({ incidents, loading }) {
   const rows = incidents || [];
 
@@ -39,15 +46,15 @@ export default function RecentIncidents({ incidents, loading }) {
                 : rows.map((inc, i) => (
                   <tr key={inc.id ?? i} style={{ borderBottom: '1px solid #f0f0f0' }}>
                     <td style={{ ...tdStyle, color: '#4b5563', fontWeight: 600 }}>{inc.date}</td>
-                    <td style={{ ...tdStyle, fontWeight: 600, color: '#1a1a1a' }}>{inc.type}</td>
+                    <td style={{ ...tdStyle, fontWeight: 600, color: '#1a1a1a' }}>{formatEnumLabel(inc.type)}</td>
                     <td style={tdStyle}>
                       <span style={{ background: inc.severityBg, color: inc.severityColor, padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.68rem', fontWeight: 700 }}>
-                        {inc.severity}
+                        {formatEnumLabel(inc.severity).toUpperCase()}
                       </span>
                     </td>
                     <td style={tdStyle}>
                       <span style={{ background: inc.statusBg, color: inc.statusColor, padding: '0.25rem 0.75rem', borderRadius: '20px', fontSize: '0.72rem', fontWeight: 600 }}>
-                        {inc.status}
+                        {formatEnumLabel(inc.status)}
                       </span>
                     </td>
                   </tr>
