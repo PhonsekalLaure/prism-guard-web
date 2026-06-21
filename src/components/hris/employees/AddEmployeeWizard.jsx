@@ -30,13 +30,40 @@ const STEPS = [
   { num: 4, label: 'Review'        },
 ];
 
+const REQUIRED_ONBOARDING_CREDENTIALS = [
+  { field: 'tinNumber', label: 'TIN Number' },
+  { field: 'sssNumber', label: 'SSS Number' },
+  { field: 'pagibigNumber', label: 'Pag-IBIG Number' },
+  { field: 'philhealthNumber', label: 'PhilHealth Number' },
+  { field: 'licenseNumber', label: 'License Number' },
+  { field: 'licenseExpiryDate', label: 'License Expiry Date' },
+];
+
+const REQUIRED_ONBOARDING_DOCUMENTS = [
+  { id: 'contract', label: 'Employee Contract' },
+  { id: 'valid_id', label: 'Valid ID' },
+  { id: 'barangay', label: 'Barangay Clearance' },
+  { id: 'police', label: 'Police Clearance' },
+  { id: 'nbi', label: 'NBI Clearance' },
+  { id: 'neuro', label: 'Neuro-Psychiatric Exam' },
+  { id: 'drugtest', label: 'Drug Test' },
+  { id: 'sg_license', label: 'Security Guard License' },
+];
+
+function getMissingOnboardingDocuments(documents = {}, hasInitialSite = false) {
+  const requiredDocuments = hasInitialSite
+    ? [...REQUIRED_ONBOARDING_DOCUMENTS, { id: 'deployment_order', label: 'Deployment Order' }]
+    : REQUIRED_ONBOARDING_DOCUMENTS;
+  return requiredDocuments.filter((document) => !documents[document.id]);
+}
+
 const INITIAL_FORM = () => ({
   // Step 1
   firstName: '', lastName: '', middleName: '', suffix: '',
   dob: '', gender: '', height: '', civilStatus: '', citizenship: 'Filipino',
   educationalLevel: '', mobile: '', email: '',
   address: '', latitude: null, longitude: null,
-  bloodType: '', placeOfBirth: '', provincialAddress: '',
+  bloodType: '',
   emergencyName: '', emergencyContact: '', emergencyRelationship: '',
   // Step 2
   employeeId: '', hireDate: new Date().toISOString().split('T')[0],
@@ -162,6 +189,39 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
     }));
   };
 
+  const validateRequiredEmploymentCredentials = () => {
+    const missingCredentials = REQUIRED_ONBOARDING_CREDENTIALS.filter(({ field }) => (
+      !String(formData[field] || '').trim()
+    ));
+    if (missingCredentials.length > 0) {
+      showNotification(
+        `Please fill in all required government and license fields: ${missingCredentials.map(({ label }) => label).join(', ')}.`,
+        'error'
+      );
+      return false;
+    }
+    return true;
+  };
+
+  const validateRequiredDocuments = () => {
+    const missingDocuments = getMissingOnboardingDocuments(
+      formData.documents,
+      Boolean(formData.initialSiteId)
+    );
+    if (missingDocuments.length > 0) {
+      showNotification(
+        `Please upload all required documents: ${missingDocuments.map((document) => document.label).join(', ')}.`,
+        'error'
+      );
+      return false;
+    }
+    if (!formData.contractEndDate) {
+      showNotification('Please set the employee contract end date.', 'error');
+      return false;
+    }
+    return true;
+  };
+
   const validateStep = () => {
     if (currentStep === 1) {
       const { firstName, lastName, dob, gender, height, civilStatus, educationalLevel, mobile, email, address, emergencyName, emergencyContact } = formData;
@@ -191,6 +251,7 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
       if (!formData.hireDate || !formData.position || !formData.employmentType) {
         showNotification('Please fill in all required employment fields', 'error'); return false;
       }
+      if (!validateRequiredEmploymentCredentials()) return false;
       const { min: minHireDate, max: maxHireDate } = getHireDateBounds();
       if (formData.hireDate < minHireDate || formData.hireDate > maxHireDate) {
         showNotification('Date hired must be between 1 year ago and 3 months in the future.', 'error'); return false;
@@ -232,13 +293,84 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
         showNotification('License expiry date cannot be earlier than today.', 'error'); return false;
       }
     } else if (currentStep === 3) {
-      if (!formData.documents?.contract) {
-        showNotification('Employee onboarding requires an employment contract document.', 'error'); return false;
-      }
-      if (formData.contractEndDate && isEarlierDate(formData.hireDate, formData.contractEndDate)) {
+      if (!validateRequiredDocuments()) return false;
+      if (isEarlierDate(formData.hireDate, formData.contractEndDate)) {
         showNotification('Employment contract end date cannot be earlier than employment contract start date.', 'error'); return false;
       }
     }
+    return true;
+  };
+
+  const isCurrentStepComplete = () => {
+    if (currentStep === 1) {
+      const { firstName, lastName, dob, gender, height, civilStatus, educationalLevel, mobile, email, address, emergencyName, emergencyContact } = formData;
+      const { min: minDobDate, max: maxDobDate } = getAgeDateBounds();
+      const heightError = getGuardHeightError(gender, height);
+
+      return Boolean(
+        firstName?.trim()
+        && lastName?.trim()
+        && dob
+        && dob >= minDobDate
+        && dob <= maxDobDate
+        && gender
+        && height
+        && !heightError
+        && civilStatus
+        && educationalLevel
+        && mobile
+        && mobile.replace(/\D/g, '').length === 10
+        && email
+        && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+        && address?.trim()
+        && formData.latitude != null
+        && formData.longitude != null
+        && emergencyName?.trim()
+        && emergencyContact
+        && emergencyContact.replace(/\D/g, '').length === 10
+      );
+    }
+
+    if (currentStep === 2) {
+      if (!formData.hireDate || !formData.position || !formData.employmentType) return false;
+      if (REQUIRED_ONBOARDING_CREDENTIALS.some(({ field }) => !String(formData[field] || '').trim())) return false;
+
+      const { min: minHireDate, max: maxHireDate } = getHireDateBounds();
+      if (formData.hireDate < minHireDate || formData.hireDate > maxHireDate) return false;
+      if (isPastDate(formData.licenseExpiryDate)) return false;
+
+      if (!formData.initialSiteId) return true;
+
+      const selectedSite = sites.find((site) => site.id === formData.initialSiteId);
+      const clientContractStartDate = selectedSite?.client_contract_start_date || null;
+      const clientContractEndDate = selectedSite?.client_contract_end_date || null;
+      const minDeploymentStartDate = getDeploymentStartDateMinimum({
+        hireDate: formData.hireDate,
+        clientContractStartDate,
+      });
+
+      return Boolean(
+        !isBelowMinimumMonthlyBasePay(formData.basicRate)
+        && formData.deploymentStartDate
+        && formData.deploymentEndDate
+        && formData.deploymentStartDate >= minDeploymentStartDate
+        && !isAfterDate(formData.deploymentStartDate, clientContractEndDate)
+        && !isEarlierDate(formData.deploymentStartDate, formData.deploymentEndDate)
+        && !isAfterDate(formData.deploymentEndDate, clientContractEndDate)
+        && formData.daysOfWeek.length >= 6
+        && formData.shiftStart
+        && formData.shiftEnd
+      );
+    }
+
+    if (currentStep === 3) {
+      return Boolean(
+        getMissingOnboardingDocuments(formData.documents, Boolean(formData.initialSiteId)).length === 0
+        && formData.contractEndDate
+        && !isEarlierDate(formData.hireDate, formData.contractEndDate)
+      );
+    }
+
     return true;
   };
 
@@ -248,13 +380,11 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      if (!formData.documents?.contract) {
-        showNotification('Employee onboarding requires an employment contract document.', 'error');
+      if (!validateRequiredEmploymentCredentials()) {
         setIsSubmitting(false);
         return;
       }
-      if (!formData.contractEndDate) {
-        showNotification('Please set the employee contract end date.', 'error');
+      if (!validateRequiredDocuments()) {
         setIsSubmitting(false);
         return;
       }
@@ -308,7 +438,8 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
         if (key === 'documents') {
           Object.keys(formData.documents).forEach(docKey => {
             if (docKey === 'deployment_order' && !formData.initialSiteId) return;
-            if (formData.documents[docKey]) payload.append(`document_${docKey}`, formData.documents[docKey]);
+            const documentFile = formData.documents[docKey];
+            if (documentFile instanceof File) payload.append(`document_${docKey}`, documentFile);
           });
         } else if (key === 'daysOfWeek') {
           formData.daysOfWeek.forEach((day) => payload.append('daysOfWeek', String(day)));
@@ -340,6 +471,8 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
   };
 
   /* ── Render ── */
+  const canProceedFromCurrentStep = isCurrentStepComplete();
+
   return (
     <>
       {notification && (
@@ -403,7 +536,7 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
             )}
 
             {currentStep < 4 ? (
-              <button type="button" className="ae-btn ae-btn-primary" onClick={nextStep}>
+              <button type="button" className="ae-btn ae-btn-primary" onClick={nextStep} disabled={isSubmitting || !canProceedFromCurrentStep}>
                 Next: {STEPS[currentStep]?.label} <FaArrowRight />
               </button>
             ) : (

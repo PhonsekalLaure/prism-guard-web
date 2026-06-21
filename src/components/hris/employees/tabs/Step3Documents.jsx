@@ -1,26 +1,26 @@
 const generalDocs  = [
-  { id: 'valid_id',                   label: 'Valid ID' },
+  { id: 'valid_id',                   label: 'Valid ID', required: true },
   { id: 'resume',                     label: 'Resume' },
   { id: 'personal_information_sheet', label: 'Personal Information Sheet' },
 ];
 
 const clearanceDocs = [
-  { id: 'barangay', label: 'Barangay Clearance' },
-  { id: 'police',   label: 'Police Clearance' },
-  { id: 'nbi',      label: 'NBI Clearance' },
-  { id: 'neuro',    label: 'Neuro-Psychiatric Exam' },
-  { id: 'drugtest', label: 'Drug Test' },
+  { id: 'barangay', label: 'Barangay Clearance', required: true },
+  { id: 'police',   label: 'Police Clearance', required: true },
+  { id: 'nbi',      label: 'NBI Clearance', required: true },
+  { id: 'neuro',    label: 'Neuro-Psychiatric Exam', required: true },
+  { id: 'drugtest', label: 'Drug Test', required: true },
 ];
 
 const licenseDocs = [
-  { id: 'sg_license', label: 'Security Guard License (LTOPF / ID)' },
+  { id: 'sg_license', label: 'Security Guard License (LTOPF / ID)', required: true },
 ];
 
 function DocRow({ doc, disabled = false, documents, onChange }) {
   const file = documents[doc.id];
   return (
     <div className={`ae-check-item flex items-center justify-between ${disabled ? 'ae-doc-disabled' : ''}`}>
-      <span className="font-semibold text-sm">{doc.label}</span>
+      <span className="font-semibold text-sm">{doc.label}{doc.required ? ' *' : ''}</span>
       <div className="flex items-center gap-2">
         {file && <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded truncate max-w-[150px]">{file.name}</span>}
         <label className={`ae-btn ae-btn-secondary !py-1 !px-3 !text-xs cursor-pointer m-0 inline-block ${disabled ? 'ae-upload-disabled' : ''}`}>
@@ -84,11 +84,12 @@ export default function Step3Documents({ data, onChange }) {
           <span className="ae-doc-section-title">📋 Contract &amp; Deployment</span>
         </div>
         <div className="ae-checklist">
-          <DocRow doc={{ id: 'contract', label: 'Employee Contract' }} documents={data.documents} onChange={handleFileChange} />
+          <DocRow doc={{ id: 'contract', label: 'Employee Contract', required: true }} documents={data.documents} onChange={handleFileChange} />
           <div className="ae-check-item flex items-center justify-between">
-            <span className="font-semibold text-sm">Employee Contract End Date</span>
+            <span className="font-semibold text-sm">Employee Contract End Date *</span>
             <input
               type="date"
+              required
               className="ae-input"
               style={{ width: '200px', padding: '0.4rem 0.6rem', fontSize: '0.82rem' }}
               value={data.contractEndDate}
@@ -96,7 +97,7 @@ export default function Step3Documents({ data, onChange }) {
               min={data.hireDate || undefined}
             />
           </div>
-          <DocRow doc={{ id: 'deployment_order', label: 'Deployment Order' }} disabled={isFloating} documents={data.documents} onChange={handleFileChange} />
+          <DocRow doc={{ id: 'deployment_order', label: 'Deployment Order', required: !isFloating }} disabled={isFloating} documents={data.documents} onChange={handleFileChange} />
           {isFloating && (
             <p className="ae-hint" style={{ marginTop: '-0.25rem', paddingLeft: '1rem' }}>
               Deployment order upload is available when an initial site assignment is selected.

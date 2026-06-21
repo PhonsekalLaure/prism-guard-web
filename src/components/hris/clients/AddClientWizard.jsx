@@ -8,6 +8,10 @@ import {
   isBelowMinimumMonthlyBasePay,
   MINIMUM_MONTHLY_BASE_PAY_MESSAGE,
 } from '@constants/payrollRules';
+import {
+  CLIENT_RATE_PER_GUARD_MESSAGE,
+  isClientContractRateValid,
+} from '@constants/clientContractRules';
 
 import Step1ContactInfo    from './wizard/Step1ContactInfo';
 import Step2CompanyDetails from './wizard/Step2CompanyDetails';
@@ -291,8 +295,8 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
         if (new Date(formData.contractStartDate) >= new Date(formData.contractEndDate)) {
           showNotification('Contract end date must be after start date.', 'error'); return false;
         }
-        if (!formData.ratePerGuard || Number(formData.ratePerGuard) <= 0) {
-          showNotification('Please enter a valid rate per guard greater than 0.', 'error'); return false;
+        if (!isClientContractRateValid(formData.ratePerGuard)) {
+          showNotification(CLIENT_RATE_PER_GUARD_MESSAGE, 'error'); return false;
         }
         if (!(formData.contractUrl instanceof File)) {
           showNotification('Please upload the client contract document.', 'error'); return false;
@@ -342,6 +346,61 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
           }
         }
         return true;
+      default:
+        return true;
+    }
+  };
+
+  const isCurrentStepComplete = () => {
+    switch (currentStep) {
+      case 1:
+        return Boolean(
+          formData.firstName.trim()
+          && formData.lastName.trim()
+          && formData.email.trim()
+          && /\S+@\S+\.\S+/.test(formData.email)
+          && formData.mobile.trim()
+          && /^9\d{9}$/.test(formData.mobile.replace(/\D/g, ''))
+        );
+      case 2:
+        return Boolean(formData.company.trim() && formData.billingAddress.trim());
+      case 3:
+        return Boolean(
+          formData.contractStartDate
+          && formData.contractEndDate
+          && new Date(formData.contractStartDate) < new Date(formData.contractEndDate)
+          && isClientContractRateValid(formData.ratePerGuard)
+          && formData.contractUrl instanceof File
+        );
+      case 4:
+        return formData.sites.every((site) => {
+          const hasAny = [site.siteName, site.siteAddress, site.geofenceRadius].some((value) => String(value || '').trim() !== '');
+          if (!hasAny) return true;
+          return Boolean(
+            site.siteName?.trim()
+            && site.siteAddress?.trim()
+            && site.latitude !== ''
+            && site.latitude != null
+            && site.longitude !== ''
+            && site.longitude != null
+            && site.geofenceRadius !== ''
+            && Number(site.geofenceRadius) >= 20
+          );
+        });
+      case 5:
+        if (formData.initialDeployment.assignments.length === 0) return true;
+        if (formData.initialDeployment.siteIndex === '') return false;
+        return formData.initialDeployment.assignments.every((assignment) => Boolean(
+          !isBelowMinimumMonthlyBasePay(assignment.baseSalary)
+          && assignment.contractStartDate
+          && assignment.contractEndDate
+          && assignment.contractStartDate <= assignment.contractEndDate
+          && !isAfterDate(assignment.contractEndDate, formData.contractEndDate)
+          && assignment.daysOfWeek.length >= 6
+          && assignment.shiftStart
+          && assignment.shiftEnd
+          && assignment.deploymentOrderFile
+        ));
       default:
         return true;
     }
@@ -410,6 +469,8 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
   /* ── Layout classes: identical approach to AddEmployeeWizard ── */
   const outerClass   = pageMode ? 'ap-page-wrapper'    : 'ae-modal-overlay';
   const contentClass = pageMode ? 'ap-page-container'  : 'ae-modal-content';
+
+  const canProceedFromCurrentStep = isCurrentStepComplete();
 
   return (
     <>
@@ -492,7 +553,7 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
               )}
 
               {currentStep < STEPS.length ? (
-                <button type="button" className="ae-btn ae-btn-primary" onClick={nextStep} disabled={isSubmitting}>
+                <button type="button" className="ae-btn ae-btn-primary" onClick={nextStep} disabled={isSubmitting || !canProceedFromCurrentStep}>
                   Next: {STEPS[currentStep]?.label} <FaArrowRight />
                 </button>
               ) : (

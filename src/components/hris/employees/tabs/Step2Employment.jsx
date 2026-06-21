@@ -149,19 +149,20 @@ export default function Step2Employment({ data, onChange, sites, onSiteChange, t
         <div className="ae-form-group span-2 mt-2">
           <h4 className="text-sm font-bold text-gray-700 border-b pb-2">Government IDs</h4>
         </div>
-        <FormField label="TIN Number"     type="text" value={data.tinNumber}      onChange={(e) => onChange('tinNumber',      e.target.value)} placeholder="000-000-000-000" />
-        <FormField label="SSS Number"     type="text" value={data.sssNumber}      onChange={(e) => onChange('sssNumber',      e.target.value)} placeholder="00-0000000-0" />
-        <FormField label="Pag-IBIG Number" type="text" value={data.pagibigNumber} onChange={(e) => onChange('pagibigNumber',  e.target.value)} placeholder="0000-0000-0000" />
-        <FormField label="PhilHealth Number" type="text" value={data.philhealthNumber} onChange={(e) => onChange('philhealthNumber', e.target.value)} placeholder="00-000000000-0" />
+        <FormField label="TIN Number *"     required type="text" value={data.tinNumber}      onChange={(e) => onChange('tinNumber',      e.target.value)} placeholder="000-000-000-000" />
+        <FormField label="SSS Number *"     required type="text" value={data.sssNumber}      onChange={(e) => onChange('sssNumber',      e.target.value)} placeholder="00-0000000-0" />
+        <FormField label="Pag-IBIG Number *" required type="text" value={data.pagibigNumber} onChange={(e) => onChange('pagibigNumber',  e.target.value)} placeholder="0000-0000-0000" />
+        <FormField label="PhilHealth Number *" required type="text" value={data.philhealthNumber} onChange={(e) => onChange('philhealthNumber', e.target.value)} placeholder="00-000000000-0" />
 
         <div className="ae-form-group span-2 mt-2">
           <h4 className="text-sm font-bold text-gray-700 border-b pb-2">License &amp; Credentials</h4>
         </div>
-        <FormField label="License Number"    type="text" value={data.licenseNumber}     onChange={(e) => onChange('licenseNumber',     e.target.value)} placeholder="e.g., SG-12345678" />
+        <FormField label="License Number *"    required type="text" value={data.licenseNumber}     onChange={(e) => onChange('licenseNumber',     e.target.value)} placeholder="e.g., SG-12345678" />
         <FormField label="Badge Number (Optional)" type="text" value={data.badgeNumber} onChange={(e) => onChange('badgeNumber',       e.target.value)} placeholder="Leave blank if not assigned yet" />
         <FormField
-          label="License Expiry Date"
+          label="License Expiry Date *"
           type="date"
+          required
           value={data.licenseExpiryDate}
           onChange={(e) => onChange('licenseExpiryDate', e.target.value)}
           min={new Date().toISOString().split('T')[0]}

@@ -1,5 +1,9 @@
 import { FaFileContract, FaFileUpload } from 'react-icons/fa';
 import FormField from './ClientFormField';
+import {
+  MAX_CLIENT_RATE_PER_GUARD,
+  MIN_CLIENT_RATE_PER_GUARD,
+} from '@constants/clientContractRules';
 
 export default function Step3Contract({ data, onChange }) {
   const today = new Date();
@@ -40,7 +44,9 @@ export default function Step3Contract({ data, onChange }) {
           type="number"
           placeholder="0.00"
           prefix="PHP"
-          min="0.01"
+          min={MIN_CLIENT_RATE_PER_GUARD}
+          max={MAX_CLIENT_RATE_PER_GUARD}
+          step="0.01"
           required
           value={data.ratePerGuard}
           onChange={(e) => onChange('ratePerGuard', e.target.value)}

@@ -41,6 +41,9 @@ function buildApplicantInitialData(applicant) {
     badgeNumber: applicant.badge_number || '',
     licenseNumber: applicant.license_number || '',
     licenseExpiryDate: applicant.license_expiry_date || '',
+    documents: applicant.license_photo_url
+      ? { sg_license: { existingUrl: applicant.license_photo_url, name: 'Applicant uploaded license' } }
+      : {},
     avatarUrl: applicant.profile_photo_url || applicant.avatarUrl || '',
     sourceApplicantId: applicant.id || '',
   };

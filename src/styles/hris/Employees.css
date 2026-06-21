@@ -1589,6 +1589,15 @@ textarea.ve-edit-input { resize: vertical; min-height: 64px; }
   background: #15803d;
 }
 
+.ae-btn:disabled,
+.ae-btn:disabled:hover {
+  background: #9ca3af;
+  color: #f8fafc;
+  cursor: not-allowed;
+  opacity: 0.65;
+  box-shadow: none;
+  transform: none;
+}
 @media (max-width: 768px) {
   .ae-form-grid { grid-template-columns: 1fr; }
   .ae-form-group.span-2 { grid-column: auto; }

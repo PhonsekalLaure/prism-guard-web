@@ -99,8 +99,7 @@ export default function PersonalTab({
               <InfoCell label="Gender"                  value={employee.gender || 'N/A'} />
               <InfoCell label="Citizenship"             value={employee.citizenship || 'Filipino'} />
               <InfoCell label="Marital Status"          value={employee.civil_status || 'N/A'} />
-              <InfoCell label="Blood Type"              value={employee.blood_type || 'N/A'} />
-              <InfoCell label="Place of Birth"          value={employee.place_of_birth || 'N/A'} />
+              <InfoCell label="Blood Type"              value={employee.blood_type || '-'} />
               <InfoCell label="Height"                  value={employee.height_cm ? `${employee.height_cm} cm` : 'N/A'} />
               <InfoCell label="Educational Attainment"  value={employee.educational_level || 'N/A'} />
             </div>
@@ -112,10 +111,9 @@ export default function PersonalTab({
               <InfoCell label="Mobile Number"      value={employee.phone_number || 'N/A'} />
               <InfoCell label="Email Address"      value={employee.contact_email || 'N/A'} />
               <InfoCell label="Residential Address" value={employee.residential_address || 'N/A'} span2 />
-              <InfoCell label="Provincial Address" value={employee.provincial_address || 'N/A'} span2 />
               <InfoCell label="Emergency Contact"  value={employee.emergency_contact_name || 'N/A'} />
               <InfoCell label="Emergency Number"   value={employee.emergency_contact_number || 'N/A'} />
-              <InfoCell label="Relationship"       value={employee.emergency_contact_relationship || 'N/A'} />
+              <InfoCell label="Relationship"       value={employee.emergency_contact_relationship || '-'} />
             </div>
           </div>
         </>
@@ -140,7 +138,6 @@ export default function PersonalTab({
               <EditSelect label="Gender"                 value={editForm.gender}                            onChange={v => onField('gender', v)}        options={['Male', 'Female']} disabled />
               <EditSelect label="Marital Status"         value={editForm.civil_status}                     onChange={v => onField('civil_status', v)}  options={['Single', 'Married', 'Widowed', 'Separated']} disabled />
               <EditSelect label="Blood Type"             value={editForm.blood_type}                       onChange={v => onField('blood_type', v)}    options={['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']} disabled />
-              <EditInput  label="Place of Birth"         value={editForm.place_of_birth}                   onChange={v => onField('place_of_birth', v)} placeholder="City, Province" readOnly disabled />
               <EditInput  label="Height (cm)"            type="number" value={editForm.height_cm}          onChange={v => onField('height_cm', v)}     placeholder="e.g. 170" readOnly disabled />
               <EditSelect label="Educational Attainment" value={editForm.educational_level}                onChange={v => onField('educational_level', v)} options={EDUCATIONAL_LEVELS} disabled />
               <EditInput  label="Citizenship"            value={editForm.citizenship}                      onChange={v => onField('citizenship', v)}   readOnly disabled />
@@ -171,9 +168,7 @@ export default function PersonalTab({
                 />
                 <p className="ae-hint">Validated address saves coordinates for deployment calculations.</p>
               </div>
-              <div className="ve-edit-field span-2">
-                <EditInput label="Provincial Address" value={editForm.provincial_address} onChange={v => onField('provincial_address', v)} placeholder="Complete provincial address" />
-              </div>
+
               <EditInput label="Emergency Contact Name"   value={editForm.emergency_contact_name}   onChange={v => onField('emergency_contact_name', v)} />
               <EditInput label="Emergency Contact Number" value={editForm.emergency_contact_number} onChange={v => onField('emergency_contact_number', v)} placeholder="10-digit number" />
               <EditInput label="Relationship"             value={editForm.emergency_contact_relationship} onChange={v => onField('emergency_contact_relationship', v)} placeholder="e.g. Parent, Spouse" />

@@ -93,7 +93,7 @@ export default function EmploymentTab({ employee, isEditing, editForm, onField }
           <div className="ve-info-grid cols-3">
             <InfoCell label="Position"        value={employee.position || 'N/A'} />
             <InfoCell label="Employment Type" value={toProperCase(employee.employment_type)} />
-            <InfoCell label="Badge Number"    value={employee.badge_number || 'N/A'} />
+            <InfoCell label="Badge Number"    value={employee.badge_number || '-'} />
             <InfoCell label="License Number"  value={employee.license_number || 'N/A'} />
             <InfoCell label="License Expiry"  value={employee.license_expiry_date || 'N/A'} />
           </div>

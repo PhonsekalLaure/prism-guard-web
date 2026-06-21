@@ -1,5 +1,9 @@
 import { FaFileInvoiceDollar, FaTimes, FaFileContract } from 'react-icons/fa';
 import { PanelHeader, RenewalDocumentPanel, RenewalPeriodPanel } from '@hris-components/shared/RenewalDialogSections';
+import {
+  MAX_CLIENT_RATE_PER_GUARD,
+  MIN_CLIENT_RATE_PER_GUARD,
+} from '@constants/clientContractRules';
 
 export default function RenewClientContractDialog({
   isOpen,
@@ -56,7 +60,9 @@ export default function RenewClientContractDialog({
                     className="dep-input"
                     style={{ paddingLeft: '1.75rem' }}
                     value={form.ratePerGuard}
-                    min="1"
+                    min={MIN_CLIENT_RATE_PER_GUARD}
+                    max={MAX_CLIENT_RATE_PER_GUARD}
+                    step="0.01"
                     placeholder="0.00"
                     onChange={(e) => onFieldChange('ratePerGuard', e.target.value)}
                   />

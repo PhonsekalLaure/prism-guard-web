@@ -14,6 +14,10 @@ import {
   isBelowMinimumMonthlyBasePay,
   MINIMUM_MONTHLY_BASE_PAY_MESSAGE,
 } from '@constants/payrollRules';
+import {
+  CLIENT_RATE_PER_GUARD_MESSAGE,
+  isClientContractRateValid,
+} from '@constants/clientContractRules';
 
 import GeneralTab from './tabs/GeneralTab';
 import SitesTab from './tabs/SitesTab';
@@ -389,8 +393,8 @@ export default function ViewClientDetail({
       showNotification('Please upload the renewed client contract document.', 'error');
       return;
     }
-    if (!contractForm.ratePerGuard || Number(contractForm.ratePerGuard) <= 0) {
-      showNotification('Please set the contract rate per guard.', 'error');
+    if (!isClientContractRateValid(contractForm.ratePerGuard)) {
+      showNotification(CLIENT_RATE_PER_GUARD_MESSAGE, 'error');
       return;
     }
 

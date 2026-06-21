@@ -13,7 +13,7 @@ function DetailCell({ label, value }) {
   return (
     <div className="ar-detail-cell">
       <p className="ar-detail-label">{label}</p>
-      <p className="ar-detail-value">{value || 'N/A'}</p>
+      <p className="ar-detail-value">{value || '-'}</p>
     </div>
   );
 }
@@ -159,13 +159,13 @@ export default function ReviewApplicantModal({
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <span className="ar-credential-badge"><FaCheck /> DECLARED</span>
-                  <p className="ar-credential-expires">Expires: {applicant.license_expiry_date || 'N/A'}</p>
+                  <p className="ar-credential-expires">Expires: {applicant.license_expiry_date || '-'}</p>
                 </div>
               </div>
               <div className="ar-credential-row">
                 <div>
                   <p className="ar-credential-name">Badge Number</p>
-                  <p className="ar-credential-sub">{applicant.badge_number || 'Not declared'}</p>
+                  <p className="ar-credential-sub">{applicant.badge_number || '-'}</p>
                 </div>
               </div>
             </div>
