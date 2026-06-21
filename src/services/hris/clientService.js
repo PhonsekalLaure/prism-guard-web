@@ -83,6 +83,11 @@ async function reactivateClient(id) {
   return data;
 }
 
+async function resendSetupLink(id) {
+  const { data } = await api.post(`/${id}/resend-setup-link`);
+  return data;
+}
+
 async function relieveAllClientGuards(id, payload = {}) {
   const { data } = await api.post(`/${id}/relieve-all`, payload);
   return data;
@@ -122,6 +127,7 @@ export default {
   updateClient,
   deactivateClient,
   reactivateClient,
+  resendSetupLink,
   relieveAllClientGuards,
   getAllSitesList,
   createClientSite,

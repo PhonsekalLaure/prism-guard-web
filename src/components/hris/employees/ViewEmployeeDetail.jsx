@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   FaTimes, FaUser, FaBriefcase, FaShieldAlt, FaMoneyCheckAlt,
-  FaFileContract, FaMapMarkerAlt, FaUserMinus, FaUserCheck,
+  FaFileContract, FaMapMarkerAlt, FaUserMinus, FaUserCheck, FaEnvelope,
 } from 'react-icons/fa';
 import employeeService from '@services/hris/employeeService';
 import clientService from '@services/hris/clientService';
@@ -97,6 +97,7 @@ export default function ViewEmployeeDetail({
   const [editForm,         setEditForm]         = useState({});
   const [pendingFiles,     setPendingFiles]     = useState({});
   const [isSaving,         setIsSaving]         = useState(false);
+  const [isResendingSetup, setIsResendingSetup] = useState(false);
   const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false);
   const [showReactivateConfirm, setShowReactivateConfirm] = useState(false);
   const [showRelieveConfirm, setShowRelieveConfirm] = useState(false);
@@ -217,6 +218,21 @@ export default function ViewEmployeeDetail({
     }
   };
 
+  const handleResendSetupLink = async () => {
+    setIsResendingSetup(true);
+    try {
+      await employeeService.resendSetupLink(previewEmployee.id);
+      const refreshed = await employeeService.getEmployeeDetails(previewEmployee.id);
+      setEmployeeDetails(refreshed);
+      onUpdated?.();
+      showNotification('Setup link sent successfully.', 'success');
+    } catch (err) {
+      console.error(err);
+      showNotification(err.response?.data?.error || 'Failed to resend setup link.', 'error');
+    } finally {
+      setIsResendingSetup(false);
+    }
+  };
   const handleReactivate = async () => {
     try {
       setIsSaving(true);
@@ -544,6 +560,11 @@ export default function ViewEmployeeDetail({
             >
               <FaFileContract /> View Contract
             </button>
+            {data.can_resend_setup_link && (
+              <button className="ve-btn ve-btn-blue" onClick={handleResendSetupLink} disabled={!canWriteEmployees || isResendingSetup}>
+                <FaEnvelope /> {isResendingSetup ? 'Sending...' : 'Resend Setup Link'}
+              </button>
+            )}
             <button className="ve-btn ve-btn-blue" onClick={openRenewContractDialog} disabled={!canWriteEmployees || data.status !== 'active'}>
               <FaFileContract /> Renew Contract
             </button>

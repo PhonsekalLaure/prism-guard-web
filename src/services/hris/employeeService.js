@@ -83,6 +83,11 @@ async function reactivateEmployee(id) {
   return data;
 }
 
+async function resendSetupLink(id) {
+  const { data } = await api.post(`/${id}/resend-setup-link`);
+  return data;
+}
+
 async function deployEmployee(id, payload) {
   if (payload instanceof FormData) {
     const config = withMultipartFormData(payload);
@@ -119,6 +124,7 @@ export default {
   updateEmployee,
   deactivateEmployee,
   reactivateEmployee,
+  resendSetupLink,
   deployEmployee,
   transferEmployeeAssignment,
   relieveEmployeeAssignment,

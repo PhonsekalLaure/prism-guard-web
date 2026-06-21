@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   FaTimes, FaBuilding, FaMapMarkerAlt, FaFileInvoiceDollar, FaTicketAlt,
-  FaFileContract, FaUserPlus, FaUserMinus, FaUserCheck,
+  FaFileContract, FaUserPlus, FaUserMinus, FaUserCheck, FaEnvelope,
 } from 'react-icons/fa';
 import clientService from '@services/hris/clientService';
 import employeeService from '@services/hris/employeeService';
@@ -87,6 +87,7 @@ export default function ViewClientDetail({
   const [editForm, setEditForm] = useState({});
   const [pendingFiles, setPendingFiles] = useState({});
   const [isSaving, setIsSaving] = useState(false);
+  const [isResendingSetup, setIsResendingSetup] = useState(false);
   const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false);
   const [showReactivateConfirm, setShowReactivateConfirm] = useState(false);
   const [showRelieveAllConfirm, setShowRelieveAllConfirm] = useState(false);
@@ -440,6 +441,19 @@ export default function ViewClientDetail({
     }
   };
 
+  const handleResendSetupLink = async () => {
+    setIsResendingSetup(true);
+    try {
+      await clientService.resendSetupLink(previewClient.id);
+      await loadClientDetails(previewClient.id);
+      onUpdated?.();
+      showNotification('Setup link sent successfully.', 'success');
+    } catch (err) {
+      showNotification(err.response?.data?.error || 'Failed to resend setup link.', 'error');
+    } finally {
+      setIsResendingSetup(false);
+    }
+  };
   const handleReactivate = async () => {
     setIsSaving(true);
     try {
@@ -688,6 +702,11 @@ export default function ViewClientDetail({
               <FaFileContract /> View Contract
             </button>
 
+            {data.can_resend_setup_link && (
+              <button className="ve-btn ve-btn-blue" onClick={handleResendSetupLink} disabled={!canWriteClients || isResendingSetup}>
+                <FaEnvelope /> {isResendingSetup ? 'Sending...' : 'Resend Setup Link'}
+              </button>
+            )}
             <button className="ve-btn ve-btn-blue" onClick={openRenewContractDialog} disabled={!canWriteClients || data.status !== 'active'}>
               <FaFileContract /> Renew Contract
             </button>
