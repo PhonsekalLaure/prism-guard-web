@@ -28,6 +28,7 @@ export default function BillingPaymentForm({
     date: '',
     method: '',
     methodOther: '',
+    checkBank: '',
     reference: '',
     notes: '',
   });
@@ -67,6 +68,7 @@ export default function BillingPaymentForm({
       date: payForm.date,
       method: payForm.method,
       methodOther: payForm.methodOther,
+      checkBank: payForm.checkBank,
       reference: payForm.reference,
       notes: payForm.notes,
       receiptFile,
@@ -132,18 +134,42 @@ export default function BillingPaymentForm({
           <select
             className="cms-sp-input"
             value={payForm.method}
-            onChange={(e) => setPayForm((p) => ({ ...p, method: e.target.value }))}
+            onChange={(e) => {
+              const method = e.target.value;
+              setPayForm((p) => ({
+                ...p,
+                method,
+                methodOther: method === 'Other' ? p.methodOther : '',
+                checkBank: method === 'Check' ? p.checkBank : '',
+              }));
+            }}
             required
           >
             <option value="">Select payment method...</option>
+            <option value="Check">Check</option>
             <option value="Bank Transfer (BDO)">Bank Transfer (BDO)</option>
             <option value="Bank Transfer (BPI)">Bank Transfer (BPI)</option>
             <option value="GCash">GCash</option>
             <option value="Maya">Maya</option>
-            <option value="Check">Check</option>
             <option value="Other">Other</option>
           </select>
         </div>
+
+        {payForm.method === 'Check' && (
+          <div className="cms-sp-field">
+            <label className="cms-sp-label">
+              <FaUniversity className="cms-sp-label-icon" /> Check Bank
+            </label>
+            <input
+              type="text"
+              className="cms-sp-input"
+              placeholder="Enter issuing bank"
+              value={payForm.checkBank}
+              onChange={(e) => setPayForm((p) => ({ ...p, checkBank: e.target.value }))}
+              required
+            />
+          </div>
+        )}
 
         {payForm.method === 'Other' && (
           <div className="cms-sp-field">

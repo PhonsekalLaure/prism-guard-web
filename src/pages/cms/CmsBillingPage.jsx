@@ -161,7 +161,7 @@ export default function CmsBillingPage() {
     }
   };
 
-  const handleSubmitReceipt = async ({ amount, date, method, methodOther, reference, notes, receiptFile }) => {
+  const handleSubmitReceipt = async ({ amount, date, method, methodOther, checkBank, reference, notes, receiptFile }) => {
     if (!viewingInvoice) return;
     if (!receiptFile) {
       showNotification('Upload a payment receipt file.', 'error');
@@ -172,13 +172,23 @@ export default function CmsBillingPage() {
       return;
     }
 
+    const trimmedCheckBank = String(checkBank || '').trim();
+    if (method === 'Check' && !trimmedCheckBank) {
+      showNotification('Check bank is required.', 'error');
+      return;
+    }
+    const payerNotes = [
+      method === 'Check' ? `Check bank: ${trimmedCheckBank}` : '',
+      String(notes || '').trim(),
+    ].filter(Boolean).join('\n');
+
     const formData = new FormData();
     formData.append('amount', amount);
     formData.append('payment_date', date);
     formData.append('payment_method', method);
     if (methodOther) formData.append('payment_method_other', methodOther);
     formData.append('reference_number', reference);
-    if (notes) formData.append('payer_notes', notes);
+    if (payerNotes) formData.append('payer_notes', payerNotes);
     formData.append('receipt', receiptFile);
 
     try {
