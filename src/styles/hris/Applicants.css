@@ -683,9 +683,55 @@
   background: transparent;
 }
 
-.ar-inline-select {
-  margin-top: 0.45rem;
+.ar-time-slot-groups {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.ar-time-slot-group {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.ar-time-slot-label {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #6b7280;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ar-time-slot-list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.ar-time-slot {
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  padding: 0.45rem 0.55rem;
+  background: #fff;
+  color: #374151;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
   cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ar-time-slot:hover:not(:disabled),
+.ar-time-slot.selected {
+  border-color: #e6b215;
+  background: rgba(230, 178, 21, 0.12);
+  color: #92400e;
+}
+
+.ar-time-slot:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .ar-pass-toggle {

@@ -3,10 +3,11 @@ import { FaBriefcase, FaCalendarCheck, FaCheck, FaExternalLinkAlt, FaTimes, FaTi
 import EntityAvatar from '@components/ui/EntityAvatar';
 import { getSafeDocumentUrl } from '@utils/security';
 
-const INTERVIEW_MINUTES = ['00', '15', '30'];
-const INTERVIEW_TIME_OPTIONS = Array.from({ length: 24 }, (_, hour) => (
-  INTERVIEW_MINUTES.map((minute) => `${String(hour).padStart(2, '0')}:${minute}`)
-)).flat();
+const INTERVIEW_TIME_GROUPS = [
+  { label: 'Morning', times: ['08:00', '09:00', '10:00', '11:00'] },
+  { label: 'Afternoon', times: ['13:00', '14:00', '15:00', '16:00'] },
+];
+const INTERVIEW_TIME_OPTIONS = INTERVIEW_TIME_GROUPS.flatMap((group) => group.times);
 const DEFAULT_INTERVIEW_TIME = '08:00';
 
 function DetailCell({ label, value }) {
@@ -82,7 +83,8 @@ export default function ReviewApplicantModal({
 
   if (!isOpen || !applicant) return null;
 
-  const canSchedule = applicant.status !== 'rejected' && applicant.status !== 'hired';
+  const isTerminalApplicantStatus = applicant.status === 'rejected' || applicant.status === 'hired';
+  const canSchedule = !isTerminalApplicantStatus;
   const canStartHiring = applicant.status === 'interview' && passedInterview;
   const minInterviewDateKey = addDaysToDateKey(getManilaDateKey(), 1);
   const isScheduledForInterview = applicant.status === 'interview';
@@ -184,17 +186,28 @@ export default function ReviewApplicantModal({
                   disabled={!canSchedule || isSubmitting}
                   onChange={(event) => updateInterviewDate(event.target.value)}
                 />
-                <select
-                  className="ar-inline-input ar-inline-select"
-                  value={interviewTime}
-                  disabled={!canSchedule || isSubmitting}
-                  onChange={(event) => updateInterviewTime(event.target.value)}
-                >
-                  <option value="">Select time</option>
-                  {INTERVIEW_TIME_OPTIONS.map((time) => (
-                    <option key={time} value={time}>{time}</option>
+                <div className="ar-time-slot-groups" role="radiogroup" aria-label="Interview time slots">
+                  {INTERVIEW_TIME_GROUPS.map((group) => (
+                    <div className="ar-time-slot-group" key={group.label}>
+                      <p className="ar-time-slot-label">{group.label}</p>
+                      <div className="ar-time-slot-list">
+                        {group.times.map((time) => (
+                          <button
+                            key={time}
+                            type="button"
+                            className={`ar-time-slot ${interviewTime === time ? 'selected' : ''}`}
+                            disabled={!canSchedule || isSubmitting}
+                            role="radio"
+                            aria-checked={interviewTime === time}
+                            onClick={() => updateInterviewTime(time)}
+                          >
+                            {time}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   ))}
-                </select>
+                </div>
               </div>
               <div className="ar-detail-cell">
                 <p className="ar-detail-label">Residential Address</p>
@@ -241,7 +254,8 @@ export default function ReviewApplicantModal({
             />
           </div>
 
-          <div className="ar-modal-actions">
+          {!isTerminalApplicantStatus && (
+            <div className="ar-modal-actions">
             <button
               className="ar-btn ar-btn-blue"
               disabled={!canSchedule || isSubmitting || !hasAllowedInterviewDate}
@@ -256,7 +270,7 @@ export default function ReviewApplicantModal({
             </button>
             <button
               className="ar-btn ar-btn-red"
-              disabled={isSubmitting || applicant.status === 'rejected'}
+              disabled={isSubmitting || isTerminalApplicantStatus}
               onClick={() => onReject(applicant.id, { notes })}
             >
               <FaTimesCircle /> Reject
@@ -270,7 +284,8 @@ export default function ReviewApplicantModal({
                 <FaBriefcase /> Hire
               </button>
             )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
