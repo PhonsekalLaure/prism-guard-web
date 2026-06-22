@@ -2,6 +2,7 @@ import { FaCheckCircle, FaCircle, FaMinusCircle, FaTimesCircle } from 'react-ico
 
 export const STATUS_META = {
   active: { label: 'ACTIVE', className: 'active', icon: FaCircle, rowClass: '' },
+  attendance_contest: { label: 'CONTESTED', className: 'late', icon: null, rowClass: '' },
   missed_clock_out: { label: 'MISSED CLOCK-OUT', className: 'late', icon: null, rowClass: '' },
   late: { label: 'LATE', className: 'late', icon: null, rowClass: '' },
   absent: { label: 'ABSENT', className: 'absent', icon: null, rowClass: 'ha-row-absent' },
@@ -23,6 +24,7 @@ export function getClockInClass(row) {
 
 export function getClockInNoteClass(row) {
   if (row.status === 'late') return 'late';
+  if (row.status === 'attendance_contest') return 'late';
   if (row.status === 'absent') return 'no-clock';
   if (row.status === 'on_leave') return 'leave';
   return 'on-time';

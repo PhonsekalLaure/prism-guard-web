@@ -32,6 +32,7 @@ function downloadBlob(blob, filename) {
 export default function HrisAttendancePage() {
   const [searchParams] = useSearchParams();
   const requestedAttendanceLogId = searchParams.get('attendanceLogId');
+  const requestedContestId = searchParams.get('contestId');
   const today = getTodayDateString();
   const [records, setRecords] = useState([]);
   const [metadata, setMetadata] = useState(DEFAULT_METADATA);
@@ -187,6 +188,7 @@ export default function HrisAttendancePage() {
           onPageChange={handlePageChange}
           onResetFilters={handleResetFilters}
           requestedAttendanceLogId={requestedAttendanceLogId}
+          requestedContestId={requestedContestId}
         />
       </div>
     </>

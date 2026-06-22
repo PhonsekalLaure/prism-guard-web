@@ -60,11 +60,47 @@ export default function HrisAttendanceDetailModal({
   const [reviewNotes, setReviewNotes] = useState('');
   const [reviewLoading, setReviewLoading] = useState(false);
   const [reviewError, setReviewError] = useState(null);
+  const [contestReviewNotes, setContestReviewNotes] = useState('');
+  const [contestReviewLoading, setContestReviewLoading] = useState(false);
+  const [contestReviewError, setContestReviewError] = useState(null);
   const displayRow = detail?.summary || row;
   const statusMeta = STATUS_META[displayRow.status] || STATUS_META.absent;
   const missedClockOutReview = detail?.missedClockOutReview;
   const canApproveScheduledEnd = Boolean(missedClockOutReview?.canApproveScheduledEnd);
+  const attendanceContest = detail?.attendanceContest || (displayRow.attendanceContestId ? {
+    id: displayRow.attendanceContestId,
+    status: displayRow.attendanceContestStatus,
+    reasonCode: displayRow.attendanceContestReasonCode,
+    reasonText: displayRow.attendanceContestReasonText,
+    reviewNotes: displayRow.attendanceContestReviewNotes,
+  } : null);
+  const canReviewContest = attendanceContest?.id && attendanceContest.status === 'pending';
 
+
+  const handleContestDecision = async (decision) => {
+    const notes = contestReviewNotes.trim();
+    if (!notes) {
+      setContestReviewError('Review notes are required.');
+      return;
+    }
+
+    try {
+      setContestReviewLoading(true);
+      setContestReviewError(null);
+      if (decision === 'approve') {
+        await attendanceService.approveAttendanceContest(attendanceContest.id, notes);
+      } else {
+        await attendanceService.rejectAttendanceContest(attendanceContest.id, notes);
+      }
+      setContestReviewNotes('');
+      onDetailUpdated?.();
+      onClose?.();
+    } catch (err) {
+      setContestReviewError(err?.response?.data?.error || 'Failed to update attendance contest.');
+    } finally {
+      setContestReviewLoading(false);
+    }
+  };
   const handleApproveScheduledEnd = async () => {
     const notes = reviewNotes.trim();
     if (!notes) {
@@ -208,6 +244,57 @@ export default function HrisAttendanceDetailModal({
             </div>
           )}
 
+
+          {attendanceContest && (
+            <div className="ha-modal-section">
+              <span className="ha-modal-section-label">Attendance Contest</span>
+              <div className="ha-detail-grid">
+                <div><span>Contest Status</span><strong>{attendanceContest.status || 'N/A'}</strong></div>
+                <div><span>Reason</span><strong>{attendanceContest.reasonCode?.replace(/_/g, ' ') || 'N/A'}</strong></div>
+              </div>
+              <div className="ha-modal-notes-box">
+                {attendanceContest.reasonText || 'No reason provided.'}
+              </div>
+              {attendanceContest.reviewNotes && (
+                <div className="ha-modal-notes-box">
+                  {attendanceContest.reviewNotes}
+                </div>
+              )}
+
+              {canReviewContest && (
+                <div className="ha-review-action">
+                  <label htmlFor="attendance-contest-review-notes">Review Notes</label>
+                  <textarea
+                    id="attendance-contest-review-notes"
+                    value={contestReviewNotes}
+                    onChange={(event) => setContestReviewNotes(event.target.value)}
+                    placeholder="Explain the approval or rejection decision."
+                    rows={3}
+                    disabled={contestReviewLoading}
+                  />
+                  {contestReviewError && <div className="ha-modal-alert">{contestReviewError}</div>}
+                  <div className="ha-review-action-row">
+                    <button
+                      type="button"
+                      className="ha-modal-btn primary"
+                      onClick={() => handleContestDecision('approve')}
+                      disabled={contestReviewLoading}
+                    >
+                      {contestReviewLoading ? 'Reviewing...' : 'Approve Contest'}
+                    </button>
+                    <button
+                      type="button"
+                      className="ha-modal-btn secondary"
+                      onClick={() => handleContestDecision('reject')}
+                      disabled={contestReviewLoading}
+                    >
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
           <div className="ha-modal-section">
             <span className="ha-modal-section-label">GPS Evidence</span>
             <div className="ha-detail-grid">

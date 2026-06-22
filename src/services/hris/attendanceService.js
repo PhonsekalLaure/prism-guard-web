@@ -30,6 +30,26 @@ async function getClients() {
   return data;
 }
 
+
+async function getAttendanceContests(params = {}) {
+  const { data } = await api.get('/contests', { params });
+  return data;
+}
+
+async function getAttendanceContestDetails(contestId) {
+  const { data } = await api.get(`/contests/${contestId}`);
+  return data;
+}
+
+async function approveAttendanceContest(contestId, reviewNotes) {
+  const { data } = await api.post(`/contests/${contestId}/approve`, { reviewNotes });
+  return data;
+}
+
+async function rejectAttendanceContest(contestId, reviewNotes) {
+  const { data } = await api.post(`/contests/${contestId}/reject`, { reviewNotes });
+  return data;
+}
 async function getAttendanceLogDetails(attendanceLogId) {
   const { data } = await api.get(`/${attendanceLogId}`);
   return data;
@@ -60,10 +80,14 @@ async function exportReport(params = {}) {
 }
 
 export default {
+  approveAttendanceContest,
   approveMissedClockOutScheduledEnd,
+  getAttendanceContestDetails,
+  getAttendanceContests,
   getAttendanceRecords,
   getAttendanceLogDetails,
   getStats,
+  rejectAttendanceContest,
   getClients,
   exportReport,
 };

@@ -31,6 +31,7 @@ export default function HrisAttendanceTable({
   onPageChange,
   onResetFilters,
   requestedAttendanceLogId = null,
+  requestedContestId = null,
 }) {
   const [selectedRow, setSelectedRow] = useState(null);
   const [selectedDetail, setSelectedDetail] = useState(null);
@@ -80,6 +81,61 @@ export default function HrisAttendanceTable({
     });
   }, [openModal, records, requestedAttendanceLogId]);
 
+
+  useEffect(() => {
+    if (!requestedContestId || openedRequestRef.current === `contest:${requestedContestId}`) {
+      return;
+    }
+
+    openedRequestRef.current = `contest:${requestedContestId}`;
+    const matchingRow = records.find(
+      (row) => row.attendanceContestId === requestedContestId
+    );
+    if (matchingRow) {
+      openModal(matchingRow);
+      return;
+    }
+
+    let cancelled = false;
+    setDetailLoading(true);
+    setSelectedRow({
+      id: `contest-${requestedContestId}`,
+      attendanceContestId: requestedContestId,
+      name: 'Attendance contest',
+      status: 'attendance_contest',
+    });
+    setSelectedDetail(null);
+    setDetailError(null);
+    attendanceService.getAttendanceContestDetails(requestedContestId)
+      .then((contest) => {
+        if (cancelled) return;
+        setSelectedRow({
+          id: `contest-${contest.id}`,
+          attendanceContestId: contest.id,
+          attendanceContestStatus: contest.status,
+          attendanceContestReasonCode: contest.reasonCode,
+          attendanceContestReasonText: contest.reasonText,
+          attendanceContestReviewNotes: contest.reviewNotes,
+          name: contest.employeeName,
+          empId: contest.employeeNumber,
+          role: contest.role,
+          location: contest.clientName,
+          area: contest.siteName,
+          shift: contest.shift,
+          status: contest.status === 'pending' ? 'attendance_contest' : 'absent',
+        });
+      })
+      .catch((err) => {
+        if (!cancelled) setDetailError(err?.response?.data?.error || 'Failed to load attendance contest.');
+      })
+      .finally(() => {
+        if (!cancelled) setDetailLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [openModal, records, requestedContestId]);
   const closeModal = () => {
     setSelectedRow(null);
     setSelectedDetail(null);
