@@ -65,14 +65,50 @@ async function markPayrollRecordPaid(runId, recordId) {
   return data;
 }
 
+async function markGovernmentRemittance(runId, agency, payload) {
+  const formData = new FormData();
+  formData.append('reference_number', payload.referenceNumber);
+  formData.append('remittance_date', payload.remittanceDate);
+  if (payload.receiptFile) formData.append('receipt', payload.receiptFile);
+
+  const { data } = await api.post(
+    `/runs/${runId}/remittances/${agency}`,
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } }
+  );
+  return data;
+}
+
+async function getGovernmentRemittanceContext(runId) {
+  const { data } = await api.get(`/runs/${runId}/remittances`);
+  return data;
+}
+
+async function downloadGovernmentRemittanceReceipt(runId, agency) {
+  const response = await api.get(
+    `/runs/${runId}/remittances/${agency}/receipt`,
+    { responseType: 'blob' }
+  );
+  const disposition = response.headers?.['content-disposition'] || '';
+  const filenamePart = disposition.split('filename=')[1]?.split(';')[0]?.trim();
+  return {
+    blob: response.data,
+    filename: filenamePart?.replaceAll(String.fromCharCode(34), '')
+      || `${agency}-remittance-receipt`,
+  };
+}
+
 export default {
   approvePayrollRun,
   createHoliday,
   createPayrollRun,
   deleteHoliday,
+  downloadGovernmentRemittanceReceipt,
   getHolidays,
+  getGovernmentRemittanceContext,
   getPayrollRunById,
   listPayrollRuns,
+  markGovernmentRemittance,
   markPayrollRecordPaid,
   recalculatePayrollRun,
   updateHoliday,

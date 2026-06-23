@@ -6,6 +6,7 @@ import HrisPayrollStatCards from '@hris-components/payroll/HrisPayrollStatCards'
 import HrisPayrollOngoingAlert from '@hris-components/payroll/HrisPayrollOngoingAlert';
 import HrisPayrollFilterBar from '@hris-components/payroll/HrisPayrollFilterBar';
 import HrisPayrollTable from '@hris-components/payroll/HrisPayrollTable';
+import PayrollGovernmentRemittances from '@hris-components/payroll/PayrollGovernmentRemittances';
 import PayrollHolidayManager from '@hris-components/payroll/PayrollHolidayManager';
 import useNotification from '@hooks/useNotification';
 import useReportAction from '@hooks/useReportAction';
@@ -288,6 +289,10 @@ export default function HrisPayrollPage() {
         {error && <div className="pr-error-banner">{error}</div>}
         <HrisPayrollStatCards summary={activeSummary} statusLabel={statusLabel} />
         <HrisPayrollOngoingAlert run={selectedRun} />
+        <PayrollGovernmentRemittances
+          run={selectedRun}
+          showNotification={showNotification}
+        />
         <HrisPayrollFilterBar filters={filters} onChange={handleFilterChange} />
         <HrisPayrollTable
           currentPage={recordsPage}

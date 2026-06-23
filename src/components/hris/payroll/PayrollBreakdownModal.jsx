@@ -1,7 +1,8 @@
-import { FaCoins, FaMinusCircle, FaTimes } from 'react-icons/fa';
+import { FaBuilding, FaCoins, FaMinusCircle, FaTimes } from 'react-icons/fa';
 import {
   buildDeductions,
   buildEarnings,
+  buildEmployerContributions,
   formatDate,
   getDeductionExcess,
   getDisplayNetPay,
@@ -15,6 +16,11 @@ export default function PayrollBreakdownModal({ row, onClose }) {
 
   const earnings = buildEarnings(row);
   const deductions = buildDeductions(row);
+  const employerContributions = buildEmployerContributions(row);
+  const totalEmployerContributions = employerContributions.reduce(
+    (total, contribution) => total + contribution.amount,
+    0
+  );
   const snapshot = row.calculation_snapshot || {};
   const holidayDetails = Array.isArray(snapshot.holidays) ? snapshot.holidays : [];
   const deductionExcess = getDeductionExcess(row);
@@ -85,6 +91,22 @@ export default function PayrollBreakdownModal({ row, onClose }) {
                   <strong>{money(deductionExcess)}</strong>
                 </div>
               )}
+            </div>
+          </div>
+
+          <div className='pr-breakdown-section'>
+            <h4><FaBuilding style={{ color: '#0369a1' }} /> Employer Contributions</h4>
+            <div className='pr-employer-contributions-box'>
+              {employerContributions.map((item) => (
+                <div key={item.label} className='pr-breakdown-row'>
+                  <span>{item.label}</span>
+                  <span>{money(item.amount)}</span>
+                </div>
+              ))}
+              <div className='pr-breakdown-total'>
+                <span style={{ color: '#0c4a6e' }}>Total Employer Contributions</span>
+                <span>{money(totalEmployerContributions)}</span>
+              </div>
             </div>
           </div>
 

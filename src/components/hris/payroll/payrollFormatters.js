@@ -78,9 +78,9 @@ export function buildEarnings(row) {
 
 export function buildDeductions(row) {
   return [
-    numeric(row.sss_employee) > 0 && { label: 'SSS', amount: row.sss_employee },
-    numeric(row.philhealth_employee) > 0 && { label: 'PhilHealth', amount: row.philhealth_employee },
-    numeric(row.pagibig_employee) > 0 && { label: 'Pag-IBIG', amount: row.pagibig_employee },
+    numeric(row.sss_employee) > 0 && { label: 'SSS Employee Share', amount: row.sss_employee },
+    numeric(row.philhealth_employee) > 0 && { label: 'PhilHealth Employee Share', amount: row.philhealth_employee },
+    numeric(row.pagibig_employee) > 0 && { label: 'Pag-IBIG Employee Share', amount: row.pagibig_employee },
     numeric(row.withholding_tax) > 0 && { label: 'Withholding Tax', amount: row.withholding_tax },
     numeric(row.cash_advance_deduction) > 0 && { label: 'Cash Advance', amount: row.cash_advance_deduction },
     numeric(row.leave_deduction) > 0 && { label: 'Unpaid Leave', amount: row.leave_deduction },
@@ -88,6 +88,17 @@ export function buildDeductions(row) {
     numeric(row.late_undertime_deduction) > 0 && { label: 'Late / Undertime', amount: row.late_undertime_deduction },
     numeric(row.absences_deduction) > 0 && { label: 'Absences', amount: row.absences_deduction },
   ].filter(Boolean);
+}
+
+export function buildEmployerContributions(row) {
+  const government = row.calculation_snapshot?.government_deductions || {};
+
+  return [
+    { label: 'SSS Employer Share', amount: government.sssEmployer ?? government.sss?.employer },
+    { label: 'SSS EC', amount: government.sssEcEmployer ?? government.sss?.ecEmployer },
+    { label: 'PhilHealth Employer Share', amount: government.philhealthEmployer ?? government.philhealth?.employer },
+    { label: 'Pag-IBIG Employer Share', amount: government.pagibigEmployer ?? government.pagibig?.employer },
+  ].map((item) => ({ ...item, amount: numeric(item.amount) }));
 }
 
 export function getDisplayNetPay(row) {

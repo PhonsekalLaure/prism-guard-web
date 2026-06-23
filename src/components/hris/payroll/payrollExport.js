@@ -18,6 +18,22 @@ function getSnapshot(record) {
   return record.calculation_snapshot || {};
 }
 
+function getEmployerContributions(snapshot) {
+  const government = snapshot.government_deductions || {};
+  const sss = numeric(government.sssEmployer ?? government.sss?.employer);
+  const sssEc = numeric(government.sssEcEmployer ?? government.sss?.ecEmployer);
+  const philhealth = numeric(government.philhealthEmployer ?? government.philhealth?.employer);
+  const pagibig = numeric(government.pagibigEmployer ?? government.pagibig?.employer);
+
+  return {
+    sss,
+    sssEc,
+    philhealth,
+    pagibig,
+    total: sss + sssEc + philhealth + pagibig,
+  };
+}
+
 function getWorkedDays(snapshot) {
   return Math.max(
     numeric(snapshot.scheduled_days)
@@ -69,6 +85,11 @@ export const PAYROLL_EXPORT_HEADERS = [
   'SSS Employee',
   'PhilHealth Employee',
   'Pag-IBIG Employee',
+  'SSS Employer',
+  'SSS EC Employer',
+  'PhilHealth Employer',
+  'Pag-IBIG Employer',
+  'Total Employer Contributions',
   'Withholding Tax',
   'Statutory Deductions',
   'Cash Advance Deduction',
@@ -90,6 +111,7 @@ export function buildPayrollExportRow(record, fallbackStatus = 'draft') {
   const paidLeaves = snapshot.paid_leaves || snapshot.paid_service_incentive_leaves || [];
   const unpaidLeaves = snapshot.unpaid_leaves || [];
   const absences = snapshot.absences || [];
+  const employerContributions = getEmployerContributions(snapshot);
 
   return [
     record.employee_name || '',
@@ -132,6 +154,11 @@ export function buildPayrollExportRow(record, fallbackStatus = 'draft') {
     record.sss_employee ?? 0,
     record.philhealth_employee ?? 0,
     record.pagibig_employee ?? 0,
+    employerContributions.sss,
+    employerContributions.sssEc,
+    employerContributions.philhealth,
+    employerContributions.pagibig,
+    employerContributions.total,
     record.withholding_tax ?? 0,
     record.statutory_deductions ?? 0,
     record.cash_advance_deduction ?? 0,
