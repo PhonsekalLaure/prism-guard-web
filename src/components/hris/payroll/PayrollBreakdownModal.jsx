@@ -1,4 +1,5 @@
 import { FaBuilding, FaCoins, FaMinusCircle, FaTimes } from 'react-icons/fa';
+import EntityAvatar from '@components/ui/EntityAvatar';
 import {
   buildDeductions,
   buildEarnings,
@@ -42,7 +43,12 @@ export default function PayrollBreakdownModal({ row, onClose }) {
         <div className="pr-modal-body">
           <div className="pr-modal-emp-box">
             <div className="pr-modal-emp-left">
-              <div className="pr-modal-avatar">{getInitials(row.employee_name)}</div>
+              <EntityAvatar
+                avatarUrl={row.avatar_url}
+                initials={getInitials(row.employee_name)}
+                alt={row.employee_name || 'Guard'}
+                className="pr-modal-avatar"
+              />
               <div className="pr-modal-emp-info">
                 <h3>{row.employee_name || 'Unnamed employee'}</h3>
                 <p>{row.employee_position || 'Security Guard'} - {row.employee_number || 'No employee ID'}</p>

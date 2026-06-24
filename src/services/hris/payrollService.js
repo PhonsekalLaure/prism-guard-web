@@ -84,6 +84,20 @@ async function getGovernmentRemittanceContext(runId) {
   return data;
 }
 
+async function downloadGovernmentReport(runId, agency) {
+  const response = await api.get(
+    `/runs/${runId}/government-reports/${agency}`,
+    { responseType: 'blob' }
+  );
+  const disposition = response.headers?.['content-disposition'] || '';
+  const filenamePart = disposition.split('filename=')[1]?.split(';')[0]?.trim();
+  return {
+    blob: response.data,
+    filename: filenamePart?.replaceAll(String.fromCharCode(34), '')
+      || `${agency}-government-remittance-report`,
+  };
+}
+
 async function downloadGovernmentRemittanceReceipt(runId, agency) {
   const response = await api.get(
     `/runs/${runId}/remittances/${agency}/receipt`,
@@ -103,6 +117,7 @@ export default {
   createHoliday,
   createPayrollRun,
   deleteHoliday,
+  downloadGovernmentReport,
   downloadGovernmentRemittanceReceipt,
   getHolidays,
   getGovernmentRemittanceContext,

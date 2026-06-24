@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   FaCheckCircle,
   FaDownload,
+  FaExclamationTriangle,
   FaLandmark,
   FaReceipt,
 } from 'react-icons/fa';
@@ -32,6 +33,8 @@ export default function PayrollGovernmentRemittances({
   const [receiptFile, setReceiptFile] = useState(null);
   const [fileError, setFileError] = useState('');
   const [downloadingAgency, setDownloadingAgency] = useState('');
+  const [downloadingReportAgency, setDownloadingReportAgency] = useState('');
+  const [issueTarget, setIssueTarget] = useState(null);
   const summaries = useMemo(
     () => buildGovernmentRemittanceSummary(context),
     [context]
@@ -122,6 +125,47 @@ export default function PayrollGovernmentRemittances({
     });
   };
 
+  const parseReportDownloadError = async (error, summary) => {
+    const blob = error?.response?.data;
+    if (blob instanceof Blob && blob.type.includes('application/json')) {
+      try {
+        const data = JSON.parse(await blob.text());
+        if (Array.isArray(data.issues)) {
+          setIssueTarget({ ...summary, report: { issues: data.issues, issue_count: data.issues.length } });
+        }
+        return data.error || 'Failed to download government report.';
+      } catch {
+        return 'Failed to download government report.';
+      }
+    }
+    return getPayrollErrorMessage(error, 'Failed to download government report.');
+  };
+
+  const handleDownloadReport = async (summary) => {
+    if (downloadingReportAgency) return;
+    if (!summary.report?.ready) {
+      setIssueTarget(summary);
+      return;
+    }
+    setDownloadingReportAgency(summary.key);
+    try {
+      const { blob, filename } = await payrollService.downloadGovernmentReport(
+        run.id,
+        summary.key
+      );
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      showNotification(await parseReportDownloadError(error, summary), 'error');
+    } finally {
+      setDownloadingReportAgency('');
+    }
+  };
+
   const handleDownloadReceipt = async (agency) => {
     if (downloadingAgency) return;
     setDownloadingAgency(agency);
@@ -208,6 +252,34 @@ export default function PayrollGovernmentRemittances({
                 )}
               </dl>
 
+              <div className='pr-remittance-report-actions'>
+                {summary.report?.issue_count > 0 ? (
+                  <ReportActionButton
+                    className='pr-remittance-report-button warning'
+                    label={`Fix ${summary.report.issue_count} records`}
+                    icon={FaExclamationTriangle}
+                    disabled={contextLoading}
+                    variant='secondary'
+                    onClick={() => setIssueTarget(summary)}
+                  />
+                ) : (
+                  <ReportActionButton
+                    className='pr-remittance-report-button'
+                    label={downloadingReportAgency === summary.key ? 'Downloading' : 'Download Report'}
+                    icon={FaDownload}
+                    disabled={
+                      contextLoading
+                      || !canRemit
+                      || !summary.report?.ready
+                      || summary.totalAmount <= 0
+                      || Boolean(downloadingReportAgency)
+                    }
+                    variant='secondary'
+                    onClick={() => handleDownloadReport(summary)}
+                  />
+                )}
+              </div>
+
               {remittance ? (
                 <div className='pr-remittance-record'>
                   <span>{formatDate(remittance.remittance_date)}</span>
@@ -244,6 +316,29 @@ export default function PayrollGovernmentRemittances({
           );
         })}
       </div>
+
+      <ReportConfirmDialog
+        open={Boolean(issueTarget)}
+        title={issueTarget ? `Fix ${issueTarget.label} Report Records` : 'Fix Report Records'}
+        description={issueTarget ? `${issueTarget.report?.issue_count || 0} issue(s) must be corrected before this agency report can be downloaded.` : ''}
+        confirmLabel='Done'
+        cancelLabel='Close'
+        tone='warning'
+        width='640px'
+        onCancel={() => setIssueTarget(null)}
+        onConfirm={() => setIssueTarget(null)}
+      >
+        <div className='pr-remittance-issues'>
+          {(issueTarget?.report?.issues || []).map((issue, index) => (
+            <div className='pr-remittance-issue' key={`${issue.employee_id || 'report'}-${issue.field}-${issue.issue}-${index}`}>
+              <strong>{issue.name || 'Report total'}</strong>
+              <span>{issue.employee_number || issue.employee_id || 'No employee ID'}</span>
+              <p>{issue.field}: {issue.issue.replaceAll('_', ' ')}</p>
+              {issue.detail && <small>{issue.detail}</small>}
+            </div>
+          ))}
+        </div>
+      </ReportConfirmDialog>
 
       <ReportConfirmDialog
         open={Boolean(target)}

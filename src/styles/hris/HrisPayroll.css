@@ -431,6 +431,11 @@
   flex-shrink: 0;
 }
 
+.pr-avatar.has-image,
+.pr-modal-avatar.has-image {
+  background: #e5e7eb;
+}
+
 .pr-emp-name {
   font-weight: 600;
   color: #1f2937;
@@ -1109,6 +1114,52 @@
 .pr-remittance-action {
   align-self: flex-start;
   margin-top: auto;
+}
+
+.pr-remittance-report-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.7rem;
+}
+
+.pr-remittance-report-button.warning {
+  color: #92400e;
+}
+
+.pr-remittance-issues {
+  display: grid;
+  gap: 0.65rem;
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.pr-remittance-issue {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  display: grid;
+  gap: 0.18rem;
+  padding: 0.7rem;
+}
+
+.pr-remittance-issue strong {
+  color: #1f2937;
+  font-size: 0.84rem;
+}
+
+.pr-remittance-issue span,
+.pr-remittance-issue small {
+  color: #6b7280;
+  font-size: 0.72rem;
+}
+
+.pr-remittance-issue p {
+  color: #92400e;
+  font-size: 0.76rem;
+  font-weight: 700;
+  margin: 0;
 }
 
 .pr-remittance-record {

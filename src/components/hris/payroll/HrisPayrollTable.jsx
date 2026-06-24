@@ -6,6 +6,7 @@ import {
   FaMoneyBillWave,
 } from 'react-icons/fa';
 import EmptyState from '@components/ui/EmptyState';
+import EntityAvatar from '@components/ui/EntityAvatar';
 import Pagination from '@components/ui/Pagination';
 import { TableSkeletonRows } from '@components/ui/Skeleton';
 import PayrollBreakdownModal from './PayrollBreakdownModal';
@@ -86,7 +87,12 @@ export default function HrisPayrollTable({
                 >
                   <td>
                     <div className="pr-emp-cell">
-                      <div className="pr-avatar">{getInitials(row.employee_name)}</div>
+                      <EntityAvatar
+                        avatarUrl={row.avatar_url}
+                        initials={getInitials(row.employee_name)}
+                        alt={row.employee_name || 'Guard'}
+                        className="pr-avatar"
+                      />
                       <div>
                         <p className="pr-emp-name">{row.employee_name || 'Unnamed employee'}</p>
                         <p className="pr-emp-id">{row.employee_number || 'No employee ID'}</p>

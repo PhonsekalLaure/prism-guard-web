@@ -22,6 +22,7 @@ export function buildGovernmentRemittanceSummary(context) {
         agencyContext?.total_amount ?? employeeShare + employerShare + ecAmount
       ),
       remittance: agencyContext?.remittance || null,
+      report: agencyContext?.report || { ready: false, issue_count: 0, issues: [] },
     };
   });
 }
