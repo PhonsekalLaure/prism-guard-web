@@ -43,8 +43,19 @@ export default function PromoCarouselSlideModal({
     setPreviewUrl(URL.createObjectURL(file));
   };
 
+  const trimmedHeading = form.heading.trim();
+  const trimmedText = form.text.trim();
+  const isSubmitDisabled =
+    saving
+    || !trimmedHeading
+    || !trimmedText
+    || (!slide && !form.image)
+    || trimmedHeading.length > 120
+    || trimmedText.length > 500;
+
   const submit = async (event) => {
     event.preventDefault();
+    if (isSubmitDisabled) return;
     const heading = form.heading.trim();
     const text = form.text.trim();
     if (!heading || !text || (!slide && !form.image)) {
@@ -128,7 +139,7 @@ export default function PromoCarouselSlideModal({
 
           <footer className="pc-modal-actions">
             <button type="button" className="pc-btn secondary" onClick={onClose} disabled={saving}>Cancel</button>
-            <button type="submit" className="pc-btn primary" disabled={saving}>
+            <button type="submit" className="pc-btn primary" disabled={isSubmitDisabled}>
               {saving ? 'Saving...' : (slide ? 'Save Changes' : 'Add Slide')}
             </button>
           </footer>

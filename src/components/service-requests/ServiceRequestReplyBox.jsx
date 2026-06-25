@@ -10,6 +10,8 @@ export default function ServiceRequestReplyBox({
   placeholder,
   buttonClassName = 'sr-modal-btn blue',
 }) {
+  const isSendDisabled = loading || !String(value || '').trim();
+
   return (
     <div className="sr-reply-box">
       <label className="sr-reply-label">{label}</label>
@@ -28,7 +30,7 @@ export default function ServiceRequestReplyBox({
           type="button"
           className={buttonClassName}
           onClick={onSend}
-          disabled={loading}
+          disabled={isSendDisabled}
         >
           <FaPaperPlane /> {loading ? 'Sending...' : 'Send Message'}
         </button>

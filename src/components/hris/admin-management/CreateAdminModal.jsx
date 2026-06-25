@@ -96,8 +96,11 @@ export default function CreateAdminModal({
     return '';
   }
 
+  const isSubmitDisabled = isSubmitting || Boolean(validateForm());
+
   async function handleSubmit(event) {
     event.preventDefault();
+    if (isSubmitDisabled) return;
     const nextError = validateForm();
     if (nextError) {
       setError(nextError);
@@ -289,7 +292,7 @@ export default function CreateAdminModal({
 
           {/* Actions */}
           <div className="ca-modal-actions">
-            <button type="submit" className="ca-btn ca-btn-gold" disabled={isSubmitting}>
+            <button type="submit" className="ca-btn ca-btn-gold" disabled={isSubmitDisabled}>
               {isSubmitting ? (
                 <>
                   <span className="ca-spinner" />

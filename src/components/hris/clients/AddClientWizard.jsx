@@ -270,8 +270,8 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
     }));
   };
 
-  const validateStep = () => {
-    switch (currentStep) {
+  const validateStep = (step = currentStep) => {
+    switch (step) {
       case 1:
         if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.email.trim() || !formData.mobile.trim()) {
           showNotification('Please fill in all required contact information fields.', 'error'); return false;
@@ -351,8 +351,8 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
     }
   };
 
-  const isCurrentStepComplete = () => {
-    switch (currentStep) {
+  const isStepComplete = (step = currentStep) => {
+    switch (step) {
       case 1:
         return Boolean(
           formData.firstName.trim()
@@ -410,6 +410,7 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
   const prevStep = () => { if (currentStep > 1) setCurrentStep((p) => p - 1); };
 
   const handleSubmit = async () => {
+    if (!isReadyToSubmit) return;
     if (!validateStep()) return;
     setIsSubmitting(true);
     try {
@@ -470,7 +471,8 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
   const outerClass   = pageMode ? 'ap-page-wrapper'    : 'ae-modal-overlay';
   const contentClass = pageMode ? 'ap-page-container'  : 'ae-modal-content';
 
-  const canProceedFromCurrentStep = isCurrentStepComplete();
+  const canProceedFromCurrentStep = isStepComplete();
+  const isReadyToSubmit = [1, 2, 3, 4, 5].every((step) => isStepComplete(step));
 
   return (
     <>
@@ -557,7 +559,7 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
                   Next: {STEPS[currentStep]?.label} <FaArrowRight />
                 </button>
               ) : (
-                <button type="button" className="ae-btn ae-btn-success" onClick={handleSubmit} disabled={isSubmitting}>
+                <button type="button" className="ae-btn ae-btn-success" onClick={handleSubmit} disabled={isSubmitting || !isReadyToSubmit}>
                   {isSubmitting ? <FaSpinner className="animate-spin" /> : <FaCheck />}
                   {isSubmitting ? 'Submitting...' : 'Confirm & Add Client'}
                 </button>

@@ -9,7 +9,9 @@ import { formatSiteLabel } from '@hris-components/shared/siteDisplay';
 import {
   getAgeDateBounds,
   getDeploymentStartDateMinimum,
+  getEmploymentContractEndDateBounds,
   getHireDateBounds,
+  isEmploymentContractEndDateInRange,
 } from '@utils/hrisDateRules';
 import { getGuardHeightError } from '@utils/guardEligibility';
 import {
@@ -222,8 +224,26 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
     return true;
   };
 
-  const validateStep = () => {
-    if (currentStep === 1) {
+  const validateEmploymentContractEndDate = () => {
+    if (!formData.contractEndDate) {
+      showNotification('Please set the employee contract end date.', 'error');
+      return false;
+    }
+    if (isEarlierDate(formData.hireDate, formData.contractEndDate)) {
+      showNotification('Employment contract end date cannot be earlier than employment contract start date.', 'error');
+      return false;
+    }
+
+    const { min, max } = getEmploymentContractEndDateBounds(formData.hireDate);
+    if (!isEmploymentContractEndDateInRange(formData.hireDate, formData.contractEndDate)) {
+      showNotification(`Employment contract end date must be between ${min} and ${max}.`, 'error');
+      return false;
+    }
+
+    return true;
+  };
+  const validateStep = (step = currentStep) => {
+    if (step === 1) {
       const { firstName, lastName, dob, gender, height, civilStatus, educationalLevel, mobile, email, address, emergencyName, emergencyContact } = formData;
       if (!firstName || !lastName || !dob || !gender || !height || !civilStatus || !educationalLevel || !mobile || !email || !address || !emergencyName || !emergencyContact) {
         showNotification('Please fill in all required fields marked with *', 'error'); return false;
@@ -247,7 +267,7 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
       if (mobile.replace(/\D/g, '').length !== 10 || emergencyContact.replace(/\D/g, '').length !== 10) {
         showNotification('Mobile numbers must be exactly 10 digits (excluding +63)', 'error'); return false;
       }
-    } else if (currentStep === 2) {
+    } else if (step === 2) {
       if (!formData.hireDate || !formData.position || !formData.employmentType) {
         showNotification('Please fill in all required employment fields', 'error'); return false;
       }
@@ -292,17 +312,15 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
       if (isPastDate(formData.licenseExpiryDate)) {
         showNotification('License expiry date cannot be earlier than today.', 'error'); return false;
       }
-    } else if (currentStep === 3) {
+    } else if (step === 3) {
       if (!validateRequiredDocuments()) return false;
-      if (isEarlierDate(formData.hireDate, formData.contractEndDate)) {
-        showNotification('Employment contract end date cannot be earlier than employment contract start date.', 'error'); return false;
-      }
+      if (!validateEmploymentContractEndDate()) return false;
     }
     return true;
   };
 
-  const isCurrentStepComplete = () => {
-    if (currentStep === 1) {
+  const isStepComplete = (step = currentStep) => {
+    if (step === 1) {
       const { firstName, lastName, dob, gender, height, civilStatus, educationalLevel, mobile, email, address, emergencyName, emergencyContact } = formData;
       const { min: minDobDate, max: maxDobDate } = getAgeDateBounds();
       const heightError = getGuardHeightError(gender, height);
@@ -331,7 +349,7 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
       );
     }
 
-    if (currentStep === 2) {
+    if (step === 2) {
       if (!formData.hireDate || !formData.position || !formData.employmentType) return false;
       if (REQUIRED_ONBOARDING_CREDENTIALS.some(({ field }) => !String(formData[field] || '').trim())) return false;
 
@@ -363,11 +381,11 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
       );
     }
 
-    if (currentStep === 3) {
+    if (step === 3) {
       return Boolean(
         getMissingOnboardingDocuments(formData.documents, Boolean(formData.initialSiteId)).length === 0
         && formData.contractEndDate
-        && !isEarlierDate(formData.hireDate, formData.contractEndDate)
+        && isEmploymentContractEndDateInRange(formData.hireDate, formData.contractEndDate)
       );
     }
 
@@ -378,6 +396,8 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
   const prevStep = () => { if (currentStep > 1) setCurrentStep(s => s - 1); };
 
   const handleSubmit = async () => {
+    if (!isReadyToSubmit) return;
+
     setIsSubmitting(true);
     try {
       if (!validateRequiredEmploymentCredentials()) {
@@ -394,8 +414,7 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
         setIsSubmitting(false);
         return;
       }
-      if (isEarlierDate(formData.hireDate, formData.contractEndDate)) {
-        showNotification('Employment contract end date cannot be earlier than employment contract start date.', 'error');
+      if (!validateEmploymentContractEndDate()) {
         setIsSubmitting(false);
         return;
       }
@@ -471,7 +490,8 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
   };
 
   /* ── Render ── */
-  const canProceedFromCurrentStep = isCurrentStepComplete();
+  const canProceedFromCurrentStep = isStepComplete();
+  const isReadyToSubmit = [1, 2, 3].every((step) => isStepComplete(step));
 
   return (
     <>
@@ -540,7 +560,7 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
                 Next: {STEPS[currentStep]?.label} <FaArrowRight />
               </button>
             ) : (
-              <button type="button" className="ae-btn ae-btn-success" onClick={handleSubmit} disabled={isSubmitting}>
+              <button type="button" className="ae-btn ae-btn-success" onClick={handleSubmit} disabled={isSubmitting || !isReadyToSubmit}>
                 {isSubmitting ? <FaSpinner className="animate-spin" /> : <FaCheck />}{' '}
                 {isSubmitting ? 'Submitting...' : 'Confirm & Add Employee'}
               </button>

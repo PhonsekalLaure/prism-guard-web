@@ -36,6 +36,16 @@ export default function BillingPaymentForm({
   const [fileError, setFileError] = useState('');
   const [dateError, setDateError] = useState('');
   const todayDate = getTodayDateInputValue();
+  const isSubmitDisabled =
+    submitting
+    || Boolean(fileError)
+    || Boolean(dateError)
+    || !payForm.date
+    || !payForm.method
+    || (payForm.method === 'Check' && !payForm.checkBank.trim())
+    || (payForm.method === 'Other' && !payForm.methodOther.trim())
+    || !payForm.reference.trim()
+    || !receiptFile;
 
   const handleFileChange = (file) => {
     setFileError('');
@@ -58,7 +68,7 @@ export default function BillingPaymentForm({
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    if (fileError || dateError || !receiptFile) return;
+    if (isSubmitDisabled) return;
     if (payForm.date && payForm.date > todayDate) {
       setDateError('Payment date cannot be later than today.');
       return;
@@ -230,7 +240,7 @@ export default function BillingPaymentForm({
             icon={FaPaperPlane}
             variant="primary"
             loading={submitting}
-            disabled={Boolean(fileError) || Boolean(dateError) || !receiptFile}
+            disabled={isSubmitDisabled}
           />
           <button
             type="button"

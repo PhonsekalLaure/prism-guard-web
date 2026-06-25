@@ -93,6 +93,8 @@ export default function NewRequestModal({ isOpen, onClose, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitDisabled) return;
+
     if (!form.ticketType) { setError('Please select a request type.'); return; }
     if (form.ticketType === 'additional_guard') {
       const count = Number(form.additionalGuardCount);
@@ -125,6 +127,19 @@ export default function NewRequestModal({ isOpen, onClose, onSuccess }) {
 
   const replacementGuardOptions = deployedGuards;
   const hasTypeSpecificFields = form.ticketType === 'additional_guard' || form.ticketType === 'guard_replacement';
+  const additionalGuardCount = Number(form.additionalGuardCount);
+  const hasValidAdditionalGuardCount =
+    form.ticketType !== 'additional_guard'
+    || (Number.isInteger(additionalGuardCount) && additionalGuardCount >= 1);
+  const hasReplacementGuard =
+    form.ticketType !== 'guard_replacement'
+    || Boolean(form.replacementDeploymentId);
+  const isSubmitDisabled =
+    submitting
+    || !form.ticketType
+    || !hasValidAdditionalGuardCount
+    || !hasReplacementGuard
+    || !form.description.trim();
 
   return (
     <div className="sr-modal-overlay" onClick={onClose}>
@@ -294,7 +309,7 @@ export default function NewRequestModal({ isOpen, onClose, onSuccess }) {
               <button
                 type="submit"
                 className="sr-btn-submit"
-                disabled={submitting}
+                disabled={isSubmitDisabled}
               >
                 <FaPaperPlane /> {submitting ? 'Submitting...' : 'Submit Request'}
               </button>

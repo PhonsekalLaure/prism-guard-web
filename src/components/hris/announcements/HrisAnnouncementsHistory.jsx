@@ -152,8 +152,21 @@ function EditModal({ item, saving, canWrite, onClose, onSave }) {
     if (error) setError('');
   };
 
+  const expirationChanged = form.expiresAt !== initialExpiresAt;
+  const normalizedExpiresAtForForm = toIsoOrNull(form.expiresAt);
+  const hasValidExpiration = !expirationChanged || !form.expiresAt || (
+    normalizedExpiresAtForForm && new Date(normalizedExpiresAtForForm) > new Date()
+  );
+  const isSaveDisabled =
+    saving
+    || !canWrite
+    || !form.title.trim()
+    || !form.message.trim()
+    || !hasValidExpiration;
+
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (isSaveDisabled) return;
     if (!form.title.trim() || !form.message.trim()) {
       setError('Subject and message are required.');
       return;
@@ -265,7 +278,7 @@ function EditModal({ item, saving, canWrite, onClose, onSave }) {
             <button type="button" className="an-back-btn" onClick={onClose} disabled={saving}>
               Cancel
             </button>
-            <button type="submit" className="an-save-btn" disabled={saving || !canWrite}>
+            <button type="submit" className="an-save-btn" disabled={isSaveDisabled}>
               <FaSave /> {saving ? 'Saving...' : 'Save Changes'}
             </button>
           </div>

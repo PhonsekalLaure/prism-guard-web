@@ -1,3 +1,5 @@
+import { getEmploymentContractEndDateBounds } from '@utils/hrisDateRules';
+
 const generalDocs  = [
   { id: 'valid_id',                   label: 'Valid ID', required: true },
   { id: 'resume',                     label: 'Resume' },
@@ -40,6 +42,7 @@ function DocRow({ doc, disabled = false, documents, onChange }) {
 
 export default function Step3Documents({ data, onChange }) {
   const isFloating = !data.initialSiteId;
+  const contractEndDateBounds = getEmploymentContractEndDateBounds(data.hireDate);
 
   const handleFileChange = (id, file) => {
     onChange('documents', { ...data.documents, [id]: file });
@@ -87,15 +90,23 @@ export default function Step3Documents({ data, onChange }) {
           <DocRow doc={{ id: 'contract', label: 'Employee Contract', required: true }} documents={data.documents} onChange={handleFileChange} />
           <div className="ae-check-item flex items-center justify-between">
             <span className="font-semibold text-sm">Employee Contract End Date *</span>
-            <input
-              type="date"
-              required
-              className="ae-input"
-              style={{ width: '200px', padding: '0.4rem 0.6rem', fontSize: '0.82rem' }}
-              value={data.contractEndDate}
-              onChange={(e) => onChange('contractEndDate', e.target.value)}
-              min={data.hireDate || undefined}
-            />
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.25rem' }}>
+              <input
+                type="date"
+                required
+                className="ae-input"
+                style={{ width: '200px', padding: '0.4rem 0.6rem', fontSize: '0.82rem' }}
+                value={data.contractEndDate}
+                onChange={(e) => onChange('contractEndDate', e.target.value)}
+                min={contractEndDateBounds.min || undefined}
+                max={contractEndDateBounds.max || undefined}
+              />
+              {contractEndDateBounds.min && contractEndDateBounds.max && (
+                <p className="ae-hint" style={{ margin: 0, textAlign: 'right' }}>
+                  Must be between {contractEndDateBounds.min} and {contractEndDateBounds.max}.
+                </p>
+              )}
+            </div>
           </div>
           <DocRow doc={{ id: 'deployment_order', label: 'Deployment Order', required: !isFloating }} disabled={isFloating} documents={data.documents} onChange={handleFileChange} />
           {isFloating && (

@@ -50,6 +50,31 @@ export default function DeployEmployeeDialog({
     }));
   };
 
+  const baseSalaryValue = Number(deployForm.baseSalary);
+  const today = getBusinessTodayDateInputValue();
+  const minStartDate = clientContractStartDate && clientContractStartDate > today
+    ? clientContractStartDate
+    : today;
+  const hasValidDeploymentDates =
+    (!deployForm.contractStartDate || deployForm.contractStartDate >= minStartDate)
+    && (!clientContractEndDate || !deployForm.contractStartDate || deployForm.contractStartDate <= clientContractEndDate)
+    && (!deployForm.contractEndDate || !deployForm.contractStartDate || deployForm.contractEndDate >= deployForm.contractStartDate)
+    && (!clientContractEndDate || !deployForm.contractEndDate || deployForm.contractEndDate <= clientContractEndDate);
+  const hasRequiredDeploymentFields = Boolean(
+    deployForm.siteId
+    && Number.isFinite(baseSalaryValue)
+    && baseSalaryValue >= MINIMUM_MONTHLY_BASE_PAY
+    && deployForm.daysOfWeek.length >= 6
+    && deployForm.shiftStart
+    && deployForm.shiftEnd
+    && (isTransfer || deployForm.deploymentOrderFile)
+  );
+  const isDeployDisabled =
+    isDeploying
+    || deployDisabled
+    || !hasRequiredDeploymentFields
+    || !hasValidDeploymentDates;
+
   return (
     <div className="dlg-overlay" onClick={onCancel}>
       <div className="dlg-card dep-card" onClick={(e) => e.stopPropagation()}>
@@ -223,7 +248,7 @@ export default function DeployEmployeeDialog({
           <button
             className="dlg-btn dlg-btn-deploy"
             onClick={onDeploy}
-            disabled={isDeploying || !deployForm.siteId || deployDisabled}
+            disabled={isDeployDisabled}
           >
             {isDeploying ? <FaSpinner className="animate-spin" /> : <FaMapMarkerAlt />}
             {isDeploying

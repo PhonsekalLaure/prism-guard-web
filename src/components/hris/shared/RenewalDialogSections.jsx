@@ -14,6 +14,8 @@ export function RenewalPeriodPanel({
   form,
   onFieldChange,
   minStartDate,
+  maxStartDate,
+  minEndDate,
   maxEndDate,
 }) {
   return (
@@ -28,7 +30,7 @@ export function RenewalPeriodPanel({
               className="dep-input"
               value={form.contractStartDate}
               min={minStartDate}
-              max={maxEndDate}
+              max={maxStartDate || undefined}
               onChange={(e) => onFieldChange('contractStartDate', e.target.value)}
             />
             {minStartDate && (
@@ -41,12 +43,12 @@ export function RenewalPeriodPanel({
               type="date"
               className="dep-input"
               value={form.contractEndDate}
-              min={form.contractStartDate || minStartDate}
+              min={minEndDate || form.contractStartDate || minStartDate}
               max={maxEndDate}
               onChange={(e) => onFieldChange('contractEndDate', e.target.value)}
             />
-            {maxEndDate && (
-              <p className="ae-hint">Must be on or before: {maxEndDate}</p>
+            {minEndDate && maxEndDate && (
+              <p className="ae-hint">Must be between {minEndDate} and {maxEndDate}.</p>
             )}
           </div>
         </div>

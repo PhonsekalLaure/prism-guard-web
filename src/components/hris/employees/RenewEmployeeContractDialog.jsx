@@ -11,9 +11,25 @@ export default function RenewEmployeeContractDialog({
   onCancel,
   onSave,
   minStartDate,
+  maxStartDate,
+  minEndDate,
   maxEndDate,
 }) {
   if (!isOpen) return null;
+
+  const hasValidRenewalPeriod = Boolean(
+    form.contractStartDate
+    && form.contractEndDate
+    && (!minStartDate || form.contractStartDate >= minStartDate)
+    && (!maxStartDate || form.contractStartDate <= maxStartDate)
+    && (!minEndDate || form.contractEndDate >= minEndDate)
+    && (!maxEndDate || form.contractEndDate <= maxEndDate)
+    && form.contractEndDate >= form.contractStartDate
+  );
+  const isSaveDisabled =
+    isSaving
+    || !hasValidRenewalPeriod
+    || !form.contractFile;
 
   return (
     <div className="dlg-overlay" onClick={onCancel}>
@@ -36,6 +52,8 @@ export default function RenewEmployeeContractDialog({
             form={form}
             onFieldChange={onFieldChange}
             minStartDate={minStartDate}
+            maxStartDate={maxStartDate}
+            minEndDate={minEndDate}
             maxEndDate={maxEndDate}
           />
           <RenewalDocumentPanel file={form.contractFile} onFileChange={onFileChange} />
@@ -45,7 +63,7 @@ export default function RenewEmployeeContractDialog({
           <button type="button" className="dlg-btn dlg-btn-ghost" onClick={onCancel} disabled={isSaving}>
             Cancel
           </button>
-          <button type="button" className="dlg-btn dlg-btn-deploy" onClick={onSave} disabled={isSaving}>
+          <button type="button" className="dlg-btn dlg-btn-deploy" onClick={onSave} disabled={isSaveDisabled}>
             {isSaving ? 'Renewing...' : 'Renew Contract'}
           </button>
         </div>

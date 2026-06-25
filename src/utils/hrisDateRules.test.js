@@ -4,10 +4,13 @@ import test from 'node:test';
 import {
   toDateInputValue,
   getBusinessTodayDateInputValue,
+  addMonthsToDateInputValue,
   getAgeDateBounds,
   getDeploymentStartDateMinimum,
   getHireDateBounds,
+  getEmploymentContractEndDateBounds,
   getRenewalDateBounds,
+  isEmploymentContractEndDateInRange,
 } from './hrisDateRules.js';
 
 test('toDateInputValue formats date object to YYYY-MM-DD', () => {
@@ -34,6 +37,25 @@ test('getHireDateBounds returns min and max bounds', () => {
   const bounds = getHireDateBounds();
   assert.match(bounds.min, /^\d{4}-\d{2}-\d{2}$/);
   assert.match(bounds.max, /^\d{4}-\d{2}-\d{2}$/);
+});
+
+test('addMonthsToDateInputValue preserves dates and clamps month ends', () => {
+  assert.equal(addMonthsToDateInputValue('2026-06-12', 6), '2026-12-12');
+  assert.equal(addMonthsToDateInputValue('2026-08-31', 6), '2027-02-28');
+});
+
+test('getEmploymentContractEndDateBounds returns 6-month and 1-year contract limits', () => {
+  assert.deepEqual(getEmploymentContractEndDateBounds('2026-06-12'), {
+    min: '2026-12-12',
+    max: '2027-06-12',
+  });
+});
+
+test('isEmploymentContractEndDateInRange validates inclusive employee contract limits', () => {
+  assert.equal(isEmploymentContractEndDateInRange('2026-06-12', '2026-12-12'), true);
+  assert.equal(isEmploymentContractEndDateInRange('2026-06-12', '2027-06-12'), true);
+  assert.equal(isEmploymentContractEndDateInRange('2026-06-12', '2026-12-11'), false);
+  assert.equal(isEmploymentContractEndDateInRange('2026-06-12', '2027-06-13'), false);
 });
 
 test('getRenewalDateBounds without currentEndDate uses today', () => {

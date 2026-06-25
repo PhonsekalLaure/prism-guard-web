@@ -162,6 +162,8 @@ export default function SubmitReviewForm({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitDisabled) return;
+
     setError(null);
 
     if (!isValidRating(form.overallRating)) {
@@ -208,6 +210,15 @@ export default function SubmitReviewForm({
       setSubmitting(false);
     }
   };
+
+  const hasInvalidCategoryRating = CATEGORY_RATINGS.some(({ key }) => (
+    form[key] && !isValidRating(form[key])
+  ));
+  const isSubmitDisabled =
+    submitting
+    || !isValidRating(form.overallRating)
+    || hasInvalidCategoryRating
+    || form.reviewText.trim().length < 50;
 
   return (
     <div className="srv-form-panel">
@@ -413,7 +424,7 @@ export default function SubmitReviewForm({
             <button
               type="submit"
               className="srv-btn-submit"
-              disabled={submitting}
+              disabled={isSubmitDisabled}
             >
               {submitting ? (
                 <>

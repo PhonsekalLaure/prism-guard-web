@@ -116,6 +116,12 @@ export default function ContactPerson({ profile, onProfileUpdate, isEditing, onC
     }
   };
 
+  const isSaveDisabled =
+    saving
+    || !form.firstName.trim()
+    || !form.lastName.trim()
+    || Boolean(validatePhilippineMobile(form.phone));
+
   const fields = [
     { name: 'firstName', label: 'First Name', type: 'text' },
     { name: 'middleName', label: 'Middle Name', type: 'text' },
@@ -144,7 +150,7 @@ export default function ContactPerson({ profile, onProfileUpdate, isEditing, onC
               type="submit"
               form="cms-profile-contact-form"
               className="cms-profile-form__save-btn"
-              disabled={saving}
+              disabled={isSaveDisabled}
             >
               {saving ? <FaSpinner className="cms-profile-form__spinner" /> : <FaSave />}
               {saving ? 'Saving...' : 'Save'}

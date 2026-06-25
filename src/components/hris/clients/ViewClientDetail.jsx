@@ -576,6 +576,28 @@ export default function ViewClientDetail({
     }
   };
 
+  const deployGuardToday = getBusinessTodayDateInputValue();
+  const deployGuardMinStartDate = data.contract_start_date && data.contract_start_date > deployGuardToday
+    ? data.contract_start_date
+    : deployGuardToday;
+  const hasValidDeployGuardDates =
+    (!deployForm.contractStartDate || deployForm.contractStartDate >= deployGuardMinStartDate)
+    && (!data.contract_end_date || !deployForm.contractStartDate || deployForm.contractStartDate <= data.contract_end_date)
+    && (!deployForm.contractEndDate || !deployForm.contractStartDate || deployForm.contractEndDate >= deployForm.contractStartDate)
+    && (!data.contract_end_date || !deployForm.contractEndDate || deployForm.contractEndDate <= data.contract_end_date);
+  const isDeployGuardDisabled =
+    isDeploying
+    || loadingDeployable
+    || deployableEmployees.length === 0
+    || !deployForm.siteId
+    || !selectedEmployee?.id
+    || isBelowMinimumMonthlyBasePay(deployForm.baseSalary)
+    || deployForm.daysOfWeek.length < 6
+    || !deployForm.shiftStart
+    || !deployForm.shiftEnd
+    || !deployForm.deploymentOrderFile
+    || !hasValidDeployGuardDates;
+
   const outerClass = pageMode ? 'ep-page-wrapper' : 'vc-modal-overlay';
   const contentClass = pageMode ? 'ep-detail-container' : 'vc-modal-content';
 
@@ -796,7 +818,7 @@ export default function ViewClientDetail({
                 type="button"
                 className="dlg-btn dlg-btn-deploy"
                 onClick={handleDeployGuard}
-                disabled={isDeploying || loadingDeployable || deployableEmployees.length === 0}
+                disabled={isDeployGuardDisabled}
               >
                 {isDeploying ? 'Deploying...' : 'Deploy Guard'}
               </button>

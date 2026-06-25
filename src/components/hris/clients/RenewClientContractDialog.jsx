@@ -19,6 +19,25 @@ export default function RenewClientContractDialog({
 }) {
   if (!isOpen) return null;
 
+  const ratePerGuard = Number(form.ratePerGuard);
+  const hasValidRatePerGuard =
+    Number.isFinite(ratePerGuard)
+    && ratePerGuard >= MIN_CLIENT_RATE_PER_GUARD
+    && ratePerGuard <= MAX_CLIENT_RATE_PER_GUARD;
+  const hasValidRenewalPeriod = Boolean(
+    form.contractStartDate
+    && form.contractEndDate
+    && (!minStartDate || form.contractStartDate >= minStartDate)
+    && (!maxEndDate || form.contractStartDate <= maxEndDate)
+    && form.contractEndDate > form.contractStartDate
+    && (!maxEndDate || form.contractEndDate <= maxEndDate)
+  );
+  const isSaveDisabled =
+    isSaving
+    || !hasValidRenewalPeriod
+    || !hasValidRatePerGuard
+    || !form.contractFile;
+
   return (
     <div className="dlg-overlay" onClick={onCancel}>
       <div className="dlg-card dlg-card-wide" onClick={(e) => e.stopPropagation()}>
@@ -78,7 +97,7 @@ export default function RenewClientContractDialog({
           <button type="button" className="dlg-btn dlg-btn-ghost" onClick={onCancel} disabled={isSaving}>
             Cancel
           </button>
-          <button type="button" className="dlg-btn dlg-btn-deploy" onClick={onSave} disabled={isSaving}>
+          <button type="button" className="dlg-btn dlg-btn-deploy" onClick={onSave} disabled={isSaveDisabled}>
             {isSaving ? 'Renewing...' : 'Renew Contract'}
           </button>
         </div>

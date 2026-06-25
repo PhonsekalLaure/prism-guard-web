@@ -12,7 +12,9 @@ import { hasPermission } from '@utils/adminPermissions';
 import {
   getAgeDateBounds,
   getBusinessTodayDateInputValue,
+  getEmploymentContractEndDateBounds,
   getRenewalDateBounds,
+  isEmploymentContractEndDateInRange,
 } from '@utils/hrisDateRules';
 import { getGuardHeightError } from '@utils/guardEligibility';
 import {
@@ -141,6 +143,7 @@ export default function ViewEmployeeDetail({
   const data = employeeDetails || previewEmployee;
   const hasActiveDeployment = Array.isArray(data.deployments) && data.deployments.some((deployment) => deployment.status === 'active');
   const { minStartDate: minRenewalStartDate, maxEndDate: maxRenewalEndDate } = getRenewalDateBounds(data?.current_contract_end_date);
+  const renewalContractEndDateBounds = getEmploymentContractEndDateBounds(renewalForm.contractStartDate || minRenewalStartDate);
   const contractNeedsRenewal = Boolean(data.employment_contract_needs_renewal);
   const hasValidEmploymentContract = data.employment_contract_valid !== false;
   const contractActionMessage = data.admin_action_message || 'Employment contract needs admin review.';
@@ -293,8 +296,8 @@ export default function ViewEmployeeDetail({
       showNotification('Renewal contract end date cannot be earlier than renewal contract start date.', 'error');
       return;
     }
-    if (isAfterDate(renewalForm.contractEndDate, maxRenewalEndDate)) {
-      showNotification(`Renewal contract end date cannot be later than ${maxRenewalEndDate}.`, 'error');
+    if (!isEmploymentContractEndDateInRange(renewalForm.contractStartDate, renewalForm.contractEndDate)) {
+      showNotification(`Renewal contract end date must be between ${renewalContractEndDateBounds.min} and ${renewalContractEndDateBounds.max}.`, 'error');
       return;
     }
     if (!renewalForm.contractFile) {
@@ -642,7 +645,9 @@ export default function ViewEmployeeDetail({
         }}
         onSave={handleRenewContract}
         minStartDate={minRenewalStartDate}
-        maxEndDate={maxRenewalEndDate}
+        maxStartDate={maxRenewalEndDate}
+        minEndDate={renewalContractEndDateBounds.min}
+        maxEndDate={renewalContractEndDateBounds.max}
       />
     </div>
   );

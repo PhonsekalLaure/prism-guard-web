@@ -52,6 +52,34 @@ export function getHireDateBounds() {
   };
 }
 
+export function addMonthsToDateInputValue(dateValue, months) {
+  const [year, month, day] = String(dateValue || '').split('-').map(Number);
+  if (!year || !month || !day) return '';
+
+  const targetMonthIndex = month - 1 + months;
+  const targetYear = year + Math.floor(targetMonthIndex / 12);
+  const normalizedMonthIndex = ((targetMonthIndex % 12) + 12) % 12;
+  const lastDayOfTargetMonth = new Date(Date.UTC(targetYear, normalizedMonthIndex + 1, 0)).getUTCDate();
+  const targetDay = Math.min(day, lastDayOfTargetMonth);
+  return toDateInputValue(new Date(targetYear, normalizedMonthIndex, targetDay));
+}
+
+export function getEmploymentContractEndDateBounds(startDate) {
+  if (!startDate) return { min: '', max: '' };
+
+  return {
+    min: addMonthsToDateInputValue(startDate, 6),
+    max: addMonthsToDateInputValue(startDate, 12),
+  };
+}
+
+export function isEmploymentContractEndDateInRange(startDate, endDate) {
+  if (!startDate || !endDate) return false;
+
+  const { min, max } = getEmploymentContractEndDateBounds(startDate);
+  return Boolean(min && max && endDate >= min && endDate <= max);
+}
+
 export function getRenewalDateBounds(currentEndDate) {
   const today = new Date();
   const maxEndDate = toDateInputValue(new Date(today.getFullYear() + 10, today.getMonth(), today.getDate()));

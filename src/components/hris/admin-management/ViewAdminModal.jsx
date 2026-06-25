@@ -82,6 +82,14 @@ export default function ViewAdminModal({
     setEditForm((prev) => ({ ...prev, [field]: value }));
   }
 
+  const isEditFormValid = Boolean(
+    editForm.firstName
+    && editForm.lastName
+    && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editForm.email || '')
+    && /^\d{10}$/.test(editForm.mobile || '')
+    && editForm.adminRole
+  );
+
   async function handleSave() {
     if (!editForm.firstName || !editForm.lastName || !editForm.email || !editForm.mobile || !editForm.adminRole) {
       setError('First name, last name, email, mobile number, and admin role are required.');
@@ -151,7 +159,7 @@ export default function ViewAdminModal({
               </>
             ) : (
               <div className="aef-edit-actions">
-                <button className="aef-btn-save" onClick={handleSave} disabled={isUpdating}>
+                <button className="aef-btn-save" onClick={handleSave} disabled={isUpdating || !isEditFormValid}>
                   {isUpdating ? <><span className="va-spinner" /> Saving…</> : <><FaSave /> Save Changes</>}
                 </button>
                 <button className="aef-btn-cancel" onClick={() => setIsEditing(false)} disabled={isUpdating}>

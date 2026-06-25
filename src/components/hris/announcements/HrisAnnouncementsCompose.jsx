@@ -24,7 +24,19 @@ export default function HrisAnnouncementsCompose({ onPublish, publishing = false
   const [expiresAt, setExpiresAt] = useState('');
   const [error, setError] = useState('');
 
+  const normalizedExpiresAtForForm = toIsoOrNull(expiresAt);
+  const hasValidExpiration = !expiresAt || (
+    normalizedExpiresAtForForm && new Date(normalizedExpiresAtForForm) > new Date()
+  );
+  const isPublishDisabled =
+    publishing
+    || !canWrite
+    || !subject.trim()
+    || !message.trim()
+    || !hasValidExpiration;
+
   const handlePublish = async () => {
+    if (isPublishDisabled) return;
     if (!subject.trim() || !message.trim()) {
       setError('Subject and message are required.');
       return;
@@ -158,7 +170,7 @@ export default function HrisAnnouncementsCompose({ onPublish, publishing = false
 
         {/* Publish */}
         <div className="an-compose-footer">
-          <button className="an-publish-btn" onClick={handlePublish} disabled={publishing || !canWrite}>
+          <button className="an-publish-btn" onClick={handlePublish} disabled={isPublishDisabled}>
             {publishing ? <FaCheckCircle /> : <FaBullhorn />}
             {publishing ? 'Publishing...' : 'Publish Announcement'}
           </button>

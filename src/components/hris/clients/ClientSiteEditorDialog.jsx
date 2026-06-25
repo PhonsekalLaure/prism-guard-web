@@ -22,6 +22,18 @@ export default function ClientSiteEditorDialog({
 
   const title = mode === 'edit' ? 'Edit Site' : 'Add Site';
   const saveLabel = isSaving ? 'Saving...' : mode === 'edit' ? 'Save Changes' : 'Create Site';
+  const geofenceRadius = Number(form.geofenceRadius);
+  const isSaveDisabled =
+    isSaving
+    || !form.siteName?.trim()
+    || !form.siteAddress?.trim()
+    || form.latitude === ''
+    || form.latitude == null
+    || form.longitude === ''
+    || form.longitude == null
+    || !Number.isFinite(geofenceRadius)
+    || geofenceRadius < MIN_GEOFENCE_RADIUS_METERS
+    || geofenceRadius > MAX_GEOFENCE_RADIUS_METERS;
 
   return (
     <div className="dlg-overlay" onClick={onCancel}>
@@ -96,7 +108,7 @@ export default function ClientSiteEditorDialog({
           <button type="button" className="dlg-btn dlg-btn-ghost" onClick={onCancel} disabled={isSaving}>
             Cancel
           </button>
-          <button type="button" className="dlg-btn dlg-btn-deploy" onClick={onSave} disabled={isSaving}>
+          <button type="button" className="dlg-btn dlg-btn-deploy" onClick={onSave} disabled={isSaveDisabled}>
             {saveLabel}
           </button>
         </div>

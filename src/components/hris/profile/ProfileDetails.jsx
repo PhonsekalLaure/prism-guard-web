@@ -83,7 +83,15 @@ export default function ProfileDetails({ profile, loading, isEditing, canEdit = 
 
   const handleChange = (field, value) => setForm(prev => ({ ...prev, [field]: value }));
 
+  const isSaveDisabled =
+    isSaving
+    || !form.firstName.trim()
+    || !form.lastName.trim()
+    || Boolean(validatePhilippineMobile(form.phone));
+
   const handleSave = async () => {
+    if (isSaveDisabled) return;
+
     if (!form.firstName.trim() || !form.lastName.trim()) {
       showNotification('First name and last name are required.', 'error');
       return;
@@ -194,7 +202,7 @@ export default function ProfileDetails({ profile, loading, isEditing, canEdit = 
               <button className="pf-btn pf-btn-outline" onClick={onCancel} disabled={isSaving} style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
                 <FaTimes /> Cancel
               </button>
-              <button className="pf-btn pf-btn-gold" onClick={handleSave} disabled={isSaving} style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
+              <button className="pf-btn pf-btn-gold" onClick={handleSave} disabled={isSaveDisabled} style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }}>
                 <FaSave /> {isSaving ? 'Saving...' : 'Save'}
               </button>
             </div>
