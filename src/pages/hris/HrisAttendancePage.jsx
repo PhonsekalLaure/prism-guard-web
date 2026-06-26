@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import HrisAttendanceTopbar from '@hris-components/attendance/HrisAttendanceTopbar';
 import HrisAttendanceStatCards from '@hris-components/attendance/HrisAttendanceStatCards';
@@ -33,13 +33,22 @@ export default function HrisAttendancePage() {
   const [searchParams] = useSearchParams();
   const requestedAttendanceLogId = searchParams.get('attendanceLogId');
   const requestedContestId = searchParams.get('contestId');
+  const requestedDate = searchParams.get('date');
+  const requestedStatus = searchParams.get('status');
   const today = getTodayDateString();
+  const initialDate = useMemo(() => (
+    requestedDate && requestedDate <= today ? requestedDate : today
+  ), [requestedDate, today]);
+  const initialFilters = useMemo(() => ({
+    ...DEFAULT_FILTERS,
+    status: requestedStatus || DEFAULT_FILTERS.status,
+  }), [requestedStatus]);
   const [records, setRecords] = useState([]);
   const [metadata, setMetadata] = useState(DEFAULT_METADATA);
   const [stats, setStats] = useState(null);
   const [clients, setClients] = useState([]);
-  const [filters, setFilters] = useState(DEFAULT_FILTERS);
-  const [selectedDate, setSelectedDate] = useState(today);
+  const [filters, setFilters] = useState(initialFilters);
+  const [selectedDate, setSelectedDate] = useState(initialDate);
   const [loading, setLoading] = useState(true);
   const [loadingStats, setLoadingStats] = useState(true);
   const [exporting, setExporting] = useState(false);
@@ -48,7 +57,7 @@ export default function HrisAttendancePage() {
   const fetchRecords = useCallback(async (
     page = 1,
     currentFilters = DEFAULT_FILTERS,
-    date = selectedDate
+    date = getTodayDateString()
   ) => {
     try {
       setLoading(true);
@@ -68,9 +77,9 @@ export default function HrisAttendancePage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedDate]);
+  }, []);
 
-  const fetchStats = useCallback(async (currentFilters = DEFAULT_FILTERS, date = selectedDate) => {
+  const fetchStats = useCallback(async (currentFilters = DEFAULT_FILTERS, date = getTodayDateString()) => {
     try {
       setLoadingStats(true);
       const result = await attendanceService.getStats({
@@ -83,7 +92,7 @@ export default function HrisAttendancePage() {
     } finally {
       setLoadingStats(false);
     }
-  }, [selectedDate]);
+  }, []);
 
   const fetchClients = useCallback(async () => {
     try {
@@ -95,26 +104,26 @@ export default function HrisAttendancePage() {
   }, []);
 
   useEffect(() => {
-    fetchRecords(1, DEFAULT_FILTERS);
-    fetchStats(DEFAULT_FILTERS);
+    fetchRecords(1, initialFilters, initialDate);
+    fetchStats(initialFilters, initialDate);
     fetchClients();
-  }, [fetchRecords, fetchStats, fetchClients]);
+  }, [fetchRecords, fetchStats, fetchClients, initialDate, initialFilters]);
 
   useEffect(() => {
     const refreshTimer = window.setInterval(() => {
-      fetchRecords(metadata.page || 1, filters);
-      fetchStats(filters);
+      fetchRecords(metadata.page || 1, filters, selectedDate);
+      fetchStats(filters, selectedDate);
       fetchClients();
     }, 60000);
 
     return () => window.clearInterval(refreshTimer);
-  }, [fetchRecords, fetchStats, fetchClients, filters, metadata.page]);
+  }, [fetchRecords, fetchStats, fetchClients, filters, metadata.page, selectedDate]);
 
   const handleFilterChange = useCallback((nextFilters) => {
     setFilters(nextFilters);
-    fetchRecords(1, nextFilters);
-    fetchStats(nextFilters);
-  }, [fetchRecords, fetchStats]);
+    fetchRecords(1, nextFilters, selectedDate);
+    fetchStats(nextFilters, selectedDate);
+  }, [fetchRecords, fetchStats, selectedDate]);
 
   const handleResetFilters = useCallback(() => {
     setFilters(DEFAULT_FILTERS);
@@ -131,14 +140,14 @@ export default function HrisAttendancePage() {
   }, [fetchRecords, fetchStats, filters, today]);
 
   const handlePageChange = useCallback((page) => {
-    fetchRecords(page, filters);
-  }, [fetchRecords, filters]);
+    fetchRecords(page, filters, selectedDate);
+  }, [fetchRecords, filters, selectedDate]);
 
   const handleRefresh = useCallback(() => {
-    fetchRecords(metadata.page || 1, filters);
-    fetchStats(filters);
+    fetchRecords(metadata.page || 1, filters, selectedDate);
+    fetchStats(filters, selectedDate);
     fetchClients();
-  }, [fetchRecords, fetchStats, fetchClients, filters, metadata.page]);
+  }, [fetchRecords, fetchStats, fetchClients, filters, metadata.page, selectedDate]);
 
   const handleExport = useCallback(async () => {
     try {

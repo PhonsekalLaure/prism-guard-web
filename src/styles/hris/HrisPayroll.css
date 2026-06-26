@@ -1163,6 +1163,15 @@
   line-height: 1;
 }
 
+.pr-remittance-total-note {
+  color: #64748b;
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.25;
+  margin-top: 0.32rem;
+}
+
 .pr-remittance-item-header > span {
   align-items: center;
   border-radius: 999px;
@@ -1384,6 +1393,89 @@
 }
 
 /* =============================================
+   REMITTANCE SKELETON
+   ============================================= */
+.pr-remittance-item--skeleton {
+  pointer-events: none;
+}
+
+.pr-remittance-skeleton-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.pr-remittance-sk--label {
+  height: 10px;
+  width: 60%;
+  border-radius: 5px;
+}
+
+.pr-remittance-sk--amount {
+  height: 22px;
+  width: 80%;
+  border-radius: 6px;
+}
+
+.pr-remittance-sk--badge {
+  height: 24px;
+  width: 72px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.pr-remittance-sk--row {
+  height: 10px;
+  width: 45%;
+  border-radius: 5px;
+}
+
+.pr-remittance-sk--row-val {
+  height: 10px;
+  width: 30%;
+  border-radius: 5px;
+}
+
+.pr-remittance-sk--btn {
+  height: 34px;
+  width: 130px;
+  border-radius: 8px;
+}
+
+/* =============================================
+   MARK REMITTED BUTTON — PREMIUM SUCCESS
+   ============================================= */
+.pr-remittance-mark-remitted.report-action-btn--success {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  border-color: #15803d;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 0.8rem;
+  letter-spacing: 0.01em;
+  transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease;
+}
+
+.pr-remittance-mark-remitted.report-action-btn--success:hover:not(:disabled) {
+  background: linear-gradient(135deg, #15803d, #166534);
+  box-shadow: 0 4px 16px rgba(22, 163, 74, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  transform: translateY(-1px);
+}
+
+.pr-remittance-mark-remitted.report-action-btn--success:active:not(:disabled) {
+  box-shadow: 0 1px 4px rgba(22, 163, 74, 0.2);
+  transform: translateY(0);
+}
+
+.pr-remittance-mark-remitted.report-action-btn--success:disabled {
+  background: linear-gradient(135deg, #86efac, #bbf7d0);
+  border-color: #86efac;
+  box-shadow: none;
+  color: #166534;
+  opacity: 0.7;
+}
+
+/* =============================================
    ANIMATIONS
    ============================================= */
 @keyframes prFadeIn {
@@ -1426,4 +1518,74 @@
   .pr-net-hero      { flex-direction: column; gap: 0.75rem; }
   .pr-net-hero-date { text-align: left; }
   .pr-snapshot-grid { grid-template-columns: 1fr; }
+}
+
+.pr-attendance-blockers {
+  display: grid;
+  gap: 0.75rem;
+  max-height: min(58vh, 520px);
+  overflow: auto;
+  padding-right: 0.25rem;
+}
+
+.pr-attendance-blockers-help {
+  color: #475569;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  margin: 0 0 0.15rem;
+}
+
+.pr-attendance-blocker {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 0.85rem 0.95rem;
+}
+
+.pr-attendance-blocker > div {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.pr-attendance-blocker strong {
+  color: #0f172a;
+  font-size: 0.94rem;
+}
+
+.pr-attendance-blocker span,
+.pr-attendance-blocker small {
+  color: #475569;
+  font-size: 0.78rem;
+}
+
+.pr-attendance-blocker-action {
+  background: #093269;
+  border: 0;
+  border-radius: 7px;
+  color: #fff;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.55rem 0.85rem;
+}
+
+.pr-attendance-blocker-action:hover {
+  background: #0b3f86;
+}
+
+@media (max-width: 640px) {
+  .pr-attendance-blocker {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pr-attendance-blocker-action {
+    width: 100%;
+  }
 }

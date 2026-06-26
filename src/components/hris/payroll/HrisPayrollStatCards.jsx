@@ -28,9 +28,9 @@ export default function HrisPayrollStatCards({ summary = {}, statusLabel = 'No r
       delay: '0.05s',
     },
     {
-      label: 'Deductions',
+      label: 'Employee Deductions',
       value: wholeMoney(summary.total_deductions),
-      sub: 'Contributions, tax, leaves, cash advances',
+      sub: 'Selected cutoff: employee shares, tax, attendance, cash advances',
       valueColor: '#dc2626',
       borderColor: '#ef4444',
       icon: FaReceipt,

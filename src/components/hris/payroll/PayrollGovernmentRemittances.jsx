@@ -9,6 +9,7 @@ import {
 
 import ReportActionButton from '@components/ui/ReportActionButton';
 import ReportConfirmDialog from '@components/ui/ReportConfirmDialog';
+import { SkeletonBlock } from '@components/ui/Skeleton';
 import useReportAction from '@hooks/useReportAction';
 import payrollService from '@services/hris/payrollService';
 import { formatDate, money } from './payrollFormatters';
@@ -65,6 +66,7 @@ export default function PayrollGovernmentRemittances({
       return () => { cancelled = true; };
     }
 
+    setContext(null);
     setContextLoading(true);
     payrollService.getGovernmentRemittanceContext(run.id)
       .then((result) => {
@@ -197,11 +199,11 @@ export default function PayrollGovernmentRemittances({
           <h3 id='payroll-remittance-title'><FaLandmark /> Government Remittances</h3>
           <p>
             {context?.contribution_month
-              ? `${formatContributionMonth(context.contribution_month)} - both payroll cutoffs`
-              : 'Monthly employee deductions and employer contributions'}
+              ? `${formatContributionMonth(context.contribution_month)} - both payroll cutoffs, employee and employer shares`
+              : 'Monthly agency remittances include employee deductions and employer contributions'}
           </p>
         </div>
-        <span className={canRemit ? 'pr-remittance-ready' : 'pr-remittance-pending'}>
+        <span className={!contextLoading && canRemit ? 'pr-remittance-ready' : 'pr-remittance-pending'}>
           {contextLoading
             ? 'Loading remittance'
             : canRemit
@@ -220,7 +222,29 @@ export default function PayrollGovernmentRemittances({
       </div>
 
       <div className='pr-remittance-grid'>
-        {summaries.map((summary) => {
+        {contextLoading ? (
+          [0, 1, 2].map((i) => (
+            <div className='pr-remittance-item pr-remittance-item--skeleton' key={i}>
+              <div className='pr-remittance-item-header'>
+                <div className='pr-remittance-skeleton-header-left'>
+                  <SkeletonBlock className='pr-remittance-sk pr-remittance-sk--label' />
+                  <SkeletonBlock className='pr-remittance-sk pr-remittance-sk--amount' />
+                </div>
+                <SkeletonBlock className='pr-remittance-sk pr-remittance-sk--badge' />
+              </div>
+              <dl className='pr-remittance-breakdown'>
+                <div><SkeletonBlock className='pr-remittance-sk pr-remittance-sk--row' /><SkeletonBlock className='pr-remittance-sk pr-remittance-sk--row-val' /></div>
+                <div><SkeletonBlock className='pr-remittance-sk pr-remittance-sk--row' /><SkeletonBlock className='pr-remittance-sk pr-remittance-sk--row-val' /></div>
+              </dl>
+              <div className='pr-remittance-report-actions'>
+                <SkeletonBlock className='pr-remittance-sk pr-remittance-sk--btn' />
+              </div>
+              <div className='pr-remittance-action'>
+                <SkeletonBlock className='pr-remittance-sk pr-remittance-sk--btn' />
+              </div>
+            </div>
+          ))
+        ) : summaries.map((summary) => {
           const remittance = summary.remittance;
           return (
             <article className='pr-remittance-item' key={summary.key}>
@@ -228,6 +252,9 @@ export default function PayrollGovernmentRemittances({
                 <div>
                   <h4>{summary.label}</h4>
                   <strong>{money(remittance?.total_amount ?? summary.totalAmount)}</strong>
+                  <small className='pr-remittance-total-note'>
+                    Employee + employer{summary.key === 'sss' ? ' + EC' : ''}
+                  </small>
                 </div>
                 <span className={remittance ? 'is-remitted' : 'is-outstanding'}>
                   {remittance ? <FaCheckCircle /> : <FaReceipt />}
@@ -298,19 +325,21 @@ export default function PayrollGovernmentRemittances({
                   )}
                 </div>
               ) : (
-                <ReportActionButton
-                  className='pr-remittance-action'
-                  label='Mark Remitted'
-                  icon={FaCheckCircle}
-                  disabled={
-                    contextLoading
-                    || !canRemit
-                    || remitAction.loading
-                    || summary.totalAmount <= 0
-                  }
-                  variant='secondary'
-                  onClick={() => openRemittanceDialog(summary)}
-                />
+                <div className='pr-remittance-action'>
+                  <ReportActionButton
+                    className='pr-remittance-mark-remitted'
+                    label='Mark Remitted'
+                    icon={FaCheckCircle}
+                    disabled={
+                      contextLoading
+                      || !canRemit
+                      || remitAction.loading
+                      || summary.totalAmount <= 0
+                    }
+                    variant='success'
+                    onClick={() => openRemittanceDialog(summary)}
+                  />
+                </div>
               )}
             </article>
           );

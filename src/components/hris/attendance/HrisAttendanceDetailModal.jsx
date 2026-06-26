@@ -231,14 +231,16 @@ export default function HrisAttendanceDetailModal({
                     disabled={reviewLoading}
                   />
                   {reviewError && <div className="ha-modal-alert">{reviewError}</div>}
-                  <button
-                    type="button"
-                    className="ha-modal-btn primary"
-                    onClick={handleApproveScheduledEnd}
-                    disabled={reviewLoading}
-                  >
-                    {reviewLoading ? 'Approving...' : 'Approve Scheduled End'}
-                  </button>
+                  <div className="ha-review-action-row">
+                    <button
+                      type="button"
+                      className="ha-modal-btn primary"
+                      onClick={handleApproveScheduledEnd}
+                      disabled={reviewLoading}
+                    >
+                      {reviewLoading ? 'Approving...' : 'Approve Scheduled End'}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

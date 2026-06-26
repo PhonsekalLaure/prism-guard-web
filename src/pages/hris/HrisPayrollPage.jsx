@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Notification from '@components/ui/Notification';
 import ReportConfirmDialog from '@components/ui/ReportConfirmDialog';
 import HrisPayrollTopbar from '@hris-components/payroll/HrisPayrollTopbar';
@@ -44,7 +45,29 @@ function findActiveRunForCutoff(runs, cutoff) {
   )) || null;
 }
 
+function formatAttendanceBlockerDate(value) {
+  if (!value) return 'Unknown date';
+  const date = new Date(`${value}T00:00:00.000Z`);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString('en-PH', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
+function buildAttendanceReviewPath(review) {
+  const params = new URLSearchParams({
+    date: review.date || '',
+    status: 'missed_clock_out',
+    attendanceLogId: review.attendanceLogId || '',
+  });
+  return `/attendance?${params.toString()}`;
+}
+
 export default function HrisPayrollPage() {
+  const navigate = useNavigate();
   const defaultPeriod = useMemo(getDefaultPayrollPeriod, []);
   const cutoffOptions = useMemo(() => getPayrollCutoffOptions(), []);
   const [selectedCutoffKey, setSelectedCutoffKey] = useState(defaultPeriod.key);
@@ -54,6 +77,7 @@ export default function HrisPayrollPage() {
   const [selectedRunId, setSelectedRunId] = useState('');
   const [selectedRun, setSelectedRun] = useState(null);
   const [paymentTarget, setPaymentTarget] = useState(null);
+  const [attendanceBlockers, setAttendanceBlockers] = useState(null);
   const [holidayModalOpen, setHolidayModalOpen] = useState(false);
   const [loadingRuns, setLoadingRuns] = useState(true);
   const [loadingRecords, setLoadingRecords] = useState(false);
@@ -189,6 +213,12 @@ export default function HrisPayrollPage() {
     showNotification,
     getErrorMessage: getPayrollErrorMessage,
     run: () => payrollService.approvePayrollRun(selectedRunId),
+    onError: (error) => {
+      const details = error?.response?.data?.details;
+      if (details?.code === 'MISSED_CLOCK_OUT_REVIEWS_PENDING') {
+        setAttendanceBlockers(details);
+      }
+    },
     afterSuccess: updateRunAfterSuccess,
   });
 
@@ -237,6 +267,14 @@ export default function HrisPayrollPage() {
       recordId: paymentTarget.id,
     });
     if (result) setPaymentTarget(null);
+  };
+
+  const closeAttendanceBlockers = () => setAttendanceBlockers(null);
+
+  const handleOpenAttendanceBlocker = (review) => {
+    if (!review?.attendanceLogId) return;
+    setAttendanceBlockers(null);
+    navigate(buildAttendanceReviewPath(review));
   };
 
   const handleFilterChange = (nextFilters) => {
@@ -319,6 +357,40 @@ export default function HrisPayrollPage() {
         onCancel={() => setPaymentTarget(null)}
         onConfirm={handleConfirmRecordPaid}
       />
+      <ReportConfirmDialog
+        open={Boolean(attendanceBlockers)}
+        title="Resolve Missed Clock-Out Reviews"
+        description={attendanceBlockers ? `${attendanceBlockers.count || 0} pending review(s) must be resolved before this payroll can be approved.` : ''}
+        confirmLabel="Done"
+        cancelLabel="Close"
+        tone="warning"
+        width="760px"
+        onCancel={closeAttendanceBlockers}
+        onConfirm={closeAttendanceBlockers}
+      >
+        <div className="pr-attendance-blockers">
+          <p className="pr-attendance-blockers-help">
+            Open each review, approve the scheduled clock-out when valid, then recalculate the payroll draft before approving it.
+          </p>
+          {(attendanceBlockers?.attendanceReviews || []).map((review) => (
+            <div className="pr-attendance-blocker" key={review.attendanceLogId}>
+              <div>
+                <strong>{review.employeeName}</strong>
+                <span>{review.employeeNumber} - {formatAttendanceBlockerDate(review.date)}</span>
+                <small>{review.clientName} / {review.siteName} / {review.shift}</small>
+                {review.clockIn && <small>Clock-in: {review.clockIn}</small>}
+              </div>
+              <button
+                type="button"
+                className="pr-attendance-blocker-action"
+                onClick={() => handleOpenAttendanceBlocker(review)}
+              >
+                Review
+              </button>
+            </div>
+          ))}
+        </div>
+      </ReportConfirmDialog>
 
       <PayrollHolidayManager
         cutoff={selectedCutoff}

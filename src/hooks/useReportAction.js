@@ -11,6 +11,7 @@ export default function useReportAction({
   run,
   afterSuccess,
   afterSettled,
+  onError,
   showNotification,
   getErrorMessage = defaultErrorMessage,
 }) {
@@ -40,6 +41,7 @@ export default function useReportAction({
       return result;
     } catch (error) {
       setPhase('error');
+      await onError?.(error, ...args);
       showNotification?.(getErrorMessage(error, errorFallback), 'error');
       return null;
     } finally {
@@ -53,6 +55,7 @@ export default function useReportAction({
     getErrorMessage,
     loading,
     loadingMessage,
+    onError,
     run,
     showNotification,
     successMessage,
