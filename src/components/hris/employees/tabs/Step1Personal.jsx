@@ -52,10 +52,10 @@ export default function Step1Personal({ data, onChange }) {
       </div>
 
       <div className="ae-form-grid">
-        <FormField label="First Name *"    type="text"   required value={data.firstName}    onChange={(e) => onChange('firstName',    e.target.value)} />
-        <FormField label="Last Name *"     type="text"   required value={data.lastName}     onChange={(e) => onChange('lastName',     e.target.value)} />
-        <FormField label="Middle Name"     type="text"            value={data.middleName}    onChange={(e) => onChange('middleName',   e.target.value)} />
-        <FormField label="Suffix"          type="text"            value={data.suffix}        onChange={(e) => onChange('suffix',       e.target.value)} />
+        <FormField label="First Name *"    type="text"   required placeholder="e.g. Juan" value={data.firstName}    onChange={(e) => onChange('firstName',    e.target.value)} />
+        <FormField label="Last Name *"     type="text"   required placeholder="e.g. Dela Cruz" value={data.lastName}     onChange={(e) => onChange('lastName',     e.target.value)} />
+        <FormField label="Middle Name"     type="text"            placeholder="e.g. Santos" value={data.middleName}    onChange={(e) => onChange('middleName',   e.target.value)} />
+        <FormField label="Suffix"          type="text"            placeholder="e.g. Jr., Sr., III" value={data.suffix}        onChange={(e) => onChange('suffix',       e.target.value)} />
         <FormField
           label="Date of Birth *"
           type="date"
@@ -77,7 +77,7 @@ export default function Step1Personal({ data, onChange }) {
         <FormField label="Blood Type"      type="select"          value={data.bloodType}    onChange={(e) => onChange('bloodType',    e.target.value)}
           options={['Select blood type', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']} />
         <FormField label="Mobile Number *" type="tel"    required span2 prefix="+63" value={data.mobile} onChange={(e) => onChange('mobile', e.target.value)} placeholder="912 345 6789" />
-        <FormField label="Email Address *" type="email"  required span2 value={data.email}  onChange={(e) => onChange('email',        e.target.value)} />
+        <FormField label="Email Address *" type="email"  required span2 placeholder="e.g. juan.delacruz@email.com" value={data.email}  onChange={(e) => onChange('email',        e.target.value)} />
 
         <div className="ae-form-group span-2">
           <label>Residential Address *</label>
@@ -95,7 +95,7 @@ export default function Step1Personal({ data, onChange }) {
           <p className="ae-hint">Select a validated address to automatically save geographical coordinates for deployment distance calculations.</p>
         </div>
 
-        <FormField label="Emergency Contact Name *"   type="text" required value={data.emergencyName}         onChange={(e) => onChange('emergencyName',         e.target.value)} />
+        <FormField label="Emergency Contact Name *"   type="text" required placeholder="e.g. Maria Dela Cruz" value={data.emergencyName}         onChange={(e) => onChange('emergencyName',         e.target.value)} />
         <FormField label="Emergency Contact Number *" type="tel"  required prefix="+63" value={data.emergencyContact}     onChange={(e) => onChange('emergencyContact',     e.target.value)} placeholder="912 345 6789" />
         <FormField label="Relationship"               type="text"          value={data.emergencyRelationship} onChange={(e) => onChange('emergencyRelationship', e.target.value)} placeholder="e.g., Spouse, Parent" />
       </div>
