@@ -25,6 +25,9 @@ import payrollService from '@services/hris/payrollService';
 import '../../styles/hris/HrisPayroll.css';
 
 const PAYROLL_PAGE_LIMIT = 10;
+const ATTENDANCE_BLOCKERS_PENDING = 'ATTENDANCE_PAYROLL_BLOCKERS_PENDING';
+const LEGACY_MISSED_CLOCK_OUT_BLOCKERS_PENDING = 'MISSED_CLOCK_OUT_REVIEWS_PENDING';
+const PAYROLL_RECALCULATION_REQUIRED = 'PAYROLL_RECALCULATION_REQUIRED';
 
 function comparePayrollRecords(first, second) {
   const firstName = String(first.employee_name || '').toLowerCase();
@@ -58,12 +61,49 @@ function formatAttendanceBlockerDate(value) {
 }
 
 function buildAttendanceReviewPath(review) {
+  const status = review.type === 'attendance_contest' ? 'attendance_contest' : 'missed_clock_out';
   const params = new URLSearchParams({
     date: review.date || '',
-    status: 'missed_clock_out',
-    attendanceLogId: review.attendanceLogId || '',
+    status,
   });
+
+  if (status === 'attendance_contest') {
+    if (!review.contestId) return '';
+    params.set('contestId', review.contestId);
+  } else {
+    if (!review.attendanceLogId) return '';
+    params.set('attendanceLogId', review.attendanceLogId);
+  }
+
   return `/attendance?${params.toString()}`;
+}
+
+function normalizeAttendanceBlockers(details) {
+  const missedClockOutReviews = (details?.missedClockOutReviews || details?.attendanceReviews || []).map((review) => ({
+    ...review,
+    type: 'missed_clock_out',
+    typeLabel: 'Missed clock-out',
+  }));
+  const attendanceContests = (details?.attendanceContests || []).map((contest) => ({
+    ...contest,
+    type: 'attendance_contest',
+    typeLabel: 'Attendance contest',
+  }));
+  const blockers = [...missedClockOutReviews, ...attendanceContests].sort((first, second) => {
+    const dateCompare = String(first.date || '').localeCompare(String(second.date || ''));
+    if (dateCompare !== 0) return dateCompare;
+    return String(first.employeeName || '').localeCompare(String(second.employeeName || ''));
+  });
+
+  return {
+    ...details,
+    blockers,
+    missedClockOutReviews,
+    attendanceContests,
+    count: details?.count ?? blockers.length,
+    missedClockOutCount: details?.missedClockOutCount ?? missedClockOutReviews.length,
+    attendanceContestCount: details?.attendanceContestCount ?? attendanceContests.length,
+  };
 }
 
 export default function HrisPayrollPage() {
@@ -78,6 +118,7 @@ export default function HrisPayrollPage() {
   const [selectedRun, setSelectedRun] = useState(null);
   const [paymentTarget, setPaymentTarget] = useState(null);
   const [attendanceBlockers, setAttendanceBlockers] = useState(null);
+  const [recalculationPromptOpen, setRecalculationPromptOpen] = useState(false);
   const [holidayModalOpen, setHolidayModalOpen] = useState(false);
   const [loadingRuns, setLoadingRuns] = useState(true);
   const [loadingRecords, setLoadingRecords] = useState(false);
@@ -203,7 +244,10 @@ export default function HrisPayrollPage() {
     showNotification,
     getErrorMessage: getPayrollErrorMessage,
     run: () => payrollService.recalculatePayrollRun(selectedRunId),
-    afterSuccess: updateRunAfterSuccess,
+    afterSuccess: async (run) => {
+      setRecalculationPromptOpen(false);
+      await updateRunAfterSuccess(run);
+    },
   });
 
   const approveAction = useReportAction({
@@ -215,8 +259,17 @@ export default function HrisPayrollPage() {
     run: () => payrollService.approvePayrollRun(selectedRunId),
     onError: (error) => {
       const details = error?.response?.data?.details;
-      if (details?.code === 'MISSED_CLOCK_OUT_REVIEWS_PENDING') {
-        setAttendanceBlockers(details);
+      if (
+        details?.code === ATTENDANCE_BLOCKERS_PENDING
+        || details?.code === LEGACY_MISSED_CLOCK_OUT_BLOCKERS_PENDING
+      ) {
+        setRecalculationPromptOpen(false);
+        setAttendanceBlockers(normalizeAttendanceBlockers(details));
+        return;
+      }
+      if (details?.code === PAYROLL_RECALCULATION_REQUIRED) {
+        setAttendanceBlockers(null);
+        setRecalculationPromptOpen(true);
       }
     },
     afterSuccess: updateRunAfterSuccess,
@@ -271,10 +324,21 @@ export default function HrisPayrollPage() {
 
   const closeAttendanceBlockers = () => setAttendanceBlockers(null);
 
+  const handleCheckAttendanceBlockers = async () => {
+    const result = await approveAction.execute();
+    if (result) setAttendanceBlockers(null);
+  };
+
+  const handleConfirmRecalculation = async () => {
+    const result = await recalculateAction.execute();
+    if (result) setRecalculationPromptOpen(false);
+  };
+
   const handleOpenAttendanceBlocker = (review) => {
-    if (!review?.attendanceLogId) return;
+    const path = buildAttendanceReviewPath(review);
+    if (!path) return;
     setAttendanceBlockers(null);
-    navigate(buildAttendanceReviewPath(review));
+    navigate(path);
   };
 
   const handleFilterChange = (nextFilters) => {
@@ -360,26 +424,29 @@ export default function HrisPayrollPage() {
       />
       <ReportConfirmDialog
         open={Boolean(attendanceBlockers)}
-        title="Resolve Missed Clock-Out Reviews"
-        description={attendanceBlockers ? `${attendanceBlockers.count || 0} pending review(s) must be resolved before this payroll can be approved.` : ''}
-        confirmLabel="Done"
+        title="Resolve Attendance Reviews"
+        description={attendanceBlockers ? `${attendanceBlockers.count || 0} pending attendance review(s) must be resolved before this payroll can be approved.` : ''}
+        confirmLabel="Check Again"
         cancelLabel="Close"
+        loading={approveAction.loading}
         tone="warning"
-        width="760px"
+        width="780px"
         onCancel={closeAttendanceBlockers}
-        onConfirm={closeAttendanceBlockers}
+        onConfirm={handleCheckAttendanceBlockers}
       >
         <div className="pr-attendance-blockers">
           <p className="pr-attendance-blockers-help">
-            Open each review, approve the scheduled clock-out when valid, then recalculate the payroll draft before approving it.
+            Open each review or contest, resolve the attendance decision, then check again. If all blockers are resolved, payroll will ask for recalculation before approval.
           </p>
-          {(attendanceBlockers?.attendanceReviews || []).map((review) => (
-            <div className="pr-attendance-blocker" key={review.attendanceLogId}>
+          {(attendanceBlockers?.blockers || []).map((review) => (
+            <div className="pr-attendance-blocker" key={`${review.type}:${review.attendanceLogId || review.contestId}`}>
               <div>
+                <span className={`pr-attendance-blocker-type is-${review.type}`}>{review.typeLabel}</span>
                 <strong>{review.employeeName}</strong>
                 <span>{review.employeeNumber} - {formatAttendanceBlockerDate(review.date)}</span>
                 <small>{review.clientName} / {review.siteName} / {review.shift}</small>
                 {review.clockIn && <small>Clock-in: {review.clockIn}</small>}
+                {review.reasonText && <small>Reason: {review.reasonText}</small>}
               </div>
               <button
                 type="button"
@@ -393,6 +460,17 @@ export default function HrisPayrollPage() {
         </div>
       </ReportConfirmDialog>
 
+      <ReportConfirmDialog
+        open={recalculationPromptOpen}
+        title="Recalculate Payroll Draft"
+        description="Attendance reviews or contests were resolved after this payroll draft was calculated. Recalculate the draft first, then approve payroll again."
+        confirmLabel="Recalculate"
+        cancelLabel="Close"
+        loading={recalculateAction.loading}
+        tone="warning"
+        onCancel={() => setRecalculationPromptOpen(false)}
+        onConfirm={handleConfirmRecalculation}
+      />
       <PayrollHolidayManager
         cutoff={selectedCutoff}
         isOpen={holidayModalOpen}

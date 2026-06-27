@@ -1557,6 +1557,28 @@
   font-size: 0.94rem;
 }
 
+.pr-attendance-blocker-type {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.68rem;
+  font-weight: 800;
+  justify-self: flex-start;
+  letter-spacing: 0.03em;
+  padding: 0.2rem 0.5rem;
+  text-transform: uppercase;
+}
+
+.pr-attendance-blocker-type.is-missed_clock_out {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.pr-attendance-blocker-type.is-attendance_contest {
+  background: #e0f2fe;
+  color: #075985;
+}
+
 .pr-attendance-blocker span,
 .pr-attendance-blocker small {
   color: #475569;
