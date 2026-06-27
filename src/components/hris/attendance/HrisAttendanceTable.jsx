@@ -32,6 +32,7 @@ export default function HrisAttendanceTable({
   onResetFilters,
   requestedAttendanceLogId = null,
   requestedContestId = null,
+  requestedReviewKey = 0,
 }) {
   const [selectedRow, setSelectedRow] = useState(null);
   const [selectedDetail, setSelectedDetail] = useState(null);
@@ -66,11 +67,12 @@ export default function HrisAttendanceTable({
   }, []);
 
   useEffect(() => {
-    if (!requestedAttendanceLogId || openedRequestRef.current === requestedAttendanceLogId) {
+    const requestKey = `log:${requestedAttendanceLogId}:${requestedReviewKey}`;
+    if (!requestedAttendanceLogId || openedRequestRef.current === requestKey) {
       return;
     }
 
-    openedRequestRef.current = requestedAttendanceLogId;
+    openedRequestRef.current = requestKey;
     const matchingRow = records.find(
       (row) => row.attendanceLogId === requestedAttendanceLogId
     );
@@ -79,15 +81,16 @@ export default function HrisAttendanceTable({
       attendanceLogId: requestedAttendanceLogId,
       name: 'Attendance record',
     });
-  }, [openModal, records, requestedAttendanceLogId]);
+  }, [openModal, records, requestedAttendanceLogId, requestedReviewKey]);
 
 
   useEffect(() => {
-    if (!requestedContestId || openedRequestRef.current === `contest:${requestedContestId}`) {
+    const requestKey = `contest:${requestedContestId}:${requestedReviewKey}`;
+    if (!requestedContestId || openedRequestRef.current === requestKey) {
       return;
     }
 
-    openedRequestRef.current = `contest:${requestedContestId}`;
+    openedRequestRef.current = requestKey;
     const matchingRow = records.find(
       (row) => row.attendanceContestId === requestedContestId
     );
@@ -135,7 +138,7 @@ export default function HrisAttendanceTable({
     return () => {
       cancelled = true;
     };
-  }, [openModal, records, requestedContestId]);
+  }, [openModal, records, requestedContestId, requestedReviewKey]);
   const closeModal = () => {
     setSelectedRow(null);
     setSelectedDetail(null);

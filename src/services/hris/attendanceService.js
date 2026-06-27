@@ -30,6 +30,11 @@ async function getClients() {
   return data;
 }
 
+async function getAttendanceReviews(params = {}) {
+  const { data } = await api.get('/reviews', { params });
+  return data;
+}
+
 
 async function getAttendanceContests(params = {}) {
   const { data } = await api.get('/contests', { params });
@@ -85,6 +90,7 @@ export default {
   getAttendanceContestDetails,
   getAttendanceContests,
   getAttendanceRecords,
+  getAttendanceReviews,
   getAttendanceLogDetails,
   getStats,
   rejectAttendanceContest,

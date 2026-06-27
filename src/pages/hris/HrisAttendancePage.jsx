@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import HrisAttendanceTopbar from '@hris-components/attendance/HrisAttendanceTopbar';
 import HrisAttendanceStatCards from '@hris-components/attendance/HrisAttendanceStatCards';
 import HrisAttendanceFilterBar from '@hris-components/attendance/HrisAttendanceFilterBar';
+import HrisAttendanceReviewQueue from '@hris-components/attendance/HrisAttendanceReviewQueue';
 import HrisAttendanceTable from '@hris-components/attendance/HrisAttendanceTable';
 import attendanceService from '@services/hris/attendanceService';
 import '../../styles/hris/HrisAttendance.css';
@@ -47,6 +48,14 @@ export default function HrisAttendancePage() {
   const [metadata, setMetadata] = useState(DEFAULT_METADATA);
   const [stats, setStats] = useState(null);
   const [clients, setClients] = useState([]);
+  const [reviewQueue, setReviewQueue] = useState(null);
+  const [reviewQueueLoading, setReviewQueueLoading] = useState(true);
+  const [reviewQueueError, setReviewQueueError] = useState(null);
+  const [requestedReview, setRequestedReview] = useState({
+    attendanceLogId: requestedAttendanceLogId,
+    contestId: requestedContestId,
+    key: 0,
+  });
   const [filters, setFilters] = useState(initialFilters);
   const [selectedDate, setSelectedDate] = useState(initialDate);
   const [loading, setLoading] = useState(true);
@@ -94,6 +103,20 @@ export default function HrisAttendancePage() {
     }
   }, []);
 
+
+  const fetchReviewQueue = useCallback(async () => {
+    try {
+      setReviewQueueLoading(true);
+      setReviewQueueError(null);
+      const result = await attendanceService.getAttendanceReviews();
+      setReviewQueue(result);
+    } catch (err) {
+      setReviewQueue(null);
+      setReviewQueueError(err?.response?.data?.error || 'Failed to load attendance review queue.');
+    } finally {
+      setReviewQueueLoading(false);
+    }
+  }, []);
   const fetchClients = useCallback(async () => {
     try {
       const result = await attendanceService.getClients();
@@ -107,17 +130,19 @@ export default function HrisAttendancePage() {
     fetchRecords(1, initialFilters, initialDate);
     fetchStats(initialFilters, initialDate);
     fetchClients();
-  }, [fetchRecords, fetchStats, fetchClients, initialDate, initialFilters]);
+    fetchReviewQueue();
+  }, [fetchRecords, fetchStats, fetchClients, fetchReviewQueue, initialDate, initialFilters]);
 
   useEffect(() => {
     const refreshTimer = window.setInterval(() => {
       fetchRecords(metadata.page || 1, filters, selectedDate);
       fetchStats(filters, selectedDate);
       fetchClients();
+      fetchReviewQueue();
     }, 60000);
 
     return () => window.clearInterval(refreshTimer);
-  }, [fetchRecords, fetchStats, fetchClients, filters, metadata.page, selectedDate]);
+  }, [fetchRecords, fetchStats, fetchClients, fetchReviewQueue, filters, metadata.page, selectedDate]);
 
   const handleFilterChange = useCallback((nextFilters) => {
     setFilters(nextFilters);
@@ -147,8 +172,25 @@ export default function HrisAttendancePage() {
     fetchRecords(metadata.page || 1, filters, selectedDate);
     fetchStats(filters, selectedDate);
     fetchClients();
-  }, [fetchRecords, fetchStats, fetchClients, filters, metadata.page, selectedDate]);
+    fetchReviewQueue();
+  }, [fetchRecords, fetchStats, fetchClients, fetchReviewQueue, filters, metadata.page, selectedDate]);
 
+
+  const handleOpenReview = useCallback((review) => {
+    if (!review?.date) return;
+    const status = review.type === 'attendance_contest' ? 'attendance_contest' : 'missed_clock_out';
+    const nextFilters = { ...filters, status };
+
+    setSelectedDate(review.date);
+    setFilters(nextFilters);
+    setRequestedReview((current) => ({
+      attendanceLogId: review.attendanceLogId || null,
+      contestId: review.contestId || null,
+      key: current.key + 1,
+    }));
+    fetchRecords(1, nextFilters, review.date);
+    fetchStats(nextFilters, review.date);
+  }, [fetchRecords, fetchStats, filters]);
   const handleExport = useCallback(async () => {
     try {
       setExporting(true);
@@ -177,6 +219,14 @@ export default function HrisAttendancePage() {
 
       <div className="dashboard-content">
         <HrisAttendanceStatCards stats={stats} loading={loadingStats} />
+        <HrisAttendanceReviewQueue
+          reviews={reviewQueue?.reviews || []}
+          metadata={reviewQueue}
+          loading={reviewQueueLoading}
+          error={reviewQueueError}
+          onRefresh={fetchReviewQueue}
+          onOpenReview={handleOpenReview}
+        />
         <HrisAttendanceFilterBar
           clients={clients}
           filters={filters}
@@ -196,8 +246,9 @@ export default function HrisAttendancePage() {
           onRefresh={handleRefresh}
           onPageChange={handlePageChange}
           onResetFilters={handleResetFilters}
-          requestedAttendanceLogId={requestedAttendanceLogId}
-          requestedContestId={requestedContestId}
+          requestedAttendanceLogId={requestedReview.attendanceLogId}
+          requestedContestId={requestedReview.contestId}
+          requestedReviewKey={requestedReview.key}
         />
       </div>
     </>
