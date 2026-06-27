@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '@hris-components/Sidebar';
 import LogoutModal from '@components/ui/LogoutModal';
@@ -18,6 +18,7 @@ import '@styles/hris/Profile.css';
 
 export default function DashboardLayout() {
   const location = useLocation();
+  const mainRef = useRef(null);
   const [showLogout, setShowLogout] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const {
@@ -53,6 +54,10 @@ export default function DashboardLayout() {
     };
   }, [markCurrentRouteRead, refreshNotificationStats]);
 
+  useLayoutEffect(() => {
+    mainRef.current?.scrollTo({ top: 0, left: 0 });
+  }, [location.pathname]);
+
   return (
     <div className="dashboard-layout">
       <Sidebar
@@ -63,7 +68,7 @@ export default function DashboardLayout() {
       />
       {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>}
 
-      <main className="dashboard-main">
+      <main className="dashboard-main" ref={mainRef}>
         <Outlet context={outletContext} />
       </main>
 
