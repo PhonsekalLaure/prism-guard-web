@@ -328,6 +328,7 @@ export default function HrisPayrollPage() {
         <HrisPayrollStatCards summary={activeSummary} statusLabel={statusLabel} />
         <HrisPayrollOngoingAlert run={selectedRun} />
         <PayrollGovernmentRemittances
+          loading={loadingRuns || loadingRecords}
           run={selectedRun}
           showNotification={showNotification}
         />

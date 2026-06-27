@@ -24,6 +24,7 @@ const MAX_RECEIPT_SIZE = 10 * 1024 * 1024;
 
 export default function PayrollGovernmentRemittances({
   run,
+  loading = false,
   showNotification,
 }) {
   const [context, setContext] = useState(null);
@@ -41,6 +42,7 @@ export default function PayrollGovernmentRemittances({
     [context]
   );
   const canRemit = Boolean(context?.ready);
+  const remittanceLoading = loading || contextLoading;
 
   const remitAction = useReportAction({
     loadingMessage: 'Recording government remittance...',
@@ -63,6 +65,7 @@ export default function PayrollGovernmentRemittances({
     let cancelled = false;
     if (!run?.id) {
       setContext(null);
+      setContextLoading(false);
       return () => { cancelled = true; };
     }
 
@@ -88,7 +91,7 @@ export default function PayrollGovernmentRemittances({
     return () => { cancelled = true; };
   }, [run?.id, run?.status, showNotification]);
 
-  if (!run) return null;
+  if (!run && !loading) return null;
 
   const openRemittanceDialog = (summary) => {
     setTarget(summary);
@@ -203,8 +206,8 @@ export default function PayrollGovernmentRemittances({
               : 'Monthly agency remittances include employee deductions and employer contributions'}
           </p>
         </div>
-        <span className={!contextLoading && canRemit ? 'pr-remittance-ready' : 'pr-remittance-pending'}>
-          {contextLoading
+        <span className={!remittanceLoading && canRemit ? 'pr-remittance-ready' : 'pr-remittance-pending'}>
+          {remittanceLoading
             ? 'Loading remittance'
             : canRemit
               ? 'Ready for remittance'
@@ -222,7 +225,7 @@ export default function PayrollGovernmentRemittances({
       </div>
 
       <div className='pr-remittance-grid'>
-        {contextLoading ? (
+        {remittanceLoading ? (
           [0, 1, 2].map((i) => (
             <div className='pr-remittance-item pr-remittance-item--skeleton' key={i}>
               <div className='pr-remittance-item-header'>
@@ -285,7 +288,7 @@ export default function PayrollGovernmentRemittances({
                     className='pr-remittance-report-button warning'
                     label={`Fix ${summary.report.issue_count} records`}
                     icon={FaExclamationTriangle}
-                    disabled={contextLoading}
+                    disabled={remittanceLoading}
                     variant='secondary'
                     onClick={() => setIssueTarget(summary)}
                   />
@@ -295,7 +298,7 @@ export default function PayrollGovernmentRemittances({
                     label={downloadingReportAgency === summary.key ? 'Downloading' : 'Download Report'}
                     icon={FaDownload}
                     disabled={
-                      contextLoading
+                      remittanceLoading
                       || !canRemit
                       || !summary.report?.ready
                       || summary.totalAmount <= 0
@@ -331,7 +334,7 @@ export default function PayrollGovernmentRemittances({
                     label='Mark Remitted'
                     icon={FaCheckCircle}
                     disabled={
-                      contextLoading
+                      remittanceLoading
                       || !canRemit
                       || remitAction.loading
                       || summary.totalAmount <= 0
