@@ -56,11 +56,11 @@ export default function Step1ContactInfo({ data, onChange }) {
         <p className="text-[10px] text-gray-500 mt-2 uppercase tracking-widest font-bold">Client Profile Picture</p>
       </div>
       <div className="ae-form-grid">
-        <FormField label="First Name *"   type="text"  required value={data.firstName}  onChange={(e) => onChange('firstName',  e.target.value)} />
-        <FormField label="Last Name *"    type="text"  required value={data.lastName}   onChange={(e) => onChange('lastName',   e.target.value)} />
-        <FormField label="Middle Name"    type="text"           value={data.middleName}  onChange={(e) => onChange('middleName', e.target.value)} />
+        <FormField label="First Name *"   type="text"  required placeholder="e.g. Maria" value={data.firstName}  onChange={(e) => onChange('firstName',  e.target.value)} />
+        <FormField label="Last Name *"    type="text"  required placeholder="e.g. Santos" value={data.lastName}   onChange={(e) => onChange('lastName',   e.target.value)} />
+        <FormField label="Middle Name"    type="text"           placeholder="e.g. Cruz" value={data.middleName}  onChange={(e) => onChange('middleName', e.target.value)} />
         <FormField label="Suffix"         type="text"  placeholder="e.g. Jr., Sr., III" value={data.suffix} onChange={(e) => onChange('suffix', e.target.value)} />
-        <FormField label="Email Address *" type="email" span2 required value={data.email}  onChange={(e) => onChange('email',  e.target.value)} />
+        <FormField label="Email Address *" type="email" span2 required placeholder="e.g. maria.santos@company.com" value={data.email}  onChange={(e) => onChange('email',  e.target.value)} />
         <FormField
           label="Mobile Number *"
           type="tel"

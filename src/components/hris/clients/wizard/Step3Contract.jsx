@@ -42,7 +42,7 @@ export default function Step3Contract({ data, onChange }) {
         <FormField
           label="Rate per Guard *"
           type="number"
-          placeholder="0.00"
+          placeholder="e.g. 18500.00"
           prefix="PHP"
           min={MIN_CLIENT_RATE_PER_GUARD}
           max={MAX_CLIENT_RATE_PER_GUARD}

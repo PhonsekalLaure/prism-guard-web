@@ -41,6 +41,7 @@ export default function Step4Sites({ data, onAddSite, onUpdateSite, onRemoveSite
                 label="Site Name"
                 type="text"
                 span2
+                placeholder="e.g. Main Office"
                 value={site.siteName}
                 onChange={(e) => onUpdateSite(index, 'siteName', e.target.value)}
               />
@@ -71,6 +72,7 @@ export default function Step4Sites({ data, onAddSite, onUpdateSite, onRemoveSite
               <FormField
                 label="Geofence Radius (m)"
                 type="number"
+                placeholder="e.g. 50"
                 value={site.geofenceRadius}
                 min={MIN_GEOFENCE_RADIUS_METERS}
                 max={MAX_GEOFENCE_RADIUS_METERS}

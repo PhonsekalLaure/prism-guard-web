@@ -13,6 +13,7 @@ export default function Step2CompanyDetails({ data, onChange }) {
           type="text"
           span2
           required
+          placeholder="e.g. Acme Security Client Corp."
           value={data.company}
           onChange={(e) => onChange('company', e.target.value)}
         />
@@ -21,7 +22,7 @@ export default function Step2CompanyDetails({ data, onChange }) {
           type="textarea"
           span2
           required
-          placeholder="Enter billing address"
+          placeholder="e.g. 123 Ayala Avenue, Makati City"
           value={data.billingAddress}
           onChange={(e) => onChange('billingAddress', e.target.value)}
         />

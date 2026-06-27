@@ -72,7 +72,6 @@ export default function HrisCashAdvanceDetailPage() {
   const [deductionPerPaycheck, setDeductionPerPaycheck] = useState('');
   const [reviewNotes, setReviewNotes] = useState('');
   const [releaseNotes, setReleaseNotes] = useState('');
-  const [settlementNotes, setSettlementNotes] = useState('');
   const [noteAction, setNoteAction] = useState(null);
   const { notification, showNotification, closeNotification } = useNotification();
 
@@ -101,14 +100,12 @@ export default function HrisCashAdvanceDetailPage() {
     setDeductionPerPaycheck(request.deductionPerPaycheck > 0 ? String(request.deductionPerPaycheck) : '');
     setReviewNotes('');
     setReleaseNotes('');
-    setSettlementNotes('');
     setNoteAction(null);
   }, [request]);
 
   const resetActionState = () => {
     setReviewNotes('');
     setReleaseNotes('');
-    setSettlementNotes('');
     setNoteAction(null);
   };
 
@@ -170,19 +167,6 @@ export default function HrisCashAdvanceDetailPage() {
     }
   };
 
-  const handleSettle = async () => {
-    setActionLoadingId('settle');
-    try {
-      await cashAdvanceService.settleCashAdvance(id, settlementNotes);
-      showNotification('Cash advance marked as settled.', 'success');
-      resetActionState();
-      await loadRequest();
-    } catch (err) {
-      showNotification(err.response?.data?.error || err.message || 'Failed to settle cash advance', 'error');
-    } finally {
-      setActionLoadingId(null);
-    }
-  };
 
   const approvedAmountValue = Number(amountApproved);
   const deductionValue = Number(deductionPerPaycheck);
@@ -197,7 +181,6 @@ export default function HrisCashAdvanceDetailPage() {
   const isApproving = actionLoadingId === 'approve';
   const isRejecting = actionLoadingId === 'reject';
   const isReleasing = actionLoadingId === 'release';
-  const isSettling = actionLoadingId === 'settle';
 
   return (
     <>
@@ -409,27 +392,11 @@ export default function HrisCashAdvanceDetailPage() {
               )}
 
               {request.status === 'released' && (
-                <div className="ca-action-panel">
-                  <label className="ca-action-field">
-                    <span>Settlement Notes (Optional)</span>
-                    <textarea
-                      className="ca-modal-textarea"
-                      rows={4}
-                      value={settlementNotes}
-                      onChange={(event) => setSettlementNotes(event.target.value)}
-                      placeholder="Add notes about this settlement..."
-                    />
-                  </label>
-                  <div className="ca-modal-actions">
-                    <button
-                      className="ca-btn approve"
-                      onClick={handleSettle}
-                      disabled={isSettling}
-                      type="button"
-                    >
-                      {isSettling ? <><FaSpinner className="ca-spin" /> Settling...</> : <><FaReceipt /> Mark Settled</>}
-                    </button>
-                  </div>
+                <div className="ca-approved-box">
+                  <p>
+                    <FaHandHoldingUsd />
+                    This cash advance will be deducted automatically through payroll. It will be marked settled once the remaining balance is fully recovered.
+                  </p>
                 </div>
               )}
 
