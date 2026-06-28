@@ -71,6 +71,16 @@ function getRequestStatusClass(status) {
   }[status] || 'status-logged';
 }
 
+function getSubmissionSourceMeta(incident = {}) {
+  if (incident.submissionSource === 'open_attendance_log') {
+    return { label: 'Timed-in report', className: 'source-attendance' };
+  }
+  if (incident.submissionSource === 'active_deployment') {
+    return { label: 'No active time-in', className: 'source-deployment' };
+  }
+  return { label: 'Source not recorded', className: 'source-unknown' };
+}
+
 export default function ViewIncidentDetail({
   incident,
   loading = false,
@@ -162,6 +172,7 @@ export default function ViewIncidentDetail({
   const threadClosed = incident.status === 'resolved';
   const summaryLabel = aiStatus === 'completed' ? 'AI-Generated Summary' : 'Processing Summary';
   const statusMeta = getIncidentStatusMeta(incident);
+  const sourceMeta = getSubmissionSourceMeta(incident);
   const clientActionKey = (request, action) => `client:${request.id}:${action}`;
 
   const openInternalReport = async () => {
@@ -182,6 +193,7 @@ export default function ViewIncidentDetail({
           <span className={`ir-badge priority-${severity}`}>{titleCase(incident.severity)} Priority</span>
           <span className="ir-badge cat-unauth">{titleCase(incident.category)}</span>
           <span className={`ir-badge ${statusMeta.className}`}>{statusMeta.label}</span>
+          <span className={`ir-badge ${sourceMeta.className}`}>{sourceMeta.label}</span>
         </div>
 
         <div className="ir-modal-grid-3">

@@ -292,6 +292,9 @@
 .ir-badge.status-rejected  { background: #fee2e2; color: #991b1b; }
 .ir-badge.status-logged    { background: #f3f4f6; color: #374151; }
 .ir-badge.status-resolved  { background: #dcfce7; color: #14532d; }
+.ir-badge.source-attendance { background: #e0f2fe; color: #075985; }
+.ir-badge.source-deployment { background: #fef3c7; color: #92400e; }
+.ir-badge.source-unknown { background: #f3f4f6; color: #4b5563; }
 
 .ir-badges-row {
   display: flex;

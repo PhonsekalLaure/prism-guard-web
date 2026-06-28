@@ -46,6 +46,16 @@ function getRequestStatusClass(status) {
   }[status] || 'status-logged';
 }
 
+function getSubmissionSourceMeta(incident = {}) {
+  if (incident.submissionSource === 'open_attendance_log') {
+    return { label: 'Timed-in report', className: 'source-attendance' };
+  }
+  if (incident.submissionSource === 'active_deployment') {
+    return { label: 'No active time-in', className: 'source-deployment' };
+  }
+  return { label: 'Source not recorded', className: 'source-unknown' };
+}
+
 export default function HrisIncidentsFeed({
   incidents = [],
   loading = false,
@@ -92,6 +102,7 @@ export default function HrisIncidentsFeed({
           const aiStatus = inc.aiProcessingStatus || 'completed';
           const summaryLabel = aiStatus === 'completed' ? 'AI-Generated Summary' : `AI ${titleCase(aiStatus)}`;
           const statusMeta = getIncidentStatusMeta(inc);
+          const sourceMeta = getSubmissionSourceMeta(inc);
 
           return (
             <div
@@ -120,6 +131,9 @@ export default function HrisIncidentsFeed({
                           AI {titleCase(aiStatus)}
                         </span>
                       )}
+                      <span className={`ir-badge ${sourceMeta.className}`}>
+                        {sourceMeta.label}
+                      </span>
                     </div>
                     <p className={`ir-card-title ${severity}`}>{inc.title}</p>
                     <p className="ir-card-location">
