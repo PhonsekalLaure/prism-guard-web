@@ -25,7 +25,14 @@ export default function ProtectedRoute({ allowedRoles, requiredPermissions, chil
         return;
       }
 
-      if (allowedRoles && !allowedRoles.includes(result.profile.role)) {
+      const profile = result.profile;
+
+      if (!profile) {
+        setStatus('unauthenticated');
+        return;
+      }
+
+      if (allowedRoles && !allowedRoles.includes(profile.role)) {
         setRedirect(result.redirect);
         setStatus('forbidden');
         return;
@@ -37,7 +44,7 @@ export default function ProtectedRoute({ allowedRoles, requiredPermissions, chil
         return;
       }
 
-      if (requiredPermissions && !hasAllPermissions(result.profile, requiredPermissions)) {
+      if (requiredPermissions && !hasAllPermissions(profile, requiredPermissions)) {
         setRedirect(result.redirect);
         setStatus('forbidden');
         return;

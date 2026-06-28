@@ -83,7 +83,8 @@ export default function ViewAdminModal({
   }
 
   const isEditFormValid = Boolean(
-    editForm.firstName
+    editForm
+    && editForm.firstName
     && editForm.lastName
     && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editForm.email || '')
     && /^\d{10}$/.test(editForm.mobile || '')
@@ -91,6 +92,8 @@ export default function ViewAdminModal({
   );
 
   async function handleSave() {
+    if (!editForm) return;
+
     if (!editForm.firstName || !editForm.lastName || !editForm.email || !editForm.mobile || !editForm.adminRole) {
       setError('First name, last name, email, mobile number, and admin role are required.');
       return;

@@ -10,6 +10,10 @@ import useNotification from '@hooks/useNotification';
 import adminService from '@services/hris/adminService';
 import '../../styles/hris/AdminManagement.css';
 
+function normalizeAdminList(data) {
+  return Array.isArray(data) ? data : [];
+}
+
 export default function AdminManagementPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState(null);
@@ -31,7 +35,7 @@ export default function AdminManagementPage() {
         setError('');
         const data = await adminService.getAllAdmins();
         if (!cancelled) {
-          setAdmins(data);
+          setAdmins(normalizeAdminList(data));
         }
       } catch (err) {
         if (!cancelled) {
@@ -49,7 +53,7 @@ export default function AdminManagementPage() {
   }, []);
 
   async function refreshAdmins() {
-    const refreshedAdmins = await adminService.getAllAdmins();
+    const refreshedAdmins = normalizeAdminList(await adminService.getAllAdmins());
     setAdmins(refreshedAdmins);
     return refreshedAdmins;
   }
