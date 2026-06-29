@@ -45,6 +45,10 @@ async function createPayrollRun(payload) {
   return data;
 }
 
+async function getPayrollCutoffReadiness(params = {}) {
+  const { data } = await api.get('/readiness', { params });
+  return data;
+}
 async function getPayrollRunById(id) {
   const { data } = await api.get(`/runs/${id}`);
   return data;
@@ -121,6 +125,7 @@ export default {
   downloadGovernmentRemittanceReceipt,
   getHolidays,
   getGovernmentRemittanceContext,
+  getPayrollCutoffReadiness,
   getPayrollRunById,
   listPayrollRuns,
   markGovernmentRemittance,

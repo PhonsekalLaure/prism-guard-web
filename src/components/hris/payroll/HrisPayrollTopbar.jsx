@@ -16,6 +16,9 @@ export default function HrisPayrollTopbar({
   onAddHoliday,
   onCreate,
   onExport,
+  createDisabled = false,
+  createLoading = false,
+  createLoadingLabel = 'Creating...',
   onRecalculate,
   onSelectCutoff,
   selectedCutoffKey,
@@ -25,6 +28,7 @@ export default function HrisPayrollTopbar({
   const isBusy = Boolean(actionLoading);
   const selectedCutoff = cutoffOptions.find((option) => option.key === selectedCutoffKey);
   const cutoffActionDisabled = isBusy || !selectedCutoff || selectedCutoff.disabled;
+  const createActionDisabled = cutoffActionDisabled || createDisabled;
   const canRecalculate = selectedRun?.status === 'draft';
   const canApprove = selectedRun?.status === 'draft';
   const showGenerationActions = !selectedRun;
@@ -80,10 +84,10 @@ export default function HrisPayrollTopbar({
           <ReportActionButton
             className="pr-process-btn pr-create-draft-btn"
             label="Create Draft"
-            loadingLabel="Creating..."
+            loadingLabel={createLoadingLabel}
             icon={FaMoneyBillWave}
-            loading={actionLoading === 'create'}
-            disabled={cutoffActionDisabled}
+            loading={actionLoading === 'create' || createLoading}
+            disabled={createActionDisabled}
             variant="primary"
             onClick={onCreate}
           />

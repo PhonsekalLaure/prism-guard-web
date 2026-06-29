@@ -1520,6 +1520,32 @@
   .pr-snapshot-grid { grid-template-columns: 1fr; }
 }
 
+.pr-cleanup-banner {
+  align-items: center;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-left: 4px solid #d97706;
+  border-radius: 8px;
+  color: #78350f;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding: 0.95rem 1rem;
+}
+
+.pr-cleanup-banner strong {
+  display: block;
+  font-size: 0.9rem;
+  margin-bottom: 0.18rem;
+}
+
+.pr-cleanup-banner p {
+  color: #92400e;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  margin: 0;
+}
 .pr-attendance-blockers {
   display: grid;
   gap: 0.75rem;
@@ -1579,6 +1605,16 @@
   color: #075985;
 }
 
+.pr-attendance-blocker-type.is-active_shift {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.pr-attendance-blocker-type.is-geofence_payroll_review {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
 .pr-attendance-blocker span,
 .pr-attendance-blocker small {
   color: #475569;
@@ -1602,6 +1638,11 @@
 }
 
 @media (max-width: 640px) {
+  .pr-cleanup-banner {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .pr-attendance-blocker {
     align-items: stretch;
     flex-direction: column;
