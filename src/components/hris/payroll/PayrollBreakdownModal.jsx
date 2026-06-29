@@ -24,6 +24,9 @@ export default function PayrollBreakdownModal({ row, onClose }) {
   );
   const snapshot = row.calculation_snapshot || {};
   const holidayDetails = Array.isArray(snapshot.holidays) ? snapshot.holidays : [];
+  const geofenceAwayIntervals = Array.isArray(snapshot.geofence_away_intervals)
+    ? snapshot.geofence_away_intervals
+    : [];
   const deductionExcess = getDeductionExcess(row);
 
   return (
@@ -138,6 +141,10 @@ export default function PayrollBreakdownModal({ row, onClose }) {
               <strong>{numeric(snapshot.late_minutes) + numeric(snapshot.undertime_minutes)} min</strong>
             </div>
             <div>
+              <span>Geofence Away</span>
+              <strong>{numeric(snapshot.geofence_away_minutes)} min</strong>
+            </div>
+            <div>
               <span>Effective Daily Rate</span>
               <strong>{money(snapshot.daily_rate)}</strong>
             </div>
@@ -159,6 +166,23 @@ export default function PayrollBreakdownModal({ row, onClose }) {
             </div>
           </div>
 
+
+          {geofenceAwayIntervals.length > 0 && (
+            <div className="pr-breakdown-section">
+              <h4><FaMinusCircle style={{ color: '#dc2626' }} /> Geofence Away Deductions</h4>
+              <div className="pr-deductions-box">
+                {geofenceAwayIntervals.map((interval) => (
+                  <div
+                    key={interval.id || `${interval.detectedStartAt}-${interval.detectedEndAt}`}
+                    className="pr-breakdown-row"
+                  >
+                    <span>{formatDate(interval.startAt)} to {formatDate(interval.endAt)}</span>
+                    <span>{numeric(interval.deductedAwayMinutes ?? interval.awayMinutes)} min</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           {holidayDetails.length > 0 && (
             <div className="pr-breakdown-section">
               <h4><FaCoins style={{ color: '#ca8a04' }} /> Holiday Treatment</h4>

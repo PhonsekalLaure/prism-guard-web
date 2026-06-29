@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
+import ErrorStatusPage from '@/pages/ErrorStatusPage';
 import authService from '@services/authService';
 import { hasAllPermissions } from '@utils/adminPermissions';
 import FullScreenLoader from '@components/ui/FullScreenLoader';
@@ -32,13 +33,13 @@ export default function ProtectedRoute({ allowedRoles, requiredPermissions, chil
         return;
       }
 
-      if (allowedRoles && !allowedRoles.includes(profile.role)) {
+      if (result.must_change_password) {
         setRedirect(result.redirect);
-        setStatus('forbidden');
+        setStatus('mustChangePassword');
         return;
       }
 
-      if (result.must_change_password) {
+      if (allowedRoles && !allowedRoles.includes(profile.role)) {
         setRedirect(result.redirect);
         setStatus('forbidden');
         return;
@@ -63,11 +64,15 @@ export default function ProtectedRoute({ allowedRoles, requiredPermissions, chil
   }
 
   if (status === 'unauthenticated') {
-    return <Navigate to="/login" replace />;
+    return <ErrorStatusPage statusCode={401} />;
   }
 
-  if (status === 'forbidden' && redirect) {
+  if (status === 'mustChangePassword' && redirect) {
     return <Navigate to={redirect} replace />;
+  }
+
+  if (status === 'forbidden') {
+    return <ErrorStatusPage statusCode={403} homePath={redirect} />;
   }
 
   return children;

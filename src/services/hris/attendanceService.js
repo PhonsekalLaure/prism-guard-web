@@ -60,6 +60,10 @@ async function getAttendanceLogDetails(attendanceLogId) {
   return data;
 }
 
+async function resolveGeofencePayrollReview(attendanceLogId, payload) {
+  const { data } = await api.post(`/${attendanceLogId}/geofence-payroll/resolve`, payload);
+  return data;
+}
 async function approveMissedClockOutScheduledEnd(attendanceLogId, reviewNotes) {
   const { data } = await api.post(`/${attendanceLogId}/missed-clock-out/approve-scheduled-end`, {
     reviewNotes,
@@ -94,6 +98,7 @@ export default {
   getAttendanceLogDetails,
   getStats,
   rejectAttendanceContest,
+  resolveGeofencePayrollReview,
   getClients,
   exportReport,
 };

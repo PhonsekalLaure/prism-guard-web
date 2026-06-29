@@ -14,6 +14,35 @@ import {
   getHoursNoteClass,
 } from './attendanceUi';
 
+const BUSINESS_UTC_OFFSET_MINUTES = 8 * 60;
+
+function toDateTimeLocalValue(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const businessTime = new Date(date.getTime() + BUSINESS_UTC_OFFSET_MINUTES * 60000);
+  return businessTime.toISOString().slice(0, 19);
+}
+
+function fromDateTimeLocalValue(value) {
+  const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/);
+  if (!match) return null;
+  const [, year, month, day, hour, minute, second = '0'] = match;
+  const utcMs = Date.UTC(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(minute),
+    Number(second)
+  ) - BUSINESS_UTC_OFFSET_MINUTES * 60000;
+  const date = new Date(utcMs);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
+function getGeofenceIntervalKey(interval) {
+  return `${interval?.detectedStartAt || ''}:${interval?.detectedEndAt || ''}`;
+}
 function AttendanceDetailSkeleton() {
   return (
     <>
@@ -63,9 +92,15 @@ export default function HrisAttendanceDetailModal({
   const [contestReviewNotes, setContestReviewNotes] = useState('');
   const [contestReviewLoading, setContestReviewLoading] = useState(false);
   const [contestReviewError, setContestReviewError] = useState(null);
+  const [geofenceReviewNotes, setGeofenceReviewNotes] = useState('');
+  const [geofenceIntervalEdits, setGeofenceIntervalEdits] = useState({});
+  const [geofenceReviewLoadingKey, setGeofenceReviewLoadingKey] = useState(null);
+  const [geofenceReviewError, setGeofenceReviewError] = useState(null);
   const displayRow = detail?.summary || row;
   const statusMeta = STATUS_META[displayRow.status] || STATUS_META.absent;
   const missedClockOutReview = detail?.missedClockOutReview;
+  const geofencePayrollReview = detail?.geofencePayrollReview;
+  const geofenceReviewIntervals = geofencePayrollReview?.intervals || [];
   const canApproveScheduledEnd = Boolean(missedClockOutReview?.canApproveScheduledEnd);
   const attendanceContest = detail?.attendanceContest || (displayRow.attendanceContestId ? {
     id: displayRow.attendanceContestId,
@@ -124,6 +159,80 @@ export default function HrisAttendanceDetailModal({
     }
   };
 
+  const getGeofenceIntervalEdit = (interval) => {
+    const intervalKey = getGeofenceIntervalKey(interval);
+    return geofenceIntervalEdits[intervalKey] || {
+      approvedStartLocal: toDateTimeLocalValue(interval.approvedStartAt || interval.proposedStartAt),
+      approvedEndLocal: toDateTimeLocalValue(interval.approvedEndAt || interval.proposedEndAt),
+    };
+  };
+
+  const handleGeofenceIntervalEdit = (interval, field, value) => {
+    const intervalKey = getGeofenceIntervalKey(interval);
+    setGeofenceIntervalEdits((previous) => ({
+      ...previous,
+      [intervalKey]: {
+        ...getGeofenceIntervalEdit(interval),
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleGeofencePayrollDecision = async (interval, action) => {
+    const notes = geofenceReviewNotes.trim();
+    if (!notes) {
+      setGeofenceReviewError('Review notes are required.');
+      return;
+    }
+
+    const intervalKey = getGeofenceIntervalKey(interval);
+    const loadingKey = `${intervalKey}:${action}`;
+    const edit = getGeofenceIntervalEdit(interval);
+    const defaultStartLocal = toDateTimeLocalValue(interval.approvedStartAt || interval.proposedStartAt);
+    const defaultEndLocal = toDateTimeLocalValue(interval.approvedEndAt || interval.proposedEndAt);
+    const approvedStartAt = action === 'approve'
+      ? edit.approvedStartLocal === defaultStartLocal
+        ? interval.proposedStartAt
+        : fromDateTimeLocalValue(edit.approvedStartLocal) || interval.proposedStartAt
+      : null;
+    const approvedEndAt = action === 'approve'
+      ? edit.approvedEndLocal === defaultEndLocal
+        ? interval.proposedEndAt
+        : fromDateTimeLocalValue(edit.approvedEndLocal) || interval.proposedEndAt
+      : null;
+
+    if (action === 'approve' && (!approvedStartAt || !approvedEndAt)) {
+      setGeofenceReviewError('Approved start and end are required.');
+      return;
+    }
+
+    try {
+      setGeofenceReviewLoadingKey(loadingKey);
+      setGeofenceReviewError(null);
+      const updatedDetail = await attendanceService.resolveGeofencePayrollReview(
+        displayRow.attendanceLogId,
+        {
+          action,
+          detectedStartAt: interval.detectedStartAt,
+          detectedEndAt: interval.detectedEndAt,
+          approvedStartAt,
+          approvedEndAt,
+          reviewNotes: notes,
+        }
+      );
+      setGeofenceReviewNotes('');
+      setGeofenceIntervalEdits((previous) => {
+        const next = { ...previous };
+        delete next[intervalKey];
+        return next;
+      });
+      onDetailUpdated?.(updatedDetail);
+    } catch (err) {
+      setGeofenceReviewError(err?.response?.data?.error || 'Failed to update geofence payroll review.');
+    } finally {
+      setGeofenceReviewLoadingKey(null);
+    }
+  };
   return (
     <div className="ha-modal-overlay" onClick={(event) => event.target === event.currentTarget && onClose?.()}>
       <div className="ha-modal-content">
@@ -295,6 +404,107 @@ export default function HrisAttendanceDetailModal({
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {geofenceReviewIntervals.length > 0 && (
+            <div className="ha-modal-section">
+              <span className="ha-modal-section-label">Geofence Payroll Review</span>
+              <div className="ha-detail-grid">
+                <div><span>Pending Intervals</span><strong>{geofencePayrollReview?.pendingCount || 0}</strong></div>
+                <div><span>Approved Deductions</span><strong>{geofencePayrollReview?.approvedCount || 0}</strong></div>
+                <div><span>Voided Intervals</span><strong>{geofencePayrollReview?.voidedCount || 0}</strong></div>
+              </div>
+
+              {geofenceReviewIntervals.some((interval) => interval.status === 'pending') && (
+                <div className="ha-review-action">
+                  <label htmlFor="geofence-payroll-review-notes">Review Notes</label>
+                  <textarea
+                    id="geofence-payroll-review-notes"
+                    value={geofenceReviewNotes}
+                    onChange={(event) => setGeofenceReviewNotes(event.target.value)}
+                    placeholder="Explain the payroll deduction or why it should be voided."
+                    rows={3}
+                    disabled={Boolean(geofenceReviewLoadingKey)}
+                  />
+                  {geofenceReviewError && <div className="ha-modal-alert">{geofenceReviewError}</div>}
+                </div>
+              )}
+
+              <div className="ha-geofence-review-list">
+                {geofenceReviewIntervals.map((interval) => {
+                  const intervalKey = getGeofenceIntervalKey(interval);
+                  const approveKey = `${intervalKey}:approve`;
+                  const voidKey = `${intervalKey}:void`;
+                  const intervalEdit = getGeofenceIntervalEdit(interval);
+                  return (
+                    <div key={intervalKey} className={`ha-geofence-review-card ${interval.status}`}>
+                      <div className="ha-geofence-review-head">
+                        <div>
+                          <strong>{interval.detectedStart} - {interval.detectedEnd}</strong>
+                          <span>{interval.proposedAwayMinutes} min proposed away time</span>
+                        </div>
+                        <span className={`ha-geofence-review-status ${interval.status}`}>
+                          {interval.statusLabel || interval.status}
+                        </span>
+                      </div>
+                      <div className="ha-detail-grid compact">
+                        <div><span>Proposed Start</span><strong>{interval.proposedStart || 'N/A'}</strong></div>
+                        <div><span>Proposed End</span><strong>{interval.proposedEnd || 'N/A'}</strong></div>
+                        <div><span>Approved Minutes</span><strong>{interval.awayMinutes || 0} min</strong></div>
+                        <div><span>Reviewed By</span><strong>{interval.reviewedBy || 'N/A'}</strong></div>
+                      </div>
+                      {interval.reviewNotes && (
+                        <div className="ha-modal-notes-box">{interval.reviewNotes}</div>
+                      )}
+                      {interval.status === 'pending' && (
+                        <>
+                          <div className="ha-geofence-edit-grid">
+                            <label>
+                              Approved Start
+                              <input
+                                type="datetime-local"
+                                step="1"
+                                value={intervalEdit.approvedStartLocal}
+                                onChange={(event) => handleGeofenceIntervalEdit(interval, 'approvedStartLocal', event.target.value)}
+                                disabled={Boolean(geofenceReviewLoadingKey)}
+                              />
+                            </label>
+                            <label>
+                              Approved End
+                              <input
+                                type="datetime-local"
+                                step="1"
+                                value={intervalEdit.approvedEndLocal}
+                                onChange={(event) => handleGeofenceIntervalEdit(interval, 'approvedEndLocal', event.target.value)}
+                                disabled={Boolean(geofenceReviewLoadingKey)}
+                              />
+                            </label>
+                          </div>
+                          <div className="ha-review-action-row">
+                            <button
+                              type="button"
+                              className="ha-modal-btn primary"
+                              onClick={() => handleGeofencePayrollDecision(interval, 'approve')}
+                              disabled={Boolean(geofenceReviewLoadingKey)}
+                            >
+                              {geofenceReviewLoadingKey === approveKey ? 'Approving...' : 'Approve Deduction'}
+                            </button>
+                            <button
+                              type="button"
+                              className="ha-modal-btn secondary"
+                              onClick={() => handleGeofencePayrollDecision(interval, 'void')}
+                              disabled={Boolean(geofenceReviewLoadingKey)}
+                            >
+                              {geofenceReviewLoadingKey === voidKey ? 'Voiding...' : 'Void'}
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
           <div className="ha-modal-section">

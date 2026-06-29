@@ -14,6 +14,15 @@ function dateList(items = []) {
     : '';
 }
 
+
+function geofenceIntervalList(items = []) {
+  return Array.isArray(items)
+    ? items
+      .map((item) => `${item.startAt || item.approvedStartAt || ''} to ${item.endAt || item.approvedEndAt || ''} (${numeric(item.deductedAwayMinutes ?? item.awayMinutes)} min)`)
+      .filter((item) => item.trim() !== 'to (0 min)')
+      .join('; ')
+    : '';
+}
 function getSnapshot(record) {
   return record.calculation_snapshot || {};
 }
@@ -64,6 +73,8 @@ export const PAYROLL_EXPORT_HEADERS = [
   'Total Worked Hours',
   'Late Minutes',
   'Undertime Minutes',
+  'Geofence Away Minutes',
+  'Geofence Away Intervals',
   'Contractual Monthly Salary',
   'Effective Monthly Salary',
   'Contractual Daily Rate',
@@ -133,6 +144,8 @@ export function buildPayrollExportRow(record, fallbackStatus = 'draft') {
     numeric(record.regular_hours) + numeric(record.overtime_hours),
     snapshot.late_minutes ?? '',
     snapshot.undertime_minutes ?? '',
+    snapshot.geofence_away_minutes ?? '',
+    geofenceIntervalList(snapshot.geofence_away_intervals),
     snapshot.monthly_base_salary ?? '',
     snapshot.effective_monthly_salary ?? '',
     snapshot.contractual_daily_rate ?? '',

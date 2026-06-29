@@ -1290,6 +1290,125 @@
   cursor: not-allowed;
 }
 
+
+.ha-geofence-review-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ha-geofence-review-card {
+  border: 1.5px solid #e8edf5;
+  border-radius: 10px;
+  padding: 0.85rem;
+  background: #fff;
+}
+
+.ha-geofence-review-card.pending {
+  border-left: 3px solid #f59e0b;
+}
+
+.ha-geofence-review-card.approved {
+  border-left: 3px solid #16a34a;
+}
+
+.ha-geofence-review-card.voided {
+  border-left: 3px solid #64748b;
+}
+
+.ha-geofence-review-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.ha-geofence-review-head strong,
+.ha-geofence-review-head span {
+  display: block;
+}
+
+.ha-geofence-edit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0.85rem 0;
+}
+
+.ha-geofence-edit-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  color: #6b7280;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ha-geofence-edit-grid input {
+  border: 1.5px solid #dbe3ef;
+  border-radius: 8px;
+  color: #1f2937;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.82rem;
+  padding: 0.6rem 0.65rem;
+}
+
+.ha-geofence-edit-grid input:focus {
+  border-color: #0d4a8f;
+  box-shadow: 0 0 0 3px rgba(13, 74, 143, 0.12);
+  outline: none;
+}
+
+.ha-geofence-edit-grid input:disabled {
+  background: #f3f4f6;
+  cursor: not-allowed;
+}
+
+.ha-geofence-review-head strong {
+  color: #1e293b;
+  font-size: 0.88rem;
+}
+
+.ha-geofence-review-head span {
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
+.ha-geofence-review-status {
+  flex: none;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ha-geofence-review-status.pending {
+  background: #fff7ed;
+  color: #b45309;
+}
+
+.ha-geofence-review-status.approved {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.ha-geofence-review-status.voided {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.ha-detail-grid.compact {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ha-detail-grid.compact > div {
+  padding: 0.6rem 0.75rem;
+}
 /* Footer */
 .ha-modal-footer {
   padding: 1rem 1.6rem;
@@ -1679,5 +1798,10 @@
 
   .ha-review-summary div:last-child {
     border-bottom: none;
+  }
+}
+@media (max-width: 640px) {
+  .ha-geofence-edit-grid {
+    grid-template-columns: 1fr;
   }
 }

@@ -40,6 +40,7 @@ import CmsAnnouncementsPage from '@cms-pages/CmsAnnouncementsPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import NotificationsPage from './pages/NotificationsPage';
+import ErrorStatusPage from './pages/ErrorStatusPage';
 
 function App() {
   return (
@@ -99,10 +100,11 @@ function App() {
           <Route path="/cms/profile" element={<CmsProfilePage />} />
           <Route path="/cms/announcements" element={<CmsAnnouncementsPage />} />
           <Route path="/cms/notifications" element={<NotificationsPage portal="cms" />} />
+          <Route path="/cms/*" element={<ErrorStatusPage statusCode={404} />} />
         </Route>
 
-        {/* Default route → login */}
-        <Route path="*" element={<LoginPage />} />
+        {/* Default route -> not found */}
+        <Route path="*" element={<ErrorStatusPage statusCode={404} />} />
       </Routes>
     </BrowserRouter>
   );

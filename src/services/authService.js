@@ -88,6 +88,12 @@ function isTokenExpiringSoon(token, skewSeconds = 60) {
 }
 
 function setProfile(profile) {
+  if (!profile || typeof profile !== 'object') {
+    localStorage.removeItem('user_profile');
+    sessionStorage.removeItem('user_profile');
+    return;
+  }
+
   getActiveStorage().setItem('user_profile', JSON.stringify(profile));
 }
 
@@ -111,7 +117,16 @@ function updateProfile(profileUpdates) {
 
 function getProfile() {
   const raw = localStorage.getItem('user_profile') || sessionStorage.getItem('user_profile');
-  return raw ? JSON.parse(raw) : null;
+
+  if (!raw) return null;
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    localStorage.removeItem('user_profile');
+    sessionStorage.removeItem('user_profile');
+    return null;
+  }
 }
 
 function isCloudinaryUrl(url) {
