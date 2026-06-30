@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { FaClock, FaMapMarkerAlt, FaMinusCircle, FaTimes, FaUserShield } from 'react-icons/fa';
 import EntityAvatar from '@components/ui/EntityAvatar';
 import { SkeletonBlock, SkeletonList } from '@components/ui/Skeleton';
-import attendanceService, { resolveGeofencePayrollReview } from '@services/hris/attendanceService';
+import attendanceService, { resolveGeofencePayrollReview as resolveGeofencePayrollReviewRequest } from '@services/hris/attendanceService';
 import {
   GPS_ICONS,
   STATUS_META,
@@ -209,13 +209,7 @@ export default function HrisAttendanceDetailModal({
     try {
       setGeofenceReviewLoadingKey(loadingKey);
       setGeofenceReviewError(null);
-      const geofenceResolver = typeof resolveGeofencePayrollReview === 'function'
-        ? resolveGeofencePayrollReview
-        : attendanceService?.['resolveGeofencePayrollReview'];
-      if (typeof geofenceResolver !== 'function') {
-        throw new Error('Geofence payroll review action is unavailable in this build.');
-      }
-      const updatedDetail = await geofenceResolver(
+      const updatedDetail = await resolveGeofencePayrollReviewRequest(
         displayRow.attendanceLogId,
         {
           action,
