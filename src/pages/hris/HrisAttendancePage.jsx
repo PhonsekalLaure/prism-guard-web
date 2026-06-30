@@ -178,7 +178,11 @@ export default function HrisAttendancePage() {
 
   const handleOpenReview = useCallback((review) => {
     if (!review?.date) return;
-    const status = review.type === 'attendance_contest' ? 'attendance_contest' : 'missed_clock_out';
+    const status = review.type === 'attendance_contest'
+      ? 'attendance_contest'
+      : review.type === 'missed_clock_out'
+        ? 'missed_clock_out'
+        : 'all';
     const nextFilters = { ...filters, status };
 
     setSelectedDate(review.date);

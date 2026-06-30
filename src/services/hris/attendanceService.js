@@ -60,7 +60,7 @@ async function getAttendanceLogDetails(attendanceLogId) {
   return data;
 }
 
-async function resolveGeofencePayrollReview(attendanceLogId, payload) {
+export async function resolveGeofencePayrollReview(attendanceLogId, payload) {
   const { data } = await api.post(`/${attendanceLogId}/geofence-payroll/resolve`, payload);
   return data;
 }

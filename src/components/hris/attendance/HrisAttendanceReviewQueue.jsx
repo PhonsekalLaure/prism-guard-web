@@ -14,6 +14,11 @@ function formatReviewDate(value) {
 
 function getReviewReason(review) {
   if (review.type === 'missed_clock_out') return review.clockIn ? `Clock-in: ${review.clockIn}` : 'No clock-out recorded';
+  if (review.type === 'geofence_payroll_review') {
+    return review.detectedStart && review.detectedEnd
+      ? `Away: ${review.detectedStart} - ${review.detectedEnd}`
+      : review.reasonText || 'Outside geofence interval pending payroll review';
+  }
   return review.reasonText || review.reasonCode || 'Attendance contest submitted';
 }
 
@@ -28,6 +33,7 @@ export default function HrisAttendanceReviewQueue({
   const count = metadata?.count ?? reviews.length;
   const missedClockOutCount = metadata?.missedClockOutCount ?? reviews.filter((review) => review.type === 'missed_clock_out').length;
   const attendanceContestCount = metadata?.attendanceContestCount ?? reviews.filter((review) => review.type === 'attendance_contest').length;
+  const geofencePayrollReviewCount = metadata?.geofencePayrollReviewCount ?? reviews.filter((review) => review.type === 'geofence_payroll_review').length;
   const visibleReviews = reviews.slice(0, 6);
 
   return (
@@ -35,7 +41,7 @@ export default function HrisAttendanceReviewQueue({
       <div className="ha-review-queue-header">
         <div>
           <h3 id="attendance-review-queue-title"><FaExclamationTriangle /> Needs Review</h3>
-          <p>Pending attendance contests and missed clock-outs across the recent review window.</p>
+          <p>Pending attendance contests, missed clock-outs, and geofence payroll alerts across the recent review window.</p>
         </div>
         <button type="button" className="ha-review-refresh" onClick={onRefresh} disabled={loading}>
           <FaRedo className={loading ? 'spinning' : ''} /> Refresh
@@ -54,6 +60,10 @@ export default function HrisAttendanceReviewQueue({
         <div>
           <span>Contests</span>
           <strong>{loading ? '...' : attendanceContestCount}</strong>
+        </div>
+        <div>
+          <span>Geofence Payroll</span>
+          <strong>{loading ? '...' : geofencePayrollReviewCount}</strong>
         </div>
       </div>
 

@@ -1715,6 +1715,10 @@
   background: #d97706;
 }
 
+.ha-review-type.is-geofence_payroll_review {
+  background: #7c3aed;
+}
+
 .ha-review-person strong,
 .ha-review-meta strong {
   display: block;
