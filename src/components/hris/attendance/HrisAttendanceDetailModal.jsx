@@ -209,7 +209,13 @@ export default function HrisAttendanceDetailModal({
     try {
       setGeofenceReviewLoadingKey(loadingKey);
       setGeofenceReviewError(null);
-      const updatedDetail = await resolveGeofencePayrollReview(
+      const geofenceResolver = typeof resolveGeofencePayrollReview === 'function'
+        ? resolveGeofencePayrollReview
+        : attendanceService?.['resolveGeofencePayrollReview'];
+      if (typeof geofenceResolver !== 'function') {
+        throw new Error('Geofence payroll review action is unavailable in this build.');
+      }
+      const updatedDetail = await geofenceResolver(
         displayRow.attendanceLogId,
         {
           action,
