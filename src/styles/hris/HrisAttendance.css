@@ -1639,71 +1639,86 @@
 
 .ha-review-summary {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
   border-bottom: 1px solid #e5e7eb;
+  background: #fff;
 }
 
 .ha-review-summary div {
-  padding: 0.9rem 1.25rem;
-  border-right: 1px solid #e5e7eb;
-}
-
-.ha-review-summary div:last-child {
-  border-right: none;
+  min-width: 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 0.8rem 0.95rem;
 }
 
 .ha-review-summary span {
   display: block;
+  overflow: hidden;
   color: #64748b;
-  font-size: 0.72rem;
-  font-weight: 700;
+  font-size: 0.68rem;
+  font-weight: 800;
   letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-overflow: ellipsis;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .ha-review-summary strong {
   display: block;
   color: #093269;
-  font-size: 1.35rem;
-  line-height: 1.2;
-  margin-top: 0.2rem;
+  font-size: 1.45rem;
+  line-height: 1;
+  margin-top: 0.45rem;
 }
 
 .ha-review-list {
   display: flex;
   flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.8rem 1.25rem 1rem;
 }
 
 .ha-review-item {
   display: grid;
-  grid-template-columns: 150px minmax(190px, 1.4fr) minmax(120px, 0.7fr) minmax(180px, 1fr) auto;
+  grid-template-columns: 150px minmax(210px, 1.25fr) minmax(130px, 0.65fr) minmax(240px, 1fr) auto;
   align-items: center;
-  gap: 0.85rem;
+  gap: 0.9rem;
   width: 100%;
-  border: 0;
-  border-bottom: 1px solid #f1f5f9;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
   background: #fff;
   color: #334155;
   cursor: pointer;
   font-family: 'Poppins', sans-serif;
-  padding: 0.85rem 1.25rem;
+  padding: 0.85rem 1rem;
   text-align: left;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
 
-.ha-review-item:hover {
-  background: #f8fafc;
+.ha-review-item:hover,
+.ha-review-item:focus-visible {
+  border-color: #bfdbfe;
+  box-shadow: 0 6px 16px rgba(9, 50, 105, 0.08);
+  outline: none;
+  transform: translateY(-1px);
 }
 
 .ha-review-type {
   display: inline-flex;
+  align-items: center;
   justify-content: center;
   width: max-content;
   border-radius: 999px;
   color: #fff;
-  font-size: 0.68rem;
+  font-size: 0.64rem;
   font-weight: 800;
   letter-spacing: 0.04em;
-  padding: 0.3rem 0.65rem;
+  min-height: 1.7rem;
+  padding: 0.25rem 0.6rem;
   text-transform: uppercase;
 }
 
@@ -1740,18 +1755,21 @@
   color: #475569;
   font-size: 0.78rem;
   font-weight: 600;
+  line-height: 1.4;
 }
 
-.ha-review-action {
+.ha-review-item-action {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
   justify-content: center;
   border: 1px solid #bfdbfe;
   border-radius: 8px;
+  background: #eff6ff;
   color: #1d4ed8;
   font-size: 0.75rem;
   font-weight: 800;
+  min-width: 68px;
   padding: 0.45rem 0.7rem;
   white-space: nowrap;
 }
@@ -1775,33 +1793,54 @@
   border-top: 1px solid #f1f5f9;
 }
 
-@media (max-width: 1100px) {
-  .ha-review-item {
-    grid-template-columns: 1fr;
-    gap: 0.45rem;
+.ha-review-list + .ha-review-more {
+  padding-top: 0;
+}
+
+@media (max-width: 1200px) {
+  .ha-review-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .ha-review-action {
-    width: max-content;
+  .ha-review-item {
+    grid-template-columns: minmax(130px, auto) minmax(180px, 1fr) minmax(110px, auto);
+  }
+
+  .ha-review-reason {
+    grid-column: 2 / -2;
   }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 760px) {
   .ha-review-queue-header {
     flex-direction: column;
+  }
+
+  .ha-review-refresh {
+    width: 100%;
+    justify-content: center;
   }
 
   .ha-review-summary {
     grid-template-columns: 1fr;
   }
 
-  .ha-review-summary div {
-    border-right: none;
-    border-bottom: 1px solid #e5e7eb;
+  .ha-review-list {
+    padding: 0.75rem;
   }
 
-  .ha-review-summary div:last-child {
-    border-bottom: none;
+  .ha-review-item {
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+    padding: 0.8rem;
+  }
+
+  .ha-review-reason {
+    grid-column: auto;
+  }
+
+  .ha-review-item-action {
+    width: max-content;
   }
 }
 @media (max-width: 640px) {

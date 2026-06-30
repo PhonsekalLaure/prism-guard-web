@@ -92,7 +92,7 @@ export default function HrisAttendanceReviewQueue({
                 <small>{review.shift}</small>
               </span>
               <span className="ha-review-reason">{getReviewReason(review)}</span>
-              <span className="ha-review-action"><FaSearch /> Review</span>
+              <span className="ha-review-item-action"><FaSearch /> Review</span>
             </button>
           ))}
         </div>
