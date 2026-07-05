@@ -43,13 +43,6 @@ const REQUIRED_ONBOARDING_CREDENTIALS = [
 
 const REQUIRED_ONBOARDING_DOCUMENTS = [
   { id: 'contract', label: 'Employee Contract' },
-  { id: 'valid_id', label: 'Valid ID' },
-  { id: 'barangay', label: 'Barangay Clearance' },
-  { id: 'police', label: 'Police Clearance' },
-  { id: 'nbi', label: 'NBI Clearance' },
-  { id: 'neuro', label: 'Neuro-Psychiatric Exam' },
-  { id: 'drugtest', label: 'Drug Test' },
-  { id: 'sg_license', label: 'Security Guard License' },
 ];
 
 function getMissingOnboardingDocuments(documents = {}, hasInitialSite = false) {
@@ -212,7 +205,7 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
     );
     if (missingDocuments.length > 0) {
       showNotification(
-        `Please upload all required documents: ${missingDocuments.map((document) => document.label).join(', ')}.`,
+        `Please upload all required admin documents: ${missingDocuments.map((document) => document.label).join(', ')}.`,
         'error'
       );
       return false;

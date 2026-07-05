@@ -1,21 +1,21 @@
 import { getEmploymentContractEndDateBounds } from '@utils/hrisDateRules';
 
 const generalDocs  = [
-  { id: 'valid_id',                   label: 'Valid ID', required: true },
+  { id: 'valid_id',                   label: 'Valid ID' },
   { id: 'resume',                     label: 'Resume' },
   { id: 'personal_information_sheet', label: 'Personal Information Sheet' },
 ];
 
 const clearanceDocs = [
-  { id: 'barangay', label: 'Barangay Clearance', required: true },
-  { id: 'police',   label: 'Police Clearance', required: true },
-  { id: 'nbi',      label: 'NBI Clearance', required: true },
-  { id: 'neuro',    label: 'Neuro-Psychiatric Exam', required: true },
-  { id: 'drugtest', label: 'Drug Test', required: true },
+  { id: 'barangay', label: 'Barangay Clearance' },
+  { id: 'police',   label: 'Police Clearance' },
+  { id: 'nbi',      label: 'NBI Clearance' },
+  { id: 'neuro',    label: 'Neuro-Psychiatric Exam' },
+  { id: 'drugtest', label: 'Drug Test' },
 ];
 
 const licenseDocs = [
-  { id: 'sg_license', label: 'Security Guard License (LTOPF / ID)', required: true },
+  { id: 'sg_license', label: 'Security Guard License (LTOPF / ID)' },
 ];
 
 function DocRow({ doc, disabled = false, documents, onChange }) {
@@ -51,7 +51,7 @@ export default function Step3Documents({ data, onChange }) {
   return (
     <div className="ae-step-content">
       <h3 className="ae-step-heading">Requirements &amp; File Uploads</h3>
-      <p className="ae-hint mb-4">Attach image or PDF files for employee documents, clearances, and contracts.</p>
+      <p className="ae-hint mb-4">Upload the admin-owned contract documents here. Guards can upload personal clearances and IDs later from the mobile app.</p>
 
       <div className="ae-doc-section">
         <div className="ae-doc-section-header">

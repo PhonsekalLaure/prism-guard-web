@@ -140,7 +140,7 @@ export default function Step4Review({ data }) {
             ))}
           </div>
         ) : (
-          <p className="ae-review-docs-empty"><FaTimes /> Required documents are missing, including the employee contract.</p>
+          <p className="ae-review-docs-empty"><FaTimes /> Required admin documents are missing. Guards can upload remaining compliance documents later from the mobile app.</p>
         )}
       </div>
 
