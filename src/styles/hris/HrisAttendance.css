@@ -1848,3 +1848,52 @@
     grid-template-columns: 1fr;
   }
 }
+
+.ha-contest-selfie-evidence {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px;
+  gap: 1rem;
+  align-items: center;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  background: #eff6ff;
+  padding: 0.85rem;
+  margin: 0.85rem 0;
+}
+
+.ha-contest-selfie-evidence span {
+  display: block;
+  color: #64748b;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ha-contest-selfie-evidence strong {
+  display: block;
+  color: #1e3a8a;
+  font-size: 0.9rem;
+  margin-top: 0.2rem;
+}
+
+.ha-contest-selfie-evidence p {
+  color: #475569;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  margin: 0.35rem 0 0;
+}
+
+.ha-contest-selfie-evidence a {
+  display: block;
+}
+
+.ha-contest-selfie-evidence img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  background: #fff;
+}

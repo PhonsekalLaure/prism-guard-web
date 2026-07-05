@@ -51,10 +51,32 @@ export default function HrisAttendanceTable({
     setSelectedDetail(null);
     setDetailError(null);
 
-    if (!row.attendanceLogId) {
+    if (!row.attendanceLogId && row.attendanceContestId) {
+      try {
+        setDetailLoading(true);
+        const contest = await attendanceService.getAttendanceContestDetails(row.attendanceContestId);
+        setSelectedRow((currentRow) => ({
+          ...currentRow,
+          attendanceContestId: contest.id,
+          attendanceContestStatus: contest.status,
+          attendanceContestReasonCode: contest.reasonCode,
+          attendanceContestReasonText: contest.reasonText,
+          attendanceContestReviewNotes: contest.reviewNotes,
+          attendanceContestEvidenceSelfieUrl: contest.evidenceSelfieUrl,
+          attendanceContestEvidenceSelfieOriginalName: contest.evidenceSelfieOriginalName,
+          attendanceContestHasEvidenceSelfie: contest.hasEvidenceSelfie,
+        }));
+      } catch (err) {
+        setDetailError(err?.response?.data?.error || 'Failed to load attendance contest details.');
+      } finally {
+        setDetailLoading(false);
+      }
       return;
     }
 
+    if (!row.attendanceLogId) {
+      return;
+    }
     try {
       setDetailLoading(true);
       const detail = await attendanceService.getAttendanceLogDetails(row.attendanceLogId);
@@ -119,6 +141,9 @@ export default function HrisAttendanceTable({
           attendanceContestReasonCode: contest.reasonCode,
           attendanceContestReasonText: contest.reasonText,
           attendanceContestReviewNotes: contest.reviewNotes,
+          attendanceContestEvidenceSelfieUrl: contest.evidenceSelfieUrl,
+          attendanceContestEvidenceSelfieOriginalName: contest.evidenceSelfieOriginalName,
+          attendanceContestHasEvidenceSelfie: contest.hasEvidenceSelfie,
           name: contest.employeeName,
           empId: contest.employeeNumber,
           role: contest.role,

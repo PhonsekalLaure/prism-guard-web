@@ -108,6 +108,9 @@ export default function HrisAttendanceDetailModal({
     reasonCode: displayRow.attendanceContestReasonCode,
     reasonText: displayRow.attendanceContestReasonText,
     reviewNotes: displayRow.attendanceContestReviewNotes,
+    evidenceSelfieUrl: displayRow.attendanceContestEvidenceSelfieUrl,
+    evidenceSelfieOriginalName: displayRow.attendanceContestEvidenceSelfieOriginalName,
+    hasEvidenceSelfie: displayRow.attendanceContestHasEvidenceSelfie,
   } : null);
   const canReviewContest = attendanceContest?.id && attendanceContest.status === 'pending';
 
@@ -365,6 +368,21 @@ export default function HrisAttendanceDetailModal({
               </div>
               <div className="ha-modal-notes-box">
                 {attendanceContest.reasonText || 'No reason provided.'}
+              </div>
+              <div className="ha-contest-selfie-evidence">
+                <div>
+                  <span>Required Selfie Evidence</span>
+                  <strong>{attendanceContest.hasEvidenceSelfie ? 'Attached' : 'Missing'}</strong>
+                  <p>Guard must be visible with the assigned client site behind them.</p>
+                </div>
+                {attendanceContest.evidenceSelfieUrl ? (
+                  <a href={attendanceContest.evidenceSelfieUrl} target="_blank" rel="noreferrer">
+                    <img
+                      src={attendanceContest.evidenceSelfieUrl}
+                      alt={attendanceContest.evidenceSelfieOriginalName || 'Attendance contest selfie evidence'}
+                    />
+                  </a>
+                ) : null}
               </div>
               {attendanceContest.reviewNotes && (
                 <div className="ha-modal-notes-box">
