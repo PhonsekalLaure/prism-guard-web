@@ -13,6 +13,11 @@ import {
   getPasswordStrength,
   validatePassword,
 } from '@utils/passwordPolicy';
+import {
+  REQUIRED_SETUP_POLICIES,
+  buildAcceptedPolicies,
+  hasAcceptedAllRequiredPolicies,
+} from '@utils/policyAcceptance';
 import '@styles/Auth.css';
 
 function getStoredSessionTokens() {
@@ -30,12 +35,14 @@ export default function SetPasswordPage() {
   const [success, setSuccess]           = useState(false);
   const [setupRole, setSetupRole]       = useState(null);
   const [notification, setNotification] = useState(null);
+  const [acceptedPolicies, setAcceptedPolicies] = useState({});
   const navigate = useNavigate();
 
-  const strength       = getPasswordStrength(password);
-  const passwordPolicy = validatePassword(password);
-  const passwordsMatch = password.length > 0 && password === confirmPassword;
-  const isEmployeeSetup = setupRole === 'employee';
+  const strength         = getPasswordStrength(password);
+  const passwordPolicy   = validatePassword(password);
+  const passwordsMatch   = password.length > 0 && password === confirmPassword;
+  const policiesAccepted = hasAcceptedAllRequiredPolicies(acceptedPolicies);
+  const isEmployeeSetup  = setupRole === 'employee';
 
   useEffect(() => {
     // Supabase automatically handles the hash fragment and signs the user in
@@ -78,8 +85,13 @@ export default function SetPasswordPage() {
       return;
     }
 
+    if (!policiesAccepted) {
+      setNotification({ message: 'Please accept the Data Privacy Notice and Terms and Conditions before continuing.', type: 'error' });
+      return;
+    }
+
     setIsSubmitting(true);
-    setNotification({ message: 'Setting up your account…', type: 'info' });
+    setNotification({ message: 'Setting up your account...', type: 'info' });
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -88,12 +100,13 @@ export default function SetPasswordPage() {
         password,
         confirmPassword,
         clearMustChangePassword: true,
+        acceptedPolicies: buildAcceptedPolicies(acceptedPolicies),
         accessToken: session?.access_token,
       });
 
       setSetupRole(result?.role || null);
       setSuccess(true);
-      // Auto-logout after setting password to force a clean login
+      // Auto-logout after setting password to force a clean login.
       await supabase.auth.signOut();
       authService.clearTokens();
       if (result?.role !== 'employee') {
@@ -173,7 +186,7 @@ export default function SetPasswordPage() {
                   </button>
                 </div>
 
-                {/* Strength bar — always visible */}
+                {/* Strength bar - always visible */}
                 <div className="auth-strength-bar">
                   {[1, 2, 3, 4].map((seg) => (
                     <div key={seg} className={`auth-strength-segment ${strength.score >= seg ? strength.cls : ''}`} />
@@ -182,7 +195,7 @@ export default function SetPasswordPage() {
                 <p className={`auth-strength-label ${strength.cls}`}>{strength.label}</p>
               </div>
 
-              {/* Requirements checklist — always visible */}
+              {/* Requirements checklist - always visible */}
               <PasswordRequirements
                 password={password}
                 passwordsMatch={passwordsMatch}
@@ -213,10 +226,33 @@ export default function SetPasswordPage() {
                 </div>
               </div>
 
+              <fieldset className="auth-policy-box">
+                <legend>Privacy and Terms Acknowledgement</legend>
+                <p className="auth-policy-copy">
+                  Review and accept the current PrismGuard policies before initializing your account.
+                </p>
+                {REQUIRED_SETUP_POLICIES.map((policy) => (
+                  <label className="auth-policy-option" key={policy.policyKey}>
+                    <input
+                      type="checkbox"
+                      checked={acceptedPolicies[policy.policyKey] === true}
+                      onChange={(e) => setAcceptedPolicies((current) => ({
+                        ...current,
+                        [policy.policyKey]: e.target.checked,
+                      }))}
+                    />
+                    <span>
+                      <strong>{policy.label} {policy.policyVersion.toUpperCase()}</strong>
+                      <small>{policy.description}</small>
+                    </span>
+                  </label>
+                ))}
+              </fieldset>
+
               <button
                 type="submit"
                 className="auth-btn"
-                disabled={isSubmitting || !passwordPolicy.isValid || !passwordsMatch}
+                disabled={isSubmitting || !passwordPolicy.isValid || !passwordsMatch || !policiesAccepted}
               >
                 {isSubmitting ? (
                   <>
@@ -224,7 +260,7 @@ export default function SetPasswordPage() {
                       <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" style={{ opacity: 0.25 }} />
                       <path fill="currentColor" style={{ opacity: 0.75 }} d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    Setting up…
+                    Setting up...
                   </>
                 ) : (
                   <>

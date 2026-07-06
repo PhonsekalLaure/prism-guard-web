@@ -570,6 +570,57 @@
   from { opacity: 0; transform: translateY(-8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+.auth-policy-box {
+  border: 1px solid #dbe4ef;
+  border-radius: 8px;
+  padding: 0.9rem;
+  margin: 0.9rem 0 1rem;
+  background: #f8fafc;
+}
+
+.auth-policy-box legend {
+  padding: 0 0.35rem;
+  color: #1a2e4a;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.auth-policy-copy {
+  margin: 0 0 0.75rem;
+  color: #64748b;
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+.auth-policy-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  color: #334155;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  margin-bottom: 0.7rem;
+  cursor: pointer;
+}
+
+.auth-policy-option:last-child { margin-bottom: 0; }
+
+.auth-policy-option input {
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}
+
+.auth-policy-option span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.auth-policy-option small {
+  color: #64748b;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
 
 /* =============================================
    SUCCESS STATE

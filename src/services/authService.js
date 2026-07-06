@@ -222,7 +222,13 @@ async function forgotPassword(email) {
   await api.post('/forgot-password', { email });
 }
 
-async function updatePassword({ password, confirmPassword, clearMustChangePassword = false, accessToken }) {
+async function updatePassword({
+  password,
+  confirmPassword,
+  clearMustChangePassword = false,
+  acceptedPolicies = [],
+  accessToken,
+}) {
   const token = accessToken || getToken();
 
   if (!token) {
@@ -231,7 +237,12 @@ async function updatePassword({ password, confirmPassword, clearMustChangePasswo
 
   const { data } = await api.post(
     '/update-password',
-    { password, confirmPassword, clearMustChangePassword },
+    {
+      password,
+      confirmPassword,
+      clearMustChangePassword,
+      acceptedPolicies,
+    },
     { headers: { Authorization: `Bearer ${token}` } }
   );
 
