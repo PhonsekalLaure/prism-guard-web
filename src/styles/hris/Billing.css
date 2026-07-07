@@ -1856,6 +1856,24 @@
   color: #334155;
 }
 
+.billing-preview-item--disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.billing-preview-item--disabled input[type="checkbox"] {
+  cursor: not-allowed;
+}
+
+.billing-preview-item .client-reason {
+  display: block;
+  margin-top: 0.2rem;
+  color: #b45309;
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
 .proposed-total-wrapper {
   display: flex;
   align-items: center;
