@@ -20,7 +20,7 @@ export default function Topbar({ exporting, exportDisabled, onExport }) {
             type="button"
           >
             <FaDownload />
-            {exporting ? 'Exporting...' : 'Export Dashboard Report'}
+            {exporting ? 'Preparing backup...' : 'Export Backup'}
           </button>
         </div>
       </div>
