@@ -407,7 +407,7 @@ export default function HrisBillingDetailPage() {
                 <div className="bp-summary-grid">
                   {/* Primary row — dominant financial figures */}
                   <div className="bp-summary-item bp-summary-item--primary">
-                    <p className="bp-summary-label">Total Amount</p>
+                    <p className="bp-summary-label">Gross Total</p>
                     <p className="bp-summary-value bp-summary-value--primary bp-summary-value--blue">
                       {formatCurrency(billing.total_amount)}
                     </p>
@@ -428,9 +428,17 @@ export default function HrisBillingDetailPage() {
                     <p className="bp-summary-label">No. of Guards</p>
                     <p className="bp-summary-value">{formatGuardCount(billing.guard_count)}</p>
                   </div>
-                  <div className="bp-summary-item bp-summary-item--secondary">
+                                    <div className="bp-summary-item bp-summary-item--secondary">
                     <p className="bp-summary-label">Due Date</p>
                     <p className="bp-summary-value">{formatDate(billing.due_date)}</p>
+                  </div>
+                  <div className="bp-summary-item bp-summary-item--secondary">
+                    <p className="bp-summary-label">Subtotal</p>
+                    <p className="bp-summary-value">{formatCurrency(billing.subtotal_amount)}</p>
+                  </div>
+                  <div className="bp-summary-item bp-summary-item--secondary">
+                    <p className="bp-summary-label">VAT Amount (12%)</p>
+                    <p className="bp-summary-value">{formatCurrency(billing.vat_amount)}</p>
                   </div>
                 </div>
                 <div className="billing-line-items">
@@ -441,7 +449,7 @@ export default function HrisBillingDetailPage() {
                   {lineItems.length === 0 && (
                     <p className="billing-detail-muted">No line items are saved for this statement yet.</p>
                   )}
-                  {lineItems.map((item) => (
+                                    {lineItems.map((item) => (
                     <div className="billing-line-item" key={item.id || `${item.description}-${item.sort_order}`}>
                       <div>
                         <p className="billing-line-item-title">{item.description}</p>
@@ -450,6 +458,27 @@ export default function HrisBillingDetailPage() {
                       <strong>{formatCurrency(item.amount)}</strong>
                     </div>
                   ))}
+                  <div className="billing-line-item">
+                    <div>
+                      <p className="billing-line-item-title">Subtotal</p>
+                      <p className="billing-line-item-detail">Service and holiday charges before VAT</p>
+                    </div>
+                    <strong>{formatCurrency(billing.subtotal_amount)}</strong>
+                  </div>
+                  <div className="billing-line-item">
+                    <div>
+                      <p className="billing-line-item-title">VATable Sales</p>
+                      <p className="billing-line-item-detail">VAT base amount</p>
+                    </div>
+                    <strong>{formatCurrency(billing.vatable_sales)}</strong>
+                  </div>
+                  <div className="billing-line-item">
+                    <div>
+                      <p className="billing-line-item-title">VAT Amount (12%)</p>
+                      <p className="billing-line-item-detail">Added to VAT-exclusive charges</p>
+                    </div>
+                    <strong>{formatCurrency(billing.vat_amount)}</strong>
+                  </div>
                 </div>
                 <div className="billing-detail-actions">
                   <ReportActionButton
@@ -707,7 +736,7 @@ export default function HrisBillingDetailPage() {
             <div className="billing-recalc-grid">
               {/* Total Amount comparison */}
               <div className="billing-recalc-item">
-                <span className="recalc-label">Total Amount</span>
+                <span className="recalc-label">Gross Total</span>
                 <div className="recalc-comparison">
                   <span className="recalc-val recalc-val--old">{formatCurrency(statementPreview.current_total)}</span>
                   <span className="recalc-arrow">-&gt;</span>
@@ -715,6 +744,21 @@ export default function HrisBillingDetailPage() {
                 </div>
               </div>
 
+              <div className="billing-recalc-item">
+                <span className="recalc-label">Subtotal</span>
+                <div className="recalc-comparison">
+                  <span className="recalc-val recalc-val--old">{formatCurrency(statementPreview.current_subtotal)}</span>
+                  <span className="recalc-arrow">-&gt;</span>
+                  <span className="recalc-val recalc-val--new recalc-val--bold">{formatCurrency(statementPreview.proposed_subtotal)}</span>
+                </div>
+              </div>
+
+              <div className="billing-recalc-item">
+                <span className="recalc-label">VAT Amount (12%)</span>
+                <div className="recalc-comparison">
+                  <span className="recalc-val recalc-val--new recalc-val--bold">{formatCurrency(statementPreview.vat_amount)}</span>
+                </div>
+              </div>
               {/* Balance Due comparison */}
               <div className="billing-recalc-item">
                 <span className="recalc-label">Balance Due</span>

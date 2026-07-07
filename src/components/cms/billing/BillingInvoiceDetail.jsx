@@ -84,7 +84,7 @@ export default function BillingInvoiceDetail({
 
       <section className="cms-bdetail-stats">
         <div className="cms-bdetail-stat cms-bdetail-stat--primary">
-          <p>Total Amount</p>
+          <p>Gross Total</p>
           <strong>{formatCurrency(invoice.total_amount)}</strong>
         </div>
         <div className="cms-bdetail-stat">
@@ -160,9 +160,17 @@ export default function BillingInvoiceDetail({
               <span>Base Service Total</span>
               <strong>{formatCurrency(baseAmount)}</strong>
             </div>
-            <div>
+                        <div>
               <span>Holiday Total</span>
               <strong>{formatCurrency(holidayTotal)}</strong>
+            </div>
+            <div>
+              <span>VATable Sales</span>
+              <strong>{formatCurrency(invoice.vatable_sales)}</strong>
+            </div>
+            <div>
+              <span>VAT Amount (12%)</span>
+              <strong>{formatCurrency(invoice.vat_amount)}</strong>
             </div>
           </div>
 
@@ -193,9 +201,30 @@ export default function BillingInvoiceDetail({
                 <strong>{formatCurrency(0)}</strong>
               </div>
             )}
+                        <div className="cms-bdetail-line">
+              <div>
+                <p>Subtotal</p>
+                <span>Service and holiday charges before VAT</span>
+              </div>
+              <strong>{formatCurrency(invoice.subtotal_amount)}</strong>
+            </div>
+            <div className="cms-bdetail-line">
+              <div>
+                <p>VATable Sales</p>
+                <span>VAT base amount</span>
+              </div>
+              <strong>{formatCurrency(invoice.vatable_sales)}</strong>
+            </div>
+            <div className="cms-bdetail-line">
+              <div>
+                <p>VAT Amount (12%)</p>
+                <span>Added on top of VAT-exclusive charges</span>
+              </div>
+              <strong>{formatCurrency(invoice.vat_amount)}</strong>
+            </div>
             <div className="cms-bdetail-line cms-bdetail-line--total">
               <div>
-                <p>Total Billing Amount</p>
+                <p>Gross Total Amount Due</p>
                 <span>{formatDate(invoice.period_start)} - {formatDate(invoice.period_end)}</span>
               </div>
               <strong>{formatCurrency(invoice.total_amount)}</strong>
