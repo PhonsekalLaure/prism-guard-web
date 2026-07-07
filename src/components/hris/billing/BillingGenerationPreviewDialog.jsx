@@ -26,12 +26,27 @@ function PreviewBreakdown({ item, expanded }) {
               <td className="li-amount">{formatPreviewCurrency(lineItem.amount)}</td>
             </tr>
           ))}
+          <tr>
+            <td><span className="li-desc">Subtotal</span></td>
+            <td className="li-amount">{formatPreviewCurrency(item.proposed_subtotal)}</td>
+          </tr>
+          <tr>
+            <td><span className="li-desc">VATable Sales</span></td>
+            <td className="li-amount">{formatPreviewCurrency(item.vatable_sales)}</td>
+          </tr>
+          <tr>
+            <td><span className="li-desc">VAT Amount (12%)</span></td>
+            <td className="li-amount">{formatPreviewCurrency(item.vat_amount)}</td>
+          </tr>
+          <tr>
+            <td><span className="li-desc">Gross Total Due</span></td>
+            <td className="li-amount">{formatPreviewCurrency(item.proposed_total)}</td>
+          </tr>
         </tbody>
       </table>
     </div>
   );
 }
-
 function PreviewItem({
   deltaClassName,
   expandedClients,
@@ -42,16 +57,24 @@ function PreviewItem({
   showDelta = false,
 }) {
   const expanded = expandedClients.includes(item.client_id);
+  const isSelectable = item.selectable !== false;
 
   return (
     <div className="billing-preview-item-wrapper">
-      <div className="billing-preview-item" onClick={() => onToggle(item.client_id)}>
+      <div
+        className={`billing-preview-item ${!isSelectable ? 'billing-preview-item--disabled' : ''}`.trim()}
+        onClick={() => { if (isSelectable) onToggle(item.client_id); }}
+      >
         <input
           type="checkbox"
           checked={selectedClients.includes(item.client_id)}
+          disabled={!isSelectable}
           onChange={() => {}}
         />
-        <span className="client-name">{item.company}</span>
+        <span className="client-name">
+          {item.company}
+          {item.reason_detail && <small className="client-reason">{item.reason_detail}</small>}
+        </span>
         <div className="proposed-total-wrapper">
           <span className="proposed-total">
             {formatPreviewCurrency(item.proposed_total)}
@@ -103,6 +126,7 @@ export default function BillingGenerationPreviewDialog({
   const created = preview?.created || [];
   const refreshed = preview?.refreshed || [];
   const hasBlocked = blocked.length > 0;
+  const hasUnselectableBlocked = blocked.some((item) => item.selectable === false);
   const hasRefreshed = (preview?.summary?.refreshed || 0) > 0;
 
   return (
@@ -139,7 +163,7 @@ export default function BillingGenerationPreviewDialog({
           </div>
 
           <div className="billing-preview-total-card">
-            <span className="total-label">Total Proposed Billing</span>
+            <span className="total-label">Total Proposed Billing (VAT-Inclusive)</span>
             <span className="total-amount">{formatPreviewCurrency(preview.summary.total_proposed || 0)}</span>
           </div>
 
@@ -163,8 +187,8 @@ export default function BillingGenerationPreviewDialog({
             <PreviewGroup
               className="billing-preview-group--blocked"
               count={blocked.length}
-              title="Blocked Paid Statements"
-              warning="Checking these will force recalculation, reverting status to partial or creating client credit. Unchecked items will be skipped."
+              title="Blocked Statements"
+              warning={hasUnselectableBlocked ? 'Some clients are missing BIR invoice identity fields and must be fixed in Client Management before invoice generation.' : 'Checking these will force recalculation, reverting status to partial or creating client credit. Unchecked items will be skipped.'}
             >
               {blocked.map((item) => (
                 <PreviewItem
