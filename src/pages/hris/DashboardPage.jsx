@@ -6,10 +6,6 @@ import IncidentFeed from '@hris-components/dashboard/IncidentFeed';
 import ManpowerTable from '@hris-components/dashboard/ManpowerTable';
 import LeaveRequests from '@hris-components/dashboard/LeaveRequests';
 import CashAdvances from '@hris-components/dashboard/CashAdvances';
-import {
-  buildDashboardReportCsv,
-  buildDashboardReportFilename,
-} from '@hris-components/dashboard/dashboardReport';
 import useNotification from '@hooks/useNotification';
 import dashboardService from '@services/hris/dashboardService';
 
@@ -47,27 +43,24 @@ export default function DashboardPage() {
   const access = summary?.access || {};
   const widgetErrors = Object.values(summary?.errors || {}).filter(Boolean);
 
-  const handleExportReport = async () => {
-    if (!summary || loading || exporting) return;
+  const handleExportBackup = async () => {
+    if (loading || exporting) return;
 
     let downloadUrl = '';
     let link = null;
 
     try {
       setExporting(true);
-      await Promise.resolve();
 
-      const generatedAt = new Date();
-      const csv = buildDashboardReportCsv(summary, generatedAt);
-      const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' });
+      const { blob, filename } = await dashboardService.downloadDatabaseBackup();
       downloadUrl = URL.createObjectURL(blob);
       link = document.createElement('a');
       link.href = downloadUrl;
-      link.download = buildDashboardReportFilename(generatedAt);
+      link.download = filename || 'prism-guard-db-backup.sql.gz';
       document.body.appendChild(link);
       link.click();
     } catch {
-      showNotification('Failed to export dashboard report.', 'error');
+      showNotification('Failed to export database backup.', 'error');
     } finally {
       link?.remove();
       if (downloadUrl) {
@@ -90,8 +83,8 @@ export default function DashboardPage() {
 
       <Topbar
         exporting={exporting}
-        exportDisabled={loading || !summary}
-        onExport={handleExportReport}
+        exportDisabled={loading}
+        onExport={handleExportBackup}
       />
 
       <div className="dashboard-content">

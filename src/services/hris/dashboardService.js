@@ -1,6 +1,7 @@
 import axios from 'axios';
 import authService from '@services/authService';
 import { buildApiUrl } from '@services/apiConfig';
+import { getDownloadFilename } from '../downloadFilename.js';
 
 const api = axios.create({
   baseURL: buildApiUrl('/api/web/hris/dashboard'),
@@ -18,4 +19,12 @@ async function getDashboardSummary() {
   return data;
 }
 
-export default { getDashboardSummary };
+async function downloadDatabaseBackup() {
+  const response = await api.get('/backup', { responseType: 'blob' });
+  return {
+    blob: response.data,
+    filename: getDownloadFilename(response.headers, 'prism-guard-db-backup.sql.gz'),
+  };
+}
+
+export default { downloadDatabaseBackup, getDashboardSummary };
