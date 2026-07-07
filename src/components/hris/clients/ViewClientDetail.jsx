@@ -47,6 +47,9 @@ const buildEditForm = (client) => ({
   email: client.contact_email || '',
   company: client.company || '',
   billingAddress: client.billing_address || '',
+  tinNumber: client.tin_number || '',
+  registeredBusinessName: client.registered_business_name || '',
+  businessStyle: client.business_style || '',
 });
 
 const EMPTY_SITE_FORM = {
@@ -271,6 +274,11 @@ export default function ViewClientDetail({
   };
 
   const handleSave = async () => {
+    if (!editForm.billingAddress.trim() || !editForm.tinNumber.trim()) {
+      showNotification('Billing address and client TIN are required for BIR-ready invoices.', 'error');
+      return;
+    }
+
     setIsSaving(true);
     try {
       const formData = new FormData();

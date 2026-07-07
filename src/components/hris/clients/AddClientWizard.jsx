@@ -32,6 +32,7 @@ const STEPS = [
 const INITIAL_FORM_DATA = {
   firstName: '', lastName: '', middleName: '', suffix: '',
   mobile: '', email: '', company: '', billingAddress: '',
+  tinNumber: '', registeredBusinessName: '', businessStyle: '',
   avatar: null,
   contractStartDate: new Date().toISOString().split('T')[0], contractEndDate: '',
   ratePerGuard: '', billingType: 'semi_monthly', contractUrl: null,
@@ -284,8 +285,8 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
         }
         return true;
       case 2:
-        if (!formData.company.trim() || !formData.billingAddress.trim()) {
-          showNotification('Please fill in all required company information fields.', 'error'); return false;
+        if (!formData.company.trim() || !formData.billingAddress.trim() || !formData.tinNumber.trim()) {
+          showNotification('Please fill in the company name, billing address, and client TIN for BIR-ready invoices.', 'error'); return false;
         }
         return true;
       case 3:
@@ -363,7 +364,7 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
           && /^9\d{9}$/.test(formData.mobile.replace(/\D/g, ''))
         );
       case 2:
-        return Boolean(formData.company.trim() && formData.billingAddress.trim());
+        return Boolean(formData.company.trim() && formData.billingAddress.trim() && formData.tinNumber.trim());
       case 3:
         return Boolean(
           formData.contractStartDate

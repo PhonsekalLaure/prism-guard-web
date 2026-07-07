@@ -26,6 +26,29 @@ export default function Step2CompanyDetails({ data, onChange }) {
           value={data.billingAddress}
           onChange={(e) => onChange('billingAddress', e.target.value)}
         />
+        <FormField
+          label="Client TIN *"
+          type="text"
+          required
+          placeholder="e.g. 000-000-000-000"
+          value={data.tinNumber}
+          onChange={(e) => onChange('tinNumber', e.target.value)}
+        />
+        <FormField
+          label="Registered Business Name"
+          type="text"
+          placeholder="Leave blank if same as company"
+          value={data.registeredBusinessName}
+          onChange={(e) => onChange('registeredBusinessName', e.target.value)}
+        />
+        <FormField
+          label="Business Style"
+          type="text"
+          span2
+          placeholder="Optional trade name / business style"
+          value={data.businessStyle}
+          onChange={(e) => onChange('businessStyle', e.target.value)}
+        />
       </div>
     </div>
   );
