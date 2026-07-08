@@ -51,7 +51,7 @@ test('getEmploymentContractEndDateBounds returns 6-month and 1-year contract lim
   });
 });
 
-test('isEmploymentContractEndDateInRange validates inclusive employee contract limits', () => {
+test('isEmploymentContractEndDateInRange validates inclusive security service agreement limits', () => {
   assert.equal(isEmploymentContractEndDateInRange('2026-06-12', '2026-12-12'), true);
   assert.equal(isEmploymentContractEndDateInRange('2026-06-12', '2027-06-12'), true);
   assert.equal(isEmploymentContractEndDateInRange('2026-06-12', '2026-12-11'), false);

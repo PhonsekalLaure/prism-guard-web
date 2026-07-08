@@ -44,7 +44,7 @@ const REQUIRED_ONBOARDING_CREDENTIALS = [
 ];
 
 const REQUIRED_ONBOARDING_DOCUMENTS = [
-  { id: 'contract', label: 'Employee Contract' },
+  { id: 'contract', label: 'Security Service Agreement' },
 ];
 
 function getMissingOnboardingDocuments(documents = {}, hasInitialSite = false) {
@@ -216,7 +216,7 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
       return false;
     }
     if (!formData.contractEndDate) {
-      showNotification('Please set the employee contract end date.', 'error');
+      showNotification('Please set the security service agreement end date.', 'error');
       return false;
     }
     return true;
@@ -224,17 +224,17 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
 
   const validateEmploymentContractEndDate = () => {
     if (!formData.contractEndDate) {
-      showNotification('Please set the employee contract end date.', 'error');
+      showNotification('Please set the security service agreement end date.', 'error');
       return false;
     }
     if (isEarlierDate(formData.hireDate, formData.contractEndDate)) {
-      showNotification('Employment contract end date cannot be earlier than employment contract start date.', 'error');
+      showNotification('Security service agreement end date cannot be earlier than security service agreement start date.', 'error');
       return false;
     }
 
     const { min, max } = getEmploymentContractEndDateBounds(formData.hireDate);
     if (!isEmploymentContractEndDateInRange(formData.hireDate, formData.contractEndDate)) {
-      showNotification(`Employment contract end date must be between ${min} and ${max}.`, 'error');
+      showNotification(`Security service agreement end date must be between ${min} and ${max}.`, 'error');
       return false;
     }
 

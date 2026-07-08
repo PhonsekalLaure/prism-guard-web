@@ -35,6 +35,7 @@ const INITIAL_FORM_DATA = {
   firstName: '', lastName: '', middleName: '', suffix: '',
   mobile: '', email: '', company: '', billingAddress: '',
   tinNumber: '', registeredBusinessName: '', businessStyle: '',
+  authorizedRepresentativeName: '', authorizedRepresentativeTitle: '',
   avatar: null,
   contractStartDate: new Date().toISOString().split('T')[0], contractEndDate: '',
   ratePerGuard: '', billingType: 'semi_monthly', contractUrl: null,

@@ -302,7 +302,7 @@ export default function ViewEmployeeDetail({
       return;
     }
     if (!renewalForm.contractFile) {
-      showNotification('Please upload the renewed employment contract document.', 'error');
+      showNotification('Please upload the renewed security service agreement document.', 'error');
       return;
     }
 
@@ -321,7 +321,7 @@ export default function ViewEmployeeDetail({
       showNotification('Employment contract renewed successfully.', 'success');
     } catch (err) {
       console.error(err);
-      showNotification(err.response?.data?.error || 'Failed to renew employment contract.', 'error');
+      showNotification(err.response?.data?.error || 'Failed to renew security service agreement.', 'error');
     } finally {
       setIsSaving(false);
     }

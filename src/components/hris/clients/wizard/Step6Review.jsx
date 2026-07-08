@@ -66,6 +66,8 @@ export default function Step6Review({ data }) {
           <ReviewField label="Registered Name" value={data.registeredBusinessName || toProperCase(data.company)} />
           <ReviewField label="Client TIN" value={data.tinNumber} />
           <ReviewField label="Business Style" value={data.businessStyle} />
+          <ReviewField label="Authorized Representative" value={data.authorizedRepresentativeName} />
+          <ReviewField label="Representative Title" value={data.authorizedRepresentativeTitle} />
           <ReviewField label="Billing Address" value={data.billingAddress} />
         </ReviewSection>
 

@@ -40,7 +40,7 @@ const TYPE_LABELS = {
   payroll_approved: 'Payroll',
   payroll_paid: 'Payroll',
   employee_relieved: 'Deployment',
-  employee_contract_renewed: 'Employment Contract',
+  employee_contract_renewed: 'Security Service Agreement',
   employee_deactivated: 'Employee Account',
   incident_resolved_guard: 'Incident Report',
   incident_resolved_client: 'Incident Report',

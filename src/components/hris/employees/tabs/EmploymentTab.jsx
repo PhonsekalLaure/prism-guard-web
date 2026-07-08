@@ -70,7 +70,7 @@ export default function EmploymentTab({ employee, isEditing, editForm, onField }
           <InfoCell label="Tenure"          value={tenureStr}                                                                 variant="blue" />
           <InfoCell label="Status"          value={getEmployeeStatusLabel(employee.status)}                                  valueColor={employee.status === 'active' ? '#16a34a' : '#dc2626'} />
           <InfoCell
-            label="Employment Contract"
+            label="Security Service Agreement"
             value={(employee.employment_contract_status || 'unknown').replace(/_/g, ' ').toUpperCase()}
             valueColor={employee.employment_contract_valid === false ? '#dc2626' : '#16a34a'}
           />

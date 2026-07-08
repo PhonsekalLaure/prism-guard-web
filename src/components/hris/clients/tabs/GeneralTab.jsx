@@ -131,6 +131,8 @@ export default function GeneralTab({
               <InfoCell label="Registered Business Name" value={client.registered_business_name || client.company || 'N/A'} />
               <InfoCell label="Client TIN" value={client.tin_number || 'N/A'} />
               <InfoCell label="Business Style" value={client.business_style || 'N/A'} span2 />
+              <InfoCell label="Authorized Representative" value={client.authorized_representative_name || 'N/A'} />
+              <InfoCell label="Representative Title" value={client.authorized_representative_title || 'N/A'} />
             </div>
           </div>
 
@@ -166,6 +168,8 @@ export default function GeneralTab({
             <EditInput label="Client TIN *" value={editForm.tinNumber} onChange={(v) => onField('tinNumber', v)} placeholder="000-000-000-000" />
             <EditInput label="Registered Business Name" value={editForm.registeredBusinessName} onChange={(v) => onField('registeredBusinessName', v)} />
             <EditInput label="Business Style" value={editForm.businessStyle} onChange={(v) => onField('businessStyle', v)} />
+            <EditInput label="Authorized Representative" value={editForm.authorizedRepresentativeName} onChange={(v) => onField('authorizedRepresentativeName', v)} />
+            <EditInput label="Representative Title" value={editForm.authorizedRepresentativeTitle} onChange={(v) => onField('authorizedRepresentativeTitle', v)} />
             <div className="vc-edit-field span-2">
               <label className="vc-edit-label">Billing Address *</label>
               <input

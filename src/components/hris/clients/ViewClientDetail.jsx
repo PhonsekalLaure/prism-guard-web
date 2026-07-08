@@ -50,6 +50,8 @@ const buildEditForm = (client) => ({
   tinNumber: client.tin_number || '',
   registeredBusinessName: client.registered_business_name || '',
   businessStyle: client.business_style || '',
+  authorizedRepresentativeName: client.authorized_representative_name || '',
+  authorizedRepresentativeTitle: client.authorized_representative_title || '',
 });
 
 const EMPTY_SITE_FORM = {

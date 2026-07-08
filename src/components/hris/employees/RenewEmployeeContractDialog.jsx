@@ -39,8 +39,8 @@ export default function RenewEmployeeContractDialog({
             <FaFileContract />
           </div>
           <div className="dep-header-text">
-            <h3>Renew Employment Contract</h3>
-            <p>Upload the renewed employment contract and define the new contract period for <strong>{employeeName}</strong>.</p>
+            <h3>Renew Security Service Agreement</h3>
+            <p>Upload the renewed security service agreement and define the new agreement period for <strong>{employeeName}</strong>.</p>
           </div>
           <button className="dep-close-btn" onClick={onCancel} disabled={isSaving}>
             <FaTimes />

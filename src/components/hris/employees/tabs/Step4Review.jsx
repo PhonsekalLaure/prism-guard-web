@@ -12,7 +12,7 @@ const DOC_LABELS = {
   neuro: 'Neuro-Psychiatric Exam',
   drugtest: 'Drug Test',
   sg_license: 'SG License (LTOPF)',
-  contract: 'Employee Contract',
+  contract: 'Security Service Agreement',
   deployment_order: 'Deployment Order',
 };
 

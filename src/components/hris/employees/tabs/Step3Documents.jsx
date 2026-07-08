@@ -51,7 +51,7 @@ export default function Step3Documents({ data, onChange }) {
   return (
     <div className="ae-step-content">
       <h3 className="ae-step-heading">Requirements &amp; File Uploads</h3>
-      <p className="ae-hint mb-4">Upload the admin-owned contract documents here. Guards can upload personal clearances and IDs later from the mobile app.</p>
+      <p className="ae-hint mb-4">Upload the admin-owned security service agreement and deployment documents here. Guards can upload personal clearances and IDs later from the mobile app.</p>
 
       <div className="ae-doc-section">
         <div className="ae-doc-section-header">
@@ -84,12 +84,12 @@ export default function Step3Documents({ data, onChange }) {
 
       <div className="ae-doc-section">
         <div className="ae-doc-section-header">
-          <span className="ae-doc-section-title">📋 Contract &amp; Deployment</span>
+          <span className="ae-doc-section-title">📋 Agreement &amp; Deployment</span>
         </div>
         <div className="ae-checklist">
-          <DocRow doc={{ id: 'contract', label: 'Employee Contract', required: true }} documents={data.documents} onChange={handleFileChange} />
+          <DocRow doc={{ id: 'contract', label: 'Security Service Agreement', required: true }} documents={data.documents} onChange={handleFileChange} />
           <div className="ae-check-item flex items-center justify-between">
-            <span className="font-semibold text-sm">Employee Contract End Date *</span>
+            <span className="font-semibold text-sm">Security Service Agreement End Date *</span>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.25rem' }}>
               <input
                 type="date"

@@ -21,12 +21,12 @@ export default function DeactivateEmployeeDialog({ isOpen, employeeName, isSavin
             <p>
               You are about to deactivate <strong>{employeeName}</strong>. Their status will be
               changed to <strong>Inactive</strong> and they will no longer be deployable or able
-              to access protected systems. Their active employment contract will also be closed.
+              to access protected systems. Their active security service agreement will also be closed.
             </p>
           </div>
           <p className="term-note">
             The employee row will stay in the database. This action only marks the account as
-            inactive, stamps the soft-delete timestamp, and ends the current employment contract.
+            inactive, stamps the soft-delete timestamp, and ends the current security service agreement.
             Deactivation is only allowed for floating guards.
           </p>
         </div>

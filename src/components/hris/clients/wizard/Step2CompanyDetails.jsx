@@ -49,6 +49,20 @@ export default function Step2CompanyDetails({ data, onChange }) {
           value={data.businessStyle}
           onChange={(e) => onChange('businessStyle', e.target.value)}
         />
+        <FormField
+          label="Authorized Representative"
+          type="text"
+          placeholder="e.g. Maria Santos"
+          value={data.authorizedRepresentativeName}
+          onChange={(e) => onChange('authorizedRepresentativeName', e.target.value)}
+        />
+        <FormField
+          label="Representative Title"
+          type="text"
+          placeholder="e.g. Operations Manager"
+          value={data.authorizedRepresentativeTitle}
+          onChange={(e) => onChange('authorizedRepresentativeTitle', e.target.value)}
+        />
       </div>
     </div>
   );
