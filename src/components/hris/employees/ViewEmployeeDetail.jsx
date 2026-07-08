@@ -90,6 +90,7 @@ export default function ViewEmployeeDetail({
 }) {
   const profile = authService.getProfile() || {};
   const canWriteEmployees = hasPermission(profile, 'employees.write');
+  const canWriteDeployments = hasPermission(profile, 'deployments.write');
   const [activeTab,        setActiveTab]        = useState('personal');
   const [employeeDetails,  setEmployeeDetails]  = useState(null);
   const [loading,          setLoading]          = useState(false);
@@ -571,11 +572,11 @@ export default function ViewEmployeeDetail({
             <button className="ve-btn ve-btn-blue" onClick={openRenewContractDialog} disabled={!canWriteEmployees || data.status !== 'active'}>
               <FaFileContract /> Renew Contract
             </button>
-            <button className="ve-btn ve-btn-green" onClick={openDeployModal} disabled={!canWriteEmployees || data.status !== 'active' || !hasValidEmploymentContract}>
+            <button className="ve-btn ve-btn-green" onClick={openDeployModal} disabled={!canWriteDeployments || data.status !== 'active' || !hasValidEmploymentContract}>
               <FaMapMarkerAlt /> {hasActiveDeployment ? 'Update Assignment / Transfer' : 'Assign Client'}
             </button>
             {hasActiveDeployment && (
-              <button className="ve-btn ve-btn-blue" onClick={() => setShowRelieveConfirm(true)} disabled={!canWriteEmployees || data.status !== 'active'}>
+              <button className="ve-btn ve-btn-blue" onClick={() => setShowRelieveConfirm(true)} disabled={!canWriteDeployments || data.status !== 'active'}>
                 <FaUserMinus /> Relieve From Post
               </button>
             )}

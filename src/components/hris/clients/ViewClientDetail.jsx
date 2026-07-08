@@ -81,7 +81,7 @@ export default function ViewClientDetail({
 }) {
   const profile = authService.getProfile() || {};
   const canWriteClients = hasPermission(profile, 'clients.write');
-  const canWriteEmployees = hasPermission(profile, 'employees.write');
+  const canWriteDeployments = hasPermission(profile, 'deployments.write');
   const [activeTab, setActiveTab] = useState('general');
   const [clientDetails, setClientDetails] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -698,7 +698,7 @@ export default function ViewClientDetail({
               {activeTab === 'sites' && (
                 <SitesTab
                   client={data}
-                  onDeployGuard={canWriteEmployees && data.status === 'active' ? openDeployModal : undefined}
+                  onDeployGuard={canWriteDeployments && data.status === 'active' ? openDeployModal : undefined}
                   canManageSites={canWriteClients && data.status === 'active'}
                   onAddSite={openCreateSiteDialog}
                   onEditSite={openEditSiteDialog}
@@ -742,13 +742,13 @@ export default function ViewClientDetail({
             </button>
 
             {activeSites.length > 0 && (
-              <button className="ve-btn ve-btn-green" onClick={() => openDeployModal()} disabled={!canWriteEmployees || data.status !== 'active'}>
+              <button className="ve-btn ve-btn-green" onClick={() => openDeployModal()} disabled={!canWriteDeployments || data.status !== 'active'}>
                 <FaUserPlus /> Deploy Guard
               </button>
             )}
 
             {data.guard_count > 0 && (
-              <button className="ve-btn ve-btn-blue" onClick={() => setShowRelieveAllConfirm(true)} disabled={!canWriteEmployees || data.status !== 'active'}>
+              <button className="ve-btn ve-btn-blue" onClick={() => setShowRelieveAllConfirm(true)} disabled={!canWriteDeployments || data.status !== 'active'}>
                 <FaUserMinus /> Relieve All Guards
               </button>
             )}

@@ -22,6 +22,7 @@ export default function SiteSelect({
   selectedSiteId,
   onSelect,
   emptyLabel = '- Select a site -',
+  disabled = false,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -39,6 +40,7 @@ export default function SiteSelect({
   }, []);
 
   const handleSelect = (site) => {
+    if (disabled) return;
     onSelect(site);
     setIsOpen(false);
   };
@@ -48,7 +50,8 @@ export default function SiteSelect({
       <button
         type="button"
         className="dep-input dep-site-select-trigger"
-        onClick={() => setIsOpen((open) => !open)}
+        onClick={() => !disabled && setIsOpen((open) => !open)}
+        disabled={disabled}
       >
         <span className={selectedSite ? 'dep-site-select-value' : 'dep-site-select-placeholder'}>
           {selectedSite ? <SiteOptionContent site={selectedSite} /> : emptyLabel}
@@ -56,7 +59,7 @@ export default function SiteSelect({
         <FaChevronDown className="dep-site-select-chevron" />
       </button>
 
-      {isOpen && (
+      {isOpen && !disabled && (
         <div className="dep-site-select-menu">
           <button
             type="button"

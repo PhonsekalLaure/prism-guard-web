@@ -19,8 +19,9 @@ const DAY_OPTIONS = [
   { value: 6, label: 'Sat' },
 ];
 
-export default function Step2Employment({ data, onChange, sites, onSiteChange, toggleScheduleDay }) {
+export default function Step2Employment({ data, onChange, sites, onSiteChange, toggleScheduleDay, canAssignInitialDeployment = true }) {
   const handleSelectSite = (site) => {
+    if (!canAssignInitialDeployment) return;
     onSiteChange(site ? site.id : '');
   };
 
@@ -63,6 +64,7 @@ export default function Step2Employment({ data, onChange, sites, onSiteChange, t
             selectedSiteId={data.initialSiteId}
             onSelect={handleSelectSite}
             emptyLabel="Floating Status (No Assignment)"
+            disabled={!canAssignInitialDeployment}
           />
         </div>
         <FormField

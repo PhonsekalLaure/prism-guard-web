@@ -11,6 +11,7 @@ export const ADMIN_ROLE_PERMISSIONS = {
     'announcements.write',
     'clients.read',
     'clients.write',
+    'deployments.write',
     'incidents.read',
     'incidents.write',
     'employees.read',
@@ -42,6 +43,7 @@ export const ADMIN_ROLE_PERMISSIONS = {
   operations_manager: [
     'clients.read',
     'clients.write',
+    'deployments.write',
     'servicerequests.read',
     'servicerequests.write',
     'employees.read',

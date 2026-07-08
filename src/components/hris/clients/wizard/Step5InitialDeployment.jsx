@@ -35,11 +35,21 @@ export default function Step5InitialDeployment({
   onSelectEmployee,
   onAssignmentField,
   onAssignmentScheduleDay,
+  canManageInitialDeployment = true,
 }) {
   const siteOptions = data.sites.map((site, index) => ({
     value: String(index),
     label: site.siteName || site.siteAddress || `Site ${index + 1}`,
   }));
+
+  if (!canManageInitialDeployment) {
+    return (
+      <div className="ae-step-content">
+        <h3 className="ae-step-heading">Initial Guard Deployment</h3>
+        <p className="ae-hint">Initial guard assignment is not available for this role.</p>
+      </div>
+    );
+  }
 
   if (siteOptions.length === 0) {
     return (

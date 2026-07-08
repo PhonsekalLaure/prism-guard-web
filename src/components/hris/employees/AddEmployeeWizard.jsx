@@ -3,9 +3,11 @@ import { FaTimes, FaArrowRight, FaArrowLeft, FaCheck } from 'react-icons/fa';
 import { FaSpinner } from 'react-icons/fa';
 import employeeService from '@services/hris/employeeService';
 import clientService   from '@services/hris/clientService';
+import authService from '@services/authService';
 import Notification    from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
 import { formatSiteLabel } from '@hris-components/shared/siteDisplay';
+import { hasPermission } from '@utils/adminPermissions';
 import {
   getAgeDateBounds,
   getDeploymentStartDateMinimum,
@@ -94,6 +96,8 @@ function isAfterDate(dateValue, maxDateValue) {
 }
 
 export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode = false, initialData = null }) {
+  const profile = authService.getProfile() || {};
+  const canWriteDeployments = hasPermission(profile, 'deployments.write');
   const [currentStep,  setCurrentStep]  = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sites,        setSites]        = useState([]);
@@ -138,6 +142,7 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
     setFormData(prev => ({ ...prev, [field]: value }));
 
   const handleSiteChange = (siteId) => {
+    if (siteId && !canWriteDeployments) return;
     if (!siteId) {
       setFormData(prev => ({
         ...prev,
@@ -411,6 +416,11 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
         setIsSubmitting(false);
         return;
       }
+      if (formData.initialSiteId && !canWriteDeployments) {
+        showNotification('You do not have permission to assign an initial deployment.', 'error');
+        setIsSubmitting(false);
+        return;
+      }
       if (formData.initialSiteId && isEarlierDate(formData.deploymentStartDate, formData.deploymentEndDate)) {
         showNotification('Deployment end date cannot be earlier than deployment start date.', 'error');
         setIsSubmitting(false);
@@ -535,6 +545,7 @@ export default function AddEmployeeWizard({ isOpen, onClose, onSaved, pageMode =
               sites={sites}
               onSiteChange={handleSiteChange}
               toggleScheduleDay={toggleScheduleDay}
+              canAssignInitialDeployment={canWriteDeployments}
             />
           )}
           {currentStep === 3 && <Step3Documents  data={formData} onChange={handleChange} />}

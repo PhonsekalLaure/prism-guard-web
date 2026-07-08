@@ -21,6 +21,27 @@ const docLabels = {
 
 const ALL_TYPES = Object.keys(docLabels);
 
+function getUploaderName(profile = {}) {
+  const name = [profile.first_name, profile.last_name].filter(Boolean).join(' ').trim();
+  return name || profile.contact_email || '';
+}
+
+function getUploadSourceLabel(source) {
+  if (source === 'guard') return 'guard mobile app';
+  if (source === 'mobile_guard' || source === 'applicant') return 'guard mobile app';
+  if (source === 'admin') return 'admin';
+  if (source === 'system') return 'system';
+  return '';
+}
+
+function getUploadAuditText(document = {}) {
+  const source = getUploadSourceLabel(document.uploaded_by_source);
+  const uploader = Array.isArray(document.uploaded_by) ? document.uploaded_by[0] : document.uploaded_by;
+  const name = getUploaderName(uploader || {});
+  if (!source && !name) return '';
+  return `Uploaded by ${source || 'unknown'}${name ? ` - ${name}` : ''}`;
+}
+
 export default function ComplianceTab({ employee, isEditing, pendingFiles, onPreview, onClearanceFile }) {
   const fileInputRefs = useRef({});
 
@@ -53,6 +74,10 @@ export default function ComplianceTab({ employee, isEditing, pendingFiles, onPre
     existingMap.deployment_order = {
       clearance_type: 'deployment_order',
       document_url: employee.deployment_order_url,
+      uploaded_by_source: employee.deployment_order_uploaded_by_source,
+      uploaded_by: employee.deployment_order_uploaded_by_name ? {
+        first_name: employee.deployment_order_uploaded_by_name,
+      } : null,
     };
   }
 
@@ -74,6 +99,7 @@ export default function ComplianceTab({ employee, isEditing, pendingFiles, onPre
               const hasDoc  = !!(c?.document_url);
               const isPdf   = getIsPdf(c?.document_url);
               const pending = pendingFiles[type];
+              const auditText = getUploadAuditText(c || {});
 
               return (
                 <div key={type} className={`ve-doc-card ${hasDoc || pending ? 'has-doc' : 'no-doc'}`}>
@@ -87,6 +113,9 @@ export default function ComplianceTab({ employee, isEditing, pendingFiles, onPre
                     <p className="ve-doc-card-sub">
                       {pending ? `New: ${pending.name}` : isPdf ? 'PDF Document' : hasDoc ? 'Image File' : 'Not yet uploaded'}
                     </p>
+                    {!pending && auditText && (
+                      <p className="ve-doc-card-sub">{auditText}</p>
+                    )}
                   </div>
 
                   {!isEditing && (

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { FaArrowRight, FaArrowLeft, FaCheck, FaSpinner } from 'react-icons/fa';
 import clientService from '@services/hris/clientService';
+import authService from '@services/authService';
 import employeeService from '@services/hris/employeeService';
 import Notification from '@components/ui/Notification';
 import useNotification from '@hooks/useNotification';
+import { hasPermission } from '@utils/adminPermissions';
 import {
   isBelowMinimumMonthlyBasePay,
   MINIMUM_MONTHLY_BASE_PAY_MESSAGE,
@@ -54,6 +56,8 @@ function isAfterDate(dateValue, maxDateValue) {
 }
 
 export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = false }) {
+  const profile = authService.getProfile() || {};
+  const canWriteDeployments = hasPermission(profile, 'deployments.write');
   const [currentStep,  setCurrentStep]  = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deployableEmployees, setDeployableEmployees] = useState([]);
@@ -62,7 +66,7 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
   const { notification, showNotification, closeNotification } = useNotification();
 
   useEffect(() => {
-    if (!isOpen || currentStep !== 5) return;
+    if (!isOpen || currentStep !== 5 || !canWriteDeployments) return;
 
     const selectedSite = formData.initialDeployment.siteIndex === ''
       ? null
@@ -119,6 +123,7 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
     formData.initialDeployment.filters.experiencedOnly,
     formData.initialDeployment.filters.maleOnly,
     formData.initialDeployment.filters.femaleOnly,
+    canWriteDeployments,
     showNotification,
   ]);
 
@@ -320,6 +325,7 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
         }
         return true;
       case 5:
+        if (!canWriteDeployments) return true;
         if (formData.initialDeployment.assignments.length === 0) {
           return true;
         }
@@ -389,6 +395,7 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
           );
         });
       case 5:
+        if (!canWriteDeployments) return true;
         if (formData.initialDeployment.assignments.length === 0) return true;
         if (formData.initialDeployment.siteIndex === '') return false;
         return formData.initialDeployment.assignments.every((assignment) => Boolean(
@@ -417,7 +424,7 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
     try {
       const payload = {
         ...formData,
-        initialDeployment: formData.initialDeployment.assignments.length > 0
+        initialDeployment: canWriteDeployments && formData.initialDeployment.assignments.length > 0
           ? {
             siteIndex: Number(formData.initialDeployment.siteIndex),
             assignments: formData.initialDeployment.assignments.map((assignment) => ({
@@ -451,7 +458,7 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
         requestData.append(key, value == null ? '' : String(value));
       });
 
-      formData.initialDeployment.assignments.forEach((assignment) => {
+      if (canWriteDeployments) formData.initialDeployment.assignments.forEach((assignment) => {
         if (assignment.deploymentOrderFile instanceof File) {
           requestData.append(`deployment_order_${assignment.employeeId}`, assignment.deploymentOrderFile);
         }
@@ -539,6 +546,7 @@ export default function AddClientWizard({ isOpen, onClose, onSaved, pageMode = f
                 onSelectEmployee={handleDeploymentEmployeeSelect}
                 onAssignmentField={handleAssignmentField}
                 onAssignmentScheduleDay={toggleAssignmentScheduleDay}
+                canManageInitialDeployment={canWriteDeployments}
               />
             )}
             {currentStep === 6 && <Step6Review data={formData} />}
