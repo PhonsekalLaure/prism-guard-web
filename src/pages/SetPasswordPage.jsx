@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  FaArrowRight, FaCheckCircle, FaEye, FaEyeSlash, FaLock, FaShieldAlt, FaFileContract, FaCheck,
+  FaArrowRight, FaCheckCircle, FaEye, FaEyeSlash, FaLock, FaShieldAlt, FaFileContract, FaCheck, FaChevronDown,
 } from 'react-icons/fa';
 import PasswordRequirements from '@components/auth/PasswordRequirements';
 import AuthInlineNotification from '@components/auth/AuthInlineNotification';
@@ -36,6 +36,7 @@ export default function SetPasswordPage() {
   const [setupRole, setSetupRole]       = useState(null);
   const [notification, setNotification] = useState(null);
   const [acceptedPolicies, setAcceptedPolicies] = useState({});
+  const [policyOpen, setPolicyOpen]             = useState(false);
   const navigate = useNavigate();
 
   const strength         = getPasswordStrength(password);
@@ -87,6 +88,7 @@ export default function SetPasswordPage() {
 
     if (!policiesAccepted) {
       setNotification({ message: 'Please accept the Data Privacy Notice and Terms and Conditions before continuing.', type: 'error' });
+      setPolicyOpen(true);
       return;
     }
 
@@ -229,19 +231,29 @@ export default function SetPasswordPage() {
               <fieldset className="auth-policy-box">
                 <legend>Privacy and Terms Acknowledgement</legend>
 
-                {/* Custom header strip */}
-                <div className="auth-policy-header">
+                {/* Clickable accordion header */}
+                <button
+                  type="button"
+                  className={`auth-policy-header auth-policy-toggle${policiesAccepted ? ' all-accepted' : ''}`}
+                  onClick={() => setPolicyOpen((o) => !o)}
+                  aria-expanded={policyOpen}
+                >
                   <div className="auth-policy-header-icon">
                     <FaShieldAlt />
                   </div>
                   <div className="auth-policy-header-text">
                     <h4>Privacy &amp; Terms Acknowledgement</h4>
-                    <p>Review and accept the current PrismGuard policies before initializing your account.</p>
+                    <p>
+                      {policiesAccepted
+                        ? 'All policies accepted ✓'
+                        : `${Object.values(acceptedPolicies).filter(Boolean).length} of ${REQUIRED_SETUP_POLICIES.length} accepted — click to review`}
+                    </p>
                   </div>
-                </div>
+                  <FaChevronDown className={`auth-policy-chevron${policyOpen ? ' open' : ''}`} />
+                </button>
 
-                {/* Policy items */}
-                <div className="auth-policy-items">
+                {/* Collapsible items */}
+                <div className={`auth-policy-items${policyOpen ? ' open' : ''}`}>
                   {REQUIRED_SETUP_POLICIES.map((policy) => {
                     const isAccepted = acceptedPolicies[policy.policyKey] === true;
                     const PolicyIcon = policy.policyKey === 'privacy_notice' ? FaShieldAlt : FaFileContract;

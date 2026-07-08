@@ -587,7 +587,7 @@
   display: none;
 }
 
-/* Header strip */
+/* Header strip — also used as the toggle button */
 .auth-policy-header {
   display: flex;
   align-items: center;
@@ -595,6 +595,25 @@
   padding: 0.65rem 0.9rem;
   background: linear-gradient(90deg, #093269 0%, #0a4d9e 100%);
   border-radius: 10px 10px 0 0;
+  width: 100%;
+  text-align: left;
+  border: none;
+  cursor: default;
+}
+
+/* When used as a toggle button */
+.auth-policy-toggle {
+  cursor: pointer;
+  transition: filter 0.18s;
+}
+
+.auth-policy-toggle:hover {
+  filter: brightness(1.1);
+}
+
+/* All-accepted state: header turns green */
+.auth-policy-toggle.all-accepted {
+  background: linear-gradient(90deg, #065f46 0%, #059669 100%);
 }
 
 .auth-policy-header-icon {
@@ -631,11 +650,35 @@
   gap: 0.1rem;
 }
 
-/* Items list */
+/* Chevron */
+.auth-policy-chevron {
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.75rem;
+  margin-left: auto;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.auth-policy-chevron.open {
+  transform: rotate(180deg);
+}
+
+/* Items list — collapsed by default */
 .auth-policy-items {
-  padding: 0.65rem 0.85rem 0.75rem;
+  padding: 0;
+  max-height: 0;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
+  gap: 0;
+  transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              padding 0.25s ease,
+              gap 0.25s ease;
+}
+
+.auth-policy-items.open {
+  max-height: 600px;
+  padding: 0.65rem 0.85rem 0.75rem;
   gap: 0.55rem;
 }
 
