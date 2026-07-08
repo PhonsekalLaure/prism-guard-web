@@ -37,6 +37,7 @@ export default function SetPasswordPage() {
   const [notification, setNotification] = useState(null);
   const [acceptedPolicies, setAcceptedPolicies] = useState({});
   const [policyOpen, setPolicyOpen]             = useState(false);
+  const [showReqPopover, setShowReqPopover]     = useState(false);
   const navigate = useNavigate();
 
   const strength         = getPasswordStrength(password);
@@ -165,8 +166,8 @@ export default function SetPasswordPage() {
 
             <form onSubmit={handleSubmit} noValidate>
 
-              {/* New password */}
-              <div className="auth-form-group">
+              {/* New password + floating requirements popover */}
+              <div className="auth-form-group auth-pw-popover-host">
                 <label htmlFor="new-password">New Password</label>
                 <div className="auth-password-wrapper">
                   <input
@@ -177,6 +178,11 @@ export default function SetPasswordPage() {
                     placeholder="Enter new password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    onFocus={() => setShowReqPopover(true)}
+                    onBlur={() => {
+                      // keep open if still invalid so user can see what's missing
+                      if (passwordPolicy.isValid) setShowReqPopover(false);
+                    }}
                   />
                   <button
                     type="button"
@@ -188,21 +194,28 @@ export default function SetPasswordPage() {
                   </button>
                 </div>
 
-                {/* Strength bar - always visible */}
-                <div className="auth-strength-bar">
-                  {[1, 2, 3, 4].map((seg) => (
-                    <div key={seg} className={`auth-strength-segment ${strength.score >= seg ? strength.cls : ''}`} />
-                  ))}
-                </div>
-                <p className={`auth-strength-label ${strength.cls}`}>{strength.label}</p>
+                {/* Floating popover */}
+                {showReqPopover && !passwordPolicy.isValid && (
+                  <div className="auth-req-popover" role="status" aria-live="polite">
+                    {/* Compact strength bar inside popover */}
+                    <div className="auth-req-popover-strength">
+                      <div className="auth-strength-bar" style={{ marginTop: 0 }}>
+                        {[1, 2, 3, 4].map((seg) => (
+                          <div key={seg} className={`auth-strength-segment ${strength.score >= seg ? strength.cls : ''}`} />
+                        ))}
+                      </div>
+                      <span className={`auth-strength-label ${strength.cls}`} style={{ marginTop: 0 }}>
+                        {strength.label}
+                      </span>
+                    </div>
+                    <PasswordRequirements
+                      password={password}
+                      passwordsMatch={passwordsMatch}
+                      variant="reset"
+                    />
+                  </div>
+                )}
               </div>
-
-              {/* Requirements checklist - always visible */}
-              <PasswordRequirements
-                password={password}
-                passwordsMatch={passwordsMatch}
-                variant="reset"
-              />
 
               {/* Confirm password */}
               <div className="auth-form-group">

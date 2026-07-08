@@ -155,6 +155,16 @@ export default function GlobalNotificationToasts({
     navigate(route);
   }, [markReadAndRemove, navigate, portal]);
 
+  const handleDismiss = useCallback((event, item) => {
+    event.preventDefault();
+    event.stopPropagation();
+    markReadAndRemove(item);
+  }, [markReadAndRemove]);
+
+  const stopDismissEvent = useCallback((event) => {
+    event.stopPropagation();
+  }, []);
+
   if (toasts.length === 0 && criticalAlerts.length === 0) return null;
 
   const activeCriticalAlert = criticalAlerts[0] || null;
@@ -221,10 +231,9 @@ export default function GlobalNotificationToasts({
                 <button
                   className="notif-close"
                   type="button"
-                  onClick={(clickEvent) => {
-                    clickEvent.stopPropagation();
-                    markReadAndRemove(item);
-                  }}
+                  onPointerDown={stopDismissEvent}
+                  onKeyDown={stopDismissEvent}
+                  onClick={(clickEvent) => handleDismiss(clickEvent, item)}
                   aria-label="Close notification"
                 >
                   <FaTimes />

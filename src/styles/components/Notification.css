@@ -133,16 +133,27 @@
 }
 
 .notif-close {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #94a3b8;
-  padding: 0.1rem;
+  width: 2rem;
+  height: 2rem;
+  margin: -0.35rem -0.35rem -0.35rem 0;
+  padding: 0;
   display: flex;
   align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  background: none;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  color: #94a3b8;
   font-size: 0.8rem;
-  transition: color 0.2s;
+  line-height: 1;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.notif-close:hover,
+.notif-close:focus-visible {
+  background: #f1f5f9;
 }
 
 .notif-success .notif-close:hover { color: #16a34a; }
