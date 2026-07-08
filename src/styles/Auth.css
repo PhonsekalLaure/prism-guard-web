@@ -570,56 +570,172 @@
   from { opacity: 0; transform: translateY(-8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+/* =============================================
+   PRIVACY & TERMS ACKNOWLEDGEMENT BOX
+   ============================================= */
 .auth-policy-box {
-  border: 1px solid #dbe4ef;
-  border-radius: 8px;
-  padding: 0.9rem;
-  margin: 0.9rem 0 1rem;
+  border: 1.5px solid #dbe4ef;
+  border-radius: 12px;
+  padding: 0;
+  margin: 1rem 0 1.1rem;
   background: #f8fafc;
+  overflow: hidden;
 }
 
 .auth-policy-box legend {
-  padding: 0 0.35rem;
-  color: #1a2e4a;
-  font-size: 0.8rem;
-  font-weight: 800;
+  /* hidden — we use a custom header div instead */
+  display: none;
 }
 
-.auth-policy-copy {
-  margin: 0 0 0.75rem;
-  color: #64748b;
-  font-size: 0.76rem;
-  line-height: 1.5;
-}
-
-.auth-policy-option {
+/* Header strip */
+.auth-policy-header {
   display: flex;
-  align-items: flex-start;
-  gap: 0.6rem;
-  color: #334155;
-  font-size: 0.78rem;
-  line-height: 1.45;
-  margin-bottom: 0.7rem;
-  cursor: pointer;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.65rem 0.9rem;
+  background: linear-gradient(90deg, #093269 0%, #0a4d9e 100%);
+  border-radius: 10px 10px 0 0;
 }
 
-.auth-policy-option:last-child { margin-bottom: 0; }
-
-.auth-policy-option input {
-  margin-top: 0.2rem;
+.auth-policy-header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(230, 178, 21, 0.2);
+  color: #e6b215;
+  font-size: 0.75rem;
   flex-shrink: 0;
 }
 
-.auth-policy-option span {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
+.auth-policy-header h4 {
+  margin: 0;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
-.auth-policy-option small {
+.auth-policy-header p {
+  margin: 0;
+  color: rgba(255,255,255,0.65);
+  font-size: 0.67rem;
+  line-height: 1.4;
+}
+
+.auth-policy-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+/* Items list */
+.auth-policy-items {
+  padding: 0.65rem 0.85rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+/* Individual card-style option */
+.auth-policy-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.65rem 0.75rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.18s, background 0.18s, box-shadow 0.18s;
+  margin-bottom: 0;
+}
+
+.auth-policy-option:hover {
+  border-color: #0a4d9e;
+  background: #f0f5ff;
+  box-shadow: 0 2px 8px rgba(10, 77, 158, 0.08);
+}
+
+.auth-policy-option.accepted {
+  border-color: #0a4d9e;
+  background: linear-gradient(135deg, #f0f5ff 0%, #e8f0fe 100%);
+  box-shadow: 0 2px 10px rgba(10, 77, 158, 0.1);
+}
+
+/* Hide native checkbox */
+.auth-policy-option input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+}
+
+/* Custom checkbox */
+.auth-policy-custom-check {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 2px solid #cbd5e1;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.18s, background 0.18s;
+  font-size: 0.6rem;
+  color: transparent;
+}
+
+.auth-policy-option.accepted .auth-policy-custom-check {
+  border-color: #0a4d9e;
+  background: #0a4d9e;
+  color: #fff;
+}
+
+/* Policy icon badge */
+.auth-policy-icon {
+  flex-shrink: 0;
+  margin-top: 0.05rem;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: linear-gradient(135deg, #093269 0%, #0a4d9e 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #e6b215;
+  font-size: 0.75rem;
+  transition: transform 0.18s;
+}
+
+.auth-policy-option:hover .auth-policy-icon,
+.auth-policy-option.accepted .auth-policy-icon {
+  transform: scale(1.08);
+}
+
+.auth-policy-option-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  flex: 1;
+}
+
+.auth-policy-option-title {
+  color: #1a2e4a;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.auth-policy-option-desc {
   color: #64748b;
-  font-size: 0.72rem;
-  line-height: 1.45;
+  font-size: 0.7rem;
+  line-height: 1.5;
 }
 
 /* =============================================

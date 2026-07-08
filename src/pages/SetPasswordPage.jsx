@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  FaArrowRight, FaCheckCircle, FaEye, FaEyeSlash, FaLock,
+  FaArrowRight, FaCheckCircle, FaEye, FaEyeSlash, FaLock, FaShieldAlt, FaFileContract, FaCheck,
 } from 'react-icons/fa';
 import PasswordRequirements from '@components/auth/PasswordRequirements';
 import AuthInlineNotification from '@components/auth/AuthInlineNotification';
@@ -228,25 +228,59 @@ export default function SetPasswordPage() {
 
               <fieldset className="auth-policy-box">
                 <legend>Privacy and Terms Acknowledgement</legend>
-                <p className="auth-policy-copy">
-                  Review and accept the current PrismGuard policies before initializing your account.
-                </p>
-                {REQUIRED_SETUP_POLICIES.map((policy) => (
-                  <label className="auth-policy-option" key={policy.policyKey}>
-                    <input
-                      type="checkbox"
-                      checked={acceptedPolicies[policy.policyKey] === true}
-                      onChange={(e) => setAcceptedPolicies((current) => ({
-                        ...current,
-                        [policy.policyKey]: e.target.checked,
-                      }))}
-                    />
-                    <span>
-                      <strong>{policy.label} {policy.policyVersion.toUpperCase()}</strong>
-                      <small>{policy.description}</small>
-                    </span>
-                  </label>
-                ))}
+
+                {/* Custom header strip */}
+                <div className="auth-policy-header">
+                  <div className="auth-policy-header-icon">
+                    <FaShieldAlt />
+                  </div>
+                  <div className="auth-policy-header-text">
+                    <h4>Privacy &amp; Terms Acknowledgement</h4>
+                    <p>Review and accept the current PrismGuard policies before initializing your account.</p>
+                  </div>
+                </div>
+
+                {/* Policy items */}
+                <div className="auth-policy-items">
+                  {REQUIRED_SETUP_POLICIES.map((policy) => {
+                    const isAccepted = acceptedPolicies[policy.policyKey] === true;
+                    const PolicyIcon = policy.policyKey === 'privacy_notice' ? FaShieldAlt : FaFileContract;
+                    return (
+                      <label
+                        className={`auth-policy-option${isAccepted ? ' accepted' : ''}`}
+                        key={policy.policyKey}
+                      >
+                        {/* Hidden native checkbox */}
+                        <input
+                          type="checkbox"
+                          checked={isAccepted}
+                          onChange={(e) => setAcceptedPolicies((current) => ({
+                            ...current,
+                            [policy.policyKey]: e.target.checked,
+                          }))}
+                        />
+
+                        {/* Custom animated checkbox */}
+                        <span className="auth-policy-custom-check" aria-hidden="true">
+                          {isAccepted && <FaCheck />}
+                        </span>
+
+                        {/* Icon badge */}
+                        <span className="auth-policy-icon" aria-hidden="true">
+                          <PolicyIcon />
+                        </span>
+
+                        {/* Text */}
+                        <span className="auth-policy-option-text">
+                          <span className="auth-policy-option-title">
+                            {policy.label}&nbsp;<span style={{ opacity: 0.55, fontWeight: 500 }}>{policy.policyVersion.toUpperCase()}</span>
+                          </span>
+                          <span className="auth-policy-option-desc">{policy.description}</span>
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
               </fieldset>
 
               <button
