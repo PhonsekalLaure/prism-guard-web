@@ -16,6 +16,8 @@ import EntityAvatar from '@components/ui/EntityAvatar';
 import LeaveApprovalCoverageFields from '@hris-components/leave-requests/LeaveApprovalCoverageFields';
 import useNotification from '@hooks/useNotification';
 import leaveRequestsService from '@services/hris/leaveRequestsService';
+import authService from '@services/authService';
+import { hasPermission } from '@utils/adminPermissions';
 import '../../styles/hris/HrisLeaveRequests.css';
 
 function LeaveRequestDetailSkeleton() {
@@ -78,6 +80,8 @@ export default function HrisLeaveRequestDetailPage() {
   const [cancelNotes, setCancelNotes] = useState('');
   const [noteAction, setNoteAction] = useState(null);
   const { notification, showNotification, closeNotification } = useNotification();
+  const profile = authService.getProfile() || {};
+  const canWriteDeployments = hasPermission(profile, 'deployments.write');
 
   const loadLeaveRequest = useCallback(async () => {
     setLoading(true);
@@ -115,6 +119,11 @@ export default function HrisLeaveRequestDetailPage() {
   };
 
   const openApprovalMode = async () => {
+    if (leaveRequest?.requiresReplacementCoverage && !canWriteDeployments) {
+      showNotification('Only the President or Operations Manager can assign a replacement guard for this leave request.', 'error');
+      return;
+    }
+
     setNoteAction(null);
     setReviewNotes('');
     setCancelNotes('');
@@ -144,6 +153,10 @@ export default function HrisLeaveRequestDetailPage() {
 
   const handleApprove = async () => {
     const requiresReplacementCoverage = Boolean(leaveRequest?.requiresReplacementCoverage);
+    if (requiresReplacementCoverage && !canWriteDeployments) {
+      showNotification('Only the President or Operations Manager can assign a replacement guard for this leave request.', 'error');
+      return;
+    }
     if (requiresReplacementCoverage && (!selectedRelieverId || !deploymentOrderFile)) return;
     setActionLoadingId('approve');
     try {
@@ -208,6 +221,7 @@ export default function HrisLeaveRequestDetailPage() {
   const isRejecting = actionLoadingId === 'reject';
   const isCancelling = actionLoadingId === 'cancel';
   const requiresReplacementCoverage = Boolean(leaveRequest?.requiresReplacementCoverage);
+  const canApproveCurrentLeave = !requiresReplacementCoverage || canWriteDeployments;
 
   return (
     <>
@@ -430,7 +444,7 @@ export default function HrisLeaveRequestDetailPage() {
                       <button
                         className="hlr-btn approve"
                         onClick={handleApprove}
-                        disabled={isApproving || replacementLoading || (requiresReplacementCoverage && (!selectedRelieverId || !deploymentOrderFile))}
+                        disabled={isApproving || replacementLoading || !canApproveCurrentLeave || (requiresReplacementCoverage && (!selectedRelieverId || !deploymentOrderFile))}
                         type="button"
                       >
                         {isApproving ? (
@@ -443,7 +457,7 @@ export default function HrisLeaveRequestDetailPage() {
                       <button
                         className="hlr-btn approve"
                         onClick={openApprovalMode}
-                        disabled={replacementLoading}
+                        disabled={replacementLoading || !canApproveCurrentLeave}
                         type="button"
                       >
                         {replacementLoading ? (

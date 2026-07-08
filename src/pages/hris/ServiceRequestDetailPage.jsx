@@ -20,6 +20,7 @@ import ServiceRequestReplyBox from '@components/service-requests/ServiceRequestR
 import ServiceRequestThread from '@components/service-requests/ServiceRequestThread';
 import ServiceRequestTypeDetails from '@components/service-requests/ServiceRequestTypeDetails';
 import serviceRequestsService from '@services/hris/serviceRequestsService';
+import authService from '@services/authService';
 import employeeService from '@services/hris/employeeService';
 import clientService from '@services/hris/clientService';
 import {
@@ -33,6 +34,7 @@ import {
   isBelowMinimumMonthlyBasePay,
   MINIMUM_MONTHLY_BASE_PAY_MESSAGE,
 } from '@constants/payrollRules';
+import { hasPermission } from '@utils/adminPermissions';
 import '../../styles/hris/HrisServiceRequests.css';
 
 function timelineIcon(dotClass) {
@@ -46,6 +48,8 @@ export default function ServiceRequestDetailPage() {
   const navigate          = useNavigate();
   const { toggleSidebar } = useOutletContext();
   const { notification, showNotification, closeNotification } = useNotification();
+  const profile = authService.getProfile() || {};
+  const canWriteDeployments = hasPermission(profile, 'deployments.write');
 
   const [request,       setRequest]       = useState(null);
   const [loading,       setLoading]       = useState(true);
@@ -287,7 +291,7 @@ export default function ServiceRequestDetailPage() {
 
   const canMessage             = ['open', 'in_progress'].includes(request?.status);
   const messages               = request?.messages || [];
-  const canFulfill             = request?.status === 'in_progress';
+  const canFulfill             = canWriteDeployments && request?.status === 'in_progress';
   const canFulfillAdditionalGuard = request?.ticket_type === 'additional_guard'
     && canFulfill
     && !request?.additional_guard_details?.is_fulfilled;
